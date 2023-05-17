@@ -130,7 +130,7 @@ const config = {
             className: 'navbar-item',
           },
           {
-            to: 'https://arcadia-issue-helper.netlify.app/?lang=zh-CN',
+            to: 'http://issue.arcadia.cool/?lang=zh-CN',
             label: 'Issue（公共测试）',
             position: 'left',
             className: 'navbar-item',

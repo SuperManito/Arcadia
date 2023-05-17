@@ -23,7 +23,7 @@ import { ActiveTeamRow } from '@site/src/components/TeamProfileCards';
 
 ## Issue 反馈
 
-请通过我们提供的表单页面进行创建 [点此前往](https://arcadia-issue-helper.netlify.app/)
+请通过我们提供的表单页面进行创建 [点此前往](http://issue.arcadia.cool/?lang=zh-CN)
 
 :::caution 请你注意
 我们不接受任何使用问题，这只会让你创建的 issue 被立即关闭，如果你有任何使用问题可参考下方加入社群。
