@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkarcadia=self.webpackChunkarcadia||[]).push([[3233],{6726:e=>{e.exports=JSON.parse('{"title":"User","slug":"/category/user","permalink":"/docs/category/user","navigation":{"previous":{"title":"\u5185\u90e8\u63a5\u53e3","permalink":"/docs/api/internal/"},"next":{"title":"\u767b\u5f55\u8ba4\u8bc1","permalink":"/docs/api/internal/user/auth"}}}')}}]);
