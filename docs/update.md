@@ -19,13 +19,13 @@ docker rm -f arcadia
 ### 删除镜像
 
 ```bash
-docker rmi supermanito/helloworld
+docker rmi supermanito/arcadia
 ```
 
 ### 拉取新的镜像
 
 ```bash
-docker pull supermanito/helloworld:latest
+docker pull supermanito/arcadia:latest
 ```
 
 ### 重新部署

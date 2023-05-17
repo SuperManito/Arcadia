@@ -5,7 +5,7 @@
 const config = {
   // 必填
   title: 'Arcadia', // 网站名
-  url: 'https://jdhelloworld-dev.netlify.app',
+  url: 'https://arcadia.cool',
   baseUrl: '/',
 
   tagline: '脚本运维面板', // 网站标语
@@ -136,7 +136,7 @@ const config = {
             className: 'navbar-item',
           },
           {
-            href: 'https://github.com/SuperManito/Helloworld/tree/docs',
+            href: 'https://github.com/SuperManito/Arcadia/tree/website',
             position: 'right',
             className: 'header-github-link',
             'aria-label': 'GitHub repository',

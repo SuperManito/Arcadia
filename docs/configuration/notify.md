@@ -14,7 +14,7 @@ title: 推送通知
 - ### 通知尾
 
     ```bash
-    export NOTIFY_TAIL="本通知 By：https://supermanito.github.io/Helloworld"
+    export NOTIFY_TAIL="本通知 By：https://supermanito.github.io/Arcadia"
     ```
     默认如上，如想修改请编辑 **config.sh** 配置文件中的变量
 

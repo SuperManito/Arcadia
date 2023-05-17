@@ -31,7 +31,7 @@ docker run -dit \
 -v /opt/arcadia/raw:/root/raw `# 扩展脚本的主机挂载目录` \
 -e ENABLE_ALL_ENV=true `# 是否在容器启动时预装环境包与常用模块` \
 -e ENABLE_TG_BOT=true `# 是否在容器启动时开启电报机器人服务` \
-supermanito/helloworld:latest
+supermanito/arcadia:latest
 ```
 
 </TabItem>
@@ -50,7 +50,7 @@ supermanito/helloworld:latest
   version: "2.0"
   services:
     arcadia:
-      image: supermanito/helloworld:latest  # 镜像名，可以使用阿里云仓库的备用镜像
+      image: supermanito/arcadia:latest  # 镜像名，可以使用阿里云仓库的备用镜像
       container_name: arcadia  # 容器名（可随意更改）
       hostname: arcadia  # 主机名（可随意更改）
       restart: always  # 开机自启
