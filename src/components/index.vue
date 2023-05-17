@@ -1,0 +1,250 @@
+<template>
+  <n-config-provider :theme-overrides="theme === null ? lightThemeOverrides : darkThemeOverrides" :locale="locale" :theme="theme">
+    <n-message-provider>
+      <n-layout embedded>
+        <n-layout-header bordered class="nav" :lang="lang" @langChange="setLang">
+          <div class="nav-box">
+            <n-text tag="div" class="ui-logo" :depth="1">
+              <img v-if="!theme" src="../img/arcadia-light.png" />
+              <img v-else src="../img/arcadia-dark.png" />
+            </n-text>
+            <n-button-group>
+              <n-popselect :options="PopselectOptions" trigger="click" :on-update:value="handleLanguageSelect">
+                <n-button quaternary size="small" class="nav-picker" :focusable="false">
+                  <template #icon>
+                    <n-icon><LanguageIcon /></n-icon>
+                  </template>
+                </n-button>
+              </n-popselect>
+
+              <n-button v-if="!theme" quaternary strong size="small" :focusable="false" @click="theme = darkTheme">
+                <template #icon>
+                  <n-icon><MoonIcon /></n-icon>
+                </template>
+              </n-button>
+
+              <n-button v-else quaternary strong size="small" :focusable="false" @click="theme = null">
+                <template #icon>
+                  <n-icon><SunIcon /></n-icon>
+                </template>
+              </n-button>
+            </n-button-group>
+          </div>
+        </n-layout-header>
+        <div class="content-box">
+          <div class="content"><Intro :lang="lang" /></div>
+          <div class="content"><IssueForm :lang="lang" /></div>
+        </div>
+      </n-layout>
+    </n-message-provider>
+  </n-config-provider>
+</template>
+
+<script lang="ts">
+import { NLayoutHeader, NText, NIcon, NButton, NButtonGroup, NLayout, NPopselect, NConfigProvider, GlobalThemeOverrides, darkTheme, zhCN, NMessageProvider, SelectOption, GlobalTheme } from 'naive-ui'
+import { Language as LanguageIcon, SunnyOutline as SunIcon } from '@vicons/ionicons5'
+import { Moon as MoonIcon } from '@vicons/tabler'
+import Tiny from 'tinycolor2'
+import Intro from './TopIntro.vue'
+import IssueForm from './IssueForm.vue'
+import { getQuery, updateQuery } from './utils'
+
+export default defineComponent({
+  name: 'IssuePage',
+  components: {
+    Intro,
+    IssueForm,
+    NLayout,
+    NConfigProvider,
+    NLayoutHeader,
+    NText,
+    NIcon,
+    NButton,
+    NButtonGroup,
+    NPopselect,
+    LanguageIcon,
+    SunIcon,
+    MoonIcon,
+    NMessageProvider,
+  },
+  setup: () => {
+    const lang = ref<'en-US' | 'zh-CN'>('zh-CN')
+    const locale = ref<undefined | typeof zhCN>(undefined)
+    const theme = ref<GlobalTheme | null>(null)
+    const PopselectOptions = [
+      {
+        label: '简体中文',
+        value: 'zh-CN',
+      },
+      {
+        label: 'English',
+        value: 'en-US',
+      },
+    ]
+    const handleLanguageSelect = (
+      value : Array<any> | string | number | null,
+      _option: SelectOption | null | SelectOption[],
+    ) => {
+      setLang(value as any)
+    }
+
+    const setLang = (value: 'en-US' | 'zh-CN') => {
+      lang.value = value
+      locale.value = value === 'en-US' ? undefined : zhCN
+      updateQuery({ lang: value })
+    }
+
+    // init 初始化语言
+    const param = getQuery()
+    if (!param?.lang) {
+      updateQuery({ lang: lang.value })
+    } else {
+      setLang(param.lang)
+    }
+
+    // back, forward
+    window.addEventListener('popstate', () => {
+      lang.value = getQuery()?.lang || 'en-US'
+    })
+    const lightThemeOverrides: GlobalThemeOverrides = {
+      common: {
+        primaryColor: Tiny('#2080f0').toHex8String(),
+        primaryColorHover: Tiny('#2080f0').lighten(7.5).brighten(1).desaturate(20).spin(-2).toHex8String(),
+        primaryColorPressed: Tiny('#2080f0').darken(10).saturate(8).spin(2).toHex8String(),
+        primaryColorSuppl: Tiny('#2080f0').lighten(7.5).brighten(1).desaturate(20).spin(-2).toHex8String(),
+        fontSize: '15px',
+        fontSizeMedium: '15px',
+        fontSizeLarge: '16px',
+        successColor: 'rgb(24, 160, 88)',
+        inputColor: 'rgb(242, 243, 245)',
+      },
+      Typography: {
+        headerMargin3: '24px 0 4px 0',
+      },
+      Card: {
+        titleFontSizeMedium: '20px',
+      },
+      Form: {
+        labelFontSizeTopLarge: '15px',
+      },
+      Input: {
+        colorFocus: 'rgb(255, 255, 255)',
+        border: '1px solid transparent',
+      },
+      Layout: {
+        colorEmbedded: 'rgb(242, 243, 245)',
+      },
+      LoadingBar: {
+        colorLoading: '#2080f0',
+      },
+      Message: {
+        padding: '8px 12px',
+      },
+      Dialog: {
+        borderRadius: '5px',
+      },
+      Radio: {
+        buttonColorActive: '#2080f0',
+        buttonTextColorActive: 'rgb(255, 255, 255)',
+      },
+    }
+
+    const darkThemeOverrides: GlobalThemeOverrides = {
+      common: {
+        primaryColor: Tiny('#42d392').toHex8String(),
+        primaryColorHover: Tiny('#42d392').lighten(7.5).brighten(1).desaturate(20).spin(-2).toHex8String(),
+        primaryColorPressed: Tiny('#42d392').darken(10).saturate(8).spin(2).toHex8String(),
+        primaryColorSuppl: Tiny('#42d392').lighten(7.5).brighten(1).desaturate(20).spin(-2).toHex8String(),
+        fontSize: '15px',
+        fontSizeMedium: '15px',
+        fontSizeLarge: '16px',
+        successColor: 'rgb(82, 196, 26)',
+        inputColor: 'rgba(255,255,255,0.08)',
+      },
+      Typography: {
+        headerMargin3: '24px 0 4px 0',
+      },
+      Card: {
+        titleFontSizeMedium: '20px',
+      },
+      Form: {
+        labelFontSizeTopLarge: '15px',
+      },
+      Input: {
+        colorFocus: 'rgb(24, 24, 28)',
+      },
+      Layout: {
+        color: 'rgb(24, 24, 28)',
+      },
+      Dropdown: {
+        color: 'rgb(39, 39, 42)',
+      },
+      TreeSelect: {
+        menuColor: 'rgb(39, 39, 42)',
+      },
+      Popover: {
+        color: 'rgb(39, 39, 42)',
+      },
+      LoadingBar: {
+        colorLoading: '#42d392',
+      },
+      Message: {
+        padding: '8px 12px',
+      },
+      Dialog: {
+        borderRadius: '5px',
+      },
+    }
+
+    return {
+      theme,
+      lang,
+      setLang,
+      locale,
+      darkTheme,
+      lightThemeOverrides,
+      darkThemeOverrides,
+      PopselectOptions,
+      handleLanguageSelect,
+    }
+  },
+})
+</script>
+
+<style scoped>
+.content-box {
+  margin: auto;
+  width: var(--content-width);
+  max-width: var(--content-max-width);
+}
+
+.content {
+  margin-top: 24px;
+}
+.nav {
+  height: calc(var(--header-height) - 1px);
+  display: flex;
+  justify-content: center;
+}
+
+.nav-box {
+  display: flex;
+  justify-content: space-between;
+  margin: auto;
+  width: var(--content-width);
+  max-width: var(--content-max-width);
+}
+
+.ui-logo {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+}
+
+.ui-logo > img {
+  margin-right: 12px;
+  height: 26px;
+  width: 144px;
+}
+</style>
