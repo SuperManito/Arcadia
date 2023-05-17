@@ -1,0 +1,30 @@
+---
+title: 获取文件内容
+description: 我想看看脚本里写了什么，不然总有人又要被偷家了。
+---
+import APITable from '@site/src/components/APITable';
+import { GET } from '@site/src/components/RequestTag';
+
+#### <GET>/file</GET>
+
+## 请求
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `path` | `string` | 是 | 绝对路径 |
+
+```mdx-code-block
+</APITable>
+```
+
+## 响应
+
+- ContentType `text/plain`
+
+```jsx title="示例"
+"public function template() {\n    console.log(\"Hello World\");\n}"
+```

@@ -1,0 +1,4 @@
+public
+dist
+**/*.min.js
+**/*.sub.js

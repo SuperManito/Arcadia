@@ -1,0 +1,55 @@
+---
+title: 调用底层命令
+---
+import APITable from '@site/src/components/APITable';
+import { GET, POST } from '@site/src/components/RequestTag';
+
+在终端执行自定义命令并实时返回执行结果
+
+## 运行命令
+
+#### <POST>/runCmd</POST>
+
+### 请求
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `cmd` | `string` | 是 | 命令 |
+
+```mdx-code-block
+</APITable>
+```
+
+### 响应
+
+- ContentType `application/json`
+
+返回一个 id，通过 `/file/:id` 获取文件内容。
+
+```jsx title="示例"
+"aBcDeFgHiJkLmNoPqRsTuVwXyZ"
+```
+
+## 获取日志
+
+#### <GET>/runLog</GET>
+
+### 请求
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `id` | `string` | 是 | 临时id |
+
+```mdx-code-block
+</APITable>
+```
+
+### 响应

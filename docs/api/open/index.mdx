@@ -1,0 +1,351 @@
+---
+title: 开放接口
+---
+import APITable from '@site/src/components/APITable';
+import { GET, POST, DELETE } from '@site/src/components/RequestTag';
+
+:::caution 过时的内容
+OpenApi 相关内容将在未来作出调整，注意持续关注我们的最新变动
+:::
+
+## 接口说明
+
+  服务端已开启 CORS 跨域支持，使用 HTTP Status Code 标识状态  
+
+  - ### 接口基准地址
+
+    `http://localhost:5678/openApi`
+
+  - ### 需要授权的 API
+
+    API认证统一使用 Token 认证
+
+    需要在 **请求头（Header）** 或 **请求地址参数（URL）** 中使用 `api-token` 字段并提供 `openApiToken` 的值
+
+    - #### 获取 openApiToken 的方法 <!-- {docsify-ignore} -->
+
+      ```bash
+      taskctl panel info | grep ApiToken
+      ```
+      此 **Token** 初始值为 `88888888` ，每次修改面板登录认证信息都会随机一个新的 `32` 位字符串
+
+  - ### 业务代码说明
+
+    ```mdx-code-block
+    <APITable>
+    ```
+
+    |    状态码     |       含义       |       说明       |
+    | :----------: | :--------------: | :-------------: |
+    |     `0`      |       fail       |     请求失败     |
+    |     `1`      |     success      |     请求成功     |
+    | `403`/`4403` | openApi 认证失败  |    token错误    |
+
+    ```mdx-code-block
+    </APITable>
+    ```
+
+  - ### 通用返回内容
+
+    数据返回格式统一使用 JSON
+
+    ```mdx-code-block
+    <APITable>
+    ```
+
+    |  参数名 | 参数说明 |
+    | :----: | :-----: |
+    |  code  | 业务代码 |
+    |  data  | 返回结果 |
+    |  msg   | 结果消息 |
+    |  desc  | 结果描述 |
+
+    ```mdx-code-block
+    </APITable>
+    ```
+
+***
+
+## 内置接口
+
+### 添加/更新账号数据
+
+#### <POST>/updateCookie</POST>
+
+##### 请求
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `cookie` | `string` | 是 | `cookie` 内容 |
+| `userMsg` | `string` | 否 | 备注 |
+
+```mdx-code-block
+</APITable>
+```
+
+##### 响应
+
+- ContentType `application/json`
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `data` | `number` | 提交后服务器中现存的 `cookie` 数量 |
+
+```mdx-code-block
+</APITable>
+```
+
+```jsx title="示例"
+{
+  code: 1,
+  data: 1,
+  msg: "success"
+}
+```
+
+### WSKEY & Cookie 二合一
+
+#### <POST>/addOrUpdateAccount</POST>
+
+##### 请求
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `ptPin` | `string` | 是 | `pt_pin` 的值 |
+| `ptKey` | `string` | 否 | `pt_key` 的值 |
+| `wsKey` | `string` | 否 | `ws_key` 的值 |
+| `remarks` | `string` | 否 | 备注 |
+
+```mdx-code-block
+</APITable>
+```
+
+:::info
+`ptKey` 和 `wsKey` 至少需要传入其中任意一个参数，即账号不能为空
+:::
+
+
+##### 响应
+
+- ContentType `application/json`
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `cookieCount` | `number` | 提交后服务器中现存的 `cookie` 数量 |
+| `accountCount` | `number` | 提交后服务器中现存的 `wskey` 数量 |
+
+```mdx-code-block
+</APITable>
+```
+
+```jsx title="示例"
+{
+  code: 1,
+  data: {
+    cookieCount: 1,
+    accountCount: 1
+  },
+  msg: ""
+}
+```
+
+### 删除账号
+
+#### <POST>/cookie/delete</POST>
+
+##### 请求
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `ptPins` | `array` | 是 | 由pt_pin的值组成的数组,例 `["pin1","pin2"]` |
+
+```mdx-code-block
+</APITable>
+```
+
+##### 响应
+
+- ContentType `application/json`
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `cookieCount` | `number` | 删除后服务器中现存的 `cookie` 数量 |
+| `accountCount` | `number` | 删除后服务器中现存的 `wskey` 数量 |
+| `deleteCount` | `number` | 此次删除的 `cookie` 数量 |
+
+```mdx-code-block
+</APITable>
+```
+
+```jsx title="示例"
+{
+  code: 1,
+  data: {
+    cookieCount: 1,
+    accountCount: 1,
+    deleteCount: 1
+  },
+  msg: ""
+}
+```
+
+### 查看账号数量
+
+#### <GET>count</GET>
+
+##### 请求
+
+无参数
+
+##### 响应
+
+- ContentType `application/json`
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `cookieCount` | `number` | 服务器当前现存的 `cookie` 数量 |
+| `accountCount` | `number` | 服务器当前现存的 `wskey` 数量 |
+
+```mdx-code-block
+</APITable>
+```
+
+```jsx title="示例"
+{
+  code: 1,
+  data: {
+    "cookieCount": 1,
+    "accountCount": 1
+  },
+  msg: ""
+}
+```
+
+***
+
+## 用户自定义接口
+
+将你的脚本以 `extra_server.js` 命名存放在 **config** 目录下，重启面板后生效，注意检查日志确认是否正确加载
+
+:::info 接口规范
+请求路径需使用 `openApi` 作为开头
+:::
+
+<details>
+
+<summary>可以参考下方的简单示例（点击查看）</summary>
+
+```jsx language=javascript title="extra_server.js" showLineNumbers
+const request = require("request");
+
+// 检测账号是否有效（pt_key or wskey）
+// 无需提供 pt_pin
+async function checkSatus(ck) {
+  return new Promise((resolve, reject) => {
+    var options = {
+      'method': 'GET',
+      'url': 'https://me-api.jd.com/user_new/info/GetJDUserInfoUnion',
+      'headers': {
+        'Referer': 'https://home.m.jd.com/myJd/home.action',
+        'Cookie': ck,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    };
+    request(options, function (error, response, body) {
+      if (!error && response.statusCode == 200) {
+        resolve(body)
+      }
+    });
+  });
+};
+
+async function extraServer(app) {
+  app.post("/openApi/cookie/status", async function (request, response) {
+    let ck = request.body.cookie;
+
+    var data = await checkSatus(ck).then(function (req) {
+      return req
+    })
+    // console.log(data)
+
+    // 判断账号状态
+    var status_code = JSON.parse(data).retcode;
+
+    // 回传信息
+    if (status_code == "0") {
+      // 账号有效
+      var message = JSON.parse(data).msg;
+      var pt_pin = JSON.parse(data).data.userInfo.baseInfo.curPin; // 用户名
+      var nickname = JSON.parse(data).data.userInfo.baseInfo.nickname; // 昵称
+      var plusvip = JSON.parse(data).data.userInfo.isPlusVip; // 是否为Plus用户
+      var headimg = JSON.parse(data).data.userInfo.baseInfo.headImageUrl; // 头像
+      var levelname = JSON.parse(data).data.userInfo.baseInfo.levelName; // 等级
+
+      var send_content = {
+        "code": "1",
+        "msg": message,
+        "pt_pin": pt_pin,
+        "nickname": nickname,
+        "headimg": headimg,
+        "status": "1",
+        "plusvip": plusvip,
+        "levelname": levelname
+      };
+
+    } else if (status_code == "1001") {
+      // 账号无效
+      var message = JSON.parse(data).msg;
+      var send_content = {
+        "code": "1",
+        "msg": message,
+        "status": "0",
+      };
+    } else {
+      // 其它（又可能是无法请求接口）
+      var send_content = {
+        "code": "0",
+        "msg": "接口异常，请联系管理员处理"
+      };
+    }
+    // 回传信息
+    response.send(send_content);
+
+    // 打印日志
+    var UpdateTime = new Date();
+    console.log("\n[" + UpdateTime + "] 检查账号状态 => " + ck);
+    console.log("回传信息 => " + JSON.stringify(send_content));
+  });
+}
+
+module.exports = extraServer;
+```
+
+</details>

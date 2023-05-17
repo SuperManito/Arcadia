@@ -1,0 +1,58 @@
+---
+title: 内部接口
+---
+import APITable from '@site/src/components/APITable';
+
+本部分向你介绍项目所使用的内部接口
+
+### 接口基准地址
+
+- `http://localhost:5678/api`
+
+### 身份认证
+
+在 Header 中添加 `Authorization` 字段，值为 `Bearer ${token}`
+
+关于如何获取 `Token` 详见登录认证接口 [点击前往](/docs/api/internal/user/auth)
+
+### 通用返回内容格式
+
+数据返回格式统一使用 JSON
+
+```mdx-code-block
+<APITable>
+```
+
+| 参数 | 说明 |
+| :----: | :-----: |
+|  code  | 业务代码 |
+|  message | 消息 |
+|  type | 类型 |
+|  result | 返回结果（不一定有） |
+
+```mdx-code-block
+</APITable>
+```
+
+### 业务代码说明
+
+```mdx-code-block
+<APITable>
+```
+
+|    状态码     |       含义       |       说明       |
+| :----------: | :--------------: | :-------------: |
+|     `0`      |       fail       |     请求失败     |
+|     `1`      |     success      |     请求成功     |
+
+```mdx-code-block
+</APITable>
+```
+
+### 接口类别
+
+```mdx-code-block
+import DocCardList from '@theme/DocCardList';
+
+<DocCardList />
+```

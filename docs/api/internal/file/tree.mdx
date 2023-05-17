@@ -1,0 +1,172 @@
+---
+title: 获取文件列表
+description: 漂亮的文件树就是由它实现的😊
+---
+import APITable from '@site/src/components/APITable';
+import { GET } from '@site/src/components/RequestTag';
+
+## 通用
+
+#### <GET>/file/tree</GET>
+
+### 请求
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `type` | `string` | 否 | 获取类型，固定可选值 [**TypeEnum**](./tree#TypeEnum)（对应各目录），不提供则为全部 |
+| `keywords` | `string` | 否 | 过滤关键字，用于文件名搜索 |
+| `startTime` | `string` | 否 | 开始日期时间，用于日期范围搜索，格式固定为 `yyyy-MM-dd HH:mm` |
+| `endTime` | `string` | 否 | 结束日期时间，用于日期范围搜索，格式固定为 `yyyy-MM-dd HH:mm`，不提供则默认为当前时间 |
+| `isDir` | `string` | 否 | 获取目录树，仅统计目录不包含任何文件，不提供默认为 `false` |
+
+```mdx-code-block
+</APITable>
+```
+
+#### TypeEnum
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 含义 |
+| :-: | :-: |
+| `config` | 配置文件目录 |
+| `sample` | 模板文件目录 |
+| `log` | 日志文件目录 |
+| `repo` | 脚本仓库文件目录 |
+| `raw` | 扩展脚本文件目录 |
+| `scripts` | 个人脚本文件目录 |
+| `all` | 除日志文件目录以外上述全部 |
+
+```mdx-code-block
+</APITable>
+```
+
+### 响应
+
+- ContentType `application/json`
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `path` | `string` | 绝对路径 |
+| `title` | `string` | 文件或目录的名称 |
+| `type` | `number` | 文件类型，`1` 文件 `0` 文件夹 |
+| `deep` | `number` | 深度 |
+| `children` | `array` | 成员，即下级目录内容 |
+
+```mdx-code-block
+</APITable>
+```
+
+```jsx title="示例"
+[
+  {
+    "path": "/root/MyFile",
+    "title": "MyFile",
+    "type": 0,
+    "deep": 0,
+    "children": [
+      {
+        "path": "/root/MyFile/script",
+        "title": "script",
+        "type": 0,
+        "deep": 1,
+        "children": [
+          {
+            "path": "/root/MyFile/script/template.js",
+            "name": "template.js",
+            "type": 1
+          },
+          {
+            "path": "/root/MyFile/script/template.sh",
+            "name": "template.sh",
+            "type": 1
+          },
+          ...
+        ]
+      },
+      ...
+    ]
+  }
+]
+```
+
+## 指定目录
+
+#### <GET>/file/dir</GET>
+
+### 请求
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `path` | `string` | 是 | 绝对路径 |
+
+```mdx-code-block
+</APITable>
+```
+
+### 响应
+
+- ContentType `application/json`
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `path` | `string` | 绝对路径 |
+| `title` | `string` | 文件或目录的名称 |
+| `type` | `number` | 文件类型，`1` 文件 `0` 文件夹 |
+| `deep` | `number` | 深度 |
+| `children` | `array` | 成员，即下级目录内容 |
+
+```mdx-code-block
+</APITable>
+```
+
+```jsx title="示例"
+[
+  {
+    "path": "/root/MyFile",
+    "title": "MyFile",
+    "type": 0,
+    "deep": 0,
+    "children": [
+      {
+        "path": "/root/MyFile/script",
+        "title": "script",
+        "type": 0,
+        "deep": 1,
+        "children": [
+          {
+            "path": "/root/MyFile/script/template.js",
+            "name": "template.js",
+            "type": 1
+          },
+          {
+            "path": "/root/MyFile/script/template.sh",
+            "name": "template.sh",
+            "type": 1
+          },
+          ...
+        ]
+      },
+      ...
+    ]
+  }
+]
+```

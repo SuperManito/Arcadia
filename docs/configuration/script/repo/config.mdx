@@ -1,0 +1,118 @@
+---
+title: 配置文件
+---
+import APITable from '@site/src/components/APITable';
+
+本篇介绍配置仓库的方法以及一些相关的配置项
+
+:::tip 编辑配置文件
+你可以在后台管理面板点击 `编辑配置` - `下拉选择 sync_config.yml` 来在线编辑
+:::
+
+## 主要配置项
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 必填 | 类型 | 默认值 | 描述 |
+| :-: | :-: | :-: | :-: | --- |
+| `name` | 是 | `string` | 无 | 仓库名称 |
+| `url` | 是 | `string` | 无 | 仓库远程地址 |
+| `branch` | 是 | `string` | 无 | 分支名称 |
+| `enable` | 否 | `boolean` | `true` | 是否启用该仓库配置 |
+| `cronSettings` | 否 | `object` | 无 | 定时任务设置，详见下方 |
+
+```mdx-code-block
+</APITable>
+```
+
+### 定时任务配置项 
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 必填 | 类型 | 默认值 | 描述 |
+| :-: | :-: | :-: | :-: | --- |
+| `updateTaskList` | 否 | `boolean` | `false` | 是否为该配置启用定时任务（默认不启用） |
+| `scriptsPath` | 否 | `string` | `/` | 定时脚本路径（默认为仓库根目录） |
+| `scriptsType` | 否 | `array` | `["js", "py", "ts"]` | 定时脚本文件格式（默认为三种类型的脚本） |
+| `whiteList` | 否 | `string` | 无 | 定时脚本匹配白名单（默认为空，即所有脚本） |
+| `blackList` | 否 | `string` | 无 | 定时脚本匹配黑名单（默认为空） |
+| `autoDisable` | 否 | `boolean` | `false` | 是否自动禁用新的定时任务（默认不禁用） |
+| `addNotify` | 否 | `boolean` | `true` | 是否为新增定时任务推送通知提醒 |
+| `delNotify` | 否 | `boolean` | `true` | 是否为过期定时任务推送通知提醒 |
+
+```mdx-code-block
+</APITable>
+```
+
+#### `scriptsPath`
+
+设置用单个 `/` 字符来表示仓库根目录，如果你想配置多个路径可以使用空格来进行分割，例如
+
+#### `scriptsType`
+
+你需要通过数组的形式进行配置，键名为脚本后缀格式名称，默认（不填）为 JavaScript、Python、TypeScript 脚本
+
+```yaml
+scriptsType:
+  - js
+  - py
+  - ts
+```
+工作原理是在读取该项配置时会使用 `join()` 方法将数组合并成一个用空格进行分割的字符串 `js py ts`，之后会通过遍历数组的方式转变成基于 [**grep**](https://www.runoob.com/linux/linux-comm-grep.html) 指令过滤规则的最终形态字符串 `\.js$|\.py$|\.ts$`
+
+#### `whiteList` 或 `blackList`
+
+基于 [**grep**](https://www.runoob.com/linux/linux-comm-grep.html) 指令进行过滤（默认使用 `-E` 命令选项用于匹配多个表达式），支持正则表达式。如果要匹配多个表达式，那么根据该指令规范你需要使用 `|` 字符来进行分割，你可以先在本地调试好再进行配置，例如 `ls | grep -E "<xxx>"`。如果你想学习正则表达式和该指令你可以看看 [基础正则表达式](https://www.junmajinlong.com/shell/regex_basic) 这篇文章
+
+:::note 为什么需要使用双引号包裹键值？
+根据 YAML 语法规范，如果使用单引号来包裹键值那么会使转义字符生效，这样就会破坏与过滤规则相关的键名所定义的键值
+:::
+
+### 填法示例
+
+```yaml
+repo:
+  - name: "仓库1"
+    url: "https://gihub.com/User1/Repo1.git"
+    branch: "main"
+    enable: true
+    cronSettings:
+      updateTaskList: true
+      autoDisable: false
+      addNotify: true
+      delNotify: true
+      scriptsPath: ""
+      scriptsType:
+        - js
+      whiteList: ''
+      blackList: ''
+  - name: "仓库2"
+    url: "https://gitlab.com/User2/Repo2.git"
+    branch: "master"
+    enable: false
+```
+
+修改定时过滤规则并不会影响已经添加的定时任务，所以如果有不合适的定时任务则需要你手动进行删除
+
+:::note 如何修改已配置仓库的远程地址？
+针对同一个仓库直接修改 `url` 键值对即可，同一个仓库指的是两个不同的地址所指向的仓库拥有相同的用户名和仓库名，否则将被视为一个新的仓库
+:::
+
+### 自动禁用重复定时任务
+
+```yaml
+gobal:
+  autoDisableRepoDuplicateCron: true # boolean
+```
+
+重复脚本依据脚本名判断，启用该功能后如果数据库中已存在相同脚本名的定时任务那么新增的定时任务会被默认禁用
+
+## 删除已配置的扩展仓库
+
+1. 手动删除配置文件中的仓库配置
+2. 手动删除相关定时任务，你可以通过后台管理面板的定时任务页进行操作，在设置过滤后批量删除
+3. 手动删除本地仓库文件，一般在 **repo** 目录下，文件夹名格式为 `作者名_仓库名`
