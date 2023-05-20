@@ -13,6 +13,9 @@ import styles from './index.module.css'
 function Hero () {
   return (
     <header className={clsx('container', styles.heroBanner)}>
+      <div class="alert alert--primary" role="alert">
+        <strong>目前尚未发布，官网仅供预览，敬请期待...</strong>
+      </div>
       <div className="row padding-horiz--md">
         <div className="col col--7">
           <div className={clsx(styles.relative, 'row')}>
@@ -36,7 +39,7 @@ function Hero () {
           </div>
           <div className="row">
             <div className="col">
-              <h2>稳定 安全 易用 高效 简约 漂亮</h2>
+              <h2>稳定 安全 高效 易用 简约 漂亮</h2>
             </div>
           </div>
           <div>

@@ -1,6 +1,8 @@
 // @ts-nocheck
 // Note: type annotations allow type checking and IDEs autocompletion
 
+const npm2yarn = require('@docusaurus/remark-plugin-npm2yarn')
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   // 必填
@@ -33,18 +35,18 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl: 'https://github.com/SuperManito/Arcadia/tree/website',
-          remarkPlugins: [
-            [require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }],
-          ],
+          remarkPlugins: [npm2yarn],
         },
         pages: {
-          remarkPlugins: [require('@docusaurus/remark-plugin-npm2yarn')],
+          remarkPlugins: [npm2yarn],
         },
         blog: {
           showReadingTime: true,
           path: 'blog',
           editUrl: 'https://github.com/SuperManito/Arcadia/tree/website',
           blogSidebarTitle: '最近的帖子',
+          blogSidebarCount: 'ALL',
+          remarkPlugins: [npm2yarn],
         },
         // 自定义CSS
         theme: {
