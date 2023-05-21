@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkarcadia=self.webpackChunkarcadia||[]).push([[3477],{2996:a=>{a.exports=JSON.parse('{"title":"task","slug":"/category/task","permalink":"/docs/category/task","navigation":{"previous":{"title":"\u6742\u9879","permalink":"/docs/cli/arcadia/sundry"},"next":{"title":"\u8fd0\u884c\u811a\u672c","permalink":"/docs/cli/task/run"}}}')}}]);
