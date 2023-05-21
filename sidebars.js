@@ -1,27 +1,41 @@
 /* eslint-disable no-undef */
 module.exports = {
   docs: [
-    'index',
-    'start/about',
-    'install/index',
     {
+      label: '介绍',
+      type: 'doc',
+      id: 'index',
+    },
+    {
+      label: '开始使用',
       type: 'category',
-      label: '配置指南',
+      link: {
+        type: 'generated-index',
+      },
+      items: [
+        'start/install',
+        'start/update',
+      ],
+      collapsed: false,
+    },
+    {
+      label: '用户配置',
+      type: 'category',
       link: {
         type: 'generated-index',
       },
       items: [
         {
-          type: 'category',
           label: '导入脚本',
+          type: 'category',
           link: {
             type: 'doc',
             id: 'configuration/script/index',
           },
           items: [
             {
-              type: 'category',
               label: '脚本仓库',
+              type: 'category',
               link: {
                 type: 'doc',
                 id: 'configuration/script/repo/index',
@@ -34,8 +48,8 @@ module.exports = {
               collapsed: true,
             },
             {
-              type: 'category',
               label: '远程脚本',
+              type: 'category',
               link: {
                 type: 'doc',
                 id: 'configuration/script/raw/index',
@@ -57,44 +71,74 @@ module.exports = {
       collapsed: false,
     },
     {
+      label: '命令行 CLI',
       type: 'category',
-      label: 'CLI',
       link: {
         type: 'doc',
         id: 'cli/index',
       },
       items: [
         {
+          label: 'arcadia',
           type: 'category',
-          label: 'task 指令',
           link: {
             type: 'generated-index',
           },
-          items: ['cli/task/run', 'cli/task/env', 'cli/task/account', 'cli/task/sundry'],
+          items: [
+            'cli/arcadia/panel',
+            'cli/arcadia/tgbot',
+            'cli/arcadia/sundry',
+          ],
           collapsed: true,
         },
         {
+          label: 'task',
           type: 'category',
-          label: 'taskctl 指令',
           link: {
             type: 'generated-index',
           },
-          items: ['cli/taskctl/panel', 'cli/taskctl/tgbot', 'cli/taskctl/sundry'],
+          items: [
+            'cli/task/run',
+            'cli/task/account',
+            'cli/task/sundry',
+          ],
           collapsed: true,
         },
         {
+          label: 'update',
           type: 'doc',
-          label: 'update 指令',
           id: 'cli/update/index',
+        },
+        {
+          label: 'envm',
+          type: 'doc',
+          id: 'cli/envm/index',
         },
       ],
       collapsed: false,
     },
-    'panel',
-    'update',
+    {
+      label: '后台管理面板',
+      type: 'doc',
+      id: 'panel',
+    },
+    {
+      label: '更新日志',
+      type: 'doc',
+      id: 'about',
+    },
+    {
+      label: '关于我们',
+      type: 'doc',
+      id: 'about',
+    },
   ],
   api: [
-    'api/index',
+    {
+      label: '说明',
+      type: 'doc',
+      id: 'api/index',
+    },
     {
       type: 'category',
       label: '内部接口',
@@ -109,7 +153,11 @@ module.exports = {
           link: {
             type: 'generated-index',
           },
-          items: ['api/internal/user/auth', 'api/internal/user/info', 'api/internal/user/change-password'],
+          items: [
+            'api/internal/user/auth',
+            'api/internal/user/info',
+            'api/internal/user/change-password',
+          ],
           collapsed: false,
         },
         {
@@ -118,7 +166,18 @@ module.exports = {
           link: {
             type: 'generated-index',
           },
-          items: ['api/internal/file/get-content', 'api/internal/file/save-content', 'api/internal/file/delete', 'api/internal/file/tree', 'api/internal/file/attribute', 'api/internal/file/create', 'api/internal/file/move', 'api/internal/file/rename', 'api/internal/file/download', 'api/internal/file/upload'],
+          items: [
+            'api/internal/file/get-content',
+            'api/internal/file/save-content',
+            'api/internal/file/delete',
+            'api/internal/file/tree',
+            'api/internal/file/attribute',
+            'api/internal/file/create',
+            'api/internal/file/move',
+            'api/internal/file/rename',
+            'api/internal/file/download',
+            'api/internal/file/upload',
+          ],
           collapsed: false,
         },
         {
@@ -127,7 +186,14 @@ module.exports = {
           link: {
             type: 'generated-index',
           },
-          items: ['api/internal/cron/page', 'api/internal/cron/create', 'api/internal/cron/edit', 'api/internal/cron/delete', 'api/internal/cron/order', 'api/internal/cron/bind-group'],
+          items: [
+            'api/internal/cron/page',
+            'api/internal/cron/create',
+            'api/internal/cron/edit',
+            'api/internal/cron/delete',
+            'api/internal/cron/order',
+            'api/internal/cron/bind-group',
+          ],
           collapsed: false,
         },
         {
@@ -136,7 +202,10 @@ module.exports = {
           link: {
             type: 'generated-index',
           },
-          items: ['api/internal/main/captcha', 'api/internal/main/run'],
+          items: [
+            'api/internal/main/captcha',
+            'api/internal/main/run',
+          ],
           collapsed: false,
         },
         {
@@ -152,7 +221,14 @@ module.exports = {
               link: {
                 type: 'generated-index',
               },
-              items: ['api/internal/config/type/by-type', 'api/internal/config/type/by-type-single', 'api/internal/config/type/create', 'api/internal/config/type/delete', 'api/internal/config/type/edit', 'api/internal/config/type/page'],
+              items: [
+                'api/internal/config/type/by-type',
+                'api/internal/config/type/by-type-single',
+                'api/internal/config/type/create',
+                'api/internal/config/type/delete',
+                'api/internal/config/type/edit',
+                'api/internal/config/type/page',
+              ],
               collapsed: false,
             },
           ],

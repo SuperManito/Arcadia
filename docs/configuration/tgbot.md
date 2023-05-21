@@ -4,16 +4,14 @@ title: 电报机器人
 
 # 配置 Telegram Bot 服务
 
-属于自己的智能机器人，可执行一些操作方便日常使用
-
-上述命令可以在 [@BotFather](https://t.me/BotFather) 中的 `Edit Bot` - `Edit Commands` 设置命令菜单
+属于自己的智能机器人，可执行一些便捷操作
 
 ## 配置方法
 
 - 编辑位于 **config** 目录下的 **bot.json** 配置文件
 
   :::info 后台管理面板入口
-  编辑配置 -  - 下拉选择 `bot.json`
+  编辑配置 - 下拉选择 `bot.json`
   :::
 
   ```json

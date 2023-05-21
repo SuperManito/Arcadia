@@ -6,7 +6,7 @@ description: 一些互无关联的功能
 ## 查看服务状态
 
 ```bash
-taskctl server status
+arcadia server status
 ```
 如遇相关服务没有启动或状态异常，在容器初始成功的前提下请先尝试手动启动
 
@@ -15,20 +15,20 @@ taskctl server status
 默认在容器启动时已执行过一次无需重复安装
 
 ```bash
-taskctl env install
+arcadia env install
 ```
 安装常用模块便于执行一些常见的脚本，64位处理器会附带安装 `Python` 和 `TypeSciprt` 环境
 
 ## 修复环境
 
 ```bash
-taskctl env repairs
+arcadia env repairs
 ```
 当 npm 程序崩溃时可执行此命令进行修复
 
 ## 检查配置文件完整性
 
 ```bash
-taskctl check files
+arcadia check files
 ```
 检查项目相关配置文件是否存在，如果缺失就从模板中重新导入

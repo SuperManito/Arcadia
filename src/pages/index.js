@@ -13,7 +13,7 @@ import styles from './index.module.css'
 function Hero () {
   return (
     <header className={clsx('container', styles.heroBanner)}>
-      <div class="alert alert--primary" role="alert">
+      <div class="alert alert--warning" role="alert">
         <strong>目前尚未发布，官网仅供预览，敬请期待...</strong>
       </div>
       <div className="row padding-horiz--md">

@@ -76,6 +76,12 @@ const config = {
           autoCollapseCategories: false,
         },
       },
+      announcementBar: {
+        content: '目前尚未发布，官网仅供预览，敬请期待...',
+        backgroundColor: 'rgb(209 126 31)',
+        textColor: '#fff',
+        isCloseable: true,
+      },
       algolia: {
         appId: '9XOFOP4RAZ',
         apiKey: '60e3e90d5b4cd5d1842e6139f234cca0',
@@ -110,12 +116,6 @@ const config = {
             type: 'doc',
             position: 'left',
             docId: 'index',
-            className: 'navbar-item',
-          },
-          {
-            label: '快速开始',
-            href: '/docs/install',
-            position: 'left',
             className: 'navbar-item',
           },
           {

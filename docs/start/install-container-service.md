@@ -80,5 +80,5 @@ pip3 install docker-compose
 
 
 :::tip
-[**点此返回安装文档**](/docs/install#%E5%90%AF%E5%8A%A8%E6%82%A8%E7%9A%84%E5%AE%B9%E5%99%A8)
+[**点此返回安装文档**](/docs/start/install#%E5%90%AF%E5%8A%A8%E4%BD%A0%E7%9A%84%E5%AE%B9%E5%99%A8)
 :::

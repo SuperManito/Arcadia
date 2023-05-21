@@ -15,6 +15,7 @@
   --ifm-code-font-size: 95%;
   --ifm-font-family-monospace: "SF Mono", "JetBrains Mono", Consolas, "Courier New", monospace;
   --ifm-footer-padding-vertical: 10px;
+  --ifm-breadcrumb-border-radius: 5px;
 }
 
 /* 浅色主题 */
@@ -45,9 +46,8 @@
   --docusaurus-highlighted-code-line-bg: #D4D4D41a;
 }
 
-
-/* 导航栏背景 */
 @media screen and (min-width: 640px) {
+  /* 导航栏背景 */
   [data-theme='light'] {
     --ifm-navbar-background-color: #ffffff54;
     --ifm-custom-navbar-background-color: #ffffff54;
