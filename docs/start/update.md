@@ -28,7 +28,7 @@ docker pull supermanito/arcadia:latest
 
 ### 重新部署
 
-部署项目 [点此跳转](/docs/install)
+部署项目 [点此跳转](/docs/start/install)
 
 ## 配置文件
 

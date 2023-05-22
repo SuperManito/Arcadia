@@ -83,9 +83,9 @@ const config = {
         isCloseable: true,
       },
       algolia: {
-        appId: '9XOFOP4RAZ',
-        apiKey: '60e3e90d5b4cd5d1842e6139f234cca0',
-        indexName: 'jdhelloworld-dev',
+        appId: 'CAFZ8NG0JM',
+        apiKey: 'a80af7dba41cb88ef2d909874911a5af',
+        indexName: 'arcadia-panel',
         contextualSearch: true,
         searchPagePath: 'search',
       },

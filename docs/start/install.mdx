@@ -24,11 +24,11 @@ docker run -dit \
 --network bridge `# 容器网络类型` \
 --restart always `# 开机自启` \
 -p 5678:5678 `# 端口映射，"主机端口:容器端口"` \
--v /opt/arcadia/config:/root/config `# 配置文件的主机挂载目录` \
--v /opt/arcadia/log:/root/log `# 日志文件的主机挂载目录` \
--v /opt/arcadia/scripts:/root/scripts `# 个人脚本的主机挂载目录` \
--v /opt/arcadia/repo:/root/repo `# 脚本仓库的主机挂载目录` \
--v /opt/arcadia/raw:/root/raw `# 远程脚本的主机挂载目录` \
+-v /opt/arcadia/config:/arcadia/config `# 配置文件的主机挂载目录` \
+-v /opt/arcadia/log:/arcadia/log `# 日志文件的主机挂载目录` \
+-v /opt/arcadia/scripts:/arcadia/scripts `# 个人脚本的主机挂载目录` \
+-v /opt/arcadia/repo:/arcadia/repo `# 脚本仓库的主机挂载目录` \
+-v /opt/arcadia/raw:/arcadia/raw `# 远程脚本的主机挂载目录` \
 supermanito/arcadia:latest
 ```
 
@@ -57,11 +57,11 @@ supermanito/arcadia:latest
       ports:
         - 5678:5678  # 端口映射，格式为 "主机端口:容器端口"，主机端口号可自定义，容器端口用来访问控制面板不可修改
       volumes:
-        - /opt/arcadia/config:/root/config       # 定义配置文件的主机挂载目录
-        - /opt/arcadia/log:/root/log             # 定义日志文件的主机挂载目录
-        - /opt/arcadia/scripts:/root/scripts     # 定义个人脚本的主机挂载目录
-        - /opt/arcadia/repo:/root/repo           # 定义脚本仓库的主机挂载目录
-        - /opt/arcadia/raw:/root/raw             # 定义远程脚本的主机挂载目录
+        - /opt/arcadia/config:/arcadia/config       # 定义配置文件的主机挂载目录
+        - /opt/arcadia/log:/arcadia/log             # 定义日志文件的主机挂载目录
+        - /opt/arcadia/scripts:/arcadia/scripts     # 定义个人脚本的主机挂载目录
+        - /opt/arcadia/repo:/arcadia/repo           # 定义脚本仓库的主机挂载目录
+        - /opt/arcadia/raw:/arcadia/raw             # 定义远程脚本的主机挂载目录
   ```
 
 - ### 启动容器
@@ -136,7 +136,7 @@ docker logs -f arcadia
 ## 目录结构
 
 ```text
-./root                         根目录
+./arcadia                      根目录
 ├── config                       配置文件目录（用户）
 ├── log                          日志存放目录（用户）
 ├── repo                         脚本仓库存放目录（用户）
