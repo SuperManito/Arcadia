@@ -12,7 +12,7 @@ import APITable from '@site/src/components/APITable';
 
 ***
 
-## 启动你的容器
+## 启动你的容器（公共测试）
 
 <Tabs>
 <TabItem value="cli" label="CLI - 命令行">
@@ -29,7 +29,7 @@ docker run -dit \
 -v /opt/arcadia/scripts:/arcadia/scripts `# 个人脚本的主机挂载目录` \
 -v /opt/arcadia/repo:/arcadia/repo `# 脚本仓库的主机挂载目录` \
 -v /opt/arcadia/raw:/arcadia/raw `# 远程脚本的主机挂载目录` \
-supermanito/arcadia:latest
+supermanito/arcadia:dev
 ```
 
 </TabItem>
@@ -48,7 +48,7 @@ supermanito/arcadia:latest
   version: "2.0"
   services:
     arcadia:
-      image: supermanito/arcadia:latest  # 镜像名，可以使用阿里云仓库的备用镜像
+      image: supermanito/arcadia:dev  # 镜像名，可以使用阿里云仓库的备用镜像
       container_name: arcadia  # 容器名（可随意更改）
       hostname: arcadia  # 主机名（可随意更改）
       restart: always  # 开机自启
@@ -145,5 +145,5 @@ docker logs -f arcadia
 ├── shell                        CLI命令脚本源代码
 ├── web                          前端和后端源代码
 ├── utils                        扩展组件源代码
-└── jbot                         电报机器人组件存放目录
+└── tgbot                        电报机器人组件存放目录
 ```

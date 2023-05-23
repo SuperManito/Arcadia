@@ -15,7 +15,9 @@
   --ifm-code-font-size: 95%;
   --ifm-font-family-monospace: "SF Mono", "JetBrains Mono", Consolas, "Courier New", monospace;
   --ifm-footer-padding-vertical: 10px;
-  --ifm-breadcrumb-border-radius: 5px;
+  --ifm-breadcrumb-border-radius: 3px;
+  --ifm-breadcrumb-padding-horizontal: 0.4rem;
+  --ifm-breadcrumb-padding-vertical: 0.1rem;
 }
 
 /* 浅色主题 */

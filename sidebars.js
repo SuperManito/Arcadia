@@ -7,6 +7,11 @@ module.exports = {
       id: 'index',
     },
     {
+      label: '关于我们',
+      type: 'doc',
+      id: 'about',
+    },
+    {
       label: '开始使用',
       type: 'category',
       link: {
@@ -15,6 +20,7 @@ module.exports = {
       items: [
         'start/install',
         'start/update',
+        'start/panel',
       ],
       collapsed: false,
     },
@@ -71,7 +77,7 @@ module.exports = {
       collapsed: false,
     },
     {
-      label: '命令行 CLI',
+      label: '命令行（CLI）',
       type: 'category',
       link: {
         type: 'doc',
@@ -85,7 +91,7 @@ module.exports = {
             type: 'generated-index',
           },
           items: [
-            'cli/arcadia/panel',
+            'cli/arcadia/service',
             'cli/arcadia/tgbot',
             'cli/arcadia/sundry',
           ],
@@ -118,19 +124,9 @@ module.exports = {
       collapsed: false,
     },
     {
-      label: '后台管理面板',
-      type: 'doc',
-      id: 'panel',
-    },
-    {
       label: '更新日志',
       type: 'doc',
-      id: 'about',
-    },
-    {
-      label: '关于我们',
-      type: 'doc',
-      id: 'about',
+      id: 'changelog',
     },
   ],
   api: [
