@@ -66,7 +66,7 @@ title: 电报机器人
 
 - 打开 Telegram 搜索 `@BotFather` 或[点击此处](https://t.me/BotFather)前往，输入 `/newbot` 按提示创建一个新的 Bot
 
-![create_bot](../img/TelegramBot/1.png ':size=600x600')
+![create_bot](./1.png ':size=600x600')
 
 如图，将获取到的 `bot_token` 填入 **bot.json** 中
 
@@ -74,16 +74,13 @@ title: 电报机器人
 - 请使用美国原生节点(其它地区不行)打开网址 [https://my.telegram.org](https://my.telegram.org)，输入你注册 Telegram 时的手机号进行登录
 - 点击登录后会给你的 Telegram 账号发送一条含有验证码的消息(不是短信)，登录后点击 `API development tools` ，随意瞎填即可
 
-![create_application](../img/TelegramBot/2.png ':size=800x600')
+![create_application](./2.png ':size=800x600')
 
 - 下面是创建完的截图，将获取到的 `api_id` 和 `api_hash` 填入 **bot.json** 完成配置
 
-![create_application](../img/TelegramBot/3.png)
+![create_application](./3.png)
 
-- 服务启动后如果网络正常，那么会自动给你发送一条消息表明已经建立了连接，如图
-
-![running](../img/TelegramBot/4.png)
-
+- 服务启动后如果网络正常，那么会自动给你发送一条消息，表明已经建立了连接
 
 ***
 

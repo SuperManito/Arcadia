@@ -10,7 +10,7 @@ const config = {
   url: 'https://arcadia.cool',
   baseUrl: '/',
 
-  tagline: '脚本运维面板', // 网站标语
+  tagline: '脚本运维面板（公测）', // 网站标语
   onBrokenLinks: 'ignore',
   onBrokenMarkdownLinks: 'ignore',
   favicon: 'img/favicon.ico',

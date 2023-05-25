@@ -28,9 +28,11 @@ module.exports = {
       label: '用户配置',
       type: 'category',
       link: {
-        type: 'generated-index',
+        type: 'doc',
+        id: 'configuration/index',
       },
       items: [
+        'configuration/main',
         {
           label: '导入脚本',
           type: 'category',
@@ -48,7 +50,12 @@ module.exports = {
               },
               items: [
                 'configuration/script/repo/config',
-                'configuration/script/repo/proxy',
+                {
+                  label: '仓库代理',
+                  type: 'doc',
+                  id: 'configuration/script/repo/proxy',
+                  className: 'sidebar-channels',
+                },
                 'configuration/script/repo/quick-add',
               ],
               collapsed: true,
@@ -70,8 +77,7 @@ module.exports = {
           collapsed: true,
         },
         'configuration/notify',
-        'configuration/tgbot',
-        'configuration/extra',
+        'configuration/TelegramBot/index',
         'configuration/wskey',
       ],
       collapsed: false,

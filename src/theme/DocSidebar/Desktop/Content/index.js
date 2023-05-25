@@ -22,13 +22,13 @@ function SidebarAd () {
     marginBottom: '0',
   }
   const corlor = colorMode === 'dark' ? '#fff' : '#000'
-  const background = 'rgb(54, 77, 121)'
+  const background = colorMode === 'dark' ? '#1b1b1d' : '#B3B3B3'
   return (
     <Carousel autoplay waitForAnimate className={styles.ad} dotPosition="right">
-      <a href="/docs/start/about#%E8%B5%9E%E5%8A%A9" style={{ corlor }}>
+      <a href="/docs/about#%E8%B5%9E%E5%8A%A9" style={{ corlor }}>
         <h3 style={{ ...contentStyle, corlor, background }}>成为赞助商</h3>
       </a>
-      <a to="/docs/start/about#%E8%B5%9E%E5%8A%A9">
+      <a to="/docs/about#%E8%B5%9E%E5%8A%A9">
         <h3 style={{ ...contentStyle, corlor, background }}>成为赞助商</h3>
       </a>
     </Carousel>

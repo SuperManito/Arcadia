@@ -2,6 +2,7 @@
 title: 关于我们
 ---
 import { ActiveTeamRow } from '@site/src/components/TeamProfileCards';
+import { ICON } from '@site/src/components/Icon';
 
 ## 用户须知
 
@@ -33,7 +34,7 @@ import { ActiveTeamRow } from '@site/src/components/TeamProfileCards';
 
 ## 社区
 
-通过 [Telegram 电报频道](https://t.me/ArcadiaPanel) 下方评论区参与讨论或在右上方功能键加入关联群组。
+加入我们位于 <ICON>mdi:telegram</ICON> Telegram 的[公告频道](https://t.me/ArcadiaPanel)和[交流群组](https://t.me/ArcadiaPanelGroup)
 
 ㅤ
 

@@ -11,9 +11,10 @@ module.exports = {
   overrides: [
   ],
   parserOptions: {
-    project: ['./tsconfig.json'],
+    project: ['tsconfig.json'],
     extraFileExtensions: ['.mdx'],
     ecmaVersion: 'latest',
+    tsconfigRootDir: __dirname,
     parser: '@typescript-eslint/parser',
     sourceType: 'module',
   },

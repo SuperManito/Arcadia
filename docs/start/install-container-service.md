@@ -12,7 +12,7 @@ import TabItem from '@theme/TabItem'
 根据下方的选项卡选择对应你的操作系统，不要重复执行安装命令
 :::
 
-<Tabs>
+<Tabs groupId="operating-systems">
   <TabItem value="linux" label="Linux" default>
 
   #### 一键脚本

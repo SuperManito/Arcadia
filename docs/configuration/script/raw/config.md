@@ -5,7 +5,7 @@ import APITable from '@site/src/components/APITable';
 
 本篇介绍配置远程脚本的方法以及一些相关的配置项
 
-你可以在后台管理面板点击 `编辑配置` - `下拉选择 sync_config.yml` 来在线编辑
+你可以在后台管理面板点击 `编辑配置` - `下拉选择 sync.yml` 来在线编辑
 
 ## 主要配置项
 
@@ -36,7 +36,7 @@ raw:
     url: "https://gihub.com/User2/Repo2/raw/master/template.py"
 ```
 
-配置好后你需要执行 `update raw` 命令使该配置生效
+配置好后你需要执行 `update raw` 命令来使该配置生效
 
 导入前请先确认目标脚本中的备注内容中是否含有 `Cron 表达式` ，如若没有或者未识别到那么将随机指定一个每天执行一次的定时规则
 

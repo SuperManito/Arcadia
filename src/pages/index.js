@@ -13,7 +13,7 @@ import styles from './index.module.css'
 function Hero () {
   return (
     <header className={clsx('container', styles.heroBanner)}>
-      <div class="alert alert--warning" role="alert">
+      <div className="alert alert--warning" role="alert">
         <strong>目前尚未发布，官网仅供预览，敬请期待...</strong>
       </div>
       <div className="row padding-horiz--md">
@@ -76,12 +76,12 @@ function Hero () {
 
 function Features () {
   const { colorMode } = useColorMode()
-  const previewImg = colorMode === 'dark' ? require('@site/static/img/HomePageFeatures/homepage-dark.png').default : require('@site/static/img/HomePageFeatures/homepage-light.png').default
+  const previewImg = colorMode === 'dark' ? require('./dark.png').default : require('./light.png').default
   return (
     <section className={clsx('container', styles.features)}>
       <div className="row">
         <div className="col col--6">
-          <h2>面板开发引擎</h2>
+          <h2>面板技术引擎</h2>
           <div className="avatar" style={{ padding: '1em 0' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 312">
               <path fill="#4C9717" d="M181.252 154.622c.173-1.039.268-2.09.283-3.143v98.197l-51.453-47.052l-25.886-23.607l-15.582-14.324l-6.927-6.323l-2.552-2.33l-.185-.16c-.629-.506-1.233-1.036-1.812-1.517c-.58-.48-1.085-.9-1.775-.69a1.54 1.54 0 0 0-.974 1.11V62.33l.53.481l10.564 9.553c5.56 4.931 11.169 9.862 16.716 14.793a3585.593 3585.593 0 0 1 23.594 21.326c6.204 5.637 12.4 11.283 18.589 16.937c7.396 6.743 14.693 13.56 22.09 20.253c3.328 3.008 6.68 5.954 10.046 8.912c.715.629 1.418 1.233 2.145 1.874c.5.363 1.15.447 1.726.222c.341-.19.59-.51.69-.888c.099-.468.099-.789.173-1.17Z" />

@@ -1,6 +1,6 @@
 # 文档
 
-文档引擎使用 [Docusaurus](https://docusaurus.io/zh-CN) 进行构建
+文档引擎使用 [Docusaurus 2](https://docusaurus.io/zh-CN) 进行构建
 
 ### 安装
 
