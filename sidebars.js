@@ -32,7 +32,6 @@ module.exports = {
         id: 'configuration/index',
       },
       items: [
-        'configuration/main',
         {
           label: '导入脚本',
           type: 'category',
@@ -76,6 +75,7 @@ module.exports = {
           ],
           collapsed: true,
         },
+        'configuration/main',
         'configuration/notify',
         'configuration/TelegramBot/index',
         'configuration/wskey',
@@ -91,19 +91,6 @@ module.exports = {
       },
       items: [
         {
-          label: 'arcadia',
-          type: 'category',
-          link: {
-            type: 'generated-index',
-          },
-          items: [
-            'cli/arcadia/service',
-            'cli/arcadia/tgbot',
-            'cli/arcadia/sundry',
-          ],
-          collapsed: true,
-        },
-        {
           label: 'task',
           type: 'category',
           link: {
@@ -113,6 +100,19 @@ module.exports = {
             'cli/task/run',
             'cli/task/account',
             'cli/task/sundry',
+          ],
+          collapsed: true,
+        },
+        {
+          label: 'arcadia',
+          type: 'category',
+          link: {
+            type: 'generated-index',
+          },
+          items: [
+            'cli/arcadia/service',
+            'cli/arcadia/tgbot',
+            'cli/arcadia/sundry',
           ],
           collapsed: true,
         },

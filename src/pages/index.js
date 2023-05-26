@@ -122,6 +122,18 @@ function Features () {
   )
 }
 
+function Footer () {
+  return (
+    <footer class="footer">
+      <div class="container container--fluid">
+        <div class="text--center">
+          Copyright © {new Date().getFullYear()} SuperManito
+        </div>
+      </div>
+    </footer>
+  )
+}
+
 export default function Home () {
   const { siteConfig } = useDocusaurusContext()
   return (
@@ -129,6 +141,7 @@ export default function Home () {
       <Hero />
       <Features />
       <HomePageFeatures />
+      <Footer />
     </Layout>
   )
 }

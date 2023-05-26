@@ -7,9 +7,10 @@
 
 import React from 'react'
 import { Carousel } from 'antd'
+import TOCItems from '@theme-original/TOCItems'
 import { useLocation } from '@docusaurus/router'
 import { useColorMode } from '@docusaurus/theme-common'
-import Content from '@theme-original/DocSidebar/Desktop/Content'
+
 import styles from './index.module.css'
 
 function SidebarAd () {
@@ -17,12 +18,12 @@ function SidebarAd () {
   const contentStyle = {
     height: '100%',
     width: '100%',
-    lineHeight: '100px',
+    lineHeight: '80px',
     textAlign: 'center',
     marginBottom: '0',
   }
   const corlor = colorMode === 'dark' ? '#fff' : '#000'
-  const background = colorMode === 'dark' ? '#1b1b1d' : '#B3B3B3'
+  const background = colorMode === 'dark' ? '#161618' : '#B3B3B3'
   return (
     <Carousel autoplay waitForAnimate className={styles.ad} dotPosition="right">
       <a href="/docs/about#%E8%B5%9E%E5%8A%A9" style={{ corlor }}>
@@ -35,13 +36,13 @@ function SidebarAd () {
   )
 }
 
-export default function ContentWrapper (props) {
+export default function TOCWrapper (props) {
   const { pathname } = useLocation()
   const shouldShowSidebarAd = pathname.includes('/docs')
   return (
     <>
+        <TOCItems {...props} />
         {shouldShowSidebarAd && <SidebarAd />}
-        <Content {...props} />
     </>
   )
 }

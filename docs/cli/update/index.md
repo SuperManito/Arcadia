@@ -1,5 +1,5 @@
 ---
-title: update 指令
+title: update
 description: 更新相关命令
 ---
 import APITable from '@site/src/components/APITable';
@@ -43,8 +43,8 @@ update <args/path>
 | :-------: | :-------------: | --------------------------------------------------- |
 |  `source` |     项目源码     | 一般情况下通过此操作更新项目，如有新的镜像则可能需要重新部署 |
 |  ` repo`  |     所有仓库     | 更新所有位于 repo 目录下由用户添加的脚本仓库              |
-|   `raw`   |     远程脚本     | 更新所有位于 raw 目录下由用户添加的远程脚本              |
-|  `extra`  | Extra 自定义脚本 | 执行用户自定义的 Shell 脚本                             |
+|   `raw`   |     远程脚本     | 更新所有位于 raw 目录下由用户添加的远程脚本               |
+|  `extra`  |   自定义更新脚本  | 运行用户定义的额外 Shell 脚本                           |
 |  `<path>` |  指定路径下的仓库 | 这里需要自行输入内容，具体为目标仓库的相对路径或绝对路径     |
 
 ```mdx-code-block

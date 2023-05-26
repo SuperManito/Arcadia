@@ -32,8 +32,6 @@ const config = {
           sidebarCollapsible: true,
           sidebarCollapsed: false,
           sidebarPath: 'sidebars.js',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl: 'https://github.com/SuperManito/Arcadia/tree/website',
           remarkPlugins: [npm2yarn],
         },
@@ -72,7 +70,7 @@ const config = {
     ({
       docs: {
         sidebar: {
-          hideable: true,
+          hideable: false,
           autoCollapseCategories: false,
         },
       },
@@ -101,7 +99,6 @@ const config = {
       colorMode: {
         defaultMode: 'light',
         disableSwitch: false,
-        respectPrefersColorScheme: true,
       },
       navbar: {
         hideOnScroll: false,
@@ -144,10 +141,6 @@ const config = {
             'aria-label': 'GitHub repository',
           },
         ],
-      },
-      footer: {
-        style: 'light',
-        copyright: `Copyright © ${new Date().getFullYear()} SuperManito`,
       },
       prism: {
         magicComments: [

@@ -34,7 +34,7 @@ import { ICON } from '@site/src/components/Icon';
 
 ## 社区
 
-加入我们位于 <ICON>mdi:telegram</ICON> Telegram 的[公告频道](https://t.me/ArcadiaPanel)和[交流群组](https://t.me/ArcadiaPanelGroup)
+加入我们位于 <ICON>mdi:telegram</ICON> Telegram 的 [官方频道](https://t.me/ArcadiaPanel) 和 [交流群组](https://t.me/ArcadiaPanelGroup)
 
 ㅤ
 
