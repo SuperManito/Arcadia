@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkarcadia=self.webpackChunkarcadia||[]).push([[320],{9229:a=>{a.exports=JSON.parse('{"title":"arcadia","slug":"/category/arcadia","permalink":"/docs/category/arcadia","navigation":{"previous":{"title":"\u8bf4\u660e","permalink":"/docs/cli/"},"next":{"title":"\u540e\u7aef\u670d\u52a1","permalink":"/docs/cli/arcadia/service"}}}')}}]);
