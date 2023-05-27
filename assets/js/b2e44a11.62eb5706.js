@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkarcadia=self.webpackChunkarcadia||[]).push([[3477],{2996:a=>{a.exports=JSON.parse('{"title":"task","slug":"/category/task","permalink":"/docs/category/task","navigation":{"previous":{"title":"\u547d\u4ee4\u884c\uff08CLI\uff09","permalink":"/docs/cli/"},"next":{"title":"\u8fd0\u884c\u811a\u672c","permalink":"/docs/cli/task/run"}}}')}}]);
