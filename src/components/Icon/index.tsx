@@ -8,3 +8,19 @@ export function ICON ({ children }: { children: string }) {
     </span>
   )
 }
+
+export function CHECK () {
+  return (
+    <span>
+        <Icon icon="mdi:check" height="24" style={{ verticalAlign: '-0.35em', color: 'var(--ifm-color-success)' }}></Icon>
+    </span>
+  )
+}
+
+export function CLOSE () {
+  return (
+    <span>
+        <Icon icon="mdi:close" height="24" style={{ verticalAlign: '-0.35em', color: 'var(--ifm-color-danger)' }}></Icon>
+    </span>
+  )
+}

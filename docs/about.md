@@ -1,8 +1,9 @@
 ---
 title: 关于我们
 ---
-import { ActiveTeamRow } from '@site/src/components/TeamProfileCards';
+import Link from '@docusaurus/Link'
 import { ICON } from '@site/src/components/Icon';
+import { ActiveTeamRow } from '@site/src/components/TeamProfileCards';
 
 ## 用户须知
 
@@ -24,10 +25,13 @@ import { ICON } from '@site/src/components/Icon';
 
 ## Issue 反馈
 
-请通过我们提供的表单页面进行创建 [点此前往](http://issue.arcadia.cool/?lang=zh-CN)
+请通过我们提供的表单页面进行创建 <Link className="button button--secondary" to="http://issue.arcadia.cool/?lang=zh-CN">点此前往</Link>
+
+
+
 
 :::caution 请你注意
-我们不接受任何使用问题，这只会让你创建的 issue 被立即关闭，如果你有任何使用问题可参考下方加入社群。
+我们不接受任何使用问题，这只会让你创建的 issue 被立即关闭，如果你需要获取帮助可参考下方加入社区与社区成员进行交流。
 :::
 
 ㅤ

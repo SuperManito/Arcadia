@@ -94,7 +94,8 @@ module.exports = {
           label: 'task',
           type: 'category',
           link: {
-            type: 'generated-index',
+            type: 'doc',
+            id: 'cli/task/index',
           },
           items: [
             'cli/task/run',
@@ -107,7 +108,8 @@ module.exports = {
           label: 'arcadia',
           type: 'category',
           link: {
-            type: 'generated-index',
+            type: 'doc',
+            id: 'cli/arcadia/index',
           },
           items: [
             'cli/arcadia/service',

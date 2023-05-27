@@ -3,6 +3,7 @@ title: 安装容器服务
 ---
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
+import Link from '@docusaurus/Link'
 
 如果你不知道 Docker 是什么，那跟着装它就对了。当然，如果你会 Podman、Kubernetes 什么的，那就看着用吧。
 
@@ -78,7 +79,4 @@ pip3 install docker-compose
 </TabItem>
 </Tabs>
 
-
-:::tip
-[**点此返回安装文档**](/docs/start/install#%E5%90%AF%E5%8A%A8%E4%BD%A0%E7%9A%84%E5%AE%B9%E5%99%A8)
-:::
+<Link className="button button--lg button--primary button--outline button--block" to="/docs/start/install#%E5%90%AF%E5%8A%A8%E4%BD%A0%E7%9A%84%E5%AE%B9%E5%99%A8">返回安装文档</Link>

@@ -33,8 +33,6 @@ update all
 update <args/path>
 ```
 
-### 固定可选的子命令
-
 ```mdx-code-block
 <APITable>
 ```
@@ -50,5 +48,5 @@ update <args/path>
 ```mdx-code-block
 </APITable>
 ```
-`<path>` 支持用 `.` 或 `./` 表示当前目录和用 `../` 表示上一层目录
+`<path>` 支持用 `.` 或 `./` 表示当前目录和用 `../` 表示上级目录
 ㅤ

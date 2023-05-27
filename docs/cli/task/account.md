@@ -1,5 +1,5 @@
 ---
-title: 账号相关操作
+title: 账号相关
 description: 使用定制的一些命令来管理账号
 ---
 
