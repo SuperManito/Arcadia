@@ -2,7 +2,7 @@
 title: 导入脚本
 ---
 
-如果你想导入本地脚本可直接存放在 `scripts` 目录，如果你想导入来自互联网的脚本请看下面的教程
+如果你想导入来自互联网的脚本请看本部分教程，如果你想导入本地脚本请直接存放在 `scripts` 目录下
 
 ```mdx-code-block
 import DocCardList from '@theme/DocCardList';

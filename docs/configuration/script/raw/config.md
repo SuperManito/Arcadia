@@ -29,7 +29,7 @@ import APITable from '@site/src/components/APITable';
 ```yaml
 raw:
   - name: "Repo1"
-    url: "https://gihub.com/User1/Repo1/raw/master/template.js"
+    url: "https://gihub.com/User1/Repo1/raw/master/example.js"
     cronSettings:
       updateTaskList: true
   - name: "Repo2"

@@ -9,7 +9,7 @@ import APITable from '@site/src/components/APITable';
 arcadia repo <name> <url> <branch> [--options]
 ```
 
-必须提供配置名称、链接地址、分支名称，参数后面需要跟参数值
+必须提供配置名称、链接地址、分支名称，命令选项后面需要跟选项值
 
 ## 命令选项 
 

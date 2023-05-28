@@ -9,7 +9,7 @@ import APITable from '@site/src/components/APITable';
 arcadia raw <name> <url> [--options]
 ```
 
-必须提供配置名称、链接地址，参数后面需要跟参数值
+必须提供配置名称、链接地址，命令选项后面需要跟选项值
 
 ## 命令选项 
 

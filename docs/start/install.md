@@ -4,13 +4,13 @@ title: 安装流程
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import APITable from '@site/src/components/APITable';
+import Link from '@docusaurus/Link'
 
-本项目依托容器技术在虚拟环境中运行，因此需要安装容器服务才可以部署  
-如果你不了解该项技术或者没有安装相关服务，那么请先阅读 [如何安装容器服务](/docs/start/install-container-service)
-
-由于运行环境复杂程度较高，目前没有计划适配更多部署方式
-
-***
+```mdx-code-block
+<div class="alert alert--primary" role="alert">
+  本项目依托容器技术需要安装相关容器服务才可以部署，由于运行环境复杂程度较高目前没有计划适配更多部署方式，如果你不了解该项技术或者没有安装相关服务那么请先阅读 <Link to="/docs/start/install-container-service">如何安装容器服务</Link>
+</div>
+```
 
 ## 启动你的容器（公共测试）
 
@@ -85,7 +85,7 @@ supermanito/arcadia:dev
 上方的选项卡分别对应两种启动方式，不要重复执行二选一即可，新手推荐使用命令行方式部署
 :::
 
-项目容器镜像基于 [Alpine Linux](https://www.alpinelinux.org) 构建，如有其它使用需求自行查阅相关资料
+项目容器镜像基于 [__Alpine Linux__](https://www.alpinelinux.org) 构建，如有其它使用需求自行查阅相关资料
 
 ### 你需要了解的一些参数
 
@@ -151,7 +151,7 @@ arcadia env install
 ├── raw                          远程脚本文件存放目录（用户）
 ├── tgbot                        电报机器人组件存放目录（用户）
 ├── sample                       配置文件模版存放目录
-├── shell                        CLI命令脚本源代码
-├── web                          前端和后端源代码
+├── shell                        CLI底层命令源代码
+├── web                          前端静态文件和后端源代码
 └── utils                        扩展组件源代码
 ```
