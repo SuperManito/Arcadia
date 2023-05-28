@@ -27,6 +27,6 @@ arcadia env repairs
 ## 检查配置文件完整性
 
 ```bash
-arcadia check conf
+arcadia check config
 ```
 检查项目相关配置文件是否存在，如果缺失就从模板中重新导入

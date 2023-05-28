@@ -1,7 +1,7 @@
 .ad {
     height: 80px;
     width: 200px;
-    margin-left: 16px;
+    margin: 0 0 10px 16px;
     transition: all 0.2s;
     max-height: calc(100vh - (var(--ifm-navbar-height) + 2rem)) !important;
     overflow-y: auto !important;

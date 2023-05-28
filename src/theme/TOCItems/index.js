@@ -11,7 +11,7 @@ import TOCItems from '@theme-original/TOCItems'
 import { useLocation } from '@docusaurus/router'
 import { useColorMode } from '@docusaurus/theme-common'
 
-import styles from './index.module.css'
+import styles from './style.module.css'
 
 function SidebarAd () {
   const { colorMode } = useColorMode()
@@ -23,14 +23,14 @@ function SidebarAd () {
     marginBottom: '0',
   }
   const corlor = colorMode === 'dark' ? '#fff' : '#000'
-  const background = colorMode === 'dark' ? '#161618' : '#B3B3B3'
+  const background = colorMode === 'dark' ? '#161618' : '#f6f8fa'
   return (
-    <Carousel autoplay waitForAnimate className={styles.ad} dotPosition="right">
+    <Carousel waitForAnimate className={styles.ad} dotPosition="right">
       <a href="/docs/about#%E8%B5%9E%E5%8A%A9" style={{ corlor }}>
-        <h3 style={{ ...contentStyle, corlor, background }}>成为赞助商</h3>
+        <h3 style={{ ...contentStyle, corlor, background }}>广告位招商</h3>
       </a>
       <a to="/docs/about#%E8%B5%9E%E5%8A%A9">
-        <h3 style={{ ...contentStyle, corlor, background }}>成为赞助商</h3>
+        <h3 style={{ ...contentStyle, corlor, background }}>广告位招商</h3>
       </a>
     </Carousel>
   )

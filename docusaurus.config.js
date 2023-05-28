@@ -87,6 +87,9 @@ const config = {
         contextualSearch: true,
         searchPagePath: 'search',
       },
+      googleAdsense: {
+        dataAdClient: 'ca-pub-7619094561219293',
+      },
       zoom: {
         selector: '.markdown :not(em) > img',
         config: {
@@ -161,6 +164,12 @@ const config = {
       require.resolve('docusaurus-plugin-image-zoom'),
       {
         id: 'docusaurus-plugin-image-zoom',
+      },
+    ],
+    [
+      require.resolve('docusaurus-plugin-google-adsense'),
+      {
+        id: 'docusaurus-plugin-google-adsense',
       },
     ],
   ],

@@ -124,9 +124,9 @@ function Features () {
 
 function Footer () {
   return (
-    <footer class="footer">
-      <div class="container container--fluid">
-        <div class="text--center">
+    <footer className="footer">
+      <div className="container container--fluid">
+        <div className="text--center">
           Copyright © {new Date().getFullYear()} SuperManito
         </div>
       </div>

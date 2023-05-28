@@ -7,7 +7,7 @@ import APITable from '@site/src/components/APITable';
 import Link from '@docusaurus/Link'
 
 ```mdx-code-block
-<div class="alert alert--primary" role="alert">
+<div className="alert alert--primary" role="alert">
   本项目依托容器技术需要安装相关容器服务才可以部署，由于运行环境复杂程度较高目前没有计划适配更多部署方式，如果你不了解该项技术或者没有安装相关服务那么请先阅读 <Link to="/docs/start/install-container-service">如何安装容器服务</Link>
 </div>
 ```
@@ -48,7 +48,7 @@ supermanito/arcadia:dev
   version: "2.0"
   services:
     arcadia:
-      image: supermanito/arcadia:dev  # 镜像名，可以使用阿里云仓库的备用镜像
+      image: supermanito/arcadia:dev  # 镜像名
       container_name: arcadia  # 容器名（可随意更改）
       hostname: arcadia  # 主机名（可随意更改）
       restart: always  # 开机自启
