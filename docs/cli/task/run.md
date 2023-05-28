@@ -96,30 +96,31 @@ task conc <name/path/url>
 
 ## 命令选项
 
-:::note 使用方法
-追加在命令的末尾，熟练后可以使用简写，请认真阅读各参数的用法以及适用范围
-:::
-
 ```mdx-code-block
 <APITable>
 ```
 
 |          选项          | 普通 | 并发 | 描述 |
 | :-------------------: | - | - | ----- |
-| `--loop` / `-l`       | <CHECK/> | <CLOSE/> | 循环运行，连续多次运行脚本，参数后需跟 _循环次数(正整数)_ 作为参数值，该参数与**等待执行**和**延迟执行**参数同时使用时仍然有效互不干涉 |
-| `--mute` / `-m`       | <CHECK/> | <CHECK/> | 静默运行，静默运行任务不推送任何通知消息 |
-| `--wait` / `-w`       | <CHECK/> | <CHECK/> | 等待执行，等待指定时间后再运行脚本，参数后需跟 _等待时间单位_ 作为参数值，具体参照 [sleep](https://www.runoob.com/linux/linux-comm-sleep.html) 命令的用法 |
-| `--hang` / `-h`       | <CHECK/> | <CLOSE/> | 后台挂起，将脚本设置为守护进程保持在后台运行，期间中断或结束会自动重新运行 |
-| `--agent` / `-a`      | <CHECK/> | <CHECK/> | 网络代理，使脚本通过 HTTP/HTTPS 全局代理进行网络请求，目前仅支持 JavaScript/TypeScript 脚本，使用该功能需要自行在配置文件对应处定义代理地址变量 |
-| `--delay` / `-d`      | <CHECK/> | <CHECK/> | 延迟执行，随机倒数一定秒数后再运行脚本，该秒数上限可以在配置文件中定义 |
-| `--proxy` / `-p`      | <CHECK/> | <CHECK/> | 下载代理，仅适用于执行位于 GitHub 仓库的远程脚本，该代理固定为 [jsDelivr](https://www.jsdelivr.com/?docs=gh) 公共 CDN 加速代理 |
-| `--cookie` / `-c`     | <CHECK/> | <CHECK/> | 指定账号，参数后需跟 _账号序号_ 作为参数值，多个账号用 _,_ 隔开，账号区间用 _-_ 连接，可以用 _%_ 表示账号总数 |
-| `--grouping` / `-g`   | <CHECK/> | <CLOSE/> | 账号分组，使每组账号单独运行脚本，参数后需跟 _账号序号并分组_ 作为参数值，参数用法与 **指定账号** 相同，组与组之间用 _@_ 隔开 |
-| `--background` / `-b` | <CHECK/> | <CLOSE/> | 后台运行，不在前台输出脚本执行进度，不占用终端命令行 |
+| `-l`, `--loop`       | <CHECK/> | <CLOSE/> | 循环运行，连续多次运行脚本，选项后需跟 _循环次数(正整数)_ 作为参数值，该参数与 **等待执行** 和 **延迟执行** 参数同时使用时仍然有效互不干涉 |
+| `-s`, `--silent`     | <CHECK/> | <CHECK/> | 静默运行，静默运行任务不推送任何通知消息 |
+| `-w`, `--wait`       | <CHECK/> | <CHECK/> | 推迟执行，等待指定时间后再运行脚本，选项后需跟 _等待时间单位_ 作为参数值，具体参照 [sleep](https://www.runoob.com/linux/linux-comm-sleep.html) 命令的用法 |
+| `-d`, `--daemon`     | <CHECK/> | <CLOSE/> | 守护进程，将脚本设置为守护进程保持在后台运行，期间中断或结束会自动重新运行 |
+| `-a`, `--agent`      | <CHECK/> | <CHECK/> | 网络代理，使脚本通过 HTTP/HTTPS 全局代理进行网络请求，目前仅支持 JavaScript/TypeScript 脚本，使用该功能需要自行在配置文件对应处定义代理地址变量 |
+| `-D`, `--delay`      | <CHECK/> | <CHECK/> | 延迟执行，随机倒数一定秒数后再运行脚本，该秒数上限可以在配置文件中定义 |
+| `-T`, `--Timeout`    | <CHECK/> | <CHECK/> | 运行超时，设置运行任务超时机制，选项后需跟 [timeout](https://www.coonote.com/linux/linux-cmd-timeout.html) 命令选项 |
+| `-p`, `--proxy`      | <CHECK/> | <CHECK/> | 下载代理，仅适用于执行位于 GitHub 仓库的远程脚本，该代理固定为 [jsDelivr](https://www.jsdelivr.com/?docs=gh) 公共 CDN 加速代理 |
+| `-c`, `--cookie`     | <CHECK/> | <CHECK/> | 指定账号，选项后需跟 _账号序号_ 作为参数值，多个账号用 `,` 隔开，账号区间用 `-` 连接，可以用 `%` 表示账号总数 |
+| `-g`, `--grouping`   | <CHECK/> | <CLOSE/> | 账号分组，使每组账号单独运行脚本，选项后需跟 _账号序号并分组_ 作为参数值，参数用法与 **指定账号** 相同，组与组之间用 `@` 隔开 |
+| `-b`, `--background` | <CHECK/> | <CLOSE/> | 后台运行，不在前台输出脚本执行进度，不占用终端命令行 |
 
 ```mdx-code-block
 </APITable>
 ```
+
+:::note 使用方法
+追加在命令的末尾，熟练后可以使用简写，可以通过 `task run` 或 `task conc` 快速获取命令帮助
+:::
 
 ### 用法解读
 
