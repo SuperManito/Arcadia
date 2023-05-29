@@ -10,7 +10,7 @@ export default {
       return [
         h(NP, null, {
           default: () => [
-            'Issue 列表只接受 Bug 报告或是新功能请求 (Feature Requests)。这意味着我们不接受用法问题。如果你开的 issue 不符合规定，它将会被',
+            'Issue 列表只接受 Bug 报告或是功能请求 (Feature Requests)。这意味着我们不接受用法问题。如果你开的 issue 不符合规定，它将会被',
             h(NText, { strong: true }, { default: () => '立刻关闭' }),
             '。',
           ],
@@ -20,7 +20,7 @@ export default {
     introWarningTitle: '不要用 Issue Helper 提使用问题！',
     introWarningContent: () => {
       return [
-        '这只会让 Issue 被立即关闭，如果有使用问题可以加入官方群组求助：',
+        '这只会让 Issue 被立即关闭，如果有使用问题可以加入社区群组求助：',
         h(
           NA,
           {
@@ -28,7 +28,7 @@ export default {
             target: '_blank',
           },
           {
-            default: () => 'Telegram',
+            default: () => 'ArcadiaPanelGroup',
           },
         ),
       ]
@@ -155,7 +155,7 @@ export default {
     introWarningTitle: 'Don\'t use Issue Helper to ask usage questions!',
     introWarningContent: () => {
       return [
-        'This will only cause issue to be shut down immediately. If you have any problems, you can join the official group for help: ',
+        'This will only cause issue to be shut down immediately. If you have any problems, you can join the community group for help: ',
         h(
           NA,
           {
@@ -163,7 +163,7 @@ export default {
             target: '_blank',
           },
           {
-            default: () => 'Telegram',
+            default: () => 'ArcadiaPanelGroup',
           },
         ),
         '.',
