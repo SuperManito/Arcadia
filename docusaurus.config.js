@@ -75,7 +75,7 @@ const config = {
         },
       },
       announcementBar: {
-        content: '目前尚未发布，官网仅供预览，敬请期待...',
+        content: '🎉 已开始进行公共测试',
         backgroundColor: 'rgb(209 126 31)',
         textColor: '#fff',
         isCloseable: true,

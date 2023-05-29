@@ -29,6 +29,7 @@ docker run -dit \
 -v /opt/arcadia/scripts:/arcadia/scripts `# 个人脚本的主机挂载目录` \
 -v /opt/arcadia/repo:/arcadia/repo `# 脚本仓库的主机挂载目录` \
 -v /opt/arcadia/raw:/arcadia/raw `# 远程脚本的主机挂载目录` \
+-v /opt/arcadia/tgbot:/arcadia/tgbot `# 电报机器人的主机挂载目录` \
 supermanito/arcadia:dev
 ```
 
