@@ -119,7 +119,7 @@
   /* 弹窗 */
   --docsearch-modal-background: var(--ifm-background-color);
   /* 搜索框 */
-  --docsearch-searchbox-background: var(--ifm-background-color);
+  --docsearch-searchbox-background: #2e2e2e;
   --docsearch-searchbox-focus-background: var(--ifm-color-black);
   /* 条目 */
   --docsearch-hit-color: var(--ifm-font-color-base);
