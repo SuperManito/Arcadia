@@ -4,7 +4,6 @@ import { ICON } from '@site/src/components/Icon'
 export default function Highlight () {
   const audioDom = new Audio('./audio/arcadia.mp3')
   const play = () => {
-    console.log('playing')
     audioDom.pause()
     audioDom.play()
   }
