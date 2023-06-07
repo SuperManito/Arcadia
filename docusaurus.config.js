@@ -87,9 +87,6 @@ const config = {
         contextualSearch: true,
         searchPagePath: 'search',
       },
-      googleAdsense: {
-        dataAdClient: 'ca-pub-7619094561219293',
-      },
       zoom: {
         selector: '.markdown :not(em) > img',
         config: {
