@@ -3,6 +3,23 @@ title: envm
 description: 通过命令行管理全局环境变量
 ---
 
+```
+❖ 用户环境变量管理指令
+
+  使用方法：
+
+    envm add [<name> <value> <remark>]    ✧ 添加变量
+    envm edit [<name> <value> <remark>]   ✧ 修改变量
+    envm del [<name>]                     ✧ 删除变量
+    envm search [<string>]                ✧ 查询变量
+    envm enable <name>                    ✧ 启用变量
+    envm disable <name>                   ✧ 禁用变量
+
+  命令注释：
+
+    [xxx] 可选的快捷子命令  <name> 环境变量名称  <value> 环境变量值  <remark> 环境变量备注  <string> 搜索关键字
+```
+
 该 CLI 指令专门用于管理全局环境变量，仅支持操作以 `export` 开头的全局环境变量，无法处理有关项目功能等普通变量
 
 命令默认通过 `交互` 管理全局环境变量，支持快捷命令一键执行对应操作

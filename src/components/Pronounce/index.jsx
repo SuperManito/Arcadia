@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { ICON } from '@site/src/components/Icon'
 
-export default function Highlight () {
+export default function Pronounce () {
   const audioDom = new Audio('./audio/arcadia.mp3')
   const play = () => {
     audioDom.pause()
@@ -21,7 +21,7 @@ export default function Highlight () {
     <span
       style={{
         borderRadius: '2px',
-        color: isHover ? '#4191ef' : '#ccc',
+        color: isHover ? 'var(--ifm-color-primary)' : 'var(--ifm-table-border-color)',
         padding: '0.2rem',
         cursor: 'pointer',
       }}

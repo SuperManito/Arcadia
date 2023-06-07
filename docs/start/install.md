@@ -8,11 +8,15 @@ import Link from '@docusaurus/Link'
 
 ```mdx-code-block
 <div className="alert alert--primary" role="alert">
-  本项目依托容器技术需要安装相关容器服务才可以部署，由于运行环境复杂程度较高目前没有计划适配更多部署方式，如果你不了解该项技术或者没有安装相关服务那么请先阅读 <Link to="/docs/start/install-container-service">如何安装容器服务</Link>
-</div>
+  本项目依托容器技术需要安装相关容器服务才可以部署，由于运行环境复杂程度较高目前没有计划适配更多部署方式，如果你不了解该项技术或者没有安装相关服务那么请先阅读 <Link to="/docs/start/install-container-service"><strong>如何安装容器服务</strong></Link><br /><br />项目容器镜像基于 <Link to="https://www.alpinelinux.org"><strong>Alpine Linux</strong></Link> 构建，如有其它使用需求自行查阅相关资料
+</div><br />
 ```
 
-## 启动你的容器（公共测试）
+:::tip
+下方的选项卡分别对应两种启动方式，不要重复执行二选一即可，新手推荐使用命令行方式部署
+:::
+
+## 1. 启动你的容器（公共测试）
 
 <Tabs>
 <TabItem value="cli" label="CLI - 命令行">
@@ -79,18 +83,14 @@ supermanito/arcadia:dev
 2. 映射目录必须映射第一行的 `config` 配置文件主机挂载目录，其它目录可以不映射  
 3. 如果你正在旁路由则可能需要切换为 **host** 类型（桥接），找到 `network` 字样更改即可  
 4. 不可以更改参数中 `:` 右边的内容，否则会导致后端服务无法正常访问 
-5. 提示 `-bash: docker：Command not found/未找到命令`  ? 请先阅读 [如何安装容器服务](/docs/start/install-container-service)
+5. 提示 `-bash: docker：Command not found/未找到命令`  ? 请先阅读 [__如何安装容器服务__](/docs/start/install-container-service)
 :::
 
-:::tip
-上方的选项卡分别对应两种启动方式，不要重复执行二选一即可，新手推荐使用命令行方式部署
-:::
+<details>
 
-项目容器镜像基于 [__Alpine Linux__](https://www.alpinelinux.org) 构建，如有其它使用需求自行查阅相关资料
+<summary>你需要了解的一些参数</summary>
 
-### 你需要了解的一些参数
-
-- #### 用户挂载目录
+- ### 用户挂载目录
 
   作用：将容器内的目录映射到宿主机，可直接在宿主机对相关文件进行操作，并且数据在正常情况下不会丢失
 
@@ -110,7 +110,9 @@ supermanito/arcadia:dev
   </APITable>
   ```
 
-## 检查启动状态
+</details>
+
+## 2. 检查启动状态
 
 ```bash
 docker logs -f arcadia
@@ -121,7 +123,7 @@ docker logs -f arcadia
 2. 如果报错导致容器没有启动成功那么请先自行检查原因，绝大多数问题都是由于网络环境所导致，你可以通过 [加入社区](/docs/about#%E7%A4%BE%E5%8C%BA) 来寻求帮助
 :::
 
-## 开始使用
+## 3. 开始使用
 
 访问 [http://localhost:5678](http://localhost:5678) 进入后台管理面板，初始用户名为 `useradmin`，密码为 `passwd`，首次登录后会引导你修改此认证信息
 
@@ -142,7 +144,7 @@ docker logs -f arcadia
 arcadia env install
 ```
 
-## 目录结构
+### 目录结构
 
 ```text
 ./arcadia                      根目录
@@ -150,6 +152,7 @@ arcadia env install
 ├── log                          日志存放目录（用户）
 ├── repo                         脚本仓库存放目录（用户）
 ├── raw                          远程脚本文件存放目录（用户）
+├── scripts                      个人脚本文件存放目录（用户）
 ├── tgbot                        电报机器人组件存放目录（用户）
 ├── sample                       配置文件模版存放目录
 ├── shell                        CLI底层命令源代码

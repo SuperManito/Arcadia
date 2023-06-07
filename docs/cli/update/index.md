@@ -4,6 +4,23 @@ description: 更新相关命令
 ---
 import APITable from '@site/src/components/APITable';
 
+```
+❖ 更新指令
+
+  使用方法：
+
+    update all        ✧ 更新全部内容，包括下列除指定仓库以外的所有内容
+    update source     ✧ 更新项目源码，包括项目源码，所有仓库和脚本，自定义脚本等
+    update repo       ✧ 更新脚本仓库，包括项目源码，所有仓库和脚本，自定义脚本等
+    update raw        ✧ 更新远程脚本，包括项目源码，所有仓库和脚本，自定义脚本等
+    update extra      ✧ 执行自定义更新脚本，包括项目源码，所有仓库和脚本，自定义脚本等
+    update <path>     ✧ 更新指定路径下的脚本仓库，包括项目源码，所有仓库和脚本，自定义脚本等
+
+  命令注释：
+
+    <path> 相对路径或绝对路径
+```
+
 ## 更新全部
 
 ```bash

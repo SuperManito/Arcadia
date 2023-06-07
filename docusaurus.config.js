@@ -166,12 +166,6 @@ const config = {
         id: 'docusaurus-plugin-image-zoom',
       },
     ],
-    [
-      require.resolve('docusaurus-plugin-google-adsense'),
-      {
-        id: 'docusaurus-plugin-google-adsense',
-      },
-    ],
   ],
 }
 
