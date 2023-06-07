@@ -1,11 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { ICON } from '@site/src/components/Icon'
 
 export default function Pronounce () {
-  const audioDom = new Audio('./audio/arcadia.mp3')
+  const audioRef = useRef()
   const play = () => {
-    audioDom.pause()
-    audioDom.play()
+    audioRef.current.play()
   }
 
   const [isHover, setIsHover] = useState(false)
@@ -32,6 +31,7 @@ export default function Pronounce () {
       <ICON>
         streamline:entertainment-volume-level-high-speaker-high-volume-control-audio-music
       </ICON>
+      <audio src={require('@site/static/audio/arcadia.mp3').default} ref={audioRef} style={{ display: 'none' }}></audio>
     </span>
   )
 }
