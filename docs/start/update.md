@@ -40,9 +40,7 @@ docker rmi arcadia
 ### 一键更新
 
 ```bash
-docker run --rm \                                                                                                                                   1 ↵
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  containrrr/watchtower -c --run-once arcadia
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower -c --run-once arcadia
 ```
 
 可以通过此命令一键更新，不过需要注意的是更新镜像容器会删除已安装的环境例如 npm 依赖包等，需要重新安装
