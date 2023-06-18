@@ -82,8 +82,9 @@ supermanito/arcadia:dev
 1. 如果想让容器内文件映射在当前目录可将默认的 `/opt/arcadia` 修改为 `$(pwd)`，可自定义映射路径  
 2. 映射目录必须映射第一行的 `config` 配置文件主机挂载目录，其它目录可以不映射  
 3. 如果你正在旁路由则可能需要切换为 **host** 类型（桥接），找到 `network` 字样更改即可  
-4. 不可以更改参数中 `:` 右边的内容，否则会导致后端服务无法正常访问 
-5. 提示 `-bash: docker：Command not found/未找到命令`  ? 请先阅读 [__如何安装容器服务__](/docs/start/install-container-service)
+4. 不可以更改参数中 `:` 右边的内容，否则会导致后端服务无法正常访问  
+5. 提示 `-bash: docker：Command not found/未找到命令` ? 请先阅读 [__如何安装容器服务__](/docs/start/install-container-service)  
+6. 可以使用国内备用镜像 `registry.cn-hangzhou.aliyuncs.com/supermanito/arcadia:dev`
 :::
 
 <details>
