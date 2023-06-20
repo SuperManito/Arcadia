@@ -168,7 +168,7 @@ task conc <name/path/url>
       ```bash
       pm2 list
       ```
-      默认有三个项目服务 `web_server` `web_terminal` `tgbot`，请不要删除它们任何一个
+      默认有四个项目内置服务 `web_server` `web_terminal` `inner_server` `tgbot`，请不要删除它们其中的任何一个
 
     - ##### 停止运行
 

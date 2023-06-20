@@ -60,25 +60,7 @@ import { ICON } from '@site/src/components/Icon';
 Docker 官方推出的容器编排工具，用于批量部署、管理容器等操作，基于 Docker Engine 引擎
 :::
 
-<Tabs>
-<TabItem value="x86" label="x86 架构">
-
-```bash
-# 拉取指定版本
-curl -L https://ghproxy.com/https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64 -o /usr/local/bin/docker-compose
-# 赋予权限
-chmod +x /usr/local/bin/docker-compose
-```
-
-</TabItem>
-<TabItem value="arm" label="ARM 架构">
-
-```bash
-pip3 install docker-compose
-```
-
-</TabItem>
-</Tabs>
+最新的 Docker Compose V2 版本已经集成在 Cli 中，你只需要通过包管理工具安装 **docker-compose-plugin** 软件包即可，例如 `apt-get install -y docker-compose-plugin`
 
 ㅤ
 

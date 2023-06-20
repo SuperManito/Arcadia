@@ -16,7 +16,7 @@ const FeatureList = [
   {
     title: '定时任务调度',
     Svg: require('@site/static/img/HomePageFeatures/MdiClockPlusOutline.svg').default,
-    description: <>通过数据表格页面进行管理操作，增删改查一应俱全，支持即时调试、查看历史日志、标签页分类等功能。</>,
+    description: <>通过数据表格页面进行管理操作，增删改查一应俱全，支持秒级任务、即时调试、查看历史日志、标签页分类、仓库过滤等功能。</>,
   },
   {
     title: '运行日志查询',
