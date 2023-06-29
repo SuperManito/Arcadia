@@ -34,7 +34,8 @@ vim docker-compose.yaml`}
       - /opt/arcadia/log:/arcadia/log             # 定义日志文件的主机挂载目录
       - /opt/arcadia/scripts:/arcadia/scripts     # 定义个人脚本的主机挂载目录
       - /opt/arcadia/repo:/arcadia/repo           # 定义脚本仓库的主机挂载目录
-      - /opt/arcadia/raw:/arcadia/raw             # 定义远程脚本的主机挂载目录`}
+      - /opt/arcadia/raw:/arcadia/raw             # 定义远程脚本的主机挂载目录
+      - /opt/arcadia/tgbot:/arcadia/tgbot         # 定义电报机器人的主机挂载目录`}
           </CodeBlock>
           <li><h3>启动容器</h3></li>
           <CodeBlock
@@ -76,7 +77,8 @@ services:
       - /opt/arcadia/log:/arcadia/log             # 定义日志文件的主机挂载目录
       - /opt/arcadia/scripts:/arcadia/scripts     # 定义个人脚本的主机挂载目录
       - /opt/arcadia/repo:/arcadia/repo           # 定义脚本仓库的主机挂载目录
-      - /opt/arcadia/raw:/arcadia/raw             # 定义远程脚本的主机挂载目录`}
+      - /opt/arcadia/raw:/arcadia/raw             # 定义远程脚本的主机挂载目录
+      - /opt/arcadia/tgbot:/arcadia/tgbot         # 定义电报机器人的主机挂载目录`}
           </CodeBlock>
           <li><h3>启动容器</h3></li>
           <CodeBlock
@@ -117,7 +119,8 @@ services:
       - /opt/arcadia/log:/arcadia/log             # 定义日志文件的主机挂载目录
       - /opt/arcadia/scripts:/arcadia/scripts     # 定义个人脚本的主机挂载目录
       - /opt/arcadia/repo:/arcadia/repo           # 定义脚本仓库的主机挂载目录
-      - /opt/arcadia/raw:/arcadia/raw             # 定义远程脚本的主机挂载目录`}
+      - /opt/arcadia/raw:/arcadia/raw             # 定义远程脚本的主机挂载目录
+      - /opt/arcadia/tgbot:/arcadia/tgbot         # 定义电报机器人的主机挂载目录`}
           </CodeBlock>
           <li><h3>启动容器</h3></li>
           <CodeBlock
@@ -143,10 +146,10 @@ services:
       window.removeEventListener('resize', handleResize) // 组件卸载时移除事件监听
     }
   }, [])
-  const handleValueChange = (newValue) => {
+  const handleValueChange = (newValue: any) => {
     setValue(newValue)
   }
-  const onChange = (e) => {
+  const onChange = (e: any) => {
     setChecked(e.target.checked)
   }
   return (
