@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 dependencies:
   '@vicons/ionicons5':
     specifier: ^0.12.0
@@ -8,8 +12,8 @@ dependencies:
     specifier: ^0.12.0
     version: 0.12.0
   naive-ui:
-    specifier: ^2.34.3
-    version: 2.34.3(vue@3.3.2)
+    specifier: ^2.34.4
+    version: 2.34.4(vue@3.3.2)
   qs:
     specifier: ^6.10.1
     version: 6.11.1
@@ -3386,8 +3390,8 @@ packages:
     resolution: {integrity: sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==}
     dev: true
 
-  /naive-ui@2.34.3(vue@3.3.2):
-    resolution: {integrity: sha512-fUMr0dzb/iGsOTWgoblPVobY5X5dihQ1eam5dA+H74oyLYAvgX4pL96xQFPBLIYqvyRFBAsN85kHN5pLqdtpxA==}
+  /naive-ui@2.34.4(vue@3.3.2):
+    resolution: {integrity: sha512-aPG8PDfhSzIzn/jSC9y3Jb3Pe2wHJ7F0cFV1EWlbImSrZECeUmoc+fIcOSWbizoztkKfaUAeKwYdMl09MKkj1g==}
     peerDependencies:
       vue: ^3.0.0
     dependencies:
