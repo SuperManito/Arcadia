@@ -34,7 +34,6 @@ body,
 #app {
   margin: 0;
   padding: 0;
-  height: 100%;
   min-width: 320px;
   --header-height: 64px;
   --content-width: 900px;
@@ -42,7 +41,6 @@ body,
 }
 
 body {
-  overflow: auto;
   -webkit-font-smoothing: antialiased;
 }
 

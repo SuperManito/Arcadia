@@ -1,5 +1,5 @@
 import { h } from 'vue'
-import { NP, NText, NUl, NA, NOl } from 'naive-ui'
+import { NP, NText, NUl, NOl, NButton } from 'naive-ui'
 
 export default {
   theme: null,
@@ -22,8 +22,14 @@ export default {
       return [
         '这只会让 Issue 被立即关闭，如果有使用问题可以加入社区群组求助：',
         h(
-          NA,
+          NButton,
           {
+            quaternary: true,
+            type: 'primary',
+            size: 'small',
+            strong: true,
+            style: 'padding: 0 6px 0 6px',
+            tag: 'a',
             href: 'https://t.me/ArcadiaPanelGroup',
             target: '_blank',
           },
@@ -48,8 +54,14 @@ export default {
                       null,
                       '仔细阅读文档：',
                       h(
-                        NA,
+                        NButton,
                         {
+                          quaternary: true,
+                          type: 'primary',
+                          size: 'small',
+                          strong: true,
+                          style: 'padding: 0 6px 0 6px',
+                          tag: 'a',
                           href: 'https://arcadia.cool',
                           target: '_blank',
                         },
@@ -157,8 +169,14 @@ export default {
       return [
         'This will only cause issue to be shut down immediately. If you have any problems, you can join the community group for help: ',
         h(
-          NA,
+          NButton,
           {
+            quaternary: true,
+            type: 'primary',
+            size: 'small',
+            strong: true,
+            style: 'padding: 0 6px 0 6px',
+            tag: 'a',
             href: 'https://t.me/ArcadiaPanelGroup',
             target: '_blank',
           },
@@ -166,7 +184,6 @@ export default {
             default: () => 'ArcadiaPanelGroup',
           },
         ),
-        '.',
       ]
     },
     introTwo: () => {
@@ -184,8 +201,14 @@ export default {
                       null,
                       'Read the introduce and components documentation: ',
                       h(
-                        NA,
+                        NButton,
                         {
+                          quaternary: true,
+                          type: 'primary',
+                          size: 'small',
+                          strong: true,
+                          style: 'padding: 0 6px 0 6px',
+                          tag: 'a',
                           href: 'https://arcadia.cool',
                           target: '_blank',
                         },

@@ -1,15 +1,15 @@
 <template>
   <n-config-provider :theme-overrides="theme === null ? lightThemeOverrides : darkThemeOverrides" :locale="locale" :theme="theme">
     <n-message-provider>
-      <n-layout embedded>
+      <n-layout :native-scrollbar="false" style="height: 100vh" content-style="height: 100%">
         <n-layout-header bordered class="nav" :lang="lang" @langChange="setLang">
           <div class="nav-box">
             <n-text tag="div" class="ui-logo" :depth="1">
               <img v-if="!theme" src="../img/arcadia-light.png" />
               <img v-else src="../img/arcadia-dark.png" />
             </n-text>
-            <n-button-group>
-              <n-popselect :options="PopselectOptions" trigger="click" :on-update:value="handleLanguageSelect">
+            <n-space style="gap: 0">
+              <n-popselect v-model:value="lang" :options="PopselectOptions" trigger="click" :on-update:value="handleLanguageSelect">
                 <n-button quaternary size="small" class="nav-picker" :focusable="false">
                   <template #icon>
                     <n-icon><LanguageIcon /></n-icon>
@@ -25,25 +25,27 @@
 
               <n-button v-else quaternary strong size="small" :focusable="false" @click="theme = null">
                 <template #icon>
-                  <n-icon><SunIcon /></n-icon>
+                  <n-icon :size="20"><SunIcon /></n-icon>
                 </template>
               </n-button>
-            </n-button-group>
+            </n-space>
           </div>
         </n-layout-header>
-        <div class="content-box">
-          <div class="content"><Intro :lang="lang" /></div>
-          <div class="content"><IssueForm :lang="lang" /></div>
-        </div>
+        <n-layout-content style="height: calc(100% - 64px)" :native-scrollbar="false" embedded>
+          <div class="content-box">
+            <div class="content"><Intro :lang="lang" /></div>
+            <div class="content"><IssueForm :lang="lang" /></div>
+          </div>
+        </n-layout-content>
       </n-layout>
     </n-message-provider>
   </n-config-provider>
 </template>
 
 <script lang="ts">
-import { NLayoutHeader, NText, NIcon, NButton, NButtonGroup, NLayout, NPopselect, NConfigProvider, GlobalThemeOverrides, darkTheme, zhCN, NMessageProvider, SelectOption, GlobalTheme } from 'naive-ui'
-import { Language as LanguageIcon, SunnyOutline as SunIcon } from '@vicons/ionicons5'
-import { Moon as MoonIcon } from '@vicons/tabler'
+import { NLayoutHeader, NText, NIcon, NButton, NLayout, NPopselect, NConfigProvider, GlobalThemeOverrides, darkTheme, zhCN, NMessageProvider, SelectOption, GlobalTheme } from 'naive-ui'
+import { Language as LanguageIcon } from '@vicons/ionicons5'
+import { Moon as MoonIcon, Sun as SunIcon } from '@vicons/tabler'
 import Tiny from 'tinycolor2'
 import Intro from './TopIntro.vue'
 import IssueForm from './IssueForm.vue'
@@ -60,7 +62,6 @@ export default defineComponent({
     NText,
     NIcon,
     NButton,
-    NButtonGroup,
     NPopselect,
     LanguageIcon,
     SunIcon,
