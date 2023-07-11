@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkarcadia=self.webpackChunkarcadia||[]).push([[994],{1203:e=>{e.exports=JSON.parse('{"title":"Config","slug":"/category/config","permalink":"/docs/category/config","navigation":{"previous":{"title":"\u8c03\u7528\u5e95\u5c42\u547d\u4ee4","permalink":"/docs/api/main/run"},"next":{"title":"type","permalink":"/docs/category/type"}}}')}}]);
