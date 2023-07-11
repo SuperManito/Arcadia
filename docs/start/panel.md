@@ -78,3 +78,26 @@ title: 后台管理面板
   ```bash
   systemctl restart docker
   ```
+
+## 反向代理
+
+如果你需要通过域名使用建议使用反向代理，这里以 `nginx` 为例
+```
+server {
+    listen 80;
+    listen 443 ssl;
+    server_name <域名>;
+
+    ssl_certificate <证书文件路径（crt）>;
+    ssl_certificate_key <证书私钥路径（crt）>;
+
+    location / {
+        proxy_pass http://127.0.0.1:5678;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```

@@ -30,8 +30,8 @@ dependencies:
     specifier: ^1.6.22
     version: 1.6.22(react@17.0.2)
   antd:
-    specifier: ^5.6.2
-    version: 5.6.2(react-dom@17.0.2)(react@17.0.2)
+    specifier: ^5.6.4
+    version: 5.6.4(react-dom@17.0.2)(react@17.0.2)
   clsx:
     specifier: ^1.2.1
     version: 1.2.1
@@ -3887,8 +3887,8 @@ packages:
     engines: {node: '>=12'}
     dev: false
 
-  /antd@5.6.2(react-dom@17.0.2)(react@17.0.2):
-    resolution: {integrity: sha512-h67gKgJRs07Qrf27AiKcJSEI3nCAmaCxxvEz6DSdRl1mHc03O8zAemRA6jPQQMPS5q4k7FxIphN+2ZnzdXlU2Q==}
+  /antd@5.6.4(react-dom@17.0.2)(react@17.0.2):
+    resolution: {integrity: sha512-ttAN5vk6yUybDCe5WFloEb49dyLwyec+FJlvopfZFSkScHX2OBbfpPlCQ50Bpp2u5P/eqN6EQUM4PsE4MPslAA==}
     peerDependencies:
       react: '>=16.9.0'
       react-dom: '>=16.9.0'
@@ -3913,7 +3913,7 @@ packages:
       rc-dialog: 9.1.0(react-dom@17.0.2)(react@17.0.2)
       rc-drawer: 6.2.0(react-dom@17.0.2)(react@17.0.2)
       rc-dropdown: 4.1.0(react-dom@17.0.2)(react@17.0.2)
-      rc-field-form: 1.32.0(react-dom@17.0.2)(react@17.0.2)
+      rc-field-form: 1.34.1(react-dom@17.0.2)(react@17.0.2)
       rc-image: 5.17.1(react-dom@17.0.2)(react@17.0.2)
       rc-input: 1.0.4(react-dom@17.0.2)(react@17.0.2)
       rc-input-number: 7.4.2(react-dom@17.0.2)(react@17.0.2)
@@ -8963,8 +8963,8 @@ packages:
       react-dom: 17.0.2(react@17.0.2)
     dev: false
 
-  /rc-field-form@1.32.0(react-dom@17.0.2)(react@17.0.2):
-    resolution: {integrity: sha512-vr5pA0/gWiBZf0HKdevQJcWSsAac10Z8Nj1Brs3OOCnExk7l+u8GtsW+4cRSqJLug5fxV11dOGXpxf7+aHT/2A==}
+  /rc-field-form@1.34.1(react-dom@17.0.2)(react@17.0.2):
+    resolution: {integrity: sha512-oohdrjUHYWzY4H5EOw/9xk324oatZOKiCfo3FwnK9G/LswoqflWoxeaAGMkjI5Ug4YxSq80fehoJjVYApSheYA==}
     engines: {node: '>=8.x'}
     peerDependencies:
       react: '>=16.9.0'

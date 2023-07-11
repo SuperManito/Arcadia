@@ -212,32 +212,32 @@ module.exports = {
           ],
           collapsed: false,
         },
-        {
-          type: 'category',
-          label: 'Config',
-          link: {
-            type: 'generated-index',
-          },
-          items: [
-            {
-              type: 'category',
-              label: 'type',
-              link: {
-                type: 'generated-index',
-              },
-              items: [
-                'api/config/type/by-type',
-                'api/config/type/by-type-single',
-                'api/config/type/create',
-                'api/config/type/delete',
-                'api/config/type/edit',
-                'api/config/type/page',
-              ],
-              collapsed: false,
-            },
-          ],
-          collapsed: false,
-        },
+        // {
+        //   type: 'category',
+        //   label: 'Config',
+        //   link: {
+        //     type: 'generated-index',
+        //   },
+        //   items: [
+        //     {
+        //       type: 'category',
+        //       label: 'type',
+        //       link: {
+        //         type: 'generated-index',
+        //       },
+        //       items: [
+        //         'api/config/type/by-type',
+        //         'api/config/type/by-type-single',
+        //         'api/config/type/create',
+        //         'api/config/type/delete',
+        //         'api/config/type/edit',
+        //         'api/config/type/page',
+        //       ],
+        //       collapsed: false,
+        //     },
+        //   ],
+        //   collapsed: false,
+        // },
       ],
       collapsed: false,
     },

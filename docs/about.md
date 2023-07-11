@@ -4,6 +4,7 @@ title: 关于我们
 import Link from '@docusaurus/Link'
 import { ICON } from '@site/src/components/Icon';
 import { ActiveTeamRow } from '@site/src/components/TeamProfileCards';
+import DonateModal from '@site/src/components/DonateModal';
 
 ## 用户须知
 
@@ -25,7 +26,7 @@ import { ActiveTeamRow } from '@site/src/components/TeamProfileCards';
 
 ## Issue 反馈
 
-请通过我们提供的表单页面进行创建 <Link className="button button--secondary" to="http://issue.arcadia.cool/?lang=zh-CN">点此前往</Link>
+请通过我们提供的表单页面进行创建 <Link className="button button--secondary" style={{ padding: '4px 6px' }} to="http://issue.arcadia.cool/?lang=zh-CN">点此前往</Link>
 
 
 
@@ -45,3 +46,9 @@ import { ActiveTeamRow } from '@site/src/components/TeamProfileCards';
 ## 赞助
 
 成为赞助商享有文档广告展示，如有需求请主动联系作者，更多内容有待完善。
+
+## 捐助
+
+```mdx-code-block
+<DonateModal />
+```
