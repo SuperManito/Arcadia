@@ -18,18 +18,15 @@ import DonateModal from '@site/src/components/DonateModal';
 
 ㅤ
 
-## 开发者
+<!-- ## 开发者
 
-<ActiveTeamRow />
+<ActiveTeamRow /> -->
 
 ㅤ
 
 ## Issue 反馈
 
 请通过我们提供的表单页面进行创建 <Link className="button button--secondary" style={{ padding: '4px 6px' }} to="http://issue.arcadia.cool/?lang=zh-CN">点此前往</Link>
-
-
-
 
 :::caution 请你注意
 我们不接受任何使用问题，这只会让你创建的 issue 被立即关闭，如果你需要获取帮助可参考下方加入社区与社区成员进行交流。
@@ -45,10 +42,12 @@ import DonateModal from '@site/src/components/DonateModal';
 
 ## 赞助
 
-成为赞助商享有文档广告展示，如有需求请主动联系作者，更多内容有待完善。
+成为赞助商享有文档广告展示，如有需求请在社区中主动联系作者，更多内容有待完善。
 
-## 捐助
+ㅤ
+
+<!-- ## 捐助
 
 ```mdx-code-block
 <DonateModal />
-```
+``` -->
