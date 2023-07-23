@@ -1,24 +1,28 @@
 <template>
   <NCard class="card" hoverable>
     <n-form ref="formRef" :model="form" label-width="auto" :rules="rules" label-position="top" size="large" class="form">
-      <n-grid cols="8" :x-gap="16">
-        <!-- Issue 标题 -->
-        <n-form-item-gi :label="contentText.issueTitleHint" path="title" :span="5">
-          <n-input v-model:value="form.title" clearable />
-        </n-form-item-gi>
-
-        <!-- Issue 类别 -->
-        <n-form-item-gi :label="contentText.issueTypesHint" path="type" :span="3">
-          <n-radio-group v-model:value="form.type" style="width: 100%; text-align: center">
-            <n-radio-button style="width: calc(50% - 1px)" :value="issueTypeOptions[0].value">
-              {{ issueTypeOptions[0].label }}
-            </n-radio-button>
-            <n-radio-button style="width: 50%" :value="issueTypeOptions[1].value">
-              {{ issueTypeOptions[1].label }}
-            </n-radio-button>
-          </n-radio-group>
-        </n-form-item-gi>
-      </n-grid>
+      <div class="inline-container">
+        <div class="left-content">
+          <!-- Issue 标题 -->
+          <n-form-item :label="contentText.issueTitleHint" path="title" :span="5">
+            <n-input v-model:value="form.title" clearable />
+          </n-form-item>
+        </div>
+        <div style="flex: 0 0 8px" />
+        <div class="right-content">
+          <!-- Issue 类别 -->
+          <n-form-item :label="contentText.issueTypesHint" path="type" :span="3">
+            <n-radio-group v-model:value="form.type" >
+              <n-radio-button :value="issueTypeOptions[0].value">
+                {{ issueTypeOptions[0].label }}
+              </n-radio-button>
+              <n-radio-button :value="issueTypeOptions[1].value">
+                {{ issueTypeOptions[1].label }}
+              </n-radio-button>
+            </n-radio-group>
+          </n-form-item>
+        </div>
+      </div>
 
       <template v-if="isBug">
 
@@ -111,17 +115,17 @@ export default defineComponent({
     const formRef: Ref<any> = ref(null)
     const archOptions = computed(() => ([
       {
-        label: 'x86_64',
+        label: 'x86_64 / amd64',
         value: 'x86_64',
       },
       {
-        label: 'aarch64',
+        label: 'aarch64 / armv8l',
         value: 'aarch64',
       },
-      {
-        label: 'armv7l',
-        value: 'armv7l',
-      },
+      // {
+      //   label: 'armv7l / armv6l',
+      //   value: 'armv7l',
+      // },
     ]))
     const platformOptions = computed(() => ([
       {
@@ -325,5 +329,21 @@ ${formData.form.functionContent}`.trim()
   display: flex;
   justify-content: center;
   margin-top: 2em;
+}
+
+.inline-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.left-content {
+  flex: 1;
+}
+
+.right-content {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 </style>

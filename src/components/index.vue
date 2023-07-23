@@ -119,14 +119,8 @@ export default defineComponent({
         successColor: 'rgb(24, 160, 88)',
         inputColor: 'rgb(242, 243, 245)',
       },
-      Typography: {
-        headerMargin3: '24px 0 4px 0',
-      },
-      Card: {
-        titleFontSizeMedium: '20px',
-      },
-      Form: {
-        labelFontSizeTopLarge: '15px',
+      Button: {
+        colorHover: 'rgba(90, 157, 226, 0.1)',
       },
       Input: {
         colorFocus: 'rgb(255, 255, 255)',
@@ -135,11 +129,17 @@ export default defineComponent({
       Layout: {
         colorEmbedded: 'rgb(242, 243, 245)',
       },
+      Tooltip: {
+        color: '#000000d9',
+        borderRadius: '5px',
+        padding: '6px 10px',
+      },
       LoadingBar: {
         colorLoading: '#2080f0',
       },
       Message: {
         padding: '8px 12px',
+        borderRadius: '6px',
       },
       Dialog: {
         borderRadius: '5px',
@@ -148,19 +148,8 @@ export default defineComponent({
         buttonColorActive: '#2080f0',
         buttonTextColorActive: 'rgb(255, 255, 255)',
       },
-    }
-
-    const darkThemeOverrides: GlobalThemeOverrides = {
-      common: {
-        primaryColor: Tiny('#42d392').toHex8String(),
-        primaryColorHover: Tiny('#42d392').lighten(7.5).brighten(1).desaturate(20).spin(-2).toHex8String(),
-        primaryColorPressed: Tiny('#42d392').darken(10).saturate(8).spin(2).toHex8String(),
-        primaryColorSuppl: Tiny('#42d392').lighten(7.5).brighten(1).desaturate(20).spin(-2).toHex8String(),
-        fontSize: '15px',
-        fontSizeMedium: '15px',
-        fontSizeLarge: '16px',
-        successColor: 'rgb(82, 196, 26)',
-        inputColor: 'rgba(255,255,255,0.08)',
+      Pagination: {
+        itemColorHover: '#2080f0',
       },
       Typography: {
         headerMargin3: '24px 0 4px 0',
@@ -171,29 +160,72 @@ export default defineComponent({
       Form: {
         labelFontSizeTopLarge: '15px',
       },
+    }
+
+    const darkThemeOverrides: GlobalThemeOverrides = {
+      common: {
+        primaryColor: Tiny('#56b8f5').toHex8String(),
+        primaryColorHover: Tiny('#56b8f5').lighten(7.5).brighten(1).desaturate(20).spin(-2).toHex8String(),
+        primaryColorPressed: Tiny('#56b8f5').darken(10).saturate(8).spin(2).toHex8String(),
+        primaryColorSuppl: Tiny('#56b8f5').lighten(7.5).brighten(1).desaturate(20).spin(-2).toHex8String(),
+        fontSize: '15px',
+        fontSizeMedium: '15px',
+        fontSizeLarge: '16px',
+        successColor: 'rgb(82, 196, 26)',
+        inputColor: 'rgba(255,255,255,0.08)',
+      },
+      Button: {
+        colorHover: 'rgba(119, 202, 162, 0.1)',
+      },
       Input: {
         colorFocus: 'rgb(24, 24, 28)',
       },
       Layout: {
         color: 'rgb(24, 24, 28)',
       },
+      Tooltip: {
+        borderRadius: '5px',
+        padding: '6px 10px',
+      },
       Dropdown: {
-        color: 'rgb(39, 39, 42)',
+        color: 'rgb(28, 28, 32)',
       },
       TreeSelect: {
-        menuColor: 'rgb(39, 39, 42)',
+        menuColor: 'rgb(28, 28, 32)',
+      },
+      Notification: {
+        color: 'rgb(28, 28, 32)',
       },
       Popover: {
-        color: 'rgb(39, 39, 42)',
+        color: 'rgb(55, 55, 57)',
       },
       LoadingBar: {
-        colorLoading: '#42d392',
+        colorLoading: '#56b8f5',
       },
       Message: {
         padding: '8px 12px',
+        borderRadius: '6px',
+        color: 'rgb(28, 28, 32)',
+        colorInfo: 'rgb(28, 28, 32)',
+        colorSuccess: 'rgb(28, 28, 32)',
+        colorError: 'rgb(28, 28, 32)',
+        colorWarning: 'rgb(28, 28, 32)',
+        colorLoading: 'rgb(28, 28, 32)',
       },
       Dialog: {
         borderRadius: '5px',
+      },
+      Pagination: {
+        itemColorHover: '#56b8f5',
+      },
+      Typography: {
+        headerMargin3: '24px 0 4px 0',
+      },
+      Card: {
+        titleFontSizeMedium: '20px',
+      },
+      Form: {
+        labelFontSizeTopLarge: '15px',
       },
     }
 
