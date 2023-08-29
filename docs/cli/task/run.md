@@ -143,7 +143,7 @@ task conc <name/path/url>
       task run example.js --cookie 1-10
       ```
 
-    - ##### 指定第 **2** 至最后一个账号账号运行脚本
+    - ##### 指定第 **2** 至最后一个账号运行脚本
 
       ```bash
       task run example.js --cookie 2-%

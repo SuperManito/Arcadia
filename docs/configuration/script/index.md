@@ -19,3 +19,5 @@ import DocCardList from '@theme/DocCardList';
 定时任务不会重复添加，不过在特殊环境下新增的定时任务会直接覆盖原有的定时任务，例如在迁移后的环境或重新克隆了仓库
 
 定时任务的数据保存在 `config/config.db` 数据库文件中
+
+定时规则采取 Unix 标注格式，支持6位秒级任务

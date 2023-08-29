@@ -5,11 +5,11 @@ import styles from './styles.module.css'
 
 const FeatureList = [
   {
-    title: '脚本文件编辑',
+    title: '文件内容编辑',
     Svg: require('@site/static/img/HomePageFeatures/MdiNoteEditOutline.svg').default,
     description: (
       <>
-        支持对文件内容进行在线编辑，编辑器采用自为 <Icon icon="vscode-icons:file-type-vscode" height="20" style={{ verticalAlign: '-0.15em' }}></Icon> <b><a href="https://github.com/microsoft/vscode" target="_blank" rel="noreferrer">VS Code</a></b> 提供支持的 <b><a href="https://microsoft.github.io/monaco-editor" target="_blank" rel="noreferrer">Monaco Editor</a></b>，并且经过了我们的高度定制，提供众多语言解释器支持。
+        支持对文件内容进行在线编辑，编辑器采用自为 <Icon icon="vscode-icons:file-type-vscode" height="20" style={{ verticalAlign: '-0.15em' }}></Icon> <b><a href="https://github.com/microsoft/vscode" target="_blank" rel="noreferrer">Visual Studio Code</a></b> 提供支持的 <b><a href="https://microsoft.github.io/monaco-editor" target="_blank" rel="noreferrer">Monaco Editor</a></b>，并且经过了我们的高度定制，提供众多语言解释器支持。
       </>
     ),
   },
@@ -26,7 +26,7 @@ const FeatureList = [
   {
     title: '文件维护管理',
     Svg: require('@site/static/img/HomePageFeatures/MdiFileCodeOutline.svg').default,
-    description: <>支持常见文件管理操作可管理项目的绝大部分文件，支持脚本在线调试运行并且可通过弹窗配置运行参数。</>,
+    description: <>支持常见文件管理操作可管理项目的绝大部分文件，支持脚本在线调试运行并且可配置运行参数。</>,
   },
   {
     title: '集成终端工具',

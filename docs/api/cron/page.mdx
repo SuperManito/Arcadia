@@ -14,13 +14,15 @@ import { GET } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 必填 | 描述 |
 | --- | :-: | :-: | --- |
-| `size` | `string` | 否 | 分页数量，默认20 |
 | `page` | `string` | 否 | 指定页数，默认1 |
-| `search` | `string` | 否 | 搜索过滤内容，仅涉及任务名称和执行命令 |
-| `active` | `string` | 否 | 任务状态，1启用、0禁用 |
-| `bind` | `string` | 否 | 后端关联脚本参数过滤 |
+| `size` | `string` | 否 | 指定分页大小数量，默认20 |
+| `type` | `string` | 否 | 任务类型过滤，当前固定分为 user 和 system |
+| `search` | `string` | 否 | 搜索内容过滤，仅涉及任务名称和任务执行命令 |
+| `active` | `string` | 否 | 任务状态过滤，1启用、0禁用 |
 | `tags` | `string` | 否 | 标签过滤 |
-| `type` | `string` | 否 | 类型过滤 |
+| `remark` | `string` | 否 | 备注内容过滤 |
+| `sort` | `string` | 否 | 指定排序字段 |
+| `order` | `string` | 否 | 指定排序方式 0:升序 1:降序 |
 
 ```mdx-code-block
 </APITable>
@@ -36,24 +38,40 @@ import { GET } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
-| `id` | `number` | 唯一标识 |
+| `data` | `array[object]` | 定时任务数据项 |
+| `page` | `number` | 当前页码 |
+| `size` | `number` | 当前分页大小数量 |
+| `total` | `number` | 任务总数（数据库） |
+
+```mdx-code-block
+</APITable>
+```
+
+定时任务数据项
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `id` | `number` | 唯一标识（逐一递增） |
 | `name` | `string` | 任务名称 |
 | `type` | `string` | 任务类型，当前固定分为 user 和 system |
-| `cron` | `string` | 定时表达式 |
-| `shell` | `string` | 执行的命令 |
+| `cron` | `string` | 定时规则（5位或6位的Cron表达式） |
+| `shell` | `string` | 任务执行的命令 |
 | `active` | `number` | 任务状态，1启用、0禁用 |
 | `config` | `string` | 后端配置参数 |
 | `tags` | `string` | 任务标签 |
 | `last_runtime` | `string` | 最后一次运行的时间 |
-| `last_run_use` | `number` | 最后一次运行的时长（秒） |
-| `sort` | `number` | 在列表中的位置序号，默认99999 |
+| `last_run_use` | `number` | 最后一次运行的时长（单位秒，精确到小数点后3位） |
+| `sort` | `number` | 在列表中的位置序号（正整数），默认按照先后顺序递增 |
 | `create_time` | `string` | 任务创建时间 |
 | `remark` | `string` | 任务备注 |
 | `bind` | `string` | 后端关联脚本参数 |
-| `running_status` | `boolean` | 当前运行状态 |
-| `total` | `number` | 全部任务数量 |
-| `size` | `number` | 分页数量，默认20 |
-| `page` | `number` | 指定页数，默认1 |
+| `running_status` | `boolean` | 当前运行状态（任务是否正在运行） |
+| `logPath` | `string` | 后端关联日志路径（目录） |
+| `scriptPath` | `string` | 后端关联脚本路径（文件） |
 
 ```mdx-code-block
 </APITable>
@@ -62,6 +80,23 @@ import { GET } from '@site/src/components/RequestTag';
 ```jsx title="示例"
 {
   "data": [
+    {
+      "id": 2,
+      "name": "系统测试任务",
+      "type": "system",
+      "cron": "30 */2 * * *",
+      "shell": "update source",
+      "active": 1,
+      "config": "",
+      "tags": "",
+      "last_runtime": null,
+      "last_run_use": null,
+      "sort": 1,
+      "create_time": "2023-01-01 00:00:00",
+      "remark": "",
+      "bind": "",
+      "running_status": false
+    }
     {
       "id": 1,
       "name": "用户测试任务",
@@ -79,23 +114,6 @@ import { GET } from '@site/src/components/RequestTag';
       "bind": "",
       "running_status": true
     },
-    {
-      "id": 2,
-      "name": "系统测试任务",
-      "type": "system",
-      "cron": "7 7 7 7 7 7",
-      "shell": "update source",
-      "active": 1,
-      "config": "",
-      "tags": "",
-      "last_runtime": null,
-      "last_run_use": null,
-      "sort": 1,
-      "create_time": "2023-01-01 00:00:00",
-      "remark": "",
-      "bind": "",
-      "running_status": false
-    }
     ...
   ],
   "total": 5,
@@ -103,3 +121,7 @@ import { GET } from '@site/src/components/RequestTag';
   "size": 20
 }
 ```
+
+:::tip 提示
+接口返回的定时任务数据是倒序排列的，即最新添加的任务排在最前面。
+:::
