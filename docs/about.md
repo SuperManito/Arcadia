@@ -43,8 +43,10 @@ import DonateModal from '@site/src/components/DonateModal';
 
 成为赞助商享有文档广告展示，如有需求请在社区中主动联系作者，更多内容有待完善。
 
-<!-- ## 捐助
+ㅤ
+
+## 捐助
 
 ```mdx-code-block
 <DonateModal />
-``` -->
+```
