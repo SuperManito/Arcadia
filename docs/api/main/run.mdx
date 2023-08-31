@@ -1,10 +1,8 @@
 ---
-title: 调用底层命令
+title: 调用底层内容
 ---
 import APITable from '@site/src/components/APITable';
 import { GET, POST } from '@site/src/components/RequestTag';
-
-在终端执行自定义命令并实时返回执行结果
 
 ## 运行命令
 
@@ -32,7 +30,43 @@ import { GET, POST } from '@site/src/components/RequestTag';
 "aBcDeFgHiJkLmNoPqRsTuVwXyZ"
 ```
 
-## 获取日志
+## 获取实时日志
+
+需要与 `/api/ws` 接口建立 WebSocket 连接，然后监听消息过滤 `runId` 临时id参数，然后判断 `over` 运行状态参数是否结束监听，具体详见前端业务实现
+
+## 获取命令的运行状态
+
+#### <GET>/runCmdStatus</GET>
+
+### 请求
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `id` | `string` | 是 | 任务临时id |
+
+```mdx-code-block
+</APITable>
+```
+
+### 响应
+
+- ContentType `application/json`
+
+```jsx title="示例"
+true
+```
+
+:::info 注释
+响应布尔值，`true` 代表任务正在运行中，`false` 代表任务已结束运行或不存在
+:::
+
+## 获取脚本最新运行日志
+
+目前此接口的设计与 `runCmd` 无关，只是看着名字很像
 
 #### <GET>/runLog</GET>
 
@@ -44,10 +78,16 @@ import { GET, POST } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 必填 | 描述 |
 | --- | :-: | :-: | --- |
-| `id` | `string` | 是 | 临时id |
+| `jsName` | `string` | 是 | 脚本路径 |
 
 ```mdx-code-block
 </APITable>
 ```
 
 ### 响应
+
+- ContentType `text/plain`
+
+```jsx title="示例"
+日志内容
+```
