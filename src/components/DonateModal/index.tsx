@@ -27,7 +27,7 @@ export default function DonateModal () {
         algorithm: colorMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
       }}
     >
-      <Button type="primary" onClick={showModal}>
+      <Button type="primary" style={{ backgroundColor: 'rgb(206 38 239)', fontWeight: '550' }} onClick={showModal}>
         <Icon icon='simple-icons:githubsponsors' height='18' style={{ verticalAlign: '-0.3em' }}></Icon>&nbsp;
         点击捐赠
       </Button>

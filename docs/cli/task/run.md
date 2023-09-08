@@ -6,6 +6,7 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { CHECK, CLOSE } from '@site/src/components/Icon';
 import APITable from '@site/src/components/APITable';
+import { ICON } from '@site/src/components/Icon';
 
 你可以在本篇文档中学习如何运行脚本这一基础命令，由于定时任务的运行也是建立在该命令上的，所以你必须学会它
 
@@ -61,34 +62,34 @@ task conc <name/path/url>
 
 当执行本地脚本文件时，脚本名的后缀格式（脚本类型）可以省略，届时将启用模糊查找，优先级为 `JavaScript` > `Python` > `TypeScript` > `Shell`，当存在同名脚本时仍适用此规则
 
-### 关于运行脚本所需的依赖
+### 关于运行脚本所需的依赖库
 
-这部分内容与项目命令无关，用于解决脚本运行时缺少依赖的问题
+这部分内容与项目命令无关，用于解决脚本运行时缺少依赖库报错的问题
 
 :::info 你需要知道的
-当脚本报错提示 `need module xxx` 类似字样说明缺少脚本运行所需的依赖，看见 `module` 字样应立即联想到模块上  
-如果缺少的依赖中带有 `/` 则表示本地依赖文件，一般开发者都会提供相关组件，注意与安装模块区分开不要弄混
+当脚本报错提示 `need module xxx` 类似字样说明缺少脚本运行所需的依赖库，看见 `module` 字样应立即联想到模块上  
+如果缺少的依赖中带有 `/` 则表示本地依赖文件，一般开发者都会提供相关组件，注意与安装依赖库区分开不要弄混
 :::
 
 <Tabs>
-  <TabItem value="JavaScript" label="*.js / *.ts" default>
+  <TabItem value="JavaScript" label="JavaScript / TypeScript" default>
 
-  适用于 JavaScript 和 TypeScript 脚本
+  适用于 <ICON>vscode-icons:file-type-light-js</ICON> `.js` 和 <ICON>vscode-icons:file-type-typescript</ICON> `.ts` 脚本
 
   ```bash
-  npm install -g <依赖包>
+  npm install -g <xxx>
   ```
 
-  使用 `-g` 命令选项代表全局安装模块，即不需要解决目录关系，但某些情况下可能不适合全局安装  
-  你可以到脚本所在根目录使用局部安装命令 `npm install <依赖包>`，你也可以使用 `pnpm` 或 `yarn` 指令来进行安装
+  默认命令 `npm install <xxx>` 安装的依赖库是相对位置的，使用 -g 命令选项代表全局安装即不需要解决目录关系，因为一般来说这样安装更省事  
+  但某些情况下可能不适合全局安装，你可以到脚本所在根目录使用默认命令 `npm install <xxx>` 安装，也可以使用 `pnpm` 或 `yarn` 指令
 
   </TabItem>
-  <TabItem value="Python" label="*.py">
+  <TabItem value="Python" label="Python">
 
-  适用于 Python 脚本
+  适用于 <ICON>vscode-icons:file-type-python</ICON> `.py` 脚本
 
   ```bash
-  pip3 install <依赖包>
+  pip3 install <xxx>
   ```
 
   </TabItem>

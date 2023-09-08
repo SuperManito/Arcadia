@@ -7,7 +7,6 @@
 
 import React, { type ReactNode } from 'react'
 import Link from '@docusaurus/Link'
-import Heading from '@theme/Heading'
 
 interface ProfileProps {
   className?: string
@@ -28,20 +27,18 @@ function TeamProfileCard ({
     <div className={className}>
       <div className="card card--full-height">
         <div className="card__header">
-          <div className="avatar avatar--vertical">
+          <div className="avatar">
             <img
-              className="avatar__photo avatar__photo--xl"
+              className="avatar__photo"
               src={`${githubUrl}.png`}
               alt={`${name}'s avatar`}
             />
             <div className="avatar__intro">
-              <Heading as="h3" className="avatar__name">
-                {name}
-              </Heading>
+              <div className="avatar__name">{name}</div>
+              <small className="avatar__subtitle">{children}</small>
             </div>
           </div>
         </div>
-        <div className="card__body">{children}</div>
         <div className="card__footer">
           <div className="button-group button-group--block">
             {githubUrl && (
@@ -76,14 +73,9 @@ export function ActiveTeamRow (): JSX.Element {
         项目创始人，底层、前端开发者兼总设计师。熟悉使用众多编程语言，他不仅人长得帅敲代码也很厉害~
       </TeamProfileCardCol>
       <TeamProfileCardCol
-        name="githubwyj"
-        githubUrl="https://github.com/githubwyj">
-        后端开发者，全栈工程师。
-      </TeamProfileCardCol>
-      <TeamProfileCardCol
         name="Dellear"
         githubUrl="https://github.com/Dellear">
-        前端开发者。
+        前端开发者，前端工程师。
       </TeamProfileCardCol>
       <TeamProfileCardCol
         name="mzzsfy"

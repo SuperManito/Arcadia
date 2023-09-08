@@ -16,10 +16,11 @@ import DonateModal from '@site/src/components/DonateModal';
 
 - 未经作者允许严禁任何开发者盗用本项目源码用于其它用途，作者保留一切追究的权利
 
-<!-- ## 开发者
+## 开发者
 
+```mdx-code-block
 <ActiveTeamRow /> 
-``` -->
+```
 
 ㅤ
 

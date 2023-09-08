@@ -3,6 +3,7 @@ title: 安装流程
 ---
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { ICON } from '@site/src/components/Icon';
 import Link from '@docusaurus/Link'
 import APITable from '@site/src/components/APITable';
 import CliInstall from '@site/src/components/CliInstall';
@@ -86,7 +87,7 @@ docker logs -f arcadia
 
 无法访问？我们提供了一份 [排除故障指南](/docs/start/panel#%E6%8E%92%E9%99%A4%E9%9D%A2%E6%9D%BF%E6%95%85%E9%9A%9C)，希望对你有所帮助
 
-除后台管理面板外，项目支持强大的命令行指令，具体请翻阅 CLI 文档
+除后台管理面板外，项目支持强大的命令行指令，具体请翻阅 CLI 文档，有关用户配置的问题详见文档相关介绍和配置文件中的注释
 
 ```mdx-code-block
 <div className="alert alert--success" role="alert">
@@ -94,15 +95,44 @@ docker logs -f arcadia
 </div><br />
 ```
 
-### 预装运行脚本依赖
+### 安装运行脚本依赖库
 
-如果你是首次启动容器建议先进入容器执行下面的命令，项目内置了一条安装脚本常用依赖包的命令，涉及一些 npm 和 pip 依赖包，用于满足市面上大多数脚本的运行
+如果你是首次安装并启动容器建议先进入容器执行下面的命令，项目内置了一条预装脚本常用依赖的命令，用于满足市面上常见脚本的运行
 
 ```bash
 arcadia env install
 ```
 
-### 目录结构
+此外，你还需要掌握如何安装运行脚本依赖库这一基础性的知识
+
+当脚本报错提示 `need module xxx` 类似字样说明缺少脚本运行所需的依赖库，看见 `module` 字样应立即联想到模块上  
+如果缺少的依赖中带有 `/` 则表示本地依赖文件，一般开发者都会提供相关组件，注意与安装依赖库区分开不要弄混
+
+<Tabs>
+  <TabItem value="JavaScript" label="JavaScript / TypeScript" default>
+
+  适用于 <ICON>vscode-icons:file-type-light-js</ICON> `.js` 和 <ICON>vscode-icons:file-type-typescript</ICON> `.ts` 脚本
+
+  ```bash
+  npm install -g <xxx>
+  ```
+
+  默认命令 `npm install <xxx>` 安装的依赖库是相对位置的，使用 `-g` 命令选项代表全局安装即不需要解决目录关系，因为一般来说这样安装更省事
+
+  </TabItem>
+  <TabItem value="Python" label="Python">
+
+  适用于 <ICON>vscode-icons:file-type-python</ICON> `.py` 脚本
+
+  ```bash
+  pip3 install <xxx>
+  ```
+
+  </TabItem>
+</Tabs>
+
+
+### 了解目录结构
 
 ```text
 ./arcadia       根目录
