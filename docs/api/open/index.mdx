@@ -10,7 +10,7 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 
 ## 接口说明
 
-  服务端已开启 CORS 跨域支持，使用 HTTP Status Code 标识状态  
+  服务端已开启 CORS 跨域支持，使用 HTTP Status Code 标识状态
 
   - ### 接口基准地址
 
@@ -105,9 +105,9 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 
 ```jsx title="示例"
 {
-  code: 1,
-  data: 1,
-  msg: "success"
+  "code": 1,
+  "data": 1,
+  "msg": "success"
 }
 ```
 
@@ -156,12 +156,12 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 
 ```jsx title="示例"
 {
-  code: 1,
-  data: {
-    cookieCount: 1,
-    accountCount: 1
+  "code": 1,
+  "data": {
+    "cookieCount": 1,
+    "accountCount": 1
   },
-  msg: ""
+  "msg": "success"
 }
 ```
 
@@ -203,13 +203,13 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 
 ```jsx title="示例"
 {
-  code: 1,
-  data: {
-    cookieCount: 1,
-    accountCount: 1,
-    deleteCount: 1
+  "code": 1,
+  "data": {
+    "cookieCount": 1,
+    "accountCount": 1,
+    "deleteCount": 1
   },
-  msg: ""
+  "msg": "success"
 }
 ```
 
@@ -240,12 +240,55 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 
 ```jsx title="示例"
 {
-  code: 1,
-  data: {
+  "code": 1,
+  "data": {
     "cookieCount": 1,
     "accountCount": 1
   },
-  msg: ""
+  "msg": "success"
+}
+```
+
+### 查看账号信息列表
+
+#### <GET>list</GET>
+
+##### 请求
+
+无参数
+
+##### 响应
+
+- ContentType `application/json`
+
+```mdx-code-block
+<APITable>
+```
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `id` | `number` | 在配置文件中的序号 |
+| `ptPin` | `string` | `pt_key` 的值 |
+| `lastUpdateTime` | `string` | 最近一次的更新时间 |
+| `remark` | `string` | 备注 |
+
+```mdx-code-block
+</APITable>
+```
+
+```jsx title="示例"
+{
+  "code": 1,
+  "data": [
+    {
+      "id": 1,
+      "ptPin": "user_α",
+      "lastUpdateTime": "2023-01-01 00:00:00",
+      "remark": "xxx",
+    },
+    ...
+  ],
+  "msg": "success"
 }
 ```
 

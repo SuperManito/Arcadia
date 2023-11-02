@@ -131,6 +131,27 @@ arcadia env install
   </TabItem>
 </Tabs>
 
+### 自定义 Python 版本
+
+如果你几乎不使用 Python 脚本那么请直接忽略这一部分的内容
+
+受限于容器底层镜像，项目默认安装的 Python 版本为 3.11，这可能会产生一些兼容性问题
+
+```bash title="Python 降级至 3.10 版本的参考命令"
+apk del py3-pip
+apk del python3
+sed -i "s/v3\.18/v3\.17/g" /etc/apk/repositories
+apk update -f
+apk --no-cache add -f python3
+apk --no-cache add -f py3-pip
+```
+
+重装完后你还需要执行下面的命令
+
+```bash
+pip3 install yq # 底层命令需要使用的依赖库
+arcadia tgbot update # 如果你需要使用 TG 机器人，则需要执行此命令重装
+```
 
 ### 了解目录结构
 
