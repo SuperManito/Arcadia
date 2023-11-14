@@ -7,19 +7,21 @@ import { useColorMode } from '@docusaurus/theme-common'
 export default function ComposeInstall () {
   function DockerComposeV2 () {
     return (
-      <div>
-        <br />
-        <ul>
-          <li><h3>新建 YAML 文件</h3></li>
-          <CodeBlock
-            language="bash">
-            {`mkdir -p /opt/arcadia && cd /opt/arcadia
+            <div>
+                <br />
+                <ul>
+                    <li>
+                        <h3>新建 YAML 文件</h3>
+                    </li>
+                    <CodeBlock language="bash">
+                        {`mkdir -p /opt/arcadia && cd /opt/arcadia
 vim docker-compose.yaml`}
-          </CodeBlock>
-          <li><h3>编辑内容</h3></li>
-          <CodeBlock
-            language="yaml">
-            {`services:
+                    </CodeBlock>
+                    <li>
+                        <h3>编辑内容</h3>
+                    </li>
+                    <CodeBlock language="yaml">
+                        {`services:
   arcadia:
     image: ${checked ? 'registry.cn-hangzhou.aliyuncs.com/' : ''}supermanito/arcadia:dev  # 镜像名
     container_name: arcadia  # 容器名（可随意更改）
@@ -36,32 +38,33 @@ vim docker-compose.yaml`}
       - /opt/arcadia/repo:/arcadia/repo           # 定义脚本仓库的主机挂载目录
       - /opt/arcadia/raw:/arcadia/raw             # 定义远程脚本的主机挂载目录
       - /opt/arcadia/tgbot:/arcadia/tgbot         # 定义电报机器人的主机挂载目录`}
-          </CodeBlock>
-          <li><h3>启动容器</h3></li>
-          <CodeBlock
-            language="bash">
-            {'docker compose up -d'}
-          </CodeBlock>
-        </ul>
-      </div>
+                    </CodeBlock>
+                    <li>
+                        <h3>启动容器</h3>
+                    </li>
+                    <CodeBlock language="bash">{'docker compose up -d'}</CodeBlock>
+                </ul>
+            </div>
     )
   }
 
   function DockerComposeV1 () {
     return (
-      <div>
-        <br />
-        <ul>
-          <li><h3>新建 YAML 文件</h3></li>
-          <CodeBlock
-            language="bash">
-            {`mkdir -p /opt/arcadia && cd /opt/arcadia
+            <div>
+                <br />
+                <ul>
+                    <li>
+                        <h3>新建 YAML 文件</h3>
+                    </li>
+                    <CodeBlock language="bash">
+                        {`mkdir -p /opt/arcadia && cd /opt/arcadia
 vim docker-compose.yaml`}
-          </CodeBlock>
-          <li><h3>编辑内容</h3></li>
-          <CodeBlock
-            language="yaml">
-            {`version: '2.0'
+                    </CodeBlock>
+                    <li>
+                        <h3>编辑内容</h3>
+                    </li>
+                    <CodeBlock language="yaml">
+                        {`version: '2.0'
 services:
   arcadia:
     image: ${checked ? 'registry.cn-hangzhou.aliyuncs.com/' : ''}supermanito/arcadia:dev  # 镜像名
@@ -79,32 +82,33 @@ services:
       - /opt/arcadia/repo:/arcadia/repo           # 定义脚本仓库的主机挂载目录
       - /opt/arcadia/raw:/arcadia/raw             # 定义远程脚本的主机挂载目录
       - /opt/arcadia/tgbot:/arcadia/tgbot         # 定义电报机器人的主机挂载目录`}
-          </CodeBlock>
-          <li><h3>启动容器</h3></li>
-          <CodeBlock
-            language="bash">
-            {'docker-compose up -d'}
-          </CodeBlock>
-        </ul>
-      </div>
+                    </CodeBlock>
+                    <li>
+                        <h3>启动容器</h3>
+                    </li>
+                    <CodeBlock language="bash">{'docker-compose up -d'}</CodeBlock>
+                </ul>
+            </div>
     )
   }
 
   function PodmanCompose () {
     return (
-      <div>
-        <br />
-        <ul>
-          <li><h3>新建 YAML 文件</h3></li>
-          <CodeBlock
-            language="bash">
-            {`mkdir -p /opt/arcadia && cd /opt/arcadia
+            <div>
+                <br />
+                <ul>
+                    <li>
+                        <h3>新建 YAML 文件</h3>
+                    </li>
+                    <CodeBlock language="bash">
+                        {`mkdir -p /opt/arcadia && cd /opt/arcadia
 vim docker-compose.yaml`}
-          </CodeBlock>
-          <li><h3>编辑内容</h3></li>
-          <CodeBlock
-            language="yaml">
-            {`version: '3.8'
+                    </CodeBlock>
+                    <li>
+                        <h3>编辑内容</h3>
+                    </li>
+                    <CodeBlock language="yaml">
+                        {`version: '3.8'
 services:
   arcadia:
     image: ${checked ? 'registry.cn-hangzhou.aliyuncs.com/' : 'docker.io/'}supermanito/arcadia:dev  # 镜像名
@@ -121,14 +125,13 @@ services:
       - /opt/arcadia/repo:/arcadia/repo           # 定义脚本仓库的主机挂载目录
       - /opt/arcadia/raw:/arcadia/raw             # 定义远程脚本的主机挂载目录
       - /opt/arcadia/tgbot:/arcadia/tgbot         # 定义电报机器人的主机挂载目录`}
-          </CodeBlock>
-          <li><h3>启动容器</h3></li>
-          <CodeBlock
-            language="bash">
-            {'podman-compose up -d'}
-          </CodeBlock>
-        </ul>
-      </div>
+                    </CodeBlock>
+                    <li>
+                        <h3>启动容器</h3>
+                    </li>
+                    <CodeBlock language="bash">{'podman-compose up -d'}</CodeBlock>
+                </ul>
+            </div>
     )
   }
 
@@ -153,42 +156,40 @@ services:
     setChecked(e.target.checked)
   }
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: colorMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
-      }}
-    >
-      <Space
-        size="large"
-      >
-        <Segmented
-          options={[
-            {
-              label: isMobile ? 'V2' : 'Docker Compose V2',
-              value: 'docker-compose-v2',
-              icon: <DockerIcon/>,
-            },
-            {
-              label: isMobile ? 'V1' : 'Docker Compose V1',
-              value: 'docker-compose-v1',
-              icon: <DockerIcon/>,
-            },
-            {
-              label: isMobile ? '' : 'Podman Compose',
-              value: 'podman-compose',
-              icon: <PodmanIcon/>,
-            },
-          ]}
-          value={value}
-          onChange={handleValueChange}
-        />
-        <Checkbox checked={checked} onChange={onChange}>
-          {'使用国内镜像'}
-        </Checkbox>
-      </Space>
-      {value === 'docker-compose-v2' && <DockerComposeV2 /> }
-      {value === 'docker-compose-v1' && <DockerComposeV1 /> }
-      {value === 'podman-compose' && <PodmanCompose /> }
-    </ConfigProvider>
+        <ConfigProvider
+            theme={{
+              algorithm: colorMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
+            }}
+        >
+            <Space size="large">
+                <Segmented
+                    options={[
+                      {
+                        label: isMobile ? 'V2' : 'Docker Compose V2',
+                        value: 'docker-compose-v2',
+                        icon: <DockerIcon />,
+                      },
+                      {
+                        label: isMobile ? 'V1' : 'Docker Compose V1',
+                        value: 'docker-compose-v1',
+                        icon: <DockerIcon />,
+                      },
+                      {
+                        label: isMobile ? '' : 'Podman Compose',
+                        value: 'podman-compose',
+                        icon: <PodmanIcon />,
+                      },
+                    ]}
+                    value={value}
+                    onChange={handleValueChange}
+                />
+                <Checkbox checked={checked} onChange={onChange}>
+                    {'使用国内镜像'}
+                </Checkbox>
+            </Space>
+            {value === 'docker-compose-v2' && <DockerComposeV2 />}
+            {value === 'docker-compose-v1' && <DockerComposeV1 />}
+            {value === 'podman-compose' && <PodmanCompose />}
+        </ConfigProvider>
   )
 }

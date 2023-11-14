@@ -2,10 +2,12 @@ import React, { useState, useRef } from 'react'
 import { ICON } from '@site/src/components/Icon'
 
 export default function Pronounce () {
-  const audioRef = useRef()
+  const audioRef: any = useRef()
   const play = () => {
     audioRef.current.play()
   }
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const audio = require('@site/static/audio/arcadia.mp3').default
 
   const [isHover, setIsHover] = useState(false)
 
@@ -31,7 +33,7 @@ export default function Pronounce () {
       <ICON>
         streamline:entertainment-volume-level-high-speaker-high-volume-control-audio-music
       </ICON>
-      <audio src={require('@site/static/audio/arcadia.mp3').default} ref={audioRef} style={{ display: 'none' }}></audio>
+      <audio src={audio} ref={audioRef} style={{ display: 'none' }}></audio>
     </span>
   )
 }

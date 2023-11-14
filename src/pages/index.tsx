@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable @docusaurus/no-untranslated-text */
 /* eslint-disable react/no-unescaped-entities */
@@ -12,62 +13,62 @@ import styles from './index.module.css'
 
 function Hero () {
   return (
-    <header className={clsx('container', styles.heroBanner)}>
-        <div className="row padding-horiz--md">
-            <div className="col col--7">
-                <div className={clsx(styles.relative, 'row')}>
-                    <div className="col">
-                        <h1 className={styles.tagline}>
-                            Arcadia
-                            <br /> 一个脚本运维面板
-                            <br />
-                            支持 在线编辑 远程管理 定时调试 等众多功能
-                        </h1>
-                        <h1 className={styles.tagline}>
-                            <span>
+        <header className={clsx('container', styles.heroBanner)}>
+            <div className="row padding-horiz--md">
+                <div className="col col--7">
+                    <div className={clsx(styles.relative, 'row')}>
+                        <div className="col">
+                            <h1 className={styles.tagline}>
                                 Arcadia
+                                <br /> 一个脚本运维面板
                                 <br />
-                            </span>{' '}
-                            一个脚本运维面板
-                            <br />
-                            支持 <span>在线编辑</span> <span>远程管理</span> <span>定时调试</span> 等众多功能
-                        </h1>
+                                支持 在线编辑 远程管理 定时调试 等众多功能
+                            </h1>
+                            <h1 className={styles.tagline}>
+                                <span>
+                                    Arcadia
+                                    <br />
+                                </span>{' '}
+                                一个脚本运维面板
+                                <br />
+                                支持 <span>在线编辑</span> <span>远程管理</span> <span>定时调试</span> 等众多功能
+                            </h1>
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col">
+                            <h2>稳定 安全 高效 易用 简约 漂亮</h2>
+                        </div>
+                    </div>
+                    <div>
+                        <Link className="button button--block button--primary button--outline button--lg" to="/docs/start/install">
+                            开 始 使 用
+                        </Link>
                     </div>
                 </div>
-                <div className="row">
-                    <div className="col">
-                        <h2>稳定 安全 高效 易用 简约 漂亮</h2>
+                <div className={clsx(styles.relative, 'col', 'col--5')}>
+                    <div className={styles.logoBlur}>
+                        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 800 800" opacity="1">
+                            <defs>
+                                <filter id="bbblurry-filter" x="-100%" y="-100%" width="400%" height="400%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                                    <feGaussianBlur stdDeviation="77" x="0%" y="0%" width="100%" height="100%" in="SourceGraphic" edgeMode="none" result="blur"></feGaussianBlur>
+                                </filter>
+                            </defs>
+                            <g filter="url(#bbblurry-filter)">
+                                <ellipse rx="78.5" ry="80" cx="511.3427734375" cy="474.40447998046875" fill="#9b24ffff"></ellipse>
+                                <ellipse rx="78.5" ry="80" cx="512.676306439944" cy="299.23062005966744" fill="#684ae3ff"></ellipse>
+                                <ellipse rx="78.5" ry="80" cx="452.3887306732656" cy="396.6923141080048" fill="#ef0bbaff"></ellipse>
+                                <ellipse rx="78.5" ry="80" cx="339.2578494086939" cy="302.0300610926763" fill="#0094ffff"></ellipse>
+                                <ellipse rx="78.5" ry="80" cx="335.5279350879929" cy="473.333784812408" fill="#002dffff"></ellipse>
+                            </g>
+                        </svg>
+                    </div>
+                    <div className={styles.logo}>
+                        <img src={require('@site/static/img/logo/arcadia-pure-logo.png').default} className={clsx(styles.hideSmall)} />
                     </div>
                 </div>
-                <div>
-                    <Link className="button button--block button--primary button--outline button--lg" to="/docs/start/install">
-                        开 始 使 用
-                    </Link>
-                </div>
             </div>
-            <div className={clsx(styles.relative, 'col', 'col--5')}>
-                <div className={styles.logoBlur}>
-                    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlnsXlink="http://www.w3.org/1999/xlink" xmlnssvgjs="http://svgjs.dev/svgjs" viewBox="0 0 800 800" opacity="1">
-                        <defs>
-                            <filter id="bbblurry-filter" x="-100%" y="-100%" width="400%" height="400%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
-                                <feGaussianBlur stdDeviation="77" x="0%" y="0%" width="100%" height="100%" in="SourceGraphic" edgeMode="none" result="blur"></feGaussianBlur>
-                            </filter>
-                        </defs>
-                        <g filter="url(#bbblurry-filter)">
-                            <ellipse rx="78.5" ry="80" cx="511.3427734375" cy="474.40447998046875" fill="#9b24ffff"></ellipse>
-                            <ellipse rx="78.5" ry="80" cx="512.676306439944" cy="299.23062005966744" fill="#684ae3ff"></ellipse>
-                            <ellipse rx="78.5" ry="80" cx="452.3887306732656" cy="396.6923141080048" fill="#ef0bbaff"></ellipse>
-                            <ellipse rx="78.5" ry="80" cx="339.2578494086939" cy="302.0300610926763" fill="#0094ffff"></ellipse>
-                            <ellipse rx="78.5" ry="80" cx="335.5279350879929" cy="473.333784812408" fill="#002dffff"></ellipse>
-                        </g>
-                    </svg>
-                </div>
-                <div className={styles.logo}>
-                    <img src={require('@site/static/img/logo/arcadia-pure-logo.png').default} className={clsx(styles.hideSmall)} />
-                </div>
-            </div>
-        </div>
-    </header>
+        </header>
   )
 }
 
@@ -146,24 +147,22 @@ function Features () {
 
 function Footer () {
   return (
-    <footer className="footer">
-      <div className="container container--fluid">
-        <div className="text--center">
-          Copyright © {new Date().getFullYear()} SuperManito
-        </div>
-      </div>
-    </footer>
+        <footer className="footer">
+            <div className="container container--fluid">
+                <div className="text--center">Copyright © {new Date().getFullYear()} SuperManito</div>
+            </div>
+        </footer>
   )
 }
 
 export default function Home () {
-  const { siteConfig } = useDocusaurusContext()
+  const { siteConfig } = useDocusaurusContext() as any
   return (
-    <Layout title={`${siteConfig.title} · ${siteConfig.tagline}`} description={siteConfig.description}>
-      <Hero />
-      <Features />
-      <HomePageFeatures />
-      <Footer />
-    </Layout>
+        <Layout title={`${siteConfig.title as string} · ${siteConfig.tagline as string}`} description={siteConfig.description}>
+            <Hero />
+            <Features />
+            <HomePageFeatures />
+            <Footer />
+        </Layout>
   )
 }
