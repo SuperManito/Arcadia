@@ -17,11 +17,9 @@ export ENV="Arcadia"
 
 在主要配置文件中的一些配置项
 
-```mdx-code-block
-<div className="alert alert--primary" role="alert">
+:::primary
   <code>config.sh</code> 主要用来存储用户的配置信息（变量），由于需要经常调用所以不适合存放任何实际执行的命令
-</div>
-```
+:::
 
 ### 脚本全局代理
 

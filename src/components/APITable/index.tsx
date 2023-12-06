@@ -29,21 +29,21 @@ function APITableRow ({ name, children }: { name: string | undefined, children: 
   const anchor = `#${id}`
   const history = useHistory()
   return (
-        <tr
-            id={id}
-            tabIndex={0}
-            ref={history.location.hash === anchor ? ref : undefined}
-            onClick={() => {
-              history.push(anchor)
-            }}
-            onKeyDown={(e: React.KeyboardEvent) => {
-              if (e.key === 'Enter') {
-                history.push(anchor)
-              }
-            }}
-        >
-            {children.props.children}
-        </tr>
+    <tr
+      id={id}
+      tabIndex={0}
+      ref={history.location.hash === anchor ? ref : undefined}
+      onClick={() => {
+        history.push(anchor)
+      }}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          history.push(anchor)
+        }
+      }}
+    >
+      {children.props.children}
+    </tr>
   )
 }
 
@@ -61,15 +61,15 @@ export default function APITable ({ children, name }: Props): JSX.Element {
     highlightedRow.current?.focus()
   }, [highlightedRow])
   const rows = React.Children.map(tbody.props.children, (row: ReactElement<ComponentProps<'tr'>>) => (
-        <APITableRowComp name={name} ref={highlightedRow}>
-            {row}
-        </APITableRowComp>
+    <APITableRowComp name={name} ref={highlightedRow}>
+      {row}
+    </APITableRowComp>
   ))
 
   return (
-        <table className={styles.apiTable}>
-            {thead}
-            <tbody>{rows}</tbody>
-        </table>
+    <table className={styles.apiTable}>
+      {thead}
+      <tbody>{rows}</tbody>
+    </table>
   )
 }

@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import React from 'react'
 import clsx from 'clsx'
 import { Icon } from '@iconify/react'
+import Link from '@docusaurus/Link'
+import Heading from '@theme/Heading'
 import styles from './styles.module.css'
 
 const FeatureList = [
@@ -9,7 +12,7 @@ const FeatureList = [
     Svg: require('@site/static/img/HomePageFeatures/MdiNoteEditOutline.svg').default,
     description: (
       <>
-        支持对文件内容进行在线编辑，编辑器采用自为 <Icon icon="vscode-icons:file-type-vscode" height="20" style={{ verticalAlign: '-0.15em' }}></Icon> <b><a href="https://github.com/microsoft/vscode" target="_blank" rel="noreferrer">Visual Studio Code</a></b> 提供支持的 <b><a href="https://microsoft.github.io/monaco-editor" target="_blank" rel="noreferrer">Monaco Editor</a></b>，并且经过了我们的高度定制，提供众多语言解释器支持。
+        支持对文件内容进行在线编辑，编辑器采用自为 <Icon icon="vscode-icons:file-type-vscode" height="20" style={{ verticalAlign: '-0.15em' }}></Icon> <b><Link href="https://github.com/microsoft/vscode" target="_blank" rel="noreferrer">Visual Studio Code</Link></b> 提供支持的 <b><Link href="https://microsoft.github.io/monaco-editor" target="_blank" rel="noreferrer">Monaco Editor</Link></b>，并且经过了我们的高度定制，提供众多语言解释器支持。
       </>
     ),
   },
@@ -33,7 +36,7 @@ const FeatureList = [
     Svg: require('@site/static/img/HomePageFeatures/MdiCodeTags.svg').default,
     description: (
       <>
-        集成基于 <b><a href="https://xtermjs.org/" target="_blank" rel="noreferrer">Xterm.js</a></b> 的网页终端工具，实时、流畅，支持标签页多开。
+        集成基于 <b><Link href="https://xtermjs.org/" target="_blank" rel="noreferrer">Xterm.js</Link></b> 的网页终端工具，实时、流畅，支持标签页多开。
       </>
     ),
   },
@@ -43,19 +46,19 @@ const FeatureList = [
     description: (
       // eslint-disable-next-line @docusaurus/no-untranslated-text
       <>
-        集成自 <b><a href="https://microsoft.github.io/monaco-editor" target="_blank" rel="noreferrer">Monaco Editor</a></b> 的专业差异编辑器，对比文件可选，支持多种对比模式。
+        集成自 <b><Link href="https://microsoft.github.io/monaco-editor" target="_blank" rel="noreferrer">Monaco Editor</Link></b> 的专业差异编辑器，对比文件可选，支持多种对比模式。
       </>
     ),
   },
 ]
 
 // eslint-disable-next-line react/prop-types
-function Feature ({ Svg, title, description }) {
+function Feature ({ Svg, title, description }: any) {
   return (
     <div className={clsx('col col--4')}>
       <div className="padding-horiz--md padding-bottom--md">
         <div className={styles.featureIcon}>{Svg ? <Svg alt={title} /> : null}</div>
-        <h3>{title}</h3>
+        <Heading as="h3">{title}</Heading>
         <p>{description}</p>
       </div>
     </div>

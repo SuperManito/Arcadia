@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { ICON } from '@site/src/components/Icon'
+import { ICON } from '../Icon'
 
 export default function Pronounce () {
   const audioRef: any = useRef()

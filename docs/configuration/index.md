@@ -13,8 +13,6 @@ title: 用户配置
 └── account.json                    账号配置文件
 ```
 
-```mdx-code-block
 import DocCardList from '@theme/DocCardList';
 
 <DocCardList />
-```

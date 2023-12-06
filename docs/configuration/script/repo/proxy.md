@@ -10,7 +10,7 @@ title: 仓库代理
 需要一台能够访问 GitHub 的设备
 :::
 
-:::caution 部分国内云计算厂商不可用
+:::warning 部分国内云计算厂商不可用
 目前已知腾讯云官方曾利用自动化程序大规模扫描用户服务器端口，会封禁违规设备的端口和IP  
 由于协议过于明显，防火墙限制策略、卸载厂商监控、重装系统等操作可能均无法抵挡平台的主动检测
 :::
@@ -63,7 +63,7 @@ git config --global --unset https.https://github.com.proxy
 
 该方法部署简单并且可以完全白嫖，[Cloudflare](https://www.cloudflare.com/zh-cn) 是一家国际知名的CDN服务商
 
-:::caution 有限的使用
+:::warning 有限的使用
 很遗憾，Cloudflare 默认 Workers 子域名已于近期被长城防火墙列入黑名单，但仍可以在创建后通过DNS功能添加个人域名解析以进行使用
 :::
 

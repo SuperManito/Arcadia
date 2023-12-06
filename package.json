@@ -17,42 +17,48 @@
     "write-heading-ids": "docusaurus write-heading-ids"
   },
   "dependencies": {
-    "@algolia/client-search": "^4.17.0",
-    "@docusaurus/core": "^2.4.3",
-    "@docusaurus/preset-classic": "2.4.3",
-    "@docusaurus/remark-plugin-npm2yarn": "^2.4.3",
-    "@docusaurus/theme-classic": "^2.4.3",
-    "@docusaurus/theme-common": "^2.4.3",
-    "@iconify/react": "^4.1.0",
-    "@mdx-js/react": "^1.6.22",
-    "antd": "^5.11.1",
-    "clsx": "^1.2.1",
+    "@algolia/client-search": "^4.20.0",
+    "@docusaurus/core": "^3.0.1",
+    "@docusaurus/plugin-client-redirects": "3.0.1",
+    "@docusaurus/preset-classic": "3.0.1",
+    "@docusaurus/remark-plugin-npm2yarn": "^3.0.1",
+    "@docusaurus/theme-classic": "^3.0.1",
+    "@docusaurus/theme-common": "^3.0.1",
+    "@docusaurus/utils": "3.0.1",
+    "@docusaurus/utils-common": "3.0.1",
+    "@iconify/react": "^4.1.1",
+    "@mdx-js/react": "^3.0.0",
+    "antd": "^5.12.1",
+    "clsx": "^2.0.0",
     "docusaurus-plugin-image-zoom": "^1.0.1",
-    "prism-react-renderer": "^2.0.4",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "prism-react-renderer": "^2.3.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.1.0",
-    "@docusaurus/eslint-plugin": "^2.4.3",
-    "@docusaurus/module-type-aliases": "2.4.3",
-    "@tsconfig/docusaurus": "^1.0.7",
-    "@types/node": "^20.1.4",
-    "@types/react": "^18.2.13",
-    "@typescript-eslint/eslint-plugin": "^5.59.5",
-    "@typescript-eslint/parser": "^5.59.5",
+    "@docusaurus/eslint-plugin": "3.0.1",
+    "@docusaurus/module-type-aliases": "3.0.1",
+    "@docusaurus/plugin-content-docs": "^3.0.1",
+    "@docusaurus/plugin-ideal-image": "^3.0.1",
+    "@docusaurus/tsconfig": "^3.0.1",
+    "@docusaurus/types": "^3.0.1",
+    "@tsconfig/docusaurus": "^2.0.2",
+    "@types/node": "^20.10.1",
+    "@types/react": "^18.2.39",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
     "commitizen": "^4.2.5",
     "cz-conventional-changelog": "^3.3.0",
     "cz-customizable": "^7.0.0",
     "eslint": "^8.40.0",
-    "eslint-config-standard-with-typescript": "^34.0.0",
+    "eslint-config-standard-with-typescript": "^40.0.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^15.0.0",
     "eslint-plugin-promise": "^6.0.0",
-    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react": "^7.33.2",
     "husky": "^8.0.1",
-    "typescript": "^4.9.5"
+    "typescript": "~5.2.2"
   },
   "browserslist": {
     "production": [
@@ -67,7 +73,7 @@
     ]
   },
   "engines": {
-    "node": ">=16.14"
+    "node": ">=18.0"
   },
   "lint-staged": {
     "*.{.ts,tsx,js,jsx,mjs,mdx}": [

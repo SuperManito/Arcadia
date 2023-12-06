@@ -52,6 +52,6 @@ arcadia tgbot update
 ```
 使用本地最新源码重装
 
-:::caution 注意
+:::warning 注意
 执行安装操作后底层代码目前仅支持无缝迁移 **tgbot/diy** 目录下的用户文件，请注意提前备份你放置在 **tgbot** 目录下除 **tgbot/diy** 子目录以外的其它重要文件
 :::

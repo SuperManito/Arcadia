@@ -1,16 +1,16 @@
 import React, { useState } from 'react'
 import { Checkbox, ConfigProvider, Segmented, Space, theme } from 'antd'
-import { DockerIcon, PodmanIcon } from '@site/src/components/Icon'
+import { DockerIcon, PodmanIcon } from '../Icon'
 import CodeBlock from '@theme/CodeBlock'
 import { useColorMode } from '@docusaurus/theme-common'
 
 export default function CliInstall () {
   function Docker () {
     return (
-            <div>
-                <br />
-                <CodeBlock language="bash">
-                    {`docker run -dit \\
+      <div>
+        <br />
+        <CodeBlock language="bash">
+          {`docker run -dit \\
 --name arcadia \`# 容器名\` \\
 --hostname arcadia \`# 主机名\` \\
 --network bridge \`# 网卡工作模式\` \\
@@ -23,17 +23,17 @@ export default function CliInstall () {
 -v /opt/arcadia/raw:/arcadia/raw \`# 远程脚本的主机挂载目录\` \\
 -v /opt/arcadia/tgbot:/arcadia/tgbot \`# 电报机器人的主机挂载目录\` \\
 ${checked ? 'registry.cn-hangzhou.aliyuncs.com/' : ''}supermanito/arcadia:dev`}
-                </CodeBlock>
-            </div>
+        </CodeBlock>
+      </div>
     )
   }
 
   function Podman () {
     return (
-            <div>
-                <br />
-                <CodeBlock language="bash">
-                    {`podman run -dit \\
+      <div>
+        <br />
+        <CodeBlock language="bash">
+          {`podman run -dit \\
 --name arcadia \`# 容器名\` \\
 --hostname arcadia \`# 主机名\` \\
 --network bridge \`# 网卡工作模式\` \\
@@ -45,8 +45,8 @@ ${checked ? 'registry.cn-hangzhou.aliyuncs.com/' : ''}supermanito/arcadia:dev`}
 -v /opt/arcadia/raw:/arcadia/raw \`# 远程脚本的主机挂载目录\` \\
 -v /opt/arcadia/tgbot:/arcadia/tgbot \`# 电报机器人的主机挂载目录\` \\
 ${checked ? 'registry.cn-hangzhou.aliyuncs.com/' : 'docker.io/'}supermanito/arcadia:dev`}
-                </CodeBlock>
-            </div>
+        </CodeBlock>
+      </div>
     )
   }
 
@@ -61,34 +61,34 @@ ${checked ? 'registry.cn-hangzhou.aliyuncs.com/' : 'docker.io/'}supermanito/arca
     setChecked(e.target.checked)
   }
   return (
-        <ConfigProvider
-            theme={{
-              algorithm: colorMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
-            }}
-        >
-            <Space size="large">
-                <Segmented
-                    options={[
-                      {
-                        label: 'Docker',
-                        value: 'docker',
-                        icon: <DockerIcon />,
-                      },
-                      {
-                        label: 'Podman',
-                        value: 'podman',
-                        icon: <PodmanIcon />,
-                      },
-                    ]}
-                    value={value}
-                    onChange={handleValueChange}
-                />
-                <Checkbox checked={checked} onChange={onChange}>
-                    {'使用国内镜像'}
-                </Checkbox>
-            </Space>
-            {value === 'docker' && <Docker />}
-            {value === 'podman' && <Podman />}
-        </ConfigProvider>
+    <ConfigProvider
+      theme={{
+        algorithm: colorMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
+      }}
+    >
+      <Space size="large">
+        <Segmented
+          options={[
+            {
+              label: 'Docker',
+              value: 'docker',
+              icon: <DockerIcon />,
+            },
+            {
+              label: 'Podman',
+              value: 'podman',
+              icon: <PodmanIcon />,
+            },
+          ]}
+          value={value}
+          onChange={handleValueChange}
+        />
+        <Checkbox checked={checked} onChange={onChange}>
+          {'使用国内镜像'}
+        </Checkbox>
+      </Space>
+      {value === 'docker' && <Docker />}
+      {value === 'podman' && <Podman />}
+    </ConfigProvider>
   )
 }

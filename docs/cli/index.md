@@ -5,11 +5,9 @@ title: 命令行（CLI）
 本部分文档内容向你介绍本项目强大功能之一的 CLI 命令行指令，绝大部分功能都是建立在这些底层指令上的  
 你可以随时回来查询不熟悉的命令和选项参数，当你熟练掌握后用起来会非常方便，这是一个不断学习的过程
 
-```mdx-code-block
 import DocCardList from '@theme/DocCardList';
 
 <DocCardList />
-```
 
 ## 基础概念
 

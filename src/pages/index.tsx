@@ -1,30 +1,29 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable react/no-unknown-property */
-/* eslint-disable @docusaurus/no-untranslated-text */
-/* eslint-disable react/no-unescaped-entities */
 import React from 'react'
 import clsx from 'clsx'
 import Layout from '@theme/Layout'
+import Heading from '@theme/Heading'
 import Link from '@docusaurus/Link'
 import { useColorMode } from '@docusaurus/theme-common'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
-import HomePageFeatures from '@site/src/components/HomePageFeatures/index'
+import HomePageFeatures from '../components/HomePageFeatures/index'
 import styles from './index.module.css'
 
 function Hero () {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const Logo = require('@site/static/img/logo/arcadia-pure-logo.png').default
   return (
         <header className={clsx('container', styles.heroBanner)}>
             <div className="row padding-horiz--md">
                 <div className="col col--7">
                     <div className={clsx(styles.relative, 'row')}>
                         <div className="col">
-                            <h1 className={styles.tagline}>
+                            <Heading as="h1" className={styles.tagline}>
                                 Arcadia
                                 <br /> 一个脚本运维面板
                                 <br />
                                 支持 在线编辑 远程管理 定时调试 等众多功能
-                            </h1>
-                            <h1 className={styles.tagline}>
+                            </Heading>
+                            <Heading as="h1" className={styles.tagline}>
                                 <span>
                                     Arcadia
                                     <br />
@@ -32,12 +31,12 @@ function Hero () {
                                 一个脚本运维面板
                                 <br />
                                 支持 <span>在线编辑</span> <span>远程管理</span> <span>定时调试</span> 等众多功能
-                            </h1>
+                            </Heading>
                         </div>
                     </div>
                     <div className="row">
                         <div className="col">
-                            <h2>稳定 安全 高效 易用 简约 漂亮</h2>
+                            <Heading as="h2">稳定 安全 高效 易用 简约 漂亮</Heading>
                         </div>
                     </div>
                     <div>
@@ -64,7 +63,7 @@ function Hero () {
                         </svg>
                     </div>
                     <div className={styles.logo}>
-                        <img src={require('@site/static/img/logo/arcadia-pure-logo.png').default} className={clsx(styles.hideSmall)} />
+                        <img src={Logo} className={clsx(styles.hideSmall)} />
                     </div>
                 </div>
             </div>
@@ -74,12 +73,13 @@ function Hero () {
 
 function Features () {
   const { colorMode } = useColorMode()
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const previewImg = colorMode === 'dark' ? require('./dark.png').default : require('./light.png').default
   return (
         <section className={clsx('container', styles.features)}>
             <div className="row">
                 <div className="col col--6">
-                    <h2>面板技术引擎</h2>
+                    <Heading as="h2">面板技术引擎</Heading>
                     <div className="avatar" style={{ padding: '1em 0' }}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 312">
                             <path fill="#4C9717" d="M181.252 154.622c.173-1.039.268-2.09.283-3.143v98.197l-51.453-47.052l-25.886-23.607l-15.582-14.324l-6.927-6.323l-2.552-2.33l-.185-.16c-.629-.506-1.233-1.036-1.812-1.517c-.58-.48-1.085-.9-1.775-.69a1.54 1.54 0 0 0-.974 1.11V62.33l.53.481l10.564 9.553c5.56 4.931 11.169 9.862 16.716 14.793a3585.593 3585.593 0 0 1 23.594 21.326c6.204 5.637 12.4 11.283 18.589 16.937c7.396 6.743 14.693 13.56 22.09 20.253c3.328 3.008 6.68 5.954 10.046 8.912c.715.629 1.418 1.233 2.145 1.874c.5.363 1.15.447 1.726.222c.341-.19.59-.51.69-.888c.099-.468.099-.789.173-1.17Z" />

@@ -11,9 +11,7 @@ import { GET } from '@site/src/components/RequestTag';
 
 ### 请求
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 类型 | 必填 | 描述 |
 | --- | :-: | :-: | --- |
@@ -23,15 +21,11 @@ import { GET } from '@site/src/components/RequestTag';
 | `endTime` | `string` | 否 | 结束日期时间，用于日期范围搜索，格式固定为 `yyyy-MM-dd HH:mm`，不提供则默认为当前时间 |
 | `isDir` | `string` | 否 | 获取目录树，仅统计目录不包含任何文件，不提供默认为 `false` |
 
-```mdx-code-block
 </APITable>
-```
 
 #### TypeEnum
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 含义 |
 | :-: | :-: |
@@ -43,17 +37,13 @@ import { GET } from '@site/src/components/RequestTag';
 | `scripts` | 个人脚本文件目录 |
 | `all` | 除日志文件目录以外上述全部 |
 
-```mdx-code-block
 </APITable>
-```
 
 ### 响应
 
 - ContentType `application/json`
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
@@ -63,9 +53,7 @@ import { GET } from '@site/src/components/RequestTag';
 | `deep` | `number` | 深度 |
 | `children` | `array` | 成员，即下级目录内容 |
 
-```mdx-code-block
 </APITable>
-```
 
 ```jsx title="示例"
 [
@@ -106,25 +94,19 @@ import { GET } from '@site/src/components/RequestTag';
 
 ### 请求
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 类型 | 必填 | 描述 |
 | --- | :-: | :-: | --- |
 | `path` | `string` | 是 | 绝对路径 |
 
-```mdx-code-block
 </APITable>
-```
 
 ### 响应
 
 - ContentType `application/json`
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
@@ -134,9 +116,7 @@ import { GET } from '@site/src/components/RequestTag';
 | `deep` | `number` | 深度 |
 | `children` | `array` | 成员，即下级目录内容 |
 
-```mdx-code-block
 </APITable>
-```
 
 ```jsx title="示例"
 [

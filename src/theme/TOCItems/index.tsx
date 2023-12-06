@@ -8,37 +8,37 @@
 import React from 'react'
 import { ConfigProvider, Carousel } from 'antd'
 import TOCItems from '@theme-original/TOCItems'
+import Link from '@docusaurus/Link'
 import { useLocation } from '@docusaurus/router'
 import { useColorMode, useWindowSize } from '@docusaurus/theme-common'
 import styles from './style.module.css'
 
-function SidebarAd () {
+function SidebarAd (): any {
   const { colorMode } = useColorMode()
-  const contentStyle = {
+  const contentStyle: React.CSSProperties = {
     height: '100%',
     width: '100%',
     lineHeight: '80px',
     textAlign: 'center',
     marginBottom: '0',
   }
-  const corlor = colorMode === 'dark' ? '#fff' : '#000'
   const background = colorMode === 'dark' ? '#161618' : '#f6f8fa'
 
   return (
     <ConfigProvider autoInsertSpaceInButton={false}>
-      <Carousel autoPlay className={styles.ad} dotPosition="right">
-        <a to="/docs/about#%E8%B5%9E%E5%8A%A9" style={{ width: '200px', height: '75px', margin: '0' }}>
-          <h3 style={{ ...contentStyle, corlor, background }}>Arcadia</h3>
-        </a>
-        <a to="/docs/about#%E8%B5%9E%E5%8A%A9" style={{ width: '200px', height: '75px', margin: '0' }}>
-          <h3 style={{ ...contentStyle, corlor, background }}>赞助商广告</h3>
-        </a>
+      <Carousel autoplay className={styles.ad} dotPosition="right">
+        <Link to="/docs/about#%E8%B5%9E%E5%8A%A9" style={{ width: '200px', height: '75px', margin: '0' }}>
+          <h3 style={{ ...contentStyle, background }}>Arcadia</h3>
+        </Link>
+        <Link to="/docs/about#%E8%B5%9E%E5%8A%A9" style={{ width: '200px', height: '75px', margin: '0' }}>
+          <h3 style={{ ...contentStyle, background }}>赞助商广告</h3>
+        </Link>
       </Carousel>
     </ConfigProvider>
   )
 }
 
-export default function TOCWrapper (props) {
+export default function TOCWrapper (props: any): any {
   const { pathname } = useLocation()
   const shouldShowSidebarAd = pathname.includes('/docs') && useWindowSize() !== 'mobile'
   if (shouldShowSidebarAd) {

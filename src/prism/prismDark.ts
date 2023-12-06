@@ -5,17 +5,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import prism from 'prism-react-renderer'
-const darkTheme = prism.themes.vsDark
+import { themes, type PrismTheme } from 'prism-react-renderer'
+const baseTheme = themes.vsDark
 
 export default {
-  ...darkTheme,
+  ...baseTheme,
   plain: {
     color: '#D4D4D4',
     backgroundColor: '#161618',
   },
   styles: [
-    ...darkTheme.styles,
+    ...baseTheme.styles,
     {
       types: ['title'],
       style: {
@@ -78,4 +78,4 @@ export default {
       },
     },
   ],
-}
+} satisfies PrismTheme

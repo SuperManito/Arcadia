@@ -22,8 +22,6 @@ title: arcadia
     <args> 子命令  <name> 配置名称  <url> 链接地址  <branch> 分支名称  [--options] 命令选项
 ```
 
-```mdx-code-block
 import DocCardList from '@theme/DocCardList';
 
 <DocCardList />
-```

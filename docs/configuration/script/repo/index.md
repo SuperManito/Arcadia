@@ -8,8 +8,6 @@ title: 脚本仓库
 
 其它的托管服务例如 [Gitee 码云](https://gitee.com) [GitLab](https://gitlab.com) 等一般不需要代理就能正常使用，具体根据物理位置而定
 
-```mdx-code-block
 import DocCardList from '@theme/DocCardList';
 
 <DocCardList />
-```

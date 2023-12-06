@@ -3,13 +3,8 @@ module.exports = {
     browser: true,
     es2021: true,
   },
-  extends: [
-    'plugin:@docusaurus/recommended',
-    'plugin:react/recommended',
-    'standard-with-typescript',
-  ],
-  overrides: [
-  ],
+  extends: ['plugin:@docusaurus/recommended', 'plugin:react/recommended', 'standard-with-typescript'],
+  overrides: [],
   parserOptions: {
     project: ['tsconfig.json'],
     extraFileExtensions: ['.mdx'],
@@ -23,9 +18,7 @@ module.exports = {
       version: 'detect',
     },
   },
-  plugins: [
-    'react',
-  ],
+  plugins: ['react'],
   rules: {
     // '@docusaurus/no-untranslated-text': [
     //   'warn',

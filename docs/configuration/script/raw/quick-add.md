@@ -13,15 +13,11 @@ arcadia raw <name> <url> [--options]
 
 ## 命令选项 
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 描述 |
 | :-: | --- |
 | `--updateTaskList` | 是否为该配置启用定时任务 |
 | `--help` | 获取命令帮助 |
 
-```mdx-code-block
 </APITable>
-```

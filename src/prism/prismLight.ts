@@ -5,13 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import prism from 'prism-react-renderer'
-const lightTheme = prism.themes.github
+import { themes, type PrismTheme } from 'prism-react-renderer'
+const baseTheme = themes.github
 
 export default {
-  ...lightTheme,
+  ...baseTheme,
   styles: [
-    ...lightTheme.styles,
+    ...baseTheme.styles,
     {
       types: ['title'],
       style: {
@@ -98,4 +98,4 @@ export default {
       },
     },
   ],
-}
+} satisfies PrismTheme

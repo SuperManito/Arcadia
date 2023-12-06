@@ -13,9 +13,7 @@ arcadia repo <name> <url> <branch> [--options]
 
 ## 命令选项 
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 描述 |
 | :-: | --- |
@@ -29,6 +27,4 @@ arcadia repo <name> <url> <branch> [--options]
 | `--delNotify` | 是否为过期定时任务推送通知提醒 |
 | `--help` | 获取命令帮助 |
 
-```mdx-code-block
 </APITable>
-```

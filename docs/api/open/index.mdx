@@ -4,7 +4,7 @@ title: 开放接口
 import APITable from '@site/src/components/APITable';
 import { GET, POST, DELETE } from '@site/src/components/RequestTag';
 
-:::caution 过时的内容
+:::warning 过时的内容
 OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量功能一起重做，注意持续关注我们的最新变动
 :::
 
@@ -31,9 +31,7 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 
   - ### 业务代码说明
 
-    ```mdx-code-block
     <APITable>
-    ```
 
     |    状态码     |       含义       |       说明       |
     | :----------: | :--------------: | :-------------: |
@@ -41,17 +39,13 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
     |     `1`      |     success      |     请求成功     |
     | `403`/`4403` | openApi 认证失败  |    token错误    |
 
-    ```mdx-code-block
     </APITable>
-    ```
 
   - ### 通用返回内容
 
     数据返回格式统一使用 JSON
 
-    ```mdx-code-block
     <APITable>
-    ```
 
     |  参数名 | 参数说明 |
     | :----: | :-----: |
@@ -60,9 +54,7 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
     |  msg   | 结果消息 |
     |  desc  | 结果描述 |
 
-    ```mdx-code-block
     </APITable>
-    ```
 
 ***
 
@@ -74,34 +66,26 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 
 ##### 请求
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 类型 | 必填 | 描述 |
 | --- | :-: | :-: | --- |
 | `cookie` | `string` | 是 | `cookie` 内容 |
 | `userMsg` | `string` | 否 | 备注 |
 
-```mdx-code-block
 </APITable>
-```
 
 ##### 响应
 
 - ContentType `application/json`
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
 | `data` | `number` | 提交后服务器中现存的 `cookie` 数量 |
 
-```mdx-code-block
 </APITable>
-```
 
 ```jsx title="示例"
 {
@@ -117,9 +101,7 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 
 ##### 请求
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 类型 | 必填 | 描述 |
 | --- | :-: | :-: | --- |
@@ -128,9 +110,7 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 | `wsKey` | `string` | 否 | `ws_key` 的值 |
 | `remarks` | `string` | 否 | 备注 |
 
-```mdx-code-block
 </APITable>
-```
 
 :::info
 `ptKey` 和 `wsKey` 至少需要传入其中任意一个参数，即账号不能为空
@@ -141,18 +121,14 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 
 - ContentType `application/json`
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
 | `cookieCount` | `number` | 提交后服务器中现存的 `cookie` 数量 |
 | `accountCount` | `number` | 提交后服务器中现存的 `wskey` 数量 |
 
-```mdx-code-block
 </APITable>
-```
 
 ```jsx title="示例"
 {
@@ -171,25 +147,19 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 
 ##### 请求
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 类型 | 必填 | 描述 |
 | --- | :-: | :-: | --- |
 | `ptPins` | `array` | 是 | 由pt_pin的值组成的数组,例 `["pin1","pin2"]` |
 
-```mdx-code-block
 </APITable>
-```
 
 ##### 响应
 
 - ContentType `application/json`
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
@@ -197,9 +167,7 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 | `accountCount` | `number` | 删除后服务器中现存的 `wskey` 数量 |
 | `deleteCount` | `number` | 此次删除的 `cookie` 数量 |
 
-```mdx-code-block
 </APITable>
-```
 
 ```jsx title="示例"
 {
@@ -225,18 +193,14 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 
 - ContentType `application/json`
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
 | `cookieCount` | `number` | 服务器当前现存的 `cookie` 数量 |
 | `accountCount` | `number` | 服务器当前现存的 `wskey` 数量 |
 
-```mdx-code-block
 </APITable>
-```
 
 ```jsx title="示例"
 {
@@ -261,9 +225,7 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 
 - ContentType `application/json`
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
@@ -272,9 +234,7 @@ OpenApi 相关内容将在未来作出调整，会随同加载用户环境变量
 | `lastUpdateTime` | `string` | 最近一次的更新时间 |
 | `remark` | `string` | 备注 |
 
-```mdx-code-block
 </APITable>
-```
 
 ```jsx title="示例"
 {

@@ -9,11 +9,10 @@ import APITable from '@site/src/components/APITable';
 import CliInstall from '@site/src/components/CliInstall';
 import ComposeInstall from '@site/src/components/ComposeInstall';
 
-```mdx-code-block
-<div className="alert alert--primary" role="alert">
-  本项目依托容器技术需要安装相关容器服务才可以部署，由于运行环境复杂程度较高目前没有计划适配更多部署方式，如果你不了解该项技术或者没有安装相关服务那么请先阅读 <Link to="/docs/start/install-container-service"><strong>如何安装容器服务</strong></Link><br /><br />项目容器镜像基于 <Link to="https://www.alpinelinux.org"><strong>Alpine Linux</strong></Link> 构建，如有其它使用需求自行查阅相关资料
-</div><br />
-```
+:::primary
+本项目依托容器技术需要安装相关容器服务才可以部署，由于运行环境复杂程度较高目前没有计划适配更多部署方式，如果你不了解该项技术或者没有安装相关服务那么请先阅读 <Link to="/docs/start/install-container-service"><strong>如何安装容器服务</strong></Link><br /><br />
+项目容器镜像基于 <Link to="https://www.alpinelinux.org"><strong>Alpine Linux</strong></Link> 构建，如有其它使用需求自行查阅相关资料
+:::
 
 下方的选项卡分别对应不同的启动方式，不要重复执行，新手推荐使用默认命令行 Docker 方式进行部署
 
@@ -22,16 +21,10 @@ import ComposeInstall from '@site/src/components/ComposeInstall';
 <Tabs>
 <TabItem value="cli" label="CLI - 命令行">
 
-```mdx-code-block
 <CliInstall />
-```
-
 </TabItem>
 <TabItem value="compose" label="Compose - 编排">
-
-```mdx-code-block
 <ComposeInstall />
-```
 
 </TabItem>
 </Tabs>
@@ -52,9 +45,7 @@ import ComposeInstall from '@site/src/components/ComposeInstall';
 
   作用：将容器内的目录映射到宿主机，可直接在宿主机对相关文件进行操作，并且数据在正常情况下不会丢失
 
-  ```mdx-code-block
   <APITable>
-  ```
 
   |    名称    |      作用      |
   | :-------: | :------------: |
@@ -64,9 +55,7 @@ import ComposeInstall from '@site/src/components/ComposeInstall';
   |   `repo`  | 脚本仓库文件目录 |
   |   `raw`   | 远程脚本文件目录 |
 
-  ```mdx-code-block
   </APITable>
-  ```
 
 </details>
 :::
@@ -89,11 +78,9 @@ docker logs -f arcadia
 
 除后台管理面板外，项目支持强大的命令行指令，具体请翻阅 CLI 文档，有关用户配置的问题详见文档相关介绍和配置文件中的注释
 
-```mdx-code-block
-<div className="alert alert--success" role="alert">
-  如果你使用的网络环境处于公网，请更改容器面板用于认证的用户名和密码，同时留意上次登录信息<br />提高网络安全防范意识，尽量不要将你的面板完全暴露在公网，若遭遇不法分子入侵，作者对于由此引起的任何后果概不负责
-</div><br />
-```
+:::success
+如果你使用的网络环境处于公网，请更改容器面板用于认证的用户名和密码，同时留意上次登录信息<br />提高网络安全防范意识，尽量不要将你的面板完全暴露在公网，若遭遇不法分子入侵，作者对于由此引起的任何后果概不负责
+:::
 
 ### 安装运行脚本依赖库
 

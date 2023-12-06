@@ -9,9 +9,7 @@ import APITable from '@site/src/components/APITable';
 
 ## 主要配置项
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 必填 | 类型 | 默认值 | 描述 |
 | :-: | :-: | :-: | :-: | --- |
@@ -21,15 +19,11 @@ import APITable from '@site/src/components/APITable';
 | `enable` | 否 | `boolean` | `true` | 是否启用该仓库配置 |
 | `cronSettings` | 否 | `object` | 无 | 定时任务设置，详见下方 |
 
-```mdx-code-block
 </APITable>
-```
 
 ### 定时任务配置项
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 必填 | 类型 | 默认值 | 描述 |
 | :-: | :-: | :-: | :-: | --- |
@@ -42,9 +36,7 @@ import APITable from '@site/src/components/APITable';
 | `addNotify` | 否 | `boolean` | `true` | 是否为新增定时任务推送通知提醒 |
 | `delNotify` | 否 | `boolean` | `true` | 是否为过期定时任务推送通知提醒 |
 
-```mdx-code-block
 </APITable>
-```
 
 - #### `scriptsPath`
 
@@ -69,11 +61,9 @@ import APITable from '@site/src/components/APITable';
 
 - #### `whiteList` 或 `blackList`
 
-  ```mdx-code-block
-  <div className="alert alert--primary" role="alert">
+  :::primary
     如果你启用了定时脚本配置那么请尽可能不要忽略此配置项，因为如果不配置该项可能会导致自动添加一些无用的定时任务
-  </div>
-  ```
+  :::
 
   基于 [**grep**](https://www.runoob.com/linux/linux-comm-grep.html) 指令进行过滤（默认使用 `-E` 命令选项用于匹配多个表达式），支持正则表达式。如果要匹配多个表达式，那么根据该指令规范你需要使用 `|` 字符来进行分割，你可以先在本地调试好再进行配置，例如 `ls | grep -E "<xxx>"`。如果你想学习正则表达式和该指令你可以看看 [《基础正则表达式》](https://www.junmajinlong.com/shell/regex_basic) 这篇文章
 

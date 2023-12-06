@@ -25,8 +25,6 @@ title: task
     <args> 子命令  <name> 脚本名(仅scripts目录)  <path> 相对路径或绝对路径  <url> 链接地址  [--options] 命令选项
 ```
 
-```mdx-code-block
 import DocCardList from '@theme/DocCardList';
 
 <DocCardList />
-```

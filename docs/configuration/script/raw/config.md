@@ -9,9 +9,7 @@ import APITable from '@site/src/components/APITable';
 
 ## 主要配置项
 
-```mdx-code-block
 <APITable>
-```
 
 | 名称 | 必填 | 类型 | 默认值 | 描述 |
 | :-: | :-: | :-: | :-: | --- |
@@ -20,9 +18,7 @@ import APITable from '@site/src/components/APITable';
 | `cronSettings` | 否 | `object` | 无 | 定时任务设置 |
 | `updateTaskList` | 否 | `boolean` | `false` | 是否为该配置启用定时任务（默认不启用） |
 
-```mdx-code-block
 </APITable>
-```
 
 ### 填法示例
 

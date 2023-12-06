@@ -1,5 +1,6 @@
-/* eslint-disable no-undef */
-module.exports = {
+import type { SidebarsConfig } from '@docusaurus/plugin-content-docs'
+
+const sidebars: SidebarsConfig = {
   docs: [
     {
       label: '介绍',
@@ -17,11 +18,7 @@ module.exports = {
       link: {
         type: 'generated-index',
       },
-      items: [
-        'start/install',
-        'start/update',
-        'start/panel',
-      ],
+      items: ['start/install', 'start/update', 'start/panel'],
       collapsed: false,
     },
     {
@@ -66,10 +63,7 @@ module.exports = {
                 type: 'doc',
                 id: 'configuration/script/raw/index',
               },
-              items: [
-                'configuration/script/raw/config',
-                'configuration/script/raw/quick-add',
-              ],
+              items: ['configuration/script/raw/config', 'configuration/script/raw/quick-add'],
               collapsed: true,
             },
           ],
@@ -97,11 +91,7 @@ module.exports = {
             type: 'doc',
             id: 'cli/task/index',
           },
-          items: [
-            'cli/task/run',
-            'cli/task/account',
-            'cli/task/sundry',
-          ],
+          items: ['cli/task/run', 'cli/task/account', 'cli/task/sundry'],
           collapsed: true,
         },
         {
@@ -111,11 +101,7 @@ module.exports = {
             type: 'doc',
             id: 'cli/arcadia/index',
           },
-          items: [
-            'cli/arcadia/service',
-            'cli/arcadia/tgbot',
-            'cli/arcadia/sundry',
-          ],
+          items: ['cli/arcadia/service', 'cli/arcadia/tgbot', 'cli/arcadia/sundry'],
           collapsed: true,
         },
         {
@@ -157,11 +143,7 @@ module.exports = {
           link: {
             type: 'generated-index',
           },
-          items: [
-            'api/user/auth',
-            'api/user/info',
-            'api/user/change-password',
-          ],
+          items: ['api/user/auth', 'api/user/info', 'api/user/change-password'],
           collapsed: false,
         },
         {
@@ -170,18 +152,7 @@ module.exports = {
           link: {
             type: 'generated-index',
           },
-          items: [
-            'api/file/get-content',
-            'api/file/save-content',
-            'api/file/delete',
-            'api/file/tree',
-            'api/file/attribute',
-            'api/file/create',
-            'api/file/move',
-            'api/file/rename',
-            'api/file/download',
-            'api/file/upload',
-          ],
+          items: ['api/file/get-content', 'api/file/save-content', 'api/file/delete', 'api/file/tree', 'api/file/attribute', 'api/file/create', 'api/file/move', 'api/file/rename', 'api/file/download', 'api/file/upload'],
           collapsed: false,
         },
         {
@@ -190,14 +161,7 @@ module.exports = {
           link: {
             type: 'generated-index',
           },
-          items: [
-            'api/cron/page',
-            'api/cron/create',
-            'api/cron/edit',
-            'api/cron/delete',
-            'api/cron/order',
-            'api/cron/bind-group',
-          ],
+          items: ['api/cron/page', 'api/cron/create', 'api/cron/edit', 'api/cron/delete', 'api/cron/order', 'api/cron/bind-group'],
           collapsed: false,
         },
         {
@@ -206,10 +170,7 @@ module.exports = {
           link: {
             type: 'generated-index',
           },
-          items: [
-            'api/main/captcha',
-            'api/main/run',
-          ],
+          items: ['api/main/captcha', 'api/main/run'],
           collapsed: false,
         },
         // {
@@ -244,3 +205,5 @@ module.exports = {
     'api/open/index',
   ],
 }
+
+export default sidebars
