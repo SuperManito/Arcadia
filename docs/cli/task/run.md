@@ -108,6 +108,7 @@ task conc <name/path/url>
 | `-a`, `--agent`      | <CHECK/> | <CHECK/> | 网络代理，使脚本通过 HTTP/HTTPS 全局代理进行网络请求，目前仅支持 JavaScript/TypeScript 脚本，使用该功能需要自行在配置文件对应处定义代理地址变量 |
 | `-D`, `--delay`      | <CHECK/> | <CHECK/> | 延迟执行，随机倒数一定秒数后再运行脚本，该秒数上限可以在配置文件中定义 |
 | `-T`, `--Timeout`    | <CHECK/> | <CHECK/> | 运行超时，设置运行任务超时机制，选项后需跟 [timeout](https://www.coonote.com/linux/linux-cmd-timeout.html) 命令选项作为选项值 |
+| `-N`, `--no-log`     | <CHECK/> | <CHECK/> | 忽略日志，不存储运行日志到本地 |
 | `-p`, `--proxy`      | <CHECK/> | <CHECK/> | 下载代理，仅适用于执行位于 GitHub 仓库的远程脚本，该代理固定为 [jsDelivr](https://www.jsdelivr.com/?docs=gh) 公共 CDN 加速代理 |
 | `-c`, `--cookie`     | <CHECK/> | <CHECK/> | 指定账号，选项后需跟 _账号序号_ 作为参数值，多个账号用 `,` 隔开，账号区间用 `-` 连接，可以用 `%` 表示账号总数 |
 | `-g`, `--grouping`   | <CHECK/> | <CLOSE/> | 账号分组，使每组账号单独运行脚本，选项后需跟 _账号序号并分组_ 作为参数值，参数用法与 **指定账号** 相同，组与组之间用 `@` 隔开 |
