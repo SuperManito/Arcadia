@@ -62,7 +62,7 @@ export function ActiveTeamRow (): JSX.Element {
                 前端开发者，前端工程师。
             </TeamProfileCardCol>
             <TeamProfileCardCol name="mzzsfy" githubUrl="https://github.com/mzzsfy">
-                后端定时框架开发者，架构工程师。
+                后端开发者，架构工程师。
             </TeamProfileCardCol>
         </div>
   )

@@ -72,7 +72,7 @@ const sidebars: SidebarsConfig = {
         'configuration/main',
         'configuration/notify',
         'configuration/TelegramBot/index',
-        'configuration/wskey',
+        // 'configuration/wskey',
       ],
       collapsed: false,
     },
