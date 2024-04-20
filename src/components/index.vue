@@ -121,18 +121,30 @@ export default defineComponent({
       },
       Button: {
         colorHover: 'rgba(90, 157, 226, 0.1)',
+        borderRadiusTiny: '6px',
+        borderRadiusSmall: '6px',
+        borderRadiusMedium: '6px',
+        borderRadiusLarge: '6px',
       },
       Input: {
         colorFocus: 'rgb(255, 255, 255)',
-        border: '1px solid transparent',
+        borderRadius: '6px',
       },
       Layout: {
         colorEmbedded: 'rgb(242, 243, 245)',
       },
       Tooltip: {
-        color: '#000000d9',
-        borderRadius: '5px',
+        borderRadius: '10px',
         padding: '6px 10px',
+      },
+      Popover: {
+        borderRadius: '5px',
+      },
+      Notification: {
+        borderRadius: '12px',
+      },
+      Dropdown: {
+        borderRadius: '5px',
       },
       LoadingBar: {
         colorLoading: '#2080f0',
@@ -141,15 +153,43 @@ export default defineComponent({
         padding: '8px 12px',
         borderRadius: '6px',
       },
+      Checkbox: {
+        borderRadius: '4px',
+      },
+      Tag: {
+        borderRadius: '4px',
+      },
       Dialog: {
-        borderRadius: '5px',
+        borderRadius: '10px',
       },
       Radio: {
         buttonColorActive: '#2080f0',
         buttonTextColorActive: 'rgb(255, 255, 255)',
+        buttonBorderRadius: '6px',
+      },
+      Alert: {
+        borderRadius: '6px',
       },
       Pagination: {
         itemColorHover: '#2080f0',
+      },
+      Tree: {
+        nodeWrapperPadding: '2px 0px',
+      },
+      Select: {
+        peers: {
+          InternalSelection: {
+            borderRadius: '6px',
+          },
+        },
+      },
+      TreeSelect: {
+        menuBorderRadius: '5px',
+        peers: {
+          Tree: {
+            nodeWrapperPadding: '2px 8px',
+          },
+        },
       },
       Typography: {
         headerMargin3: '24px 0 4px 0',
@@ -171,33 +211,38 @@ export default defineComponent({
         fontSize: '15px',
         fontSizeMedium: '15px',
         fontSizeLarge: '16px',
-        successColor: 'rgb(82, 196, 26)',
+        successColor: 'rgb(82, 196, 56)',
         inputColor: 'rgba(255,255,255,0.08)',
       },
       Button: {
-        colorHover: 'rgba(119, 202, 162, 0.1)',
+        colorHover: 'rgba(86, 184, 245, 0.1)',
+        borderRadiusTiny: '6px',
+        borderRadiusSmall: '6px',
+        borderRadiusMedium: '6px',
+        borderRadiusLarge: '6px',
       },
       Input: {
         colorFocus: 'rgb(24, 24, 28)',
+        borderRadius: '6px',
       },
       Layout: {
         color: 'rgb(24, 24, 28)',
       },
       Tooltip: {
-        borderRadius: '5px',
+        borderRadius: '10px',
         padding: '6px 10px',
       },
       Dropdown: {
-        color: 'rgb(28, 28, 32)',
-      },
-      TreeSelect: {
-        menuColor: 'rgb(28, 28, 32)',
-      },
-      Notification: {
-        color: 'rgb(28, 28, 32)',
+        color: 'rgb(42, 42, 48)',
+        borderRadius: '5px',
       },
       Popover: {
-        color: 'rgb(55, 55, 57)',
+        borderRadius: '5px',
+        color: 'rgb(42, 42, 48)',
+      },
+      Notification: {
+        color: 'rgb(42, 42, 48)',
+        borderRadius: '12px',
       },
       LoadingBar: {
         colorLoading: '#56b8f5',
@@ -205,18 +250,61 @@ export default defineComponent({
       Message: {
         padding: '8px 12px',
         borderRadius: '6px',
-        color: 'rgb(28, 28, 32)',
-        colorInfo: 'rgb(28, 28, 32)',
-        colorSuccess: 'rgb(28, 28, 32)',
-        colorError: 'rgb(28, 28, 32)',
-        colorWarning: 'rgb(28, 28, 32)',
-        colorLoading: 'rgb(28, 28, 32)',
+        color: 'rgb(42, 42, 48)',
+        colorInfo: 'rgb(42, 42, 48)',
+        colorSuccess: 'rgb(42, 42, 48)',
+        colorError: 'rgb(42, 42, 48)',
+        colorWarning: 'rgb(42, 42, 48)',
+        colorLoading: 'rgb(42, 42, 48)',
+      },
+      Checkbox: {
+        borderRadius: '4px',
+      },
+      Switch: {
+        railColorActive: '#56b8f5',
+      },
+      Tag: {
+        borderRadius: '4px',
       },
       Dialog: {
-        borderRadius: '5px',
+        borderRadius: '10px',
+      },
+      Radio: {
+        buttonBorderRadius: '6px',
+      },
+      Alert: {
+        borderRadius: '6px',
       },
       Pagination: {
-        itemColorHover: '#56b8f5',
+        itemColorHover: 'var(--app-hover-color)',
+        peers: {
+          Select: {
+            peers: {
+              InternalSelectMenu: {
+                color: 'rgb(42, 42, 48)',
+              },
+            },
+          },
+        },
+      },
+      Tree: {
+        nodeWrapperPadding: '2px 0px',
+      },
+      Select: {
+        peers: {
+          InternalSelection: {
+            borderRadius: '6px',
+          },
+        },
+      },
+      TreeSelect: {
+        menuColor: 'rgb(28, 28, 32)',
+        menuBorderRadius: '5px',
+        peers: {
+          Tree: {
+            nodeWrapperPadding: '2px 8px',
+          },
+        },
       },
       Typography: {
         headerMargin3: '24px 0 4px 0',
