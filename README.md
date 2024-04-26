@@ -1,3 +1,12 @@
+<p align="center">
+    <a href="https://arcadia.cool">
+        <img src="./public/logo.jpg" width="180">
+    </a>
+</p>
+<h1 align="center">
+    Arcadia · 一站式代码运维平台
+</h1>
+
 ## 安装依赖
 
 ```bash
