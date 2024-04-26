@@ -2,7 +2,6 @@
 ## Modified: 2024-04-15
 
 ## 重组环境变量（复合）的值
-# 目前受限于 Alpine Linux 环境，环境变量值支持的字符上限为 131072，超过这个长度会报错
 function recombine_composite_env_values {
     local env_var_name="$1" # 复合环境变量名称
     local separator="$2"    # 分隔符

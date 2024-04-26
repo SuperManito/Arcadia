@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-26
+## Modified: 2024-04-27
 
 ## 后端服务控制
 # service start/restart/stop/info/respwd
@@ -7,7 +7,7 @@ function service_manage() {
 
     ## 安装网页终端
     function install_ttyd() {
-        [ ! -x /usr/bin/ttyd ] && apk --no-cache add -f ttyd
+        [ ! -x /usr/bin/ttyd ] && apt-get install -y --no-install-recommends ttyd
         ## 增加环境变量
         export PS1="\[\e[32;1m\]@ARCADIA\[\e[0m\] ➜ \[\e[34;1m\]\w\[\e[0m\] \\$ "
         pm2 start ttyd --name "arcadia_ttyd" --log-date-format "YYYY-MM-DD HH:mm:ss" -- \
