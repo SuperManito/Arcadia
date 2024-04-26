@@ -130,6 +130,16 @@ export default defineComponent({
         colorFocus: 'rgb(255, 255, 255)',
         borderRadius: '6px',
       },
+      Select: {
+        peers: {
+          InternalSelection: {
+            borderRadius: '6px',
+          },
+          InternalSelectMenu: {
+            borderRadius: '5px',
+          },
+        },
+      },
       Layout: {
         colorEmbedded: 'rgb(242, 243, 245)',
       },
@@ -159,6 +169,9 @@ export default defineComponent({
       Tag: {
         borderRadius: '4px',
       },
+      Alert: {
+        borderRadius: '6px',
+      },
       Dialog: {
         borderRadius: '10px',
       },
@@ -167,27 +180,20 @@ export default defineComponent({
         buttonTextColorActive: 'rgb(255, 255, 255)',
         buttonBorderRadius: '6px',
       },
-      Alert: {
-        borderRadius: '6px',
-      },
       Pagination: {
         itemColorHover: '#2080f0',
       },
       Tree: {
         nodeWrapperPadding: '2px 0px',
       },
-      Select: {
+      TreeSelect: {
+        menuBorderRadius: '5px',
         peers: {
           InternalSelection: {
             borderRadius: '6px',
           },
-        },
-      },
-      TreeSelect: {
-        menuBorderRadius: '5px',
-        peers: {
           Tree: {
-            nodeWrapperPadding: '2px 8px',
+            nodeBorderRadius: '5px',
           },
         },
       },
@@ -224,6 +230,16 @@ export default defineComponent({
       Input: {
         colorFocus: 'rgb(24, 24, 28)',
         borderRadius: '6px',
+      },
+      Select: {
+        peers: {
+          InternalSelection: {
+            borderRadius: '6px',
+          },
+          InternalSelectMenu: {
+            borderRadius: '5px',
+          },
+        },
       },
       Layout: {
         color: 'rgb(24, 24, 28)',
@@ -266,14 +282,14 @@ export default defineComponent({
       Tag: {
         borderRadius: '4px',
       },
+      Alert: {
+        borderRadius: '6px',
+      },
       Dialog: {
         borderRadius: '10px',
       },
       Radio: {
         buttonBorderRadius: '6px',
-      },
-      Alert: {
-        borderRadius: '6px',
       },
       Pagination: {
         itemColorHover: 'var(--app-hover-color)',
@@ -301,6 +317,9 @@ export default defineComponent({
         menuColor: 'rgb(28, 28, 32)',
         menuBorderRadius: '5px',
         peers: {
+          InternalSelection: {
+            borderRadius: '6px',
+          },
           Tree: {
             nodeWrapperPadding: '2px 8px',
           },
