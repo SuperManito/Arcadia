@@ -1,9 +1,7 @@
 #!/bin/bash
-## Modified: 2024-04-26
+## Modified: 2024-04-27
 
 function arcadia_init() {
-  source ${ARCADIA_DIR}/shell/core/main.sh
-
   ## 检测软链接
   SOFT_LINK="arcadia"
   SOFT_LINK_OLD=""
@@ -73,5 +71,5 @@ function arcadia_init() {
   # 启动成功
   echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} \033[1;32m容器启动成功${PLAIN}\n"
 
-  crond -f >/dev/null # 保活
+  crond -f >/dev/null 2>&1 # 保活
 }
