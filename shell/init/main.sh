@@ -48,5 +48,5 @@ function arcadia_init() {
   # 启动成功
   echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} \033[1;32mArcadia is Working...${PLAIN}\n"
 
-  crond -f >/dev/null 2>&1 # 保活
+  crond -f >/dev/null # 保活
 }
