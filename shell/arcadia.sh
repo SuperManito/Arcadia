@@ -1,4 +1,3 @@
 #!/bin/bash
 
-source $ARCADIA_DIR/shell/core/main.sh
-source $ARCADIA_DIR/shell/main.sh "$@"
+source $(dirname $(readlink -f "$0"))/main.sh "$@"

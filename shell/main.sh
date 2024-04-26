@@ -1,7 +1,8 @@
 #!/bin/bash
-## Modified: 2024-04-18
+## Modified: 2024-04-27
 
 function main() {
+    source $(pwd)/core/main.sh
     case $# in
     0)
         print_command_help $ArcadiaCmd
@@ -78,11 +79,11 @@ function main() {
             import notify
             command_notify "$@"
             ;;
-        dev)
-            shift
-            import upgrade/dev
-            command_dev "$@"
-            ;;
+        # dev)
+        #     shift
+        #     import upgrade/dev
+        #     command_dev "$@"
+        #     ;;
         *)
             output_command_error 1 # 命令错误
             ;;
