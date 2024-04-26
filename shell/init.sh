@@ -1,7 +1,7 @@
 #!/bin/bash
 ## EntryPoint 入口脚本
 
-source $ARCADIA_DIR/shell/core/main.sh
+source $(dirname $(readlink -f "$0"))/core/main.sh
 
 # 检测配置文件是否存在，不存在则复制一份
 make_dir $ConfigDir
