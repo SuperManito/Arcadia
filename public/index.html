@@ -1,0 +1,37 @@
+<!doctype html><html lang="zh-CN" style="--vh:1vh"><head><script>self["MonacoEnvironment"] = (function (paths) {
+          return {
+            globalAPI: false,
+            getWorkerUrl : function (moduleId, label) {
+              var result =  paths[label];
+              if (/^((http:)|(https:)|(file:)|(\/\/))/.test(result)) {
+                var currentUrl = String(window.location);
+                var currentOrigin = currentUrl.substr(0, currentUrl.length - window.location.hash.length - window.location.search.length - window.location.pathname.length);
+                if (result.substring(0, currentOrigin.length) !== currentOrigin) {
+                  var js = '/*' + label + '*/importScripts("' + result + '");';
+                  var blob = new Blob([js], { type: 'application/javascript' });
+                  return URL.createObjectURL(blob);
+                }
+              }
+              return result;
+            }
+          };
+        })({
+  "editorWorkerService": "./monacoeditorwork/editor.worker.bundle.js",
+  "css": "./monacoeditorwork/css.worker.bundle.js",
+  "html": "./monacoeditorwork/html.worker.bundle.js",
+  "json": "./monacoeditorwork/json.worker.bundle.js",
+  "typescript": "./monacoeditorwork/ts.worker.bundle.js",
+  "javascript": "./monacoeditorwork/ts.worker.bundle.js",
+  "less": "./monacoeditorwork/css.worker.bundle.js",
+  "scss": "./monacoeditorwork/css.worker.bundle.js",
+  "handlebars": "./monacoeditorwork/html.worker.bundle.js",
+  "razor": "./monacoeditorwork/html.worker.bundle.js"
+});</script><script src="./_app.config.js?v=1.0.0-1714136482757"></script><meta charset="UTF-8"/><link rel="icon" type="image/x-icon" href="./favicon.ico"><link rel="apple-touch-startup-image" href="./logo.jpg"><link rel="apple-touch-icon-precomposed" href="./logo.jpg"><link rel="stylesheet" href="./resource/loading.css"/><meta name="theme-color" content="#ffffff"/><meta name="apple-mobile-web-app-capable" content="yes"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-mode" content="light"><title>Arcadia</title><script type="module" crossorigin src="./assets/index-BW0Kz9QR.js"></script><link rel="modulepreload" crossorigin href="./assets/vendor-CVUNLYN4.js"><link rel="stylesheet" crossorigin href="./assets/vendor-CLyFf5IJ.css"><link rel="stylesheet" crossorigin href="./assets/index-nvS2JY3H.css"></head><body><div id="app"><div class="app-loading-wrapper"></div><script src="./resource/loading.js"></script></div><script>!(function (n, e) {
+        function setViewHeight() {
+            var windowVH = e.innerHeight / 100
+            n.documentElement.style.setProperty('--vh', windowVH + 'px')
+        }
+        var i = 'orientationchange' in window ? 'orientationchange' : 'resize'
+        n.addEventListener('DOMContentLoaded', setViewHeight)
+        e.addEventListener(i, setViewHeight)
+      })(document, window)</script></body></html>

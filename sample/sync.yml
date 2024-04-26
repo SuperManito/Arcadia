@@ -1,0 +1,42 @@
+## 更新日期: 2024-04-11
+# 代码仓库配置
+# 官网教程：https://arcadia.cool/docs/configuration/script/repo/config
+repo:
+  - name: "" # 仓库名称
+    url: "" # 仓库远程地址
+    branch: "" # 分支名称
+    enable: true # 是否启用该仓库配置
+    isPrivate: false # 是否为私有仓库
+    authSettings:
+      method: "" # 认证方式，需填写固定值 ssh 或 http
+      sshConfig:
+        alias: "" # 配置别名（此处每个仓库需要使用独特的名称，不支持中文字符，尽量不要使用特殊字符）
+        hostName: "" # 主机地址
+        privateKeyPath: "" # 私钥文件全局路径（建议 /arcadia/config/xxx）
+      httpAuth:
+        username: "" # 用户名
+        password: "" # 密码或Token
+    cronSettings:
+      updateTaskList: false # 是否为该配置启用定时任务（默认不启用）
+      scriptsPath: "" # 定时文件路径（默认为仓库根目录）
+      scriptsType: # 定时文件格式（默认为 JavaScript、Python、TypeScript）
+        - js
+        - ts
+        - py
+      whiteList: '' # 定时文件匹配白名单（默认为空，即所有文件）
+      blackList: '' # 定时文件匹配黑名单（默认为空）
+      autoDisable: false # 是否自动禁用新的定时任务
+      addNotify: true # 是否为新增定时任务推送通知提醒
+      delNotify: true # 是否为过期定时任务推送通知提醒
+
+# 远程脚本配置
+# 官网教程：https://arcadia.cool/docs/configuration/script/raw/config
+raw:
+  - name: "" # 文件名称
+    url: "" # 文件远程地址
+    cronSettings:
+      updateTaskList: false # 是否为该代码文件启用定时任务
+
+# 全局配置
+global:
+  rawDependencyFilter: '' # 远程文件依赖文件过滤（白名单）

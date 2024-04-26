@@ -1,0 +1,1 @@
+window.__PRODUCTION__ARCADIA__CONF__={"VITE_GLOB_APP_TITLE":"Arcadia","VITE_GLOB_APP_SHORT_NAME":"arcadia","VITE_GLOB_API_URL":"/api","VITE_GLOB_UPLOAD_URL":"/upload","VITE_GLOB_API_URL_PREFIX":""};Object.freeze(window.__PRODUCTION__ARCADIA__CONF__);Object.defineProperty(window,"__PRODUCTION__ARCADIA__CONF__",{configurable:false,writable:false,});
