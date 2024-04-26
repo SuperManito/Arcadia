@@ -79,11 +79,6 @@ function main() {
             import notify
             command_notify "$@"
             ;;
-        # dev)
-        #     shift
-        #     import upgrade/dev
-        #     command_dev "$@"
-        #     ;;
         *)
             output_command_error 1 # 命令错误
             ;;

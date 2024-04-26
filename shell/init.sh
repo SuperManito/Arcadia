@@ -14,7 +14,7 @@ done
 
 # ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ 第 一 区 域 ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ #
 echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- ➀ 同步最新源码开始 -----\n"
-cd $ARCADIA_DIR
+cd $SrcDir
 sleep 2
 git fetch --all
 git reset --hard origin/$(git status | head -n 1 | awk -F ' ' '{print$NF}')

@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-23
+## Modified: 2024-04-27
 
 ## 更新项目
 function command_upgrade() {
@@ -13,8 +13,7 @@ function command_upgrade() {
     ## 更新前先存储 package.json
     [ -f $SrcDir/package.json ] && project_depend_old=$(cat $SrcDir/package.json)
     ## 更新仓库
-    cd $RootDir
-    git_pull $RootDir "$(git status | head -n 1 | awk -F ' ' '{print$NF}')" "Arcadia"
+    git_pull $SrcDir "$(git status | head -n 1 | awk -F ' ' '{print$NF}')" "Arcadia 源代码"
     if [[ $EXITSTATUS -eq 0 ]]; then
         echo -e "\n$COMPLETE 已更新\n"
     else
