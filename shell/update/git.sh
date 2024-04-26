@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-11
+## Modified: 2024-04-27
 
 ## 克隆仓库
 function git_clone() {
@@ -124,7 +124,8 @@ function handle_ssh_config() {
 
     ## 处理 SSH 认证配置
     # 生成配置文件
-    [ ! -f $FileSSHConfigUser ] && touch $FileSSHConfigUser
+    [ ! -d /root/.ssh ] &&  mkdir -p /root/.ssh && chmod 700 /root/.ssh
+    [ ! -f $FileSSHConfigUser ] && touch $FileSSHConfigUser && chmod 644 $FileSSHConfigUser
     # 修改私钥文件权限
     chmod 600 $identity_file >/dev/null 2>&1
     # 更改配置
@@ -145,7 +146,8 @@ function add_ssh_conf() {
     local alias="$1"         # 配置别名（Host）
     local hostname="$2"      # 主机名
     local identity_file="$3" # 私钥文件路径
-    [ ! -f $FileSSHConfigUser ] && touch $FileSSHConfigUser
+    [ ! -d /root/.ssh ] &&  mkdir -p /root/.ssh && chmod 700 /root/.ssh
+    [ ! -f $FileSSHConfigUser ] && touch $FileSSHConfigUser && chmod 644 $FileSSHConfigUser
     grep -q "^Host ${alias}$" $FileSSHConfigUser
     [ $? -eq 0 ] && return
     echo -e "Host ${alias}\n    HostName ${hostname}\n    IdentityFile ${identity_file}\n" >>$FileSSHConfigUser
