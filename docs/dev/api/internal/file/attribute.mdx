@@ -1,0 +1,50 @@
+---
+title: 查询文件属性
+description: 你会在系统的右键菜单里点击属性吗？
+---
+import APITable from '@site/src/components/APITable';
+import { GET } from '@site/src/components/RequestTag';
+
+#### <GET>/file/info</GET>
+
+## 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `path` | `string` | 是 | 绝对路径 |
+
+</APITable>
+
+## 响应
+
+- ContentType `application/json`
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `fileSize` | `string` | 大小 |
+| `birthtime` | `string` | 创建时间 |
+| `atime` | `string` | 最近一次被访问的时间 |
+| `ctime` | `string` | 目标对象的属性最近一次被修改的时间 |
+| `mtime` | `string` | 目标对象的内容最近一次被修改的时间 |
+| `name` | `string` | 名称 |
+| `path` | `string` | 存储位置路径 |
+| `mode` | `string` | 权限 |
+
+</APITable>
+
+```json title="示例"
+{
+  "fileSize": "64.00 KB",
+  "birthtime": "2024-01-01 00:00:00",
+  "atime": "2024-01-01 00:00:00",
+  "ctime": "2024-01-01 00:00:00",
+  "mtime": "2024-01-01 00:00:00",
+  "name": "example.js",
+  "path": "/arcadia/scripts/template",
+  "mode": "644"
+}
+```

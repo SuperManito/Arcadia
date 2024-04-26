@@ -1,0 +1,45 @@
+---
+title: 登录认证
+---
+import APITable from '@site/src/components/APITable';
+import { POST } from '@site/src/components/RequestTag';
+
+#### <POST>/user/auth</POST>
+
+## 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `username` | `string` | 是 | 用户名 |
+| `password` | `string` | 是 | 密码 |
+| `captcha` | `string` | 否 | 验证码 |
+
+</APITable>
+
+## 响应
+
+- ContentType `application/json`
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `token` | `string` | Token |
+| `newPwd` | `string` | 系统自动更改的新密码 |
+
+</APITable>
+
+```json title="示例"
+{
+  "token": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+  "newPwd": ""
+}
+```
+
+Token 有效时长：24小时
+
+:::info 注释
+`newPwd` 仅在系统强制更改用户密码后才返回，根据策略目前仅判断用户密码是否为初始密码，如果是则返回一个由随机字符组成的新密码，否则返回空字符串，密码变更后管理面板会有通知提醒。
+:::

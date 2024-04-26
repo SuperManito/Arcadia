@@ -1,0 +1,49 @@
+---
+title: 创建/修改
+---
+import APITable from '@site/src/components/APITable';
+import { POST } from '@site/src/components/RequestTag';
+
+## 变量值
+
+#### <POST>/env/saveItem</POST>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `id` | `number` | 否 | 唯一标识（逐一递增） |
+| `group_id` | `number` | 否 | `envs_group` 表 `id` 字段关联记录 |
+| `type` | `string` | 否 | 变量名称 |
+| `tag_list` | `string<object>` | 否 | 标签，`label名称 \| color颜色(HEX)` |
+| `description` | `string` | 否 | 描述 |
+| `remark` | `string` | 否 | 备注 |
+| `value` | `string` | 否 | 值 |
+| `sort` | `number` | 否 | 在分页中的位置序号（正整数），默认按照先后顺序递增 |
+| `enable` | `number` | 否 | 启用状态，`1 启用 \| 0 禁用` |
+
+</APITable>
+
+
+## 变量组
+
+#### <POST>/env/save</POST>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `id` | `number` | 否 | 唯一标识（逐一递增） |
+| `type` | `string` | 否 | 变量名称 |
+| `description` | `string` | 否 | 描述 |
+| `tag_list` | `string<object>` | 否 | 标签，`label名称 \| color颜色(HEX)` |
+| `separator` | `string` | 否 | 分割字符 |
+| `sort` | `number` | 否 | 在分页中的位置序号（正整数），默认按照先后顺序递增 |
+| `enable` | `number` | 否 | 启用状态，`1 启用 \| 0 禁用` |
+| `envs` | `object[]` | 否 | 与 `变量值` 返回相同 |
+
+</APITable>

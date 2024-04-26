@@ -1,0 +1,65 @@
+---
+title: 分页查询
+---
+import APITable from '@site/src/components/APITable';
+import { GET } from '@site/src/components/RequestTag';
+
+#### <GET>/config/type</GET>
+
+## 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `size` | `number` | 否 | 分页数量，默认20 |
+| `page` | `number` | 否 | 指定页数，默认1 |
+| `id` | `number` | 否 | id |
+| `type` | `string` | 否 | 类型 |
+| `label` | `string` | 否 | 名称 |
+| `value` | `string` | 否 | 值 |
+
+</APITable>
+
+## 响应
+
+- ContentType `application/json`
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `id` | `number` | id |
+| `type` | `string` | 类型 |
+| `label` | `string` | 名称 |
+| `value` | `string` | 值 |
+| `total` | `number` | 全部任务数量 |
+| `size` | `number` | 分页数量，默认20 |
+| `page` | `number` | 指定页数，默认1 |
+
+</APITable>
+
+```json title="示例"
+{
+  "data": [
+    {
+      "id": 1,
+      "type": "",
+      "label": "",
+      "value": "",
+      "sort": 0
+    },
+    {
+      "id": 2,
+      "type": "",
+      "label": "",
+      "value": "",
+      "sort": 0
+    },
+    ...
+  ],
+  "total": 5,
+  "page": 1,
+  "size": 20
+}
+```

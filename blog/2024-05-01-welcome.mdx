@@ -1,0 +1,70 @@
+---
+slug: welcome
+title: 欢迎来到博客
+authors: supermanito
+tags: ['教程']
+---
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+如果你想在本站发布你的文章，请阅读下面的发布流程。
+
+## 1. 部署本地环境
+
+首先，请克隆本仓库到本地并进入根目录
+
+```bash
+git clone -b website https://github.com/SuperManito/Arcadia.git
+cd Arcadia
+```
+
+接着，你需要安装依赖并运行本地开发服务器（预览）
+
+```bash npm2yarn
+npm install
+npm run start
+```
+
+默认情况下，系统浏览器会自动打开一个窗口 [http://localhost:3000](http://localhost:3000)
+
+## 2. 创建博客
+
+在 `blog` 目录下创建一个 `.md` 或 `.mdx` 文件，文件名需要使用英文，格式为 `yyyy-mm-dd-文章标题.md`，例如：`2024-05-01-welcome.md`，之后你就可以在本地开发服务器的博客页面看到这篇文章了。
+
+如果你需要在内容中添加图片等媒体资源，那么你需要在 blog 目录下按照命名规则建立一个文件夹例如 `2024-05-01-welcome`，然后将文件命名为 `index.md` 或 `index.mdx`，这样你就可以在博客中使用相对路径引用这些资源了。
+```
+blog
+  └── 2024-05-01-welcome
+      ├── index.md
+      └── image.png
+```
+
+## 3. 编辑博客
+
+  - ### 博客前言
+
+    这是一个示例，有关更多配置字段详见 [Markdown 前言](https://docusaurus.io/zh-CN/docs/api/plugins/@docusaurus/plugin-content-blog#markdown-front-matter)
+    ```
+    ---
+    slug: test # 路径(url)，你可以自定义这一路径，尽量保持精简且唯一
+    title: 欢迎来到博客 # 标题
+    authors: user # 作者，需要在 authors.yml 进行配置
+    tags: ['教程', '新手'] # 底部标签
+    ---
+    ```
+  - ### 博客内容
+
+    如果你不熟悉 Markdown 语法那么请先学习 [Markdown 基本撰写和格式语法](https://docs.github.com/zh/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax)，这是一个简单的语法，你可以很快学会。
+
+    本站基于 [Docusaurus](https://docusaurus.io/zh-CN) 构建，你可以通过官网教程学习使用 [Markdown 特性](https://docusaurus.io/zh-CN/docs/markdown-features)
+
+
+## 4. 提交并等待审核
+
+  向仓库发起 Pull Requests 合并请求
+
+:::info 关于发布规则
+1.内容需要与本项目相关  
+2.内容需要经过审核  
+3.内容需要是原创
+:::

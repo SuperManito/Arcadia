@@ -1,0 +1,53 @@
+---
+title: 内部接口
+---
+import APITable from '@site/src/components/APITable';
+
+本部分向你介绍项目所使用的内部接口
+
+### 接口基准地址
+
+- `http://localhost:5678/api`
+
+### 身份认证
+
+在 Header 中添加 `Authorization` 字段，值为 `Bearer {Token}`
+
+关于如何获取 `Token` 详见登录认证接口 [详见此处](/docs/api/user/auth)
+
+### 通用返回内容格式
+
+数据返回格式统一使用 JSON
+
+<APITable>
+
+| 参数 | 说明 |
+| :----: | :-----: |
+|  code  | 业务代码 |
+|  message | 消息 |
+|  type | 类型 |
+|  result | 返回结果（不一定有） |
+
+</APITable>
+
+### 业务代码说明
+
+<APITable>
+
+| 状态码 |   说明   |
+| :---: | :-----: |
+|  `0`  |  请求失败 |
+|  `1`  |  请求成功 |
+| `403` |  认证失败 |
+
+</APITable>
+
+### 参数传递
+
+除 GET 请求通过 URL 传递参数外，其它请求方式均通过 Body 传递参数
+
+### 接口类别
+
+import DocCardList from '@theme/DocCardList';
+
+<DocCardList />

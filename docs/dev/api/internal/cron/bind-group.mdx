@@ -1,0 +1,37 @@
+---
+title: 获取任务分类
+---
+import APITable from '@site/src/components/APITable';
+import { GET } from '@site/src/components/RequestTag';
+
+#### <GET>/cron/order/bindGroup</GET>
+
+## 请求
+
+无参数
+
+## 响应
+
+- ContentType `application/json`
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `bind` | `string` | 分类名称 |
+| `count` | `number` | 任务数量 |
+
+</APITable>
+
+```json title="示例"
+[
+  {
+    "bind": "",
+    "count": 1
+  },
+  {
+    "bind": "xxx_xxx",
+    "count": 2
+  }
+]
+```

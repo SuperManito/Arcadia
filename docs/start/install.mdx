@@ -1,0 +1,76 @@
+---
+title: 安装
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import APITable from '@site/src/components/APITable';
+import CliInstall from '@site/src/components/CliInstall';
+import ComposeInstall from '@site/src/components/ComposeInstall';
+
+本项目依托容器技术需要安装相关容器服务才可以部署，由于运行环境复杂程度较高目前没有计划适配更多部署方式  
+如果你不了解该项技术或者没有安装相关服务那么请先阅读 [如何安装容器服务](/docs/start/install-container-service)
+
+## 1. 启动容器
+
+<Tabs>
+<TabItem value="cli" label="CLI - 命令行">
+
+<CliInstall />
+</TabItem>
+<TabItem value="compose" label="Compose - 编排">
+<ComposeInstall />
+
+</TabItem>
+</Tabs>
+
+:::info 命令帮助
+1. 提示 `-bash: docker：Command not found/未找到命令` ? 请先阅读 [__如何安装容器服务__](/docs/start/install-container-service)  
+2. 如果你正在使用旁路由则可能需要将网卡工作切换为 **host** 类型（桥接），找到 `network` 字样更改右边的值即可  
+3. 不可以更改参数中 `:` 右边的内容，否则会导致后端服务无法正常访问
+
+<details>
+<summary>挂载目录的作用是什么？</summary>
+
+容器挂载目录的作用是将宿主机的文件系统目录或文件挂载到容器内。这样，容器内的程序可以像访问本地文件一样访问挂载的文件或目录，同时宿主机上的应用也可以直接访问这些文件或目录。这种机制提供了一种在容器和宿主机之间共享文件的方式，使得数据持久化成为可能，因为即使容器被删除，挂载的数据仍然存在于宿主机上，便于用户迁移数据。
+
+</details>
+
+:::
+
+## 2. 检查启动状态
+
+```bash
+docker logs -f arcadia
+```
+
+请认真查看容器启动后的初始化进度并 **等待其运行完毕**，当输出 **容器启动成功** 字样后即可通过 `Ctrl + C` 退出查看  
+如果报错导致容器没有启动成功那么请先自行检查原因，绝大多数问题都是由于网络环境所导致，你可以通过 [加入社区](/docs/about#%E7%A4%BE%E5%8C%BA) 来寻求帮助
+
+
+## 3. 开始使用
+
+访问 [http://localhost:5678](http://localhost:5678) 进入管理面板，初始用户名和密码分别是 `useradmin` `passwd`，首次登录后会引导你修改此认证信息
+
+无法访问？我们提供了一份 [排除故障指南](/docs/start/panel#%E6%8E%92%E9%99%A4%E9%9D%A2%E6%9D%BF%E6%95%85%E9%9A%9C)，希望对你有所帮助
+
+除管理面板外，项目支持强大的命令行指令，具体请翻阅 CLI 文档，有关用户配置的问题详见文档相关介绍和配置文件中的注释
+
+:::success
+如果你使用的网络环境处于公网，请更改容器面板用于认证的用户名和密码，同时留意上次登录信息<br />提高网络安全防范意识，尽量不要将你的面板完全暴露在公网，若遭遇不法分子入侵，作者对于由此引起的任何后果概不负责
+:::
+
+### 了解目录结构
+
+```text
+/arcadia       根目录
+├── config        配置文件目录（用户）
+├── log           日志存放目录（用户）
+├── repo          代码仓库存放目录（用户）
+├── raw           代码仓库目录（用户）
+├── scripts       个人文件存放目录（用户）
+├── tgbot         电报机器人组件存放目录（用户）
+├── sample        配置文件模版存放目录
+├── shell         CLI底层命令源代码
+├── web           前端静态文件和后端源代码
+└── utils         扩展组件源代码
+```

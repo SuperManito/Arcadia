@@ -1,0 +1,38 @@
+---
+title: 获取用户信息
+---
+import APITable from '@site/src/components/APITable';
+import { GET } from '@site/src/components/RequestTag';
+
+#### <GET>/user/info</GET>
+
+## 请求
+
+无参数
+
+## 响应
+
+- ContentType `application/json`
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `username` | `string` | 用户名 |
+| `lastLoginInfo` | `string` | 最近一次的登录信息 |
+| `loginIp` | `string` | IP地址（IPv4） |
+| `loginAddress` | `string` | 物理位置 |
+| `loginTime` | `string` | 时间 |
+
+</APITable>
+
+```json title="示例"
+{
+  "username": "admin",
+  "lastLoginInfo": {
+    "loginIp": "127.0.0.1",
+    "loginAddress": "局域网",
+    "loginTime": "2024-01-01 00:00:00"
+  }
+}
+```

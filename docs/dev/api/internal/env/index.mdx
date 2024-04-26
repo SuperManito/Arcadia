@@ -1,0 +1,48 @@
+---
+title: Env - 环境变量
+---
+
+:::info 此部分API与数据模型紧密相连，如果你无法理解项目应用程序设计那么请谨慎操作，建议先了解前端实现或直接使用 Open API
+:::
+
+## 数据关系模型
+
+数据库对于该功能设计了两个数据表 `envs` `envs_group`，分别代表变量值和变量组
+
+```prisma
+model envs {
+  id          Int         @id @default(autoincrement())
+  group_id    Int
+  type        String
+  tag_list    String      @default("")
+  description String      @default("")
+  remark      String      @default("")
+  value       String      @default("")
+  sort        Int         @default(0)
+  enable      Int         @default(1)
+  envs_group  envs_group? @relation(fields: [group_id], references: [id])
+
+  @@index([type])
+}
+
+model envs_group {
+  id          Int    @id @default(autoincrement())
+  type        String
+  description String @default("")
+  tag_list    String @default("")
+  separator   String @default("")
+  sort        Int    @default(0)
+  enable      Int    @default(1)
+  envs        envs[]
+
+  @@index([type])
+}
+```
+
+- `envs` 表
+
+    用于存储所有变量的值，其中 `group_id` 字段用于关联 `envs_group` 表的 `id` 字段，如果关联了则表明该记录是目标复合变量的一个值，否则 `group_id` 为0表示一个独立的普通变量
+
+- `envs_group` 表
+
+    用于存储组变量（复合变量）

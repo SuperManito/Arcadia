@@ -1,0 +1,201 @@
+---
+title: 分页查询
+---
+import APITable from '@site/src/components/APITable';
+import { GET } from '@site/src/components/RequestTag';
+
+## 变量值
+
+#### <GET>/env/pageItem</GET>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `page` | `string` | 否 | 指定页数，默认1 |
+| `size` | `string` | 否 | 指定分页大小数量，默认20 |
+| `group_id` | `string` | 否 | `envs_group` 表 `id` 字段关联记录，默认为 `0`， 为0时则返回普通变量记录，指定则返回目标复合变量的值 |
+| `search` | `string` | 否 | 搜索内容过滤，涉及变量名称、用户标签 |
+| `enable` | `string<'0' \| '1'>` | 否 | 变量状态过滤，`1 启用 \| 0 禁用` |
+| `orderBy` | `string` | 否 | 指定排序字段，默认 `sort` |
+| `order` | `string<'0' \| '1'>` | 否 | 指定排序方式 `0 升序 \| 1 降序`，默认降序 |
+
+</APITable>
+
+### 响应
+
+- ContentType `application/json`
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `data` | `object[]` | 数据项 |
+| `page` | `number` | 当前页码 |
+| `size` | `number` | 当前分页大小数量 |
+| `total` | `number` | 任务总数（数据库） |
+
+</APITable>
+
+数据项（主要为数据库 `envs` 表字段）
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `id` | `number` | 唯一标识（逐一递增） |
+| `group_id` | `number` | `envs_group` 表 `id` 字段关联记录 |
+| `type` | `string` | 变量名称 |
+| `tag_list` | `string<object>` | 标签，`label名称 \| color颜色(HEX)` |
+| `description` | `string` | 描述 |
+| `remark` | `string` | 备注 |
+| `value` | `string` | 值 |
+| `sort` | `number` | 在分页中的位置序号（正整数），默认按照先后顺序递增 |
+| `enable` | `number` | 启用状态，`1 启用 \| 0 禁用` |
+
+</APITable>
+
+```json title="示例"
+{
+  "data": [
+    {
+      "id": 1,
+      "group_id": 0,
+      "type": "TEST1",
+      "tag_list": "[{\"label\":\"test\",\"color\":\"#2080f0\"}]",
+      "description": "",
+      "remark": "",
+      "value": "测试1",
+      "sort": 0,
+      "enable": 1
+    },
+    {
+      "id": 2,
+      "group_id": 0,
+      "type": "TEST2",
+      "tag_list": "",
+      "description": "",
+      "remark": "",
+      "value": "测试2",
+      "sort": 0,
+      "enable": 0
+    },
+    ...
+  ],
+  "total": 5,
+  "page": 1,
+  "size": 20
+}
+```
+
+
+## 变量组
+
+#### <GET>/env/page</GET>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| --- | :-: | :-: | --- |
+| `page` | `string` | 否 | 指定页数，默认1 |
+| `size` | `string` | 否 | 指定分页大小数量，默认20 |
+| `search` | `string` | 否 | 搜索内容过滤，涉及变量名称、用户标签 |
+| `enable` | `string<'0' \| '1'>` | 否 | 变量状态过滤，`1 启用 \| 0 禁用` |
+| `orderBy` | `string` | 否 | 指定排序字段，默认 `sort` |
+| `order` | `string<'0' \| '1'>` | 否 | 指定排序方式 `0 升序 \| 1 降序`，默认降序 |
+
+</APITable>
+
+### 响应
+
+- ContentType `application/json`
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `data` | `object[]` | 数据项 |
+| `page` | `number` | 当前页码 |
+| `size` | `number` | 当前分页大小数量 |
+| `total` | `number` | 任务总数（数据库） |
+
+</APITable>
+
+数据项（主要为数据库 `envs_group` 和 `envs` 表记录）
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `id` | `number` | 唯一标识（逐一递增） |
+| `type` | `string` | 变量名称 |
+| `description` | `string` | 描述 |
+| `tag_list` | `string<object>` | 标签，`label名称 \| color颜色(HEX)` |
+| `separator` | `string` | 分割字符 |
+| `sort` | `number` | 在分页中的位置序号（正整数），默认按照先后顺序递增 |
+| `enable` | `number` | 启用状态，`1 启用 \| 0 禁用` |
+| `envs` | `object[]` | 与 `变量值` 返回相同 |
+
+</APITable>
+
+```json title="示例"
+{
+  "data": [
+    {
+      "id": 1,
+      "type": "TEST1",
+      "description": "",
+      "tag_list": "",
+      "separator": "",
+      "sort": 1,
+      "enable": 1,
+      "envs": []
+    },
+    {
+      "id": 2,
+      "type": "TEST2",
+      "description": "@",
+      "tag_list": "",
+      "separator": "",
+      "sort": 0,
+      "enable": 1,
+      "envs": [
+        {
+          "id": 11,
+          "group_id": 2,
+          "type": "",
+          "tag_list": "",
+          "description": "",
+          "remark": "",
+          "value": "test1",
+          "sort": 0,
+          "enable": 1
+        },
+        {
+          "id": 12,
+          "group_id": 2,
+          "type": "",
+          "tag_list": "",
+          "mode": "",
+          "description": "",
+          "remark": "",
+          "value": "test2",
+          "sort": 0,
+          "enable": 0
+        },
+        ...
+      ]
+    }
+    ...
+  ],
+  "total": 3,
+  "page": 1,
+  "size": 20
+}
+```
+
+> 默认倒序返回

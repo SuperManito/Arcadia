@@ -1,0 +1,240 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+
+@font-face {
+  font-family: 'SF Mono';
+  src: url('../fonts/SF-Mono-Regular.otf');
+}
+
+:root {
+  --ifm-code-font-size: 95%;
+  --ifm-font-family-monospace: "SF Mono", "JetBrains Mono", Consolas, "Courier New", monospace;
+  --ifm-footer-padding-vertical: 10px;
+  --ifm-breadcrumb-border-radius: 3px;
+  --ifm-breadcrumb-padding-horizontal: 0.4rem;
+  --ifm-breadcrumb-padding-vertical: 0.1rem;
+}
+
+/* 浅色主题 */
+[data-theme='light'] {
+  --ifm-color-primary: #2080f0;
+  --ifm-color-primary-dark: #0f72e5;
+  --ifm-color-primary-darker: #0f6cd9;
+  --ifm-color-primary-darkest: #0c59b2;
+  --ifm-color-primary-light: #398ff2;
+  --ifm-color-primary-lighter: #4696f3;
+  --ifm-color-primary-lightest: #6cacf5;
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-custom-navbar-background-color: #ffffff;
+  --docusaurus-highlighted-code-line-bg: #00000019;
+}
+
+/* 深色主题 */
+[data-theme='dark'] {
+  --ifm-color-primary: #56b8f5;
+  --ifm-color-primary-dark: #37abf3;
+  --ifm-color-primary-darker: #27a4f2;
+  --ifm-color-primary-darkest: #0d8cdb;
+  --ifm-color-primary-light: #75c5f7;
+  --ifm-color-primary-lighter: #85ccf8;
+  --ifm-color-primary-lightest: #b4dffb;
+  --ifm-background-color: #1e1e20;
+  --ifm-custom-background-color: #1e1e20;
+  --ifm-navbar-background-color: #1e1e20;
+  --ifm-custom-navbar-background-color: #1e1e20;
+  --docusaurus-highlighted-code-line-bg: #D4D4D41a;
+}
+
+/* UI按钮 */
+[data-theme='dark'] .button.button--secondary {
+  color: #ffffff;
+  background-color: #434343;
+  border-color: #434343;
+}
+[data-theme='dark'] .button.button--secondary:hover {
+  background-color: #686868;
+}
+
+/* 移动端 */
+@media screen and (min-width: 996px) {
+  /* 导航栏背景 */
+  [data-theme='light'] {
+    --ifm-navbar-background-color: #ffffff54;
+    --ifm-custom-navbar-background-color: #ffffff54;
+  }
+  [data-theme='dark'] {
+    --ifm-navbar-background-color: #1e1e2054;
+    --ifm-custom-navbar-background-color: #1e1e2054;
+  }
+  .navbar.navbar--fixed-top {
+    background-color: var(--ifm-custom-navbar-background-color);
+  }
+  .navbar.navbar--fixed-top:not(.navbar-sidebar--show) {
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* 告示 */
+[data-theme='dark'] .alert--success {
+  --ifm-alert-background-color: #2d4e17;
+  --ifm-alert-background-color-highlight: #abe76951;
+}
+[data-theme='dark'] .alert--secondary {
+  --ifm-alert-background-color: rgb(66 66 66)
+}
+
+/* 搜索组件 */
+.DocSearch {
+  --docsearch-modal-width: 800px;
+}
+.DocSearch.DocSearch-Button {
+  border-radius: 10px;
+}
+[data-theme='light'] .DocSearch {
+  /* --docsearch-primary-color: var(--ifm-color-primary); */
+  /* --docsearch-text-color: var(--ifm-font-color-base); */
+  --docsearch-muted-color: var(--ifm-color-secondary-darkest);
+  --docsearch-container-background: #5e6470b2;
+  /* 弹窗 */
+  --docsearch-modal-background: var(--ifm-color-secondary-lighter);
+  /* 搜索框 */
+  --docsearch-searchbox-background: var(--ifm-color-secondary);
+  --docsearch-searchbox-focus-background: var(--ifm-color-white);
+  /* 条目 */
+  --docsearch-hit-color: var(--ifm-font-color-base);
+  --docsearch-hit-active-color: var(--ifm-color-white);
+  --docsearch-hit-background: var(--ifm-color-white);
+  /* 页脚 */
+  --docsearch-footer-background: var(--ifm-color-white);
+}
+[data-theme='dark'] .DocSearch {
+  --docsearch-text-color: var(--ifm-font-color-base);
+  --docsearch-muted-color: var(--ifm-color-secondary-darkest);
+  --docsearch-container-background: #2f3745b2;
+  /* 弹窗 */
+  --docsearch-modal-background: var(--ifm-background-color);
+  /* 搜索框 */
+  --docsearch-searchbox-background: #2e2e2e;
+  --docsearch-searchbox-focus-background: var(--ifm-color-black);
+  /* 条目 */
+  --docsearch-hit-color: var(--ifm-font-color-base);
+  --docsearch-hit-active-color: var(--ifm-color-white);
+  --docsearch-hit-background: var(--ifm-color-emphasis-100);
+  /* 页脚 */
+  --docsearch-footer-background: var(--ifm-background-surface-color);
+  --docsearch-key-gradient: linear-gradient(-26.5deg, var(--ifm-color-emphasis-200) 0%, var(--ifm-color-emphasis-100) 100%);
+  --docsearch-key-shadow: inset 0 -2px 0 0 #15151a, inset 0 0 1px 1px #15151a, 0 2px 2px 0 rgb(162 165 185 / 30%);
+}
+.DocSearch-Hit a {
+  transition: .1s;
+}
+
+/* 导航栏 */
+.header-github-link {
+  height: 32px;
+  width: 32px;
+  padding-left: .2em;
+  margin-right: 6px;
+  border-radius: 50%;
+  text-align: center;
+  transition: background var(--ifm-transition-fast);
+}
+.header-github-link:hover {
+  background: var(--ifm-color-emphasis-200);
+}
+.header-github-link::before {
+  content: '';
+  width: 24px;
+  height: 24px;
+  display: flex;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E") no-repeat;
+}
+[data-theme='dark'] .header-github-link::before {
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='white' d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E") no-repeat;
+}
+.navbar-logo {
+  height: 1.4em !important;
+  text-align: center;
+  vertical-align: -0.4em;
+}
+@media screen and (max-width: 640px) {
+  .navbar-logo {
+    height: 1.25em !important;
+    text-align: center;
+    vertical-align: -0.45em;
+  }
+}
+.navbar-item {
+  font-weight: 550;
+  font-size: 17px;
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Segoe UI", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+/* 分页 */
+.pagination-nav__link {
+  transition: .2s;
+}
+.pagination-nav__link:hover {
+  background: rgba(44,19,56,.02);
+  border-color: rgba(44,19,56,.24);
+}
+[data-theme='dark'] .pagination-nav__link:hover {
+  background: rgb(78 78 78 / 20%);
+  border-color: rgb(78 78 78 / 80%);
+}
+
+/* 侧边栏 */
+.menu {
+  scrollbar-gutter: stable;
+  background-color: #f3f5f7;
+}
+[data-theme='dark'] .menu {
+  background-color: #1c1e21;
+}
+@media (min-width: 997px) {
+  .menu {
+    padding: .6rem 1rem !important;
+  }
+}
+.menu__link {
+  min-height: 30px;
+  font-size: 14px;
+  font-weight: 400;
+  align-items: center;
+  justify-content: flex-start;
+  overflow-wrap: anywhere;
+}
+.menu__link:after {
+  opacity: 0.6;
+  margin-left: 0.6rem;
+  height: 1rem;
+  min-width: 1rem;
+  background-size: 1.2rem 1.2rem;
+}
+.menu__link--active {
+  background: rgba(145, 33, 194, 0.05);
+}
+.menu__caret {
+  padding: var(--ifm-menu-link-padding-vertical) 0.4em;
+}
+.menu__caret:before {
+  background: var(--ifm-menu-link-sublist-icon) 50% / 2rem 1.6rem !important;
+}
+.theme-doc-sidebar-item-link-level-1,
+.theme-doc-sidebar-item-category-level-1 {
+  position: relative;
+}
+.theme-doc-sidebar-item-link-level-1 .menu__link,
+.theme-doc-sidebar-item-category-level-1 > .menu__list-item-collapsible .menu__link {
+  min-height: 38px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--ifm-heading-font-family);
+  padding-right: 6px;
+  padding-left: 10px;
+}

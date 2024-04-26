@@ -1,0 +1,32 @@
+---
+title: 说明
+---
+import APITable from '@site/src/components/APITable';
+import { GET, POST, PUT, DELETE } from '@site/src/components/RequestTag';
+
+本部分文档内容面向开发人员介绍项目接口结构和具体使用方法，我们感谢每一位帮助此项目成长的开发者。
+
+### 支持的请求方法
+
+#### <GET>（SELECT）从服务器取出资源</GET>
+#### <POST>（CREATE）在服务器新建一个资源</POST>
+#### <PUT>（UPDATE）在服务器更新资源</PUT>
+#### <DELETE>（DELETE）从服务器删除资源</DELETE>
+
+### 通用返回状态说明
+
+<APITable>
+
+|  状态码   |         含义           | 说明                                            |
+| :------: | :-------------------: | :---------------------------------------------: |
+|  `200`   |          OK           | 请求成功                                         |
+|  `201`   |        CREATED        | 创建成功                                         |
+|  `204`   |        DELETED        | 删除成功                                         |
+|  `400`   |      BAD REQUEST      | 请求的地址不存在或者包含不支持的参数                 |
+|  `401`   |     UNAUTHORIZED      | 未授权                                          |
+|  `403`   |       FORBIDDEN       | 被禁止访问                                       |
+|  `404`   |       NOT FOUND       | 请求的资源不存在                                  |
+|  `422`   |  Unprocesable entity  | [POST/PUT/PATCH] 当创建一个对象时，发生一个验证错误 |
+|  `500`   | INTERNAL SERVER ERROR | 内部错误                                         |
+
+</APITable>
