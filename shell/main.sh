@@ -2,7 +2,6 @@
 ## Modified: 2024-04-27
 
 function main() {
-    source $(pwd)/core/main.sh
     case $# in
     0)
         print_command_help $ArcadiaCmd
