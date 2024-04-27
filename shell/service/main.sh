@@ -9,9 +9,9 @@ function service_manage() {
     function install_ttyd() {
         [ ! -x /usr/bin/ttyd ] && wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.$(arch) -q -O /usr/local/bin/ttyd && chmod 777 /usr/local/bin/ttyd
         ## 增加环境变量
-        export PS1="\[\e[32;1m\]@ARCADIA\[\e[0m\] ➜ \[\e[34;1m\]\w\[\e[0m\] \\$ "
         pm2 start ttyd --name "arcadia_ttyd" --log-date-format "YYYY-MM-DD HH:mm:ss" -- \
             -p 7685 \
+            -i lo \
             --writable \
             -t fontFamily='SF Mono, JetBrains Mono, Courier New, Consolas, monospace' \
             -t fontSize=14 \
