@@ -12,8 +12,12 @@ function command_upgrade() {
     local project_depend_old project_depend_new
     ## 更新前先存储 package.json
     [ -f $SrcDir/package.json ] && project_depend_old=$(cat $SrcDir/package.json)
+    ## 确认分支名称
+    cd $SrcDir
+    local src_branch_name="$(git status | head -n 1 | awk -F ' ' '{print$NF}')"
+    cd $RootDir
     ## 更新仓库
-    git_pull $SrcDir "$(git status | head -n 1 | awk -F ' ' '{print$NF}')" "Arcadia 源代码"
+    git_pull $SrcDir "${src_branch_name}" "Arcadia 源代码"
     if [[ $EXITSTATUS -eq 0 ]]; then
         echo -e "\n$COMPLETE 已更新\n"
     else
