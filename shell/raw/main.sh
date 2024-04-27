@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-27
+## Modified: 2024-04-28
 
 ## 一键添加远程文件配置
 # repo <name> <url> [--options]
@@ -70,8 +70,8 @@ function command_raw() {
 
     # 替换用户配置
     function replace_user_conf() {
-        sed -i "s|name: \'\'|name: \"${name}\"|g" $tmp_file
-        sed -i "s|url: \'\'|url: \"${url}\"|g" $tmp_file
+        sed -i "s|name: ''|name: \"${name}\"|g" $tmp_file
+        sed -i "s|url: ''|url: \"${url}\"|g" $tmp_file
         [ "${updateTaskList}" ] && sed -i "s|updateTaskList: false|updateTaskList: ${updateTaskList}|g" $tmp_file
         echo -e "\n$TIP 自动生成的配置内容如下：\n"
         cat $tmp_file | sed "s/^  //g"

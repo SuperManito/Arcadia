@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-27
+## Modified: 2024-04-28
 
 ## 一键添加代码仓库配置
 # repo <name> <url> <branch> [--options]
@@ -179,15 +179,14 @@ function command_repo() {
 
     # 替换用户配置
     function replace_user_conf() {
-        echo "${blackList}"
-        sed -i "s|name: \'\'|name: \"${name}\"|g" $tmp_file
-        sed -i "s|url: \'\'|url: \"${url}\"|g" $tmp_file
-        sed -i "s|branch: \'\'|branch: \"${branch}\"|g" $tmp_file
+        sed -i "s|name: ''|name: \"${name}\"|g" $tmp_file
+        sed -i "s|url: ''|url: \"${url}\"|g" $tmp_file
+        sed -i "s|branch: ''|branch: \"${branch}\"|g" $tmp_file
         [ "${enable}" ] && sed -i "s|enable: true|enable: ${enable}|g" $tmp_file
         [ "${updateTaskList}" ] && sed -i "s|updateTaskList: false|updateTaskList: ${updateTaskList}|g" $tmp_file
-        [ "${scriptsPath}" ] && sed -i "s|scriptsPath: \'\'|scriptsPath: \"${scriptsPath}\"|g" $tmp_file
-        [ "${whiteList}" ] && sed -i "s@whiteList: \'\'@whiteList: \'$(echo "${whiteList}" | sed -e 's/[]\/$*.^[]/\\&/g; s/@/\@/g')\'@g" $tmp_file
-        [ "${blackList}" ] && sed -i "s@blackList: \'\'@blackList: \'$(echo "${blackList}" | sed -e 's/[]\/$*.^[]/\\&/g; s/@/\@/g')\'@g" $tmp_file
+        [ "${scriptsPath}" ] && sed -i "s|scriptsPath: ''|scriptsPath: \"${scriptsPath}\"|g" $tmp_file
+        [ "${whiteList}" ] && sed -i "s@whiteList: ''@whiteList: \'$(echo "${whiteList}" | sed -e 's/[]\/$*.^[]/\\&/g; s/@/\@/g')\'@g" $tmp_file
+        [ "${blackList}" ] && sed -i "s@blackList: ''@blackList: \'$(echo "${blackList}" | sed -e 's/[]\/$*.^[]/\\&/g; s/@/\@/g')\'@g" $tmp_file
         [ "${autoDisable}" ] && sed -i "s|autoDisable: false|autoDisable: ${autoDisable}|g" $tmp_file
         [ "${addNotify}" ] && sed -i "s|addNotify: true|addNotify: ${addNotify}|g" $tmp_file
         [ "${delNotify}" ] && sed -i "s|delNotify: true|delNotify: ${delNotify}|g" $tmp_file
