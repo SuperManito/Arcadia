@@ -1,1 +1,0 @@
-import{aq as m,cY as y,cr as D}from"./vendor-CVUNLYN4.js";const F=Symbol(),_=(f,r=!0)=>{const{on:t,off:a,reset:i,emit:s}=m(f??F);let e,u;function l(o,{wait:n=150,immediate:p=!1,isPassPars:b=!0}={}){e=D(o,n),u=()=>{e()},t(b?e:()=>{e()}),p&&s()}function c(o){const n=o||e||u;n&&a(n)}return y(()=>{r&&c()}),{on:l,off:c,reset:i,emit:s}};export{_ as u};

@@ -1,0 +1,1 @@
+import{a7 as e,aK as o,av as t}from"./vendor-DM0AKlTY.js";const n={style:{display:"inline-block"},viewBox:"0 0 24 24",width:"1em",height:"1em"},s=t("path",{fill:"currentColor",d:"M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"},null,-1),c=[s];function a(i,l){return e(),o("svg",n,[...c])}const _={name:"mdi-plus",render:a};export{_};

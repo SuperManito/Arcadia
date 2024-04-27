@@ -1,0 +1,1 @@
+import{_ as o}from"./file-question-outline-DsQ4H7LQ.js";import{d as e}from"./index-C5WsbIcI.js";import{a7 as _,a8 as t}from"./vendor-DM0AKlTY.js";const c={};function r(i,s){const n=o;return _(),t(n,{style:{"vertical-align":"baseline"}})}const m=e(c,[["render",r]]);export{m as f};
