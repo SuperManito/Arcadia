@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-20
+## Modified: 2024-04-27
 
 ## 随机延迟
 function random_delay() {
@@ -249,7 +249,7 @@ function run_script_main() {
                 run_script_core "${base_cmd}"
             done
             # 恢复原有变量值以应用下一次重组匹配
-            eval export "${RUN_OPTION_RECOMBINE_ENV_NAME}"="${RUN_OPTION_RECOMBINE_ENV_ORIGINAL_VALUE}"
+            eval export "${RUN_OPTION_RECOMBINE_ENV_NAME}"=\""${RUN_OPTION_RECOMBINE_ENV_ORIGINAL_VALUE}"\"
             let group_index++
         done
 
@@ -267,7 +267,7 @@ function run_script_main() {
         local env_index=1
         for env_value in $(echo "${RUN_OPTION_SPLIT_ENV_ORIGINAL_VALUE}" | tr "${RUN_OPTION_SPLIT_ENV_SEPARATOR}" ' '); do
             # 重新声明环境变量
-            eval export "${RUN_OPTION_SPLIT_ENV_NAME}"="${env_value}"
+            eval export "${RUN_OPTION_SPLIT_ENV_NAME}"=\""${env_value}"\"
             if [[ "${RUN_OPTION_CONCURRENT}" == "true" ]]; then
                 # 定义日志文件名称
                 LogFileName="$(date "+%Y-%m-%d-%H-%M-%S")-e${env_index}"
@@ -335,6 +335,17 @@ function command_run_main() {
     # 配置文件
     import_config ${FileName}
 
+    ## 变量操作相关命令选项
+    # 判断变量是否存在并定义原有值变量
+    if [[ "${RUN_OPTION_RECOMBINE_ENV_NAME}" ]]; then
+        RUN_OPTION_RECOMBINE_ENV_ORIGINAL_VALUE="${!RUN_OPTION_RECOMBINE_ENV_NAME}"
+        [[ -z "${RUN_OPTION_RECOMBINE_ENV_ORIGINAL_VALUE}" ]] && output_error "变量 ${BLUE}${RUN_OPTION_RECOMBINE_ENV_NAME}${PLAIN} 不存在或值为空"
+    fi
+    if [[ "${RUN_OPTION_SPLIT_ENV_NAME}" ]]; then
+        RUN_OPTION_SPLIT_ENV_ORIGINAL_VALUE="${!RUN_OPTION_SPLIT_ENV_NAME}"
+        [[ -z "${RUN_OPTION_SPLIT_ENV_ORIGINAL_VALUE}" ]] && output_error "变量 ${BLUE}${RUN_OPTION_SPLIT_ENV_NAME}${PLAIN} 不存在或值为空"
+    fi
+
     # 执行用户自定义执行前脚本
     if [[ "${EnableTaskBeforeExtra}" == "true" ]] && [[ -f $FileTaskBeforeExtra ]]; then
         source $FileTaskBeforeExtra
@@ -382,16 +393,6 @@ function command_run_check_options() {
     check_usability "RUN_OPTION_DAEMON" "RUN_OPTION_BACKGROUND" "--daemon" "--background"
     # 守护进程 & 循环运行（无意义）
     check_usability "RUN_OPTION_DAEMON" "RUN_OPTION_LOOP" "--daemon" "--loop"
-    ## 变量操作相关命令选项
-    # 判断变量是否存在并定义原有值变量
-    if [[ "${RUN_OPTION_RECOMBINE_ENV_NAME}" ]]; then
-        RUN_OPTION_RECOMBINE_ENV_ORIGINAL_VALUE="${!RUN_OPTION_RECOMBINE_ENV_NAME}"
-        [[ -z "${RUN_OPTION_RECOMBINE_ENV_ORIGINAL_VALUE}" ]] && output_error "变量 ${RUN_OPTION_RECOMBINE_ENV_NAME} 不存在或值为空"
-    fi
-    if [[ "${RUN_OPTION_SPLIT_ENV_NAME}" ]]; then
-        RUN_OPTION_SPLIT_ENV_ORIGINAL_VALUE="${!RUN_OPTION_SPLIT_ENV_NAME}"
-        [[ -z "${RUN_OPTION_SPLIT_ENV_ORIGINAL_VALUE}" ]] && output_error "变量 ${RUN_OPTION_SPLIT_ENV_NAME} 不存在或值为空"
-    fi
     ## 检测无意义的并发
     if [[ "${RUN_OPTION_CONCURRENT}" == "true" ]] && [[ $RUN_OPTION_CONCURRENT_TASKS -eq 1 ]]; then
         if [[ -z "${RUN_OPTION_RECOMBINE_ENV_GROUP}" ]] && [[ -z "${RUN_OPTION_SPLIT_ENV}" ]]; then
