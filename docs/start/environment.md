@@ -13,31 +13,9 @@ import TabItem from '@theme/TabItem';
   <TabItem value="py" label="Python">
 
   ```bash
-  apk --no-cache add -f python3 py3-pip
+  apt-get install -y python3 python3-pip
   ```
   > 已预装，底层功能需要调用，不建议用户卸载
-
-  - ### 自定义 Python 版本
-
-    如果你几乎不使用 Python 脚本那么请直接忽略这一部分的内容
-
-    受限于容器底层镜像，项目默认安装的 Python 版本为 3.11，这可能会产生一些兼容性问题
-
-    ```bash title="Python 降级至 3.10 版本的参考命令"
-    apk del py3-pip
-    apk del python3
-    sed -i "s/v3\.18/v3\.17/g" /etc/apk/repositories
-    apk update -f
-    apk --no-cache add -f python3
-    apk --no-cache add -f py3-pip
-    ```
-
-    重装完后你还需要执行下面的命令
-
-    ```bash
-    pip3 install yq # 底层命令需要使用的依赖库
-    arcadia tgbot update # 如果你需要使用 TG 机器人，则需要执行此命令重装
-    ```
 
   </TabItem>
 
@@ -52,7 +30,7 @@ import TabItem from '@theme/TabItem';
   <TabItem value="go" label="Go">
 
   ```bash
-  apk --no-cache add -f go
+  apt-get install -y go
   ```
 
   </TabItem>
@@ -60,15 +38,16 @@ import TabItem from '@theme/TabItem';
   <TabItem value="c" label="C">
 
   ```bash
-  apk --no-cache add -f gcc
+  apt-get install -y gcc
   ```
+  > 已预装
 
   </TabItem>
 
   <TabItem value="js" label="Node.js" default>
 
   ```bash
-  apk --no-cache add -f nodejs-lts npm
+  apt-get install -y nodejs npm
   ```
   > 已预装，由于项目后端使用 Node.js 开发故用户不能卸载否则会导致项目无法正常运行
 
@@ -99,7 +78,7 @@ import TabItem from '@theme/TabItem';
   适用于 <ICON>vscode-icons\:file-type-python</ICON> `.py`
 
   ```bash
-  pip3 install <xxx>
+  pip3 install <xxx> --no-cache-dir --break-system-packages
   ```
 
   </TabItem>
