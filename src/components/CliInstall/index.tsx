@@ -51,7 +51,7 @@ export default function CliInstall () {
     { label: 'TG机器人', value: 'tgbot' },
   ]
   const mountPrefix = useCurrentDir ? '$(pwd)' : '/opt/arcadia' // 根据状态变量决定挂载路径前缀
-  const mountLines = selectedMounts.length > 0 ? '\n' + selectedMounts.map(mount => `-v ${mountPrefix}/${mount}:/arcadia/${mount}`).join('\n') : ''
+  const mountLines = selectedMounts.length > 0 ? '\n' + selectedMounts.map(mount => `-v ${mountPrefix}/${mount}:/arcadia/${mount} \\`).join('\n') : ''
 
   function Docker () {
     return (
