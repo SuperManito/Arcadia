@@ -19,7 +19,7 @@ import TabItem from '@theme/TabItem';
 
   </TabItem>
 
-  <TabItem value="ts" label="TypeScript" default>
+  <TabItem value="ts" label="TypeScript">
 
   ```bash
   npm install -g typescript ts-node
@@ -44,7 +44,7 @@ import TabItem from '@theme/TabItem';
 
   </TabItem>
 
-  <TabItem value="js" label="Node.js" default>
+  <TabItem value="js" label="Node.js">
 
   ```bash
   apt-get install -y nodejs npm

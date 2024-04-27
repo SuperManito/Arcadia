@@ -76,7 +76,7 @@ arcadia run <name/path/url> [--options]
 
 ### 关于运行代码文件所需的依赖库
 
-这部分内容与项目命令无关，用于解决代码文件运行时缺少依赖库报错的问题，具体详见 [运行环境](/docs/configuration/environment) 文档
+这部分内容与项目命令无关，用于解决代码文件运行时缺少依赖库报错的问题，具体详见 [运行环境](/docs/start/environment) 文档
 
 ## 命令选项（高级用法）
 
