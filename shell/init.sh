@@ -26,4 +26,5 @@ import init
 set -e
 source $(dirname $(readlink -f "$0"))/core/main.sh
 arcadia_init
+tail -f /dev/null
 exec "$@"
