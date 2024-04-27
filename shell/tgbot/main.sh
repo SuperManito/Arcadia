@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-25
+## Modified: 2024-04-28
 
 ## Telegram Bot 服务管理
 # tgbot start/stop/logs/update
@@ -16,7 +16,7 @@ function command_tgbot_main() {
         echo -e "$WORKING 开始安装模块...\n"
         cp -rf $BotSrcDir/tgbot $RootDir
         cd $BotDir
-        pip3 --default-timeout=3600 install -r requirements.txt --no-cache-dir
+        pip3 --default-timeout=3600 install -r requirements.txt --no-cache-dir --break-system-packages
         if [ $? -eq 0 ]; then
             echo -e "\n$COMPLETE 模块安装完成\n"
         else
@@ -27,7 +27,7 @@ function command_tgbot_main() {
     ## 卸载
     function remove_src() {
         echo -e "\n$WORKING 开始卸载...\n"
-        [ -f $BotDir/requirements.txt ] && pip3 uninstall -y -r $BotDir/requirements.txt
+        [ -f $BotDir/requirements.txt ] && pip3 uninstall -y -r $BotDir/requirements.txt --break-system-packages
         rm -rf $BotDir/* $RootDir/bot.session*
         echo -e "\n$COMPLETE 卸载完成"
     }
