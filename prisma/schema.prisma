@@ -142,7 +142,7 @@ model tasks {
   shell        String    @default("")
   active       Int       @default(1)
   last_runtime DateTime?
-  last_run_use Int
+  last_run_use Int?
   tags         String    @default("")
   sort         Int       @default(99999)
   create_time  DateTime  @default(now())
