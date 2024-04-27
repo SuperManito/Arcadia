@@ -96,7 +96,7 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
         },
       },
       announcementBar: {
-        content: '🎉 已开始进行公共测试',
+        content: '🎉 Arcadia BETA（已发布）',
         backgroundColor: 'rgb(209 126 31)',
         textColor: '#fff',
         isCloseable: true,
