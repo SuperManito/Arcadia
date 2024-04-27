@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-11
+## Modified: 2024-04-27
 
 ## 统计代码文件仓库数量
 function count_reposum() {
@@ -123,13 +123,14 @@ function gen_repoconf_array() {
                     Array_Repo_authSettings_alias[$conf_index]="${tmp_sshConfig_alias}"
                     Array_Repo_authSettings_hostName[$conf_index]="${tmp_sshConfig_hostName}"
                     Array_Repo_authSettings_privateKeyPath[$conf_index]="${tmp_sshConfig_privateKeyPath}"
-                fi
-                if [[ "${tmp_authSettings_method}" ]] && [[ "${tmp_sshConfig_hostName}" ]]; then
-                    echo -e "$WARN 检测到第$(($conf_index + 1))个仓库配置的私钥不存在，跳过..."
-                    Array_Repo_url[$conf_index]=""
                 else
-                    echo -e "$WARN 检测到第$(($conf_index + 1))个仓库配置的 SSH 配置存在错误，跳过..."
-                    Array_Repo_url[$conf_index]=""
+                    if [[ "${tmp_authSettings_method}" ]] && [[ "${tmp_sshConfig_hostName}" ]]; then
+                        echo -e "$WARN 检测到第$(($conf_index + 1))个仓库配置的私钥不存在，跳过..."
+                        Array_Repo_url[$conf_index]=""
+                    else
+                        echo -e "$WARN 检测到第$(($conf_index + 1))个仓库配置的 SSH 配置存在错误，跳过..."
+                        Array_Repo_url[$conf_index]=""
+                    fi
                 fi
             elif [[ "${tmp_authSettings_method}" == "http" ]] && [[ "$(get_config_wrapper "authSettings.httpAuth")" ]]; then
                 tmp_httpAuth_username="$(get_config_wrapper "authSettings.httpAuth.username")"
