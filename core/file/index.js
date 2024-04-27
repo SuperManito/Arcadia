@@ -230,7 +230,7 @@ const getDirTree = (type, dir, query) => {
   if (type === 'repo_scripts' || type === 'all') {
     if (type === 'all') {
       filesNameArr.push(readDirs(`${dir}/${DIR_NAME.CONFIG}`, `${dir}/${DIR_NAME.CONFIG}`))
-      filesNameArr.push(readDirs(`${dir}/${DIR_NAME.SAMPLE}`, `${dir}/${DIR_NAME.SAMPLE}`))
+      filesNameArr.push(readDirs(`${srcPath}/${DIR_NAME.SAMPLE}`, `${srcPath}/${DIR_NAME.SAMPLE}`))
     }
     filesNameArr.push(readDirs(`${dir}/${DIR_NAME.SCRIPTS}`, `${dir}/${DIR_NAME.SCRIPTS}`))
     filesNameArr.push(readDirs(`${dir}/${DIR_NAME.REPO}`, `${dir}/${DIR_NAME.REPO}`))
