@@ -2,11 +2,6 @@
 ## Modified: 2024-04-27
 
 function arcadia_init() {
-  ## 更新项目（推出正式版本后移除）
-  $ArcadiaCmd upgrade
-
-  echo -e "\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- ➀ 同步最新源码结束 -----\n"
-
   # ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ 第 二 区 域 ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ #
   echo -e "\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- ➁ 启动核心服务开始 -----\n"
   cd ${SrcDir}
@@ -30,8 +25,6 @@ function arcadia_init() {
   echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} 管理面板启动成功 $SUCCESS\n"
   if [[ -z $(grep -E "123456789" ${ConfigDir}/bot.json) ]]; then
     $ArcadiaCmd tgbot start
-  else
-    echo -e "检测到当前还没有配置 bot.json 可能是首次部署容器，因此不启动电报机器人..."
   fi
   echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- ➁ 启动核心服务结束 -----\n"
 
