@@ -24,7 +24,7 @@ sleep 2
 import init
 
 set -e
-source $(dirname $(readlink -f "$0"))/core/main.sh
+source $(dirname $(readlink -f "$0"))/core/main.sh # 注：重新加载核心库
 arcadia_init
+# exec "$@"
 tail -f /dev/null
-exec "$@"
