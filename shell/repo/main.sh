@@ -1,12 +1,12 @@
 #!/bin/bash
-## Modified: 2024-04-18
+## Modified: 2024-04-27
 
 ## 一键添加代码仓库配置
 # repo <name> <url> <branch> [--options]
 function command_repo() {
     local name url branch enable updateTaskList scriptsPath scriptsType whiteList blackList autoDisable addNotify delNotify
     # 定义临时文件
-    local tmp_file="${ARCADIA_DIR}/.repo.yml"
+    local tmp_file="${RootDir}/.repo.yml"
 
     ## 处理命令选项
     function handle_options() {

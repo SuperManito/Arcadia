@@ -4,8 +4,11 @@
 function arcadia_init() {
   # ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ 第 二 区 域 ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ #
   echo -e "\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- ➁ 启动核心服务开始 -----\n"
-  cd ${SrcDir}
+  cd $SrcDir
   [ ! -x /usr/bin/npm ] && apt-get install -y --no-install-recommends nodejs npm >/dev/null 2>&1
+  npm install --omit=dev
+  pm2 start ecosystem.config.js
+  cd $RootDir
   [ ! -x /usr/bin/ttyd ] && wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.$(arch) -q -O /usr/local/bin/ttyd && chmod 777 /usr/local/bin/ttyd
   export PS1="\[\e[32;1m\]@ARCADIA\[\e[0m\] ➜ \[\e[34;1m\]\w\[\e[0m\] \\$ "
   pm2 start ttyd --name "arcadia_ttyd" --log-date-format "YYYY-MM-DD HH:mm:ss" -- \
@@ -19,10 +22,6 @@ function arcadia_init() {
     -t macOptionIsMeta=true \
     -t macOptionClickForcesSelection=true \
     bash
-  npm install --omit=dev
-  pm2 start ecosystem.config.js
-  cd ${ARCADIA_DIR}
-  echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} 管理面板启动成功 $SUCCESS\n"
   if [[ -z $(grep -E "123456789" ${ConfigDir}/bot.json) ]]; then
     $ArcadiaCmd tgbot start
   fi

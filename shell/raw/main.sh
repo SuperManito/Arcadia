@@ -1,12 +1,12 @@
 #!/bin/bash
-## Modified: 2024-04-18
+## Modified: 2024-04-27
 
 ## 一键添加远程文件配置
 # repo <name> <url> [--options]
 function command_raw() {
     local name url updateTaskList
     # 定义临时文件
-    local tmp_file="${ARCADIA_DIR}/.raw.yml"
+    local tmp_file="${RootDir}/.raw.yml"
 
     ## 处理命令选项
     function handle_options() {
