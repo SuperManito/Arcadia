@@ -3,7 +3,8 @@
 
 import json
 from . import tgbot, chat_id, logger, LOG_DIR, BOT_SET_JSON_FILE_USER, BOT_SET_JSON_FILE, BOT_SET, BOT_DIR
-from .utils import load_module, ARCADIA_CMD
+from .utils import load_module
+from .bot.utils import ARCADIA_CMD
 import os
 import random
 from .bot.update import version, botlog
