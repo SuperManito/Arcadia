@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-25
+## Modified: 2024-04-28
 
 ## 列出本地代码文件清单功能
 # list <path>
@@ -95,24 +95,24 @@ function list_designated() {
     else
         tmp_num="1"
     fi
-    printf "\n${BLUE}%$((28 + ${tmp_num}))s${PLAIN} ${BLUE}%30s${PLAIN} ${BLUE}%6s${PLAIN}             ${BLUE}%s${PLAIN}\n" "[文件名称]" "[修改时间]" " [大小]" "[代码文件名称]"
+    printf "\n${BLUE}%$((28 + ${tmp_num}))s${PLAIN} ${BLUE}%26s${PLAIN} ${BLUE}%6s${PLAIN} ${BLUE}%s${PLAIN}\n" "[文件名称]" "[修改时间]" " [大小]" "[代码文件名称]"
     echo ''
 
     for ((i = 0; i < ${#files_list[*]}; i++)); do
         query_script_name ${files_list[i]}
         query_script_size ${files_list[i]}
-        tmp_script_modify_times=query_script_modify_times ${files_list[i]}
-        tmp_length1=$(string_length $(echo ${files_list[i]} | perl -pe '{s|[0-9a-zA-Z\,\.\=\:\_\-\(\)\[\]\<\>\~]||g;}'))
+        tmp_script_modify_times="$(query_script_modify_times ${files_list[i]})"
+        tmp_length1="$(string_length $(echo ${files_list[i]} | perl -pe '{s|[0-9a-zA-Z\,\.\=\:\_\-\(\)\[\]\<\>\~]||g;}'))"
         tmp_spaces_nums1=$(($((34 - ${tmp_length1} - ${#files_list[i]})) / 2))
         for ((a = 1; a <= ${tmp_spaces_nums1}; a++)); do
             files_list[i]=" ${files_list[i]}"
         done
-        tmp_length2=$(string_length $(echo ${ScriptName} | perl -pe '{s|[0-9a-zA-Z\,\.\=\:\_\-\(\)\[\]\<\>\~]||g;}'))
+        tmp_length2="$(string_length $(echo ${ScriptName} | perl -pe '{s|[0-9a-zA-Z\,\.\=\:\_\-\(\)\[\]\<\>\~]||g;}'))"
         tmp_spaces_nums2=$(($((34 - ${tmp_length2} - ${#ScriptName})) / 2))
-        for ((a = 1; a <= ${tmp_spaces_nums2}; a++)); do
-            ScriptName=" ${ScriptName}"
-        done
-        printf "%${tmp_num}s  %-$((34 + ${tmp_length1}))s %14s %6s  %-$((34 + ${tmp_length2}))s\n" "$(($i + 1))" "${files_list[i]}" "${tmp_script_modify_times}" "${ScriptSize}" "${ScriptName}"
+        # for ((a = 1; a <= ${tmp_spaces_nums2}; a++)); do
+        #     ScriptName=" ${ScriptName}"
+        # done
+        printf "%${tmp_num}s  %-$((30 + ${tmp_length1}))s %14s %6s  %-$((34 + ${tmp_length2}))s\n" "$(($i + 1))" "${files_list[i]}" "${tmp_script_modify_times}" "${ScriptSize}" "${ScriptName}"
     done
 }
 
