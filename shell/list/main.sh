@@ -15,6 +15,9 @@ function command_list_main() {
     if [ "$(command -v go)" ]; then
         ScriptType="${ScriptType}|\.go\$"
     fi
+    if [ "$(command -v gcc)" ]; then
+        ScriptType="${ScriptType}|\.c\$"
+    fi
     # 内置过滤规则
     MaskingScripts="index\.js"
     MaskingKeywords="sendNotify\.|\.bak\b|${MaskingScripts}"
