@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-27
+## Modified: 2024-04-28
 
 ## 进程清理功能（终止卡死进程释放内存）
 # cleanup
@@ -15,7 +15,7 @@ function command_cleanup_main() {
         ;;
     esac
     ## 生成进程清单
-    ps -axo pid,time,user,start,command | egrep "\.js$|\.mjs$||\.cjs$|\.py$|\.ts$|\.go$|\.c$" | egrep -v "server\.js|inner_server\.js|pm2|egrep|perl|sed|bash" | grep -E "[0-9][0-9]:[0-9][0-9]:[0-9][0-9] root" >${FileProcessList}
+    ps -axo pid,time,user,start,command | egrep -v " ps | egrep | grep -E |node server|server\.js|inner_server\.js|PM2| npm | egrep | perl | sed |tgbot|tee -a|bash|/src/shell/|tail -f /dev/null" | grep -E "[0-9][0-9]:[0-9][0-9]:[0-9][0-9] root" | egrep "\.js$|\.mjs$||\.cjs$|\.py$|\.ts$|\.go$|\.c$" >${FileProcessList}
     if [[ "$(cat ${FileProcessList})" != "" ]]; then
         echo -e "\n$WORKING 开始匹配并清理启动超过 ${BLUE}${CheckHour}${PLAIN} 小时的卡死进程...\n"
         ## 生成进程 PID 数组
