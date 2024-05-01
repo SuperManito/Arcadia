@@ -153,8 +153,7 @@ api.put('/', async (request, response) => {
         // eslint-disable-next-line no-new
         new cron.CronTime(task.cron)
       } catch (e) {
-        response.send(API_STATUS_CODE.fail(`定时规则错误：${e.message || e}`))
-        return
+        return response.send(API_STATUS_CODE.fail(`定时规则错误：${e.message || e}`))
       }
     }
   }
@@ -186,7 +185,7 @@ api.put('/order', async (request, response) => {
     const id = request.body.id
     let order = request.body.order
     if (!id || (!order && !request.body.moveToEnd)) {
-      response.send(API_STATUS_CODE.fail('请提供完整参数'))
+      return response.send(API_STATUS_CODE.fail('请提供完整参数'))
     }
     // 移动到最后
     if (request.body.moveToEnd) {
@@ -199,7 +198,7 @@ api.put('/order', async (request, response) => {
       })
       order = data.data[0]?.sort
       if (!order && order !== 0) {
-        response.send(API_STATUS_CODE.fail('未找到最大排序值'))
+        return response.send(API_STATUS_CODE.fail('未找到最大排序值'))
       }
     }
     await core.fixOrder()
