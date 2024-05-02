@@ -15,7 +15,7 @@ import { GET } from '@site/src/components/RequestTag';
 | 名称 | 类型 | 必填 | 描述 |
 | --- | :-: | :-: | --- |
 | `page` | `string` | 否 | 指定页数，默认1 |
-| `size` | `string` | 否 | 指定分页大小数量，默认20 |
+| `size` | `string` | 否 | 指定分页大小数量，默认`20` |
 | `group_id` | `string` | 否 | `envs_group` 表 `id` 字段关联记录，默认为 `0`， 为0时则返回普通变量记录，指定则返回目标复合变量的值 |
 | `search` | `string` | 否 | 搜索内容过滤，涉及变量名称、用户标签 |
 | `enable` | `string<'0' \| '1'>` | 否 | 变量状态过滤，`1 启用 \| 0 禁用` |
@@ -26,16 +26,14 @@ import { GET } from '@site/src/components/RequestTag';
 
 ### 响应
 
-- ContentType `application/json`
-
 <APITable>
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
 | `data` | `object[]` | 数据项 |
 | `page` | `number` | 当前页码 |
-| `size` | `number` | 当前分页大小数量 |
-| `total` | `number` | 任务总数（数据库） |
+| `size` | `number` | 每页数据量 |
+| `total` | `number` | 数据总量 |
 
 </APITable>
 
@@ -45,7 +43,7 @@ import { GET } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
-| `id` | `number` | 唯一标识（逐一递增） |
+| `id` | `number` | 唯一标识 |
 | `group_id` | `number` | `envs_group` 表 `id` 字段关联记录 |
 | `type` | `string` | 变量名称 |
 | `tag_list` | `string<object>` | 标签，`label名称 \| color颜色(HEX)` |
@@ -101,8 +99,8 @@ import { GET } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 必填 | 描述 |
 | --- | :-: | :-: | --- |
-| `page` | `string` | 否 | 指定页数，默认1 |
-| `size` | `string` | 否 | 指定分页大小数量，默认20 |
+| `page` | `string` | 否 | 指定页数，默认`1` |
+| `size` | `string` | 否 | 指定分页大小数量，默认`20` |
 | `search` | `string` | 否 | 搜索内容过滤，涉及变量名称、用户标签 |
 | `enable` | `string<'0' \| '1'>` | 否 | 变量状态过滤，`1 启用 \| 0 禁用` |
 | `orderBy` | `string` | 否 | 指定排序字段，默认 `sort` |
@@ -112,33 +110,31 @@ import { GET } from '@site/src/components/RequestTag';
 
 ### 响应
 
-- ContentType `application/json`
-
 <APITable>
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
 | `data` | `object[]` | 数据项 |
 | `page` | `number` | 当前页码 |
-| `size` | `number` | 当前分页大小数量 |
-| `total` | `number` | 任务总数（数据库） |
+| `size` | `number` | 每页数据量 |
+| `total` | `number` | 数据总量 |
 
 </APITable>
 
-数据项（主要为数据库 `envs_group` 和 `envs` 表记录）
+数据项（主要为数据库 `envs_group` 表记录）
 
 <APITable>
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
-| `id` | `number` | 唯一标识（逐一递增） |
+| `id` | `number` | 唯一标识 |
 | `type` | `string` | 变量名称 |
 | `description` | `string` | 描述 |
 | `tag_list` | `string<object>` | 标签，`label名称 \| color颜色(HEX)` |
 | `separator` | `string` | 分割字符 |
 | `sort` | `number` | 在分页中的位置序号（正整数），默认按照先后顺序递增 |
 | `enable` | `number` | 启用状态，`1 启用 \| 0 禁用` |
-| `envs` | `object[]` | 与 `变量值` 返回相同 |
+| `envs` | `number` | 成员（复合变量的值）长度 |
 
 </APITable>
 
@@ -153,7 +149,7 @@ import { GET } from '@site/src/components/RequestTag';
       "separator": "",
       "sort": 1,
       "enable": 1,
-      "envs": []
+      "envs": 0
     },
     {
       "id": 2,
@@ -163,33 +159,8 @@ import { GET } from '@site/src/components/RequestTag';
       "separator": "",
       "sort": 0,
       "enable": 1,
-      "envs": [
-        {
-          "id": 11,
-          "group_id": 2,
-          "type": "",
-          "tag_list": "",
-          "description": "",
-          "remark": "",
-          "value": "test1",
-          "sort": 0,
-          "enable": 1
-        },
-        {
-          "id": 12,
-          "group_id": 2,
-          "type": "",
-          "tag_list": "",
-          "mode": "",
-          "description": "",
-          "remark": "",
-          "value": "test2",
-          "sort": 0,
-          "enable": 0
-        },
-        ...
-      ]
-    }
+      "envs": 3
+    },
     ...
   ],
   "total": 3,

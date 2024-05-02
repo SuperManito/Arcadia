@@ -47,7 +47,11 @@ import TabItem from '@theme/TabItem';
   <TabItem value="js" label="Node.js">
 
   ```bash
-  apt-get install -y nodejs npm
+  NODE_MAJOR=20 # 指定安装版本（自行修改）
+  apt-get update && apt-get install -y ca-certificates curl gnupg
+  curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+  apt-get update && apt-get install nodejs -y
   ```
   > 已预装，由于项目后端使用 Node.js 开发故用户不能卸载否则会导致项目无法正常运行
 

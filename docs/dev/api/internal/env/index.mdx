@@ -1,6 +1,7 @@
 ---
 title: Env - 环境变量
 ---
+import APITable from '@site/src/components/APITable';
 
 :::info 此部分API与数据模型紧密相连，如果你无法理解项目应用程序设计那么请谨慎操作，建议先了解前端实现或直接使用 Open API
 :::
@@ -9,7 +10,7 @@ title: Env - 环境变量
 
 数据库对于该功能设计了两个数据表 `envs` `envs_group`，分别代表变量值和变量组
 
-```prisma
+```
 model envs {
   id          Int         @id @default(autoincrement())
   group_id    Int
@@ -41,8 +42,49 @@ model envs_group {
 
 - `envs` 表
 
-    用于存储所有变量的值，其中 `group_id` 字段用于关联 `envs_group` 表的 `id` 字段，如果关联了则表明该记录是目标复合变量的一个值，否则 `group_id` 为0表示一个独立的普通变量
+    用于存储所有普通变量和复合变量的值，复合变量的值不使用 `type`、`tag_list`、`description` 字段  
+    其中 `group_id` 字段用于关联 `envs_group` 表的 `id` 字段，为 `0` 表示一个独立的普通变量
 
 - `envs_group` 表
 
     用于存储组变量（复合变量）
+
+## 具体字段说明
+
+### 通用字段
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `id` | `number` | 唯一标识 |
+| `type` | `string` | 变量名称 |
+| `description` | `string` | 描述 |
+| `tag_list` | `string<object>` | 标签，`label名称 \| color颜色(HEX)` |
+| `enable` | `number` | 启用状态，`1 启用 \| 0 禁用` |
+
+</APITable>
+
+### `envs` 表专用字段
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `group_id` | `number` | `envs_group` 表 `id` 字段关联记录 |
+| `remark` | `string` | 备注 |
+| `value` | `string` | 值 |
+| `sort` | `number` | 在分页中的位置序号（正整数），默认按照先后顺序递增 |
+
+</APITable>
+
+### `envs_group` 表专用字段
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| --- | :-: | --- |
+| `separator` | `string` | 分割字符 |
+| `envs` | `number` | 成员（复合变量的值）长度 |
+
+</APITable>

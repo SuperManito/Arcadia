@@ -334,7 +334,7 @@ const sidebars: SidebarsConfig = {
             type: 'doc',
             id: 'dev/api/open/index',
           },
-          items: ['dev/api/open/index'],
+          items: ['dev/api/open/env'],
           collapsed: true,
         },
       ],

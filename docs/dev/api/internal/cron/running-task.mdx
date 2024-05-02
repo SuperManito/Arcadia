@@ -12,13 +12,11 @@ import { GET } from '@site/src/components/RequestTag';
 
 ## 响应
 
-- ContentType `application/json`
-
 <APITable>
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
-| `id` | `number` | 唯一标识（逐一递增） |
+| `id` | `number` | 唯一标识 |
 | `name` | `string` | 任务名称 |
 | `type` | `string` | 任务类型，当前固定分为 user 和 system |
 | `cron` | `string` | 定时规则（5位或6位的定时表达式） |

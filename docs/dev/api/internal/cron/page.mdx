@@ -13,7 +13,7 @@ import { GET } from '@site/src/components/RequestTag';
 | 名称 | 类型 | 必填 | 描述 |
 | --- | :-: | :-: | --- |
 | `page` | `string` | 否 | 指定页数，默认1 |
-| `size` | `string` | 否 | 指定分页大小数量，默认20 |
+| `size` | `string` | 否 | 指定分页大小数量，默认`20` |
 | `type` | `string` | 否 | 任务类型过滤，当前固定分为 user 和 system |
 | `search` | `string` | 否 | 搜索内容过滤，仅涉及任务名称和任务执行命令 |
 | `active` | `string<'0' \| '1'>` | 否 | 启用过滤，`1 启用 \| 0 禁用` |
@@ -26,16 +26,14 @@ import { GET } from '@site/src/components/RequestTag';
 
 ## 响应
 
-- ContentType `application/json`
-
 <APITable>
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
 | `data` | `array[]` | 数据项 |
 | `page` | `number` | 当前页码 |
-| `size` | `number` | 当前分页大小数量 |
-| `total` | `number` | 任务总数（数据库） |
+| `size` | `number` | 每页数据量 |
+| `total` | `number` | 数据总量 |
 
 </APITable>
 
@@ -45,7 +43,7 @@ import { GET } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 描述 |
 | --- | :-: | --- |
-| `id` | `number` | 唯一标识（逐一递增） |
+| `id` | `number` | 唯一标识 |
 | `name` | `string` | 任务名称 |
 | `type` | `string` | 任务类型，当前固定分为 user 和 system |
 | `cron` | `string` | 定时规则（5位或6位的定时表达式） |

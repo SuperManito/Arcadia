@@ -156,7 +156,7 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
             className: 'navbar-item',
           },
           {
-            href: 'https://github.com/SuperManito/Arcadia/tree/website',
+            href: 'https://github.com/SuperManito/Arcadia',
             position: 'right',
             className: 'header-github-link',
             'aria-label': 'GitHub repository',

@@ -6,30 +6,35 @@ import { GET, POST, DELETE } from '@site/src/components/RequestTag';
 
 ## 接口说明
 
-服务端已开启 CORS 跨域支持，使用 HTTP Status Code 标识状态
+服务端已开启 CORS 跨域支持
 
 ### 接口基准地址
 
-`http://localhost:5678/api/open`
+- `http://localhost:5678/api/open`
 
 ### 需要授权的 API
 
-API认证统一使用 Token 认证
-
 需要在 **请求头（Header）** 或 **请求地址参数（URL）** 中使用 `api-token` 字段并提供 `openApiToken（令牌）` 的值
 
-- #### 获取令牌的方法
+```bash title="获取令牌的方法"
+arcadia service info
+```
+每次修改管理面板登录认证信息后都会随机生成一个新的 `32` 位字符串
 
-  ```bash
-  arcadia service info
-  ```
-  每次修改管理面板登录认证信息后都会随机生成一个新的 `32` 位字符串
+### 安全的操作
 
-### 通用返回内容格式
+接口方法都经过了严格的设计和实现，以确保操作的安全性，并且加强了传参的校验  
+接口响应一般不会返回原生错误信息，当然如果你遇到了请主动反馈
+
+### 接口响应规范
 
 数据返回格式统一使用 JSON
 
-<APITable>
+| 状态码 |   说明   |
+| :---: | :-----: |
+|  `0`  |  请求失败 |
+|  `1`  |  请求成功 |
+| `4403` |  认证失败 |
 
 | 参数 | 说明 |
 | :----: | :-----: |
@@ -38,28 +43,14 @@ API认证统一使用 Token 认证
 |  type | 类型 |
 |  result | 返回结果（不一定有） |
 
-</APITable>
-
-### 业务代码说明
-
-<APITable>
-
-| 状态码 |   说明   |
-| :---: | :-----: |
-|  `0`  |  请求失败 |
-|  `1`  |  请求成功 |
-| `4403` |  认证失败 |
-
-</APITable>
-
 ***
 
 ## 用户自定义接口
 
-目前后端使用 Node.js® 编写，所以如果你想使用这个功能则需要写一些 js 代码
+目前后端使用 Node.js® 编写，所以如果你想使用这个功能则需要会写一些 JavaScript 代码
 
 :::info 编写规范
-将代码存放在 **config** 目录下的 `extra_server.js` 脚本（自行创建）中，重启面板服务后生效，注意届时检查日志进行确认  
+将代码存放在 **config** 目录下的 `extra_server.js` 脚本（自行创建）中，执行 `arcadia service restart` 重启服务后生效，注意届时检查日志进行确认  
 脚本需要导出唯一函数名，已固定函数传参详见下方示例，接口框架使用 [Express v4](https://www.expressjs.com.cn)，更多编写方法请查阅其文档
 :::
 
