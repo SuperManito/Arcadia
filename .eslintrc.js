@@ -45,6 +45,7 @@ module.exports = {
     'prefer-object-spread': 'off',
     'prefer-regex-literals': 'off',
     'promise/param-names': 'off',
+    'default-case': 'off',
     camelcase: 'off',
     radix: 'off',
     semi: ['error', 'never'],
