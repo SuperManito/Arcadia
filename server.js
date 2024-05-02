@@ -132,7 +132,8 @@ app.use(
  */
 const { openAPI, openApiHandler } = require('./api/open')
 app.use('/api/open', openApiHandler, openAPI)
-app.use('/api/open/notify', openApiHandler, require('./api/notify').OpenAPI)
+app.use('/api/open/env', openApiHandler, require('./api/env').OpenAPI)
+// app.use('/api/open/notify', openApiHandler, require('./api/notify').OpenAPI)
 
 /**
  * Api
