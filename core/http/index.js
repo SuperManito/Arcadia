@@ -39,6 +39,56 @@ const userAgentTools = {
   },
 }
 
+function checkType(value, type) {
+  if (type.endsWith('[]')) {
+    if (!Array.isArray(value)) return false
+    const itemType = type.slice(0, -2)
+    // eslint-disable-next-line valid-typeof
+    return value.every((item) => typeof item === itemType)
+  } else {
+    // eslint-disable-next-line valid-typeof
+    return typeof value === type
+  }
+}
+
+function validateParams(req, params) {
+  params.forEach(([paramType, paramName, options = []]) => {
+    const [required = false, type = 'string'] = options
+    const params = req[paramType]
+
+    if (!Object.prototype.hasOwnProperty.call(params, paramName)) {
+      if (required) {
+        throw new Error(`缺少必要的参数 ${paramName}`)
+      }
+      return // 如果该参数不是必需的且不存在，则跳过其余检查
+    }
+    const paramValue = params[paramName]
+    if (required) {
+      if (paramType === 'query' && params[paramName] === '') {
+        throw new Error(`参数 ${paramName} 无效（参数值不能为空）`)
+      }
+      if (paramType === 'body') {
+        const value = params[paramName]
+        if ((value === undefined || Number.isNaN(value)) || (Array.isArray(value) && value.length === 0) || (typeof value === 'string' && value.trim() === '')) {
+          throw new Error(`参数 ${paramName} 无效（参数值不能为空）`)
+        }
+      }
+    }
+    if (Array.isArray(type)) {
+      if (!type.includes(paramValue)) {
+        throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
+      }
+    } else if (type.includes('|')) {
+      const types = type.replace(/\s/g, '').split('|')
+      if (!types.some((t) => checkType(paramValue, t))) {
+        throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
+      }
+    } else if (!checkType(paramValue, type)) {
+      throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
+    }
+  })
+}
+
 /**
  * @getClientIP
  * @desc 获取用户 ip 地址
@@ -175,6 +225,9 @@ async function request(config) {
         if (res.response) {
           returnData.connected = true
           const statusCode = res.response?.status
+          if (res.response.data) {
+            returnData.data = res.response.data
+          }
           const errorMessages = {
             400: '请求错误 [400 Bad Request]',
             401: '未授权 [401 Unauthorized]',
@@ -234,6 +287,7 @@ async function request(config) {
 
 module.exports = {
   API_STATUS_CODE,
+  validateParams,
   userAgentTools,
   getClientIP,
   ip2Address,
