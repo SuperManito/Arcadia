@@ -2,7 +2,7 @@
 const successCode = 1
 const errorCode = 0
 const API_STATUS_CODE = {
-  ok(message = 'success', result) {
+  ok(message = 'success', result = true) {
     return {
       code: successCode,
       result,
