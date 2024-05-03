@@ -1,7 +1,8 @@
 const express = require('express')
 const api = express()
 const apiOpen = express()
-const { API_STATUS_CODE, validateParams } = require('../core/http')
+const { API_STATUS_CODE } = require('../core/http')
+const { validateParams, validateObject, cleanProperties } = require('../core/utils')
 
 const db = require('../core/db')
 const { generateEnvSh } = require('../core/env/generate')
@@ -16,6 +17,7 @@ const { generateEnvSh } = require('../core/env/generate')
   })
 }())
 
+// 数据更新回调
 async function onChange(isItem) {
   if (typeof isItem === 'boolean') {
     if (isItem) {
@@ -148,6 +150,7 @@ apiOpen.get('/v1/page', async (request, response) => {
     // 传参校验
     validateParams(request, [
       ['query', 'type', [true, ['ordinary', 'composite', 'composite_value']]],
+      ['query', 'enable', [false, ['1', '0']]],
     ])
     const where = {}
     const or = []
@@ -183,7 +186,7 @@ apiOpen.get('/v1/page', async (request, response) => {
         validateParams(request, [
           ['query', 'composite_id', [true, 'string']],
         ])
-        if (request.query.composite_id <= 0) {
+        if (parseInt(request.query.composite_id) <= 0) {
           throw new Error('参数 composite_id 无效（参数值类型错误）')
         }
         where.group_id = { equals: parseInt(request.query.composite_id) }
@@ -196,9 +199,6 @@ apiOpen.get('/v1/page', async (request, response) => {
         break
     }
     // 启用/禁用状态过滤
-    validateParams(request, [
-      ['query', 'enable', [false, ['1', '0']]],
-    ])
     const enable = request.query.enable ? request.query.enable.split(',') : []
     if (enable.length > 0) {
       enable.forEach((value) => {
@@ -242,13 +242,13 @@ apiOpen.get('/v1/page', async (request, response) => {
       })
     }
     // 返回数据
-    response.send(API_STATUS_CODE.ok(result))
+    response.send(API_STATUS_CODE.okData(result))
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
 
-apiOpen.get('/v1/queryName', async (request, response) => {
+apiOpen.get('/v1/query', async (request, response) => {
   try {
     // 传参校验
     validateParams(request, [
@@ -277,7 +277,7 @@ apiOpen.get('/v1/queryName', async (request, response) => {
     // 过滤数据（注：SQLite 的 contains 操作符不区分大小写）
     const filteredData = result.filter((item) => item.type.includes(name))
     // 返回数据
-    response.send(API_STATUS_CODE.ok(filteredData))
+    response.send(API_STATUS_CODE.okData(filteredData))
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -297,7 +297,7 @@ apiOpen.get('/v1/queryMember', async (request, response) => {
       ],
     }) || []
     // 返回数据
-    response.send(API_STATUS_CODE.ok(result))
+    response.send(API_STATUS_CODE.okData(result))
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -308,17 +308,7 @@ api.post('/save', async (request, response) => {
     const env = request.body
     // 新增判断是否重复添加
     if (!env.id) {
-      if (((await db.envs_group.$list({
-        id: { not: 0 },
-        type: env.type,
-      })) || []).length > 0) {
-        return response.send(API_STATUS_CODE.fail('变量已存在，请勿重复添加！'))
-      }
-      if (((await db.envs.$list({
-        type: env.type,
-      })) || []).length > 0) {
-        return response.send(API_STATUS_CODE.fail('已存在名称相同的普通变量，请勿重复添加！'))
-      }
+      await checkVaribleExsit(env.type)
     }
     if (!env.sort) {
       env.sort = 99999
@@ -345,7 +335,7 @@ api.post('/save', async (request, response) => {
         return e
       }).forEach((e) => db.envs.$create(e))
     }
-    response.send(API_STATUS_CODE.ok(true))
+    response.send(API_STATUS_CODE.ok())
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   } finally {
@@ -361,27 +351,100 @@ api.post('/saveItem', async (request, response) => {
     }
     // 新增判断是否重复添加（不考虑添加复合变量关联值）
     if (!env.id && env.group_id === 0) {
-      if (((await db.envs_group.$list({
-        id: { not: 0 },
-        type: env.type,
-      })) || []).length > 0) {
-        return response.send(API_STATUS_CODE.fail('已存在名称相同的复合变量，请勿重复添加！'))
-      }
-      if (((await db.envs.$list({
-        type: env.type,
-      })) || []).length > 0) {
-        return response.send(API_STATUS_CODE.fail('变量已存在，请勿重复添加！'))
-      }
+      await checkVaribleExsit(env.type)
     }
     if (!env.sort) {
       env.sort = 99999
     }
     await db.envs.$upsertById(env)
-    response.send(API_STATUS_CODE.ok(true))
+    response.send(API_STATUS_CODE.ok())
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   } finally {
     await onChange(true)
+  }
+})
+
+apiOpen.post('/v1/create', async (request, response) => {
+  const type = request.body.type
+  try {
+    // 传参校验
+    validateParams(request, [
+      ['body', 'type', [true, ['ordinary', 'composite', 'composite_value']]],
+      ['body', 'composite_id', [false, 'number']],
+      ['body', 'data', [true, 'object']],
+    ])
+    let data
+    if (Array.isArray(request.body.data)) {
+      data = request.body.data.map((e) => Object.assign({}, e))
+    } else {
+      data = [Object.assign({}, request.body.data)]
+    }
+    let fields = []
+    let validateRules = []
+    let composite_id
+    switch (type) {
+      case 'ordinary':
+        fields = ['type', 'description', 'value', 'enable']
+        validateRules = [
+          ['type', [true, 'string']],
+          ['description', [false, 'string']],
+          ['value', [false, 'string']],
+          ['enable', [false, [1, 0]]],
+        ]
+        break
+      case 'composite':
+        fields = ['type', 'description', 'separator', 'enable']
+        validateRules = [
+          ['type', [true, 'string']],
+          ['description', [false, 'string']],
+          ['separator', [false, 'string']],
+          ['enable', [false, [1, 0]]],
+        ]
+        break
+      case 'composite_value':
+        composite_id = request.body.composite_id
+        if (composite_id <= 0) {
+          throw new Error('参数 composite_id 无效（参数值类型错误）')
+        }
+        fields = ['remark', 'value', 'enable']
+        validateRules = [
+          ['remark', [false, 'string']],
+          ['value', [false, 'string']],
+          ['enable', [false, [1, 0]]],
+        ]
+        break
+    }
+    // 过滤数据
+    data = await Promise.all(data.map(async (obj) => {
+      // 属性校验
+      validateObject(obj, validateRules)
+      // clean
+      obj = cleanProperties(obj, fields)
+      // 检查变量重名
+      if (['ordinary', 'composite'].includes(type)) {
+        await checkVaribleExsit(obj.type)
+      }
+      // 补齐参数
+      if (type === 'ordinary') {
+        obj.group_id = 0
+      } else if (type === 'composite_value') {
+        obj.group_id = composite_id
+        obj.type = '' // 复合变量值的 type 为空
+      }
+      return obj
+    }))
+
+    let result
+    if (data.length === 1) {
+      result = await db[type === 'composite' ? 'envs_group' : 'envs'].$create(data[0])
+    } else {
+      result = await db[type === 'composite' ? 'envs_group' : 'envs'].$createMany(data)
+    }
+    response.send(API_STATUS_CODE.okData(result))
+    await onChange(type !== 'composite')
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
 
@@ -400,7 +463,7 @@ api.delete('/delete', async (request, response) => {
     })
     await db.envs.$deleteById(ids, 'group_id')
     await db.envs_group.$deleteById(ids)
-    response.send(API_STATUS_CODE.ok(true))
+    response.send(API_STATUS_CODE.ok())
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   } finally {
@@ -422,7 +485,7 @@ api.delete('/deleteItem', async (request, response) => {
       }
     })
     await db.envs.$deleteById(ids)
-    response.send(API_STATUS_CODE.ok(true))
+    response.send(API_STATUS_CODE.ok())
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   } finally {
@@ -444,14 +507,15 @@ apiOpen.post('/v1/delete', async (request, response) => {
         throw new Error('参数 id 无效（参数值类型错误）')
       }
     })
-    if (request.body.isComposite) {
+    const isComposite = request.body.isComposite
+    if (isComposite) {
       await db.envs.$deleteById(ids, 'group_id')
       await db.envs_group.$deleteById(ids)
     } else {
       await db.envs.$deleteById(ids)
     }
-    response.send(API_STATUS_CODE.ok(true))
-    await onChange()
+    response.send(API_STATUS_CODE.ok())
+    await onChange(!isComposite)
   } catch (e) {
     return response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -531,7 +595,8 @@ apiOpen.post('/v1/order', async (request, response) => {
     if (order && order <= 0) {
       return response.send(API_STATUS_CODE.fail('参数 order 无效（参数值类型错误）'))
     }
-    if (request.body.isComposite) {
+    const isComposite = request.body.isComposite
+    if (isComposite) {
       const envsGroupRecord = await db.envs_group.$getById(id)
       if (!envsGroupRecord) {
         return response.send(API_STATUS_CODE.fail('变量不存在'))
@@ -560,7 +625,7 @@ apiOpen.post('/v1/order', async (request, response) => {
       }
       response.send(API_STATUS_CODE.okData(await updateItemSortById(id, order)))
     }
-    await onChange()
+    await onChange(!isComposite)
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -574,6 +639,7 @@ async function fixOrder() {
                   FROM envs_group WHERE id != 0) t
             WHERE t.id = envs_group.id`
 }
+
 async function updateSortById(id, newOrder) {
   const oldRecord = await db.envs_group.$getById(id)
   if (newOrder === oldRecord.sort) {
@@ -610,6 +676,7 @@ async function fixItemOrder() {
                   FROM envs) t
             WHERE t.id = envs.id`
 }
+
 async function updateItemSortById(id, newOrder) {
   const oldRecord = await db.envs.$getById(id)
   if (newOrder === oldRecord.sort) {
@@ -636,6 +703,20 @@ async function updateItemSortById(id, newOrder) {
   await db.$executeRaw`COMMIT;`
 
   return true
+}
+
+async function checkVaribleExsit(name) {
+  if (((await db.envs_group.$list({
+    id: { not: 0 },
+    type: name,
+  })) || []).length > 0) {
+    throw new Error(`已存在复合变量 ${name}`)
+  }
+  if (((await db.envs.$list({
+    type: name,
+  })) || []).length > 0) {
+    throw new Error(`已存在普通变量 ${name}`)
+  }
 }
 
 module.exports.API = api
