@@ -330,11 +330,7 @@ innerCornApi.post('/updateAll', async (request, response) => {
     // 1.删除定时任务
     if (deleteFiles && deleteFiles.length > 0) {
       const deleteTask = await dbTasks.$list({
-        where: {
-          bind: {
-            in: deleteFiles.map((s) => toBind(type, s.path)),
-          },
-        },
+        bind: { in: newFiles.map((s) => toBind(type, s.path)) },
       })
       await dbTasks.$deleteById(deleteTask.map((s) => s.id))
       for (const item of deleteTask) {
@@ -366,11 +362,7 @@ innerCornApi.post('/updateAll', async (request, response) => {
     if (newFiles && newFiles.length > 0) {
       {
         const deleteTask = await dbTasks.$list({
-          where: {
-            bind: {
-              in: newFiles.map((s) => toBind(type, s.path)),
-            },
-          },
+          bind: { in: newFiles.map((s) => toBind(type, s.path)) },
         })
         await dbTasks.$deleteById(deleteTask.map((s) => s.id))
         for (const item of deleteTask) {
