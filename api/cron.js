@@ -124,10 +124,10 @@ api.post('/', async (request, response) => {
     } catch (e) {
       throw new Error(`定时规则错误：${e.message || e}`)
     }
-    const nt = await dbTasks.$create(task)
+    const createResult = await dbTasks.$create(task)
     logger.info('添加定时任务', task)
     await core.fixOrder()
-    await core.fixCron(nt.id)
+    await core.fixCron(createResult.id)
     response.send(API_STATUS_CODE.okData(task))
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -222,16 +222,12 @@ api.delete('/', async (request, response) => {
     }
     const res = await dbTasks.$deleteById(ids)
     logger.info('删除定时任务', ids.join(','))
-    for (const id of ids) {
-      await core.fixCron(id)
-    }
     await core.fixOrder()
+    await core.fixCron(ids)
     response.send(API_STATUS_CODE.okData(res))
   } catch (e) {
     logger.error(e)
     response.send(API_STATUS_CODE.fail(e.message || e))
-  } finally {
-    await core.fixCron(id)
   }
 })
 
@@ -275,12 +271,10 @@ api.post('/run', async (request, response) => {
   const id = request.body.id
   try {
     core.runTask(id)
-    response.send(API_STATUS_CODE.okData(true))
+    response.send(API_STATUS_CODE.ok())
   } catch (e) {
     logger.error(e)
     response.send(API_STATUS_CODE.fail(e.message || e))
-  } finally {
-    await core.fixCron(id)
   }
 })
 
@@ -299,12 +293,10 @@ api.post('/stopRun', async (request, response) => {
     for (const id of ids) {
       core.stopTask(id)
     }
-    response.send(API_STATUS_CODE.okData(true))
+    response.send(API_STATUS_CODE.ok())
   } catch (e) {
     logger.error(e)
     response.send(API_STATUS_CODE.fail(e.message || e))
-  } finally {
-    await core.fixCron(id)
   }
 })
 
@@ -327,17 +319,18 @@ innerCornApi.post('/updateAll', async (request, response) => {
     const infos = []
     const { deleteFiles, newFiles, type } = request.body
 
-    // 1.删除定时任务
+    // 删除
     if (deleteFiles && deleteFiles.length > 0) {
       const deleteTask = await dbTasks.$list({
+        type: 'system',
         bind: { in: newFiles.map((s) => toBind(type, s.path)) },
       })
-      await dbTasks.$deleteById(deleteTask.map((s) => s.id))
+      const deleteIds = deleteTask.map((s) => s.id)
+      await dbTasks.$deleteById(deleteIds)
       for (const item of deleteTask) {
         const paths = item.bind.split('#')
         const path = `${paths[1]}/${paths[2]}`
         try {
-          await core.fixCron(item.id)
           infos.push({
             success: true,
             type: 1,
@@ -357,24 +350,25 @@ innerCornApi.post('/updateAll', async (request, response) => {
           })
         }
       }
+      await core.fixCron(deleteIds)
     }
-    // 2.新增定时任务
+
+    // 新增
+    const createdIds = []
     if (newFiles && newFiles.length > 0) {
-      {
-        const deleteTask = await dbTasks.$list({
-          bind: { in: newFiles.map((s) => toBind(type, s.path)) },
-        })
-        await dbTasks.$deleteById(deleteTask.map((s) => s.id))
-        for (const item of deleteTask) {
-          await core.fixCron(item.id)
-        }
-      }
-      // 2.1,批量插入定时任务
+      // 先删除已存在的防止重复添加
+      const deleteTask = await dbTasks.$list({
+        type: 'system',
+        bind: { in: newFiles.map((s) => toBind(type, s.path)) },
+      })
+      const deleteIds = deleteTask.map((s) => s.id)
+      await dbTasks.$deleteById(deleteIds)
+      await core.fixCron(deleteIds)
+      // 插入定时任务
       for (const item of newFiles) {
         try {
-          const task = await scriptResolve(item.path)
-          // 可优化,一次性插入效果更好
-          const t = {
+          const task = await scriptResolve(item.path) // 获取任务信息（定时规则、名称）
+          const data = {
             name: task.name,
             type,
             cron: task.cron,
@@ -385,8 +379,8 @@ innerCornApi.post('/updateAll', async (request, response) => {
             create_time: new Date(),
             bind: toBind(type, item.path),
           }
-          const nt = await dbTasks.$create(t)
-          await core.fixCron(nt.id)
+          const createResult = await dbTasks.$create(data)
+          createdIds.push(createResult.id)
           infos.push({
             success: true,
             type: 0,
@@ -405,8 +399,12 @@ innerCornApi.post('/updateAll', async (request, response) => {
             message: `${e.message || e}`,
           })
         }
-        await core.fixOrder()
       }
+    }
+
+    await core.fixOrder()
+    if (createdIds.length > 0) {
+      await core.fixCron(createdIds)
     }
     response.send(API_STATUS_CODE.okData(infos))
   } catch (e) {
