@@ -257,41 +257,48 @@ async function onCronTask(taskId) {
   return runningInstance[taskId]
 }
 
+/**
+ * 设置定时任务
+ *
+ * @param {string} id
+ * @param {string} cron
+ * @param {string} callback
+ */
+async function setTaskCore(id, cron, callback) {
+  const formatCron = cron.trim() // 去除首尾空格
+  await dbTaskCore.$upsertById({ id, cron: formatCron, callback })
+  engine.setTask(id, formatCron, () => onCron({
+    id,
+    cron: formatCron,
+    callback: '',
+  }))
+}
+
+async function setTaskJob(task) {
+  return setTaskCore(`T_${task.id}`, task.cron, '')
+}
+
+/**
+ * 删除定时任务
+ *
+ * @param {number} taskId
+ */
+async function deleteTaskJob(taskId) {
+  const id = `T_${taskId}`
+  await dbTaskCore.$deleteById(id)
+  engine.removeTask(id)
+}
+
 module.exports = {
   cronInit,
   runTask,
   stopTask,
   runningTask,
   /**
-   * 系统核心定时任务
+   * 设置定时任务
    *
-   * @param {string} id
-   * @param {string} cron
-   * @param {string} callback
+   * @param {number|number[]} taskId
    */
-  setTaskCore: async (id, cron, callback) => {
-    const formatCron = cron.trim() // 去除首尾空格
-    await dbTaskCore.$upsertById({ id, cron: formatCron, callback })
-    engine.setTask(id, formatCron, () => onCron({
-      id,
-      cron: formatCron,
-      callback: '',
-    }))
-  },
-  /**
-   * @param {typeof import('./curd').Type} task
-   */
-  setTaskJob: async (task) => {
-    return module.exports.setTaskCore(`T_${task.id}`, task.cron, '')
-  },
-  /**
-   * @param {number} taskId
-   */
-  deleteTaskJob: async (taskId) => {
-    const id = `T_${taskId}`
-    await dbTaskCore.$deleteById(id)
-    engine.removeTask(id)
-  },
   fixCron: async (taskId) => {
     let ids = []
     if (Array.isArray(taskId)) {
@@ -303,15 +310,14 @@ module.exports = {
       id = parseInt(id)
       const task = await dbTasks.$getById(id)
       if (task) {
-        await module.exports.setTaskJob(task)
+        await setTaskJob(task)
       } else {
-        await module.exports.deleteTaskJob(id)
+        await deleteTaskJob(id)
       }
     }
   },
   /**
    * 数据库所有成员sort设置为顺序值
-   * @return {Promise<void>}
    */
   fixOrder: async () => {
     await db.$executeRaw`
@@ -321,6 +327,9 @@ module.exports = {
                 FROM tasks) t
           WHERE t.id = tasks.id`
   },
+  /**
+   * 将指定记录的sort值更新为新的值
+   */
   updateSortById: async (taskId, newOrder) => {
     const oldRecord = await dbTasks.$getById(taskId)
     if (newOrder === oldRecord.sort) {
@@ -333,17 +342,17 @@ module.exports = {
     await db.$executeRaw`BEGIN TRANSACTION;`
     if (newOrder > oldRecord.sort) {
       await db.$executeRaw`UPDATE tasks
-                         SET sort = sort + ${args[2]}
-                         WHERE sort > ${oldRecord.sort} AND sort <= ${newOrder} AND type = ${args[5]}`
+                           SET sort = sort + ${args[2]}
+                           WHERE sort > ${oldRecord.sort} AND sort <= ${newOrder} AND type = ${args[5]}`
     }
     if (newOrder < oldRecord.sort) {
       await db.$executeRaw`UPDATE tasks
-                         SET sort = sort + ${args[2]}
-                         WHERE sort >= ${newOrder} AND sort < ${oldRecord.sort} AND type = ${args[5]}`
+                           SET sort = sort + ${args[2]}
+                           WHERE sort >= ${newOrder} AND sort < ${oldRecord.sort} AND type = ${args[5]}`
     }
     await db.$executeRaw`UPDATE tasks
-                       SET sort = ${newOrder}
-                       WHERE id = ${taskId}`
+                         SET sort = ${newOrder}
+                         WHERE id = ${taskId}`
     await db.$executeRaw`COMMIT;`
 
     return true
