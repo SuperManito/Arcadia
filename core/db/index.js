@@ -79,6 +79,14 @@ const prisma1 = prisma
           o = this.clean(o)
           return prisma[this.name].create({ data: o, ...options })
         },
+        createMany(o) {
+          o.data = o.data.map((record) => this.clean(record))
+          return prisma[this.name].createMany(o)
+        },
+        $createMany(data, options = {}) {
+          data = data.map((record) => this.clean(record))
+          return prisma[this.name].createMany({ data, ...options })
+        },
         update(o) {
           o.data = this.clean(o.data)
           return prisma[this.name].update(o)
@@ -94,6 +102,14 @@ const prisma1 = prisma
             data: o.data,
             ...options,
           })
+        },
+        updateMany(o) {
+          o.data = o.data.map((record) => this.clean(record))
+          return prisma[this.name].updateMany(o)
+        },
+        $updateMany(data, options = {}) {
+          data = data.map((record) => this.clean(record))
+          return prisma[this.name].updateMany({ data, ...options })
         },
         upsert(o) {
           o.create = this.clean(o.create)
