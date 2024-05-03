@@ -102,7 +102,144 @@ function regExecFirst(str = '', reg) {
   return ''
 }
 
+/**
+ * 防抖
+ */
+function debounce(func, wait) {
+  let timeout
+  return function (...args) {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => func.apply(this, args), wait)
+  }
+}
+
+/**
+ * 节流
+ */
+function throttle(func, delay) {
+  let timeout
+  let immediate = true
+  return function (...args) {
+    if (immediate) {
+      func.apply(this, args)
+      immediate = false
+    }
+    if (!timeout) {
+      timeout = setTimeout(() => {
+        timeout = null
+        func.apply(this, args)
+      }, delay)
+    }
+  }
+}
+
+function checkType(value, type) {
+  if (type.endsWith('[]')) {
+    if (!Array.isArray(value)) return false
+    const itemType = type.slice(0, -2)
+    // eslint-disable-next-line valid-typeof
+    return value.every((item) => typeof item === itemType)
+  } else {
+    // eslint-disable-next-line valid-typeof
+    return typeof value === type
+  }
+}
+
+/**
+ * 传参格式校验（拦截器）
+ */
+function validateParams(req, params) {
+  params.forEach(([paramType, paramName, options = []]) => {
+    const [required = false, type = 'string'] = options
+    const params = req[paramType]
+
+    if (!Object.prototype.hasOwnProperty.call(params, paramName)) {
+      if (required) {
+        throw new Error(`缺少必要的参数 ${paramName}`)
+      }
+      return // 如果该参数不是必需的且不存在，则跳过其余检查
+    }
+    const paramValue = params[paramName]
+    if (required) {
+      if (paramType === 'query') {
+        const value = params[paramName]
+        if ((['undefined', 'None', null].includes(value) || value === '')) {
+          throw new Error(`参数 ${paramName} 无效（参数值不能为空）`)
+        }
+      } else if (paramType === 'body') {
+        const value = params[paramName]
+        if ((['undefined', 'None', null].includes(value) || Number.isNaN(value)) || (Array.isArray(value) && value.length === 0) || (typeof value === 'string' && value === '')) {
+          throw new Error(`参数 ${paramName} 无效（参数值不能为空）`)
+        }
+      }
+    }
+    if (Array.isArray(type)) {
+      if (!type.includes(paramValue)) {
+        throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
+      }
+    } else if (type.includes('|')) {
+      const types = type.replace(/\s/g, '').split('|')
+      if (!types.some((t) => checkType(paramValue, t))) {
+        throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
+      }
+    } else if (!checkType(paramValue, type)) {
+      throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
+    }
+  })
+}
+
+/**
+ * 对象格式校验（拦截器）
+ */
+function validateObject(obj, params) {
+  params.forEach(([paramName, options = []]) => {
+    const [required = false, type = 'string'] = options
+
+    if (!Object.prototype.hasOwnProperty.call(obj, paramName)) {
+      if (required) {
+        throw new Error(`源对象中缺少必要的属性 ${paramName}`)
+      }
+      return // 如果该参数不是必需的且不存在，则跳过其余检查
+    }
+    const paramValue = obj[paramName]
+    if (required) {
+      if ((['undefined', 'None', null].includes(paramValue) || Number.isNaN(paramValue)) || (Array.isArray(paramValue) && paramValue.length === 0) || (typeof paramValue === 'string' && paramValue === '')) {
+        throw new Error(`源对象中的属性 ${paramName} 无效（属性值不能为空）`)
+      }
+    }
+    if (Array.isArray(type)) {
+      if (!type.includes(paramValue)) {
+        throw new Error(`源对象中的属性 ${paramName} 无效（属性值类型错误）`)
+      }
+    } else if (type.includes('|')) {
+      const types = type.replace(/\s/g, '').split('|')
+      if (!types.some((t) => checkType(paramValue, t))) {
+        throw new Error(`源对象中的属性 ${paramName} 无效（属性值类型错误）`)
+      }
+    } else if (!checkType(paramValue, type)) {
+      throw new Error(`源对象中的属性 ${paramName} 无效（属性值类型错误）`)
+    }
+  })
+}
+
+function cleanProperties(obj, fields) {
+  if (!obj) return obj
+  const originalObject = obj
+  obj = Object.keys(obj)
+    .filter((key) => {
+      return fields.includes(key)
+    })
+    .reduce((obj, key) => {
+      obj[key] = originalObject[key]
+      return obj
+    }, {})
+  return obj
+}
+
 module.exports = {
+  validateParams,
+  validateObject,
+  cleanProperties,
   dateToString,
   dateToFileName,
   getDateStr,
@@ -114,27 +251,6 @@ module.exports = {
   isNotEmpty,
   strTrim,
   regExecFirst,
-  debounce(func, wait) {
-    let timeout
-    return function (...args) {
-      clearTimeout(timeout)
-      timeout = setTimeout(() => func.apply(this, args), wait)
-    }
-  },
-  throttle(func, delay) {
-    let timeout
-    let immediate = true
-    return function (...args) {
-      if (immediate) {
-        func.apply(this, args)
-        immediate = false
-      }
-      if (!timeout) {
-        timeout = setTimeout(() => {
-          timeout = null
-          func.apply(this, args)
-        }, delay)
-      }
-    }
-  },
+  debounce,
+  throttle,
 }
