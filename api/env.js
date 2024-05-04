@@ -149,13 +149,13 @@ apiOpen.get('/v1/page', async (request, response) => {
   try {
     // 传参校验
     validateParams(request, [
-      ['query', 'type', [true, ['ordinary', 'composite', 'composite_value']]],
+      ['query', 'category', [true, ['ordinary', 'composite', 'composite_value']]],
       ['query', 'enable', [false, ['1', '0']]],
     ])
     const where = {}
     const or = []
-    const type = request.query.type
-    switch (type) {
+    const category = request.query.category
+    switch (category) {
       case 'ordinary':
         // 默认值
         where.group_id = { equals: 0 }
@@ -184,12 +184,12 @@ apiOpen.get('/v1/page', async (request, response) => {
       case 'composite_value':
         // 默认值
         validateParams(request, [
-          ['query', 'composite_id', [true, 'string']],
+          ['query', 'compositeId', [true, 'string']],
         ])
-        if (parseInt(request.query.composite_id) <= 0) {
-          throw new Error('参数 composite_id 无效（参数值类型错误）')
+        if (parseInt(request.query.compositeId) <= 0) {
+          throw new Error('参数 compositeId 无效（参数值类型错误）')
         }
-        where.group_id = { equals: parseInt(request.query.composite_id) }
+        where.group_id = { equals: parseInt(request.query.compositeId) }
         // 搜索过滤
         if (request.query.search) {
           where.AND = {
@@ -218,7 +218,7 @@ apiOpen.get('/v1/page', async (request, response) => {
       where.OR = or
     }
     let result
-    if (type === 'composite') {
+    if (category === 'composite') {
       result = await db.envs_group.$page({
         where,
         page: request.query.page,
@@ -366,12 +366,12 @@ api.post('/saveItem', async (request, response) => {
 })
 
 apiOpen.post('/v1/create', async (request, response) => {
-  const type = request.body.type
+  const category = request.body.category
   try {
     // 传参校验
     validateParams(request, [
-      ['body', 'type', [true, ['ordinary', 'composite', 'composite_value']]],
-      ['body', 'composite_id', [false, 'number']],
+      ['body', 'category', [true, ['ordinary', 'composite', 'composite_value']]],
+      ['body', 'compositeId', [false, 'number']],
       ['body', 'data', [true, 'object']],
     ])
     let data
@@ -380,12 +380,11 @@ apiOpen.post('/v1/create', async (request, response) => {
     } else {
       data = [Object.assign({}, request.body.data)]
     }
-    let fields = []
+    // 过滤数据
     let validateRules = []
-    let composite_id
-    switch (type) {
+    let compositeId
+    switch (category) {
       case 'ordinary':
-        fields = ['type', 'description', 'value', 'enable']
         validateRules = [
           ['type', [true, 'string']],
           ['description', [false, 'string']],
@@ -394,7 +393,6 @@ apiOpen.post('/v1/create', async (request, response) => {
         ]
         break
       case 'composite':
-        fields = ['type', 'description', 'separator', 'enable']
         validateRules = [
           ['type', [true, 'string']],
           ['description', [false, 'string']],
@@ -403,11 +401,10 @@ apiOpen.post('/v1/create', async (request, response) => {
         ]
         break
       case 'composite_value':
-        composite_id = request.body.composite_id
-        if (composite_id <= 0) {
-          throw new Error('参数 composite_id 无效（参数值类型错误）')
+        compositeId = request.body.compositeId
+        if (compositeId <= 0) {
+          throw new Error('参数 compositeId 无效（参数值类型错误）')
         }
-        fields = ['remark', 'value', 'enable']
         validateRules = [
           ['remark', [false, 'string']],
           ['value', [false, 'string']],
@@ -415,36 +412,191 @@ apiOpen.post('/v1/create', async (request, response) => {
         ]
         break
     }
-    // 过滤数据
-    data = await Promise.all(data.map(async (obj) => {
+    const fields = validateRules.map((rule) => rule[0])
+    const formatData = []
+    for (let obj of data) {
       // 属性校验
       validateObject(obj, validateRules)
       // clean
       obj = cleanProperties(obj, fields)
       // 检查变量重名
-      if (['ordinary', 'composite'].includes(type)) {
+      if (['ordinary', 'composite'].includes(category)) {
         await checkVaribleExsit(obj.type)
       }
       // 补齐参数
-      if (type === 'ordinary') {
+      if (category === 'ordinary') {
         obj.group_id = 0
-      } else if (type === 'composite_value') {
-        obj.group_id = composite_id
+      } else if (category === 'composite_value') {
+        obj.group_id = compositeId
         obj.type = '' // 复合变量值的 type 为空
       }
-      return obj
-    }))
-
+      formatData.push(obj)
+    }
+    // 操作数据库
     let result
     if (data.length === 1) {
-      result = await db[type === 'composite' ? 'envs_group' : 'envs'].$create(data[0])
+      result = await db[category === 'composite' ? 'envs_group' : 'envs'].$create(formatData[0])
     } else {
-      result = await db[type === 'composite' ? 'envs_group' : 'envs'].$createMany(data)
+      result = await db[category === 'composite' ? 'envs_group' : 'envs'].$createMany(formatData)
     }
     response.send(API_STATUS_CODE.okData(result))
-    await onChange(type !== 'composite')
+    await onChange(category !== 'composite')
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+apiOpen.post('/v1/update', async (request, response) => {
+  const category = request.body.category
+  try {
+    // 传参校验
+    validateParams(request, [
+      ['body', 'category', [true, ['ordinary', 'composite', 'composite_value']]],
+      ['body', 'data', [true, 'object']],
+    ])
+    let data
+    if (Array.isArray(request.body.data)) {
+      data = request.body.data.map((e) => Object.assign({}, e))
+    } else {
+      data = [Object.assign({}, request.body.data)]
+    }
+    // 过滤数据
+    let validateRules = []
+    switch (category) {
+      case 'ordinary':
+        validateRules = [
+          ['id', [true, 'number']],
+          ['type', [true, 'string']],
+          ['description', [false, 'string']],
+          ['value', [false, 'string']],
+          ['enable', [false, [1, 0]]],
+        ]
+        break
+      case 'composite':
+        validateRules = [
+          ['id', [true, 'number']],
+          ['type', [true, 'string']],
+          ['description', [false, 'string']],
+          ['separator', [false, 'string']],
+          ['enable', [false, [1, 0]]],
+        ]
+        break
+      case 'composite_value':
+        validateRules = [
+          ['id', [true, 'number']],
+          ['group_id', [true, 'number']],
+          ['remark', [false, 'string']],
+          ['value', [false, 'string']],
+          ['enable', [false, [1, 0]]],
+        ]
+        break
+    }
+    const fields = validateRules.map((rule) => rule[0])
+    const exist_group_ids = [] // 已存在的复合变量(组) id（临时）
+    const formatData = []
+    for (let obj of data) {
+      // 属性校验
+      validateObject(obj, validateRules)
+      // clean
+      obj = cleanProperties(obj, fields)
+      // 检测
+      if (category === 'composite_value') {
+        if (obj.id <= 0) {
+          throw new Error('参数 id 无效（参数值类型错误）')
+        }
+        if (obj.group_id <= 0) {
+          throw new Error('参数 group_id 无效（参数值类型错误）')
+        }
+        // 检查变量是否存在
+        const envsItems = await db.envs.$list({ id: obj.id }) || []
+        if (envsItems.length <= 0) {
+          throw new Error(`参数 id 无效，复合变量的值 ${obj.id} 不存在`)
+        }
+        // 检查复合变量(组)是否存在（仅一次）
+        if (!exist_group_ids.includes(obj.group_id)) {
+          if (((await db.envs_group.$list({
+            id: obj.group_id,
+          })) || []).length > 0) {
+            exist_group_ids.push(obj.id)
+          } else {
+            throw new Error(`参数 group_id 无效，复合变量(组) ${obj.group_id} 不存在`)
+          }
+        }
+        // 补齐参数
+        obj.type = '' // 复合变量值的 type 为空
+      } else {
+        if (obj.id <= 0) {
+          throw new Error('参数 id 无效（参数值类型错误）')
+        }
+        if (category === 'ordinary') {
+          // 检查变量是否存在
+          const envsItems = await db.envs.$list({ id: obj.id }) || []
+          if (envsItems.length <= 0) {
+            throw new Error(`参数 id 无效，普通变量 ${obj.id} 不存在`)
+          }
+          // 补齐参数
+          obj.group_id = 0
+        } else if (category === 'composite') {
+          // 检查变量是否存在
+          const envsGroupItems = await db.envs_group.$list({ id: obj.id }) || []
+          if (envsGroupItems.length <= 0) {
+            throw new Error(`参数 id 无效，复合变量(组) ${obj.id} 不存在`)
+          }
+        }
+      }
+      formatData.push(obj)
+    }
+    // 操作数据库
+    let result
+    if (formatData.length === 1) {
+      result = [await db[category === 'composite' ? 'envs_group' : 'envs'].$upsertById(formatData[0])]
+    } else {
+      result = []
+      for (const item of formatData) {
+        const r = await db[category === 'composite' ? 'envs_group' : 'envs'].$upsertById(item)
+        if (typeof r === 'string') {
+          result.push({ id: item.id, error: r })
+        } else {
+          result.push(r)
+        }
+      }
+    }
+    response.send(API_STATUS_CODE.okData(result))
+    await onChange(category !== 'composite')
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+apiOpen.post('/v1/changeStatus', async (request, response) => {
+  try {
+    // 传参校验
+    validateParams(request, [
+      ['body', 'id', [true, 'number | number[]']],
+      ['body', 'status', [true, [1, 0]]],
+      ['body', 'isComposite', [false, 'boolean']],
+    ])
+    const id = request.body.id
+    const ids = Array.isArray(id) ? id : [id]
+    ids.forEach((id) => {
+      if (id <= 0) {
+        throw new Error('参数 id 无效（参数值类型错误）')
+      }
+    })
+    const status = request.body.status
+    const isComposite = request.body.isComposite
+    for (const id of ids) {
+      const record = await db[isComposite ? 'envs_group' : 'envs'].$getById(id)
+      if (!record) {
+        throw new Error('变量不存在')
+      }
+      record.enable = status
+      await db[isComposite ? 'envs_group' : 'envs'].$upsertById(record)
+    }
+    response.send(API_STATUS_CODE.ok())
+    await onChange(!isComposite)
+  } catch (e) {
+    return response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
 
