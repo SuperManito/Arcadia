@@ -270,14 +270,35 @@ apiOpen.get('/v1/query', async (request, response) => {
       AND: [
         { type: { contains: name } },
       ],
-    }) || []
+    }, undefined, { include: { envs: true } }) || []
     if (envs_group_result.length > 0) {
-      result.push(...envs_group_result)
+      // 替换关联数据为它的长度
+      const format_data = envs_group_result.map((item) => {
+        if (Array.isArray(item?.envs)) {
+          item.envs = item.envs.length
+        }
+        return item
+      })
+      result.push(...format_data)
     }
-    // 过滤数据（注：SQLite 的 contains 操作符不区分大小写）
+    // 二次过滤（注：SQLite 的 contains 操作符不区分大小写）
     const filteredData = result.filter((item) => item.type.includes(name))
     // 返回数据
-    response.send(API_STATUS_CODE.okData(filteredData))
+    if (filteredData.length <= 0) {
+      return response.send(API_STATUS_CODE.okData([]))
+    } else {
+      const datas = filteredData.map((data) => {
+        const fields = Object.keys(data)
+        let category
+        if (fields.includes('group_id')) {
+          category = data.group_id === 0 ? 'ordinary' : 'composite_value'
+        } else {
+          category = 'composite'
+        }
+        return { category, data }
+      })
+      response.send(API_STATUS_CODE.okData(datas))
+    }
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
