@@ -7,14 +7,14 @@ import { GET } from '@site/src/components/RequestTag';
 
 ## 通用
 
-#### <GET>/file/tree</GET>
+<GET>/file/tree</GET>
 
 ### 请求
 
 <APITable>
 
 | 名称 | 类型 | 必填 | 描述 |
-| --- | :-: | :-: | --- |
+| :-: | :-: | :-: | --- |
 | `type` | `string` | 否 | 获取类型，固定可选值 [**TypeEnum**](./tree#TypeEnum)（对应各目录），不提供则为全部 |
 | `keywords` | `string` | 否 | 过滤关键字，用于文件名搜索 |
 | `startTime` | `string` | 否 | 开始日期时间，用于日期范围搜索，格式固定为 `yyyy-MM-dd HH:mm` |
@@ -44,7 +44,7 @@ import { GET } from '@site/src/components/RequestTag';
 <APITable>
 
 | 名称 | 类型 | 描述 |
-| --- | :-: | --- |
+| :-: | :-: | --- |
 | `path` | `string` | 绝对路径 |
 | `title` | `string` | 文件或目录的名称 |
 | `type` | `number` | 文件类型，`1` 文件 `0` 文件夹 |
@@ -88,14 +88,14 @@ import { GET } from '@site/src/components/RequestTag';
 
 ## 指定目录
 
-#### <GET>/file/dir</GET>
+<GET>/file/dir</GET>
 
 ### 请求
 
 <APITable>
 
 | 名称 | 类型 | 必填 | 描述 |
-| --- | :-: | :-: | --- |
+| :-: | :-: | :-: | --- |
 | `path` | `string` | 是 | 绝对路径 |
 
 </APITable>
@@ -105,7 +105,7 @@ import { GET } from '@site/src/components/RequestTag';
 <APITable>
 
 | 名称 | 类型 | 描述 |
-| --- | :-: | --- |
+| :-: | :-: | --- |
 | `path` | `string` | 绝对路径 |
 | `title` | `string` | 文件或目录的名称 |
 | `type` | `number` | 文件类型，`1` 文件 `0` 文件夹 |

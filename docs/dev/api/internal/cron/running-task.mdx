@@ -4,7 +4,7 @@ title: 查询运行中的任务
 import APITable from '@site/src/components/APITable';
 import { GET } from '@site/src/components/RequestTag';
 
-#### <GET>/cron/runningTask</GET>
+<GET>/cron/runningTask</GET>
 
 ## 请求
 
@@ -15,13 +15,13 @@ import { GET } from '@site/src/components/RequestTag';
 <APITable>
 
 | 名称 | 类型 | 描述 |
-| --- | :-: | --- |
+| :-: | :-: | --- |
 | `id` | `number` | 唯一标识 |
 | `name` | `string` | 任务名称 |
 | `type` | `string` | 任务类型，当前固定分为 user 和 system |
 | `cron` | `string` | 定时规则（5位或6位的定时表达式） |
 | `shell` | `string` | 执行的命令 |
-| `active` | `number` | 启用，`1 启用 \| 0 禁用` |
+| `active` | `number<0 \| 1>` | 状态 `1 启用 \| 0 禁用` |
 | `config` | `string` | 后端配置参数 |
 | `tags` | `string` | 任务标签 |
 | `last_runtime` | `string` | 最后一次运行的时间 |

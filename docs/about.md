@@ -6,14 +6,6 @@ import { ICON } from '@site/src/components/Icon';
 import { ActiveTeamRow } from '@site/src/components/TeamProfileCards';
 import DonateModal from '@site/src/components/DonateModal';
 
-## 用户须知
-
-本项目目前为闭源项目并且没有在代码托管网站开放任何源码仓库，后期会逐步开放源代码
-
-闭源期间需要任何单位遵守以下守则：
-
-- 未经作者允许严禁任何开发者盗用本项目源码用于其它用途，作者保留一切追究的权利
-
 ## 社区
 
 加入我们位于 <ICON>mdi\:telegram</ICON> Telegram 的 [官方频道](https://t.me/ArcadiaPanel) 和 [交流群组](https://t.me/ArcadiaPanelGroup)
@@ -31,10 +23,8 @@ import DonateModal from '@site/src/components/DonateModal';
 
 <ActiveTeamRow />
 
-## 赞助
+## 支持我们
 
 成为赞助商享有文档广告展示，如有需求请在社区中主动联系作者，更多内容有待完善。
-
-## 捐助
 
 <DonateModal />

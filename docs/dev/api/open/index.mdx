@@ -4,15 +4,13 @@ title: 开放接口
 import APITable from '@site/src/components/APITable';
 import { GET, POST, DELETE } from '@site/src/components/RequestTag';
 
-## 接口说明
-
-服务端已开启 CORS 跨域支持
-
-### 接口基准地址
+## 接口基准地址
 
 - `http://localhost:5678/api/open`
 
-### 需要授权的 API
+服务端已开启 CORS 跨域支持
+
+## 需要授权
 
 需要在 **请求头（Header）** 或 **请求地址参数（URL）** 中使用 `api-token` 字段并提供 `openApiToken（令牌）` 的值
 
@@ -21,12 +19,12 @@ arcadia service info
 ```
 每次修改管理面板登录认证信息后都会随机生成一个新的 `32` 位字符串
 
-### 安全的操作
+## 安全的操作
 
 接口方法都经过了严格的设计和实现，以确保操作的安全性，并且加强了传参的校验  
 接口响应一般不会返回原生错误信息，当然如果你遇到了请主动反馈
 
-### 接口响应规范
+## 接口响应规范
 
 数据返回格式统一使用 JSON
 

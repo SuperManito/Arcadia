@@ -4,14 +4,14 @@ title: 登录认证
 import APITable from '@site/src/components/APITable';
 import { POST } from '@site/src/components/RequestTag';
 
-#### <POST>/user/auth</POST>
+<POST>/user/auth</POST>
 
 ## 请求
 
 <APITable>
 
 | 名称 | 类型 | 必填 | 描述 |
-| --- | :-: | :-: | --- |
+| :-: | :-: | :-: | --- |
 | `username` | `string` | 是 | 用户名 |
 | `password` | `string` | 是 | 密码 |
 | `captcha` | `string` | 否 | 验证码 |
@@ -23,7 +23,7 @@ import { POST } from '@site/src/components/RequestTag';
 <APITable>
 
 | 名称 | 类型 | 描述 |
-| --- | :-: | --- |
+| :-: | :-: | --- |
 | `token` | `string` | Token |
 | `newPwd` | `string` | 系统自动更改的新密码 |
 

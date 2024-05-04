@@ -39,7 +39,7 @@ export function CLOSE () {
 export function DockerIcon () {
   return (
     <span>
-      <Icon icon="logos:docker-icon" height="16" style={{ verticalAlign: '-0.25em', color: 'var(--ifm-color-danger)' }}></Icon>
+      <Icon icon="logos:docker-icon" height="16" style={{ verticalAlign: '-0.25em' }}></Icon>
     </span>
   )
 }
@@ -47,7 +47,31 @@ export function DockerIcon () {
 export function PodmanIcon () {
   return (
     <span>
-      <Icon icon="devicon:podman" height="18" style={{ verticalAlign: '-0.35em', color: 'var(--ifm-color-danger)' }}></Icon>
+      <Icon icon="devicon:podman" height="18" style={{ verticalAlign: '-0.35em' }}></Icon>
+    </span>
+  )
+}
+
+export function FeaturesIcon () {
+  return (
+    <span>
+      <Icon icon="fluent-emoji:rocket" height="26" style={{ verticalAlign: '-0.2em' }}></Icon>
+    </span>
+  )
+}
+
+export function BugIcon () {
+  return (
+    <span>
+      <Icon icon="fluent-emoji:bug" height="26" style={{ verticalAlign: '-0.2em' }}></Icon>
+    </span>
+  )
+}
+
+export function OptimizeIcon () {
+  return (
+    <span>
+      <Icon icon="fluent-emoji:hammer-and-wrench" height="26" style={{ verticalAlign: '-0.2em' }}></Icon>
     </span>
   )
 }

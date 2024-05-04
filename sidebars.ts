@@ -220,7 +220,7 @@ const sidebars: SidebarsConfig = {
           },
           items: [
             {
-              label: 'User - 用户',
+              label: 'User 用户',
               type: 'category',
               link: {
                 type: 'generated-index',
@@ -233,7 +233,7 @@ const sidebars: SidebarsConfig = {
               collapsed: true,
             },
             {
-              label: 'File - 文件',
+              label: 'File 文件',
               type: 'category',
               link: {
                 type: 'generated-index',
@@ -253,7 +253,7 @@ const sidebars: SidebarsConfig = {
               collapsed: true,
             },
             {
-              label: 'Cron - 定时任务',
+              label: 'Cron 定时任务',
               type: 'category',
               link: {
                 type: 'generated-index',
@@ -272,7 +272,7 @@ const sidebars: SidebarsConfig = {
               collapsed: true,
             },
             {
-              label: 'Env - 环境变量',
+              label: 'Env 环境变量',
               type: 'category',
               link: {
                 type: 'doc',
@@ -325,7 +325,7 @@ const sidebars: SidebarsConfig = {
             //   collapsed: true,
             // },
           ],
-          collapsed: true,
+          collapsed: false,
         },
         {
           label: '开放接口',
@@ -335,7 +335,7 @@ const sidebars: SidebarsConfig = {
             id: 'dev/api/open/index',
           },
           items: ['dev/api/open/env'],
-          collapsed: true,
+          collapsed: false,
         },
       ],
       collapsed: false,

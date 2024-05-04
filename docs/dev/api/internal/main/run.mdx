@@ -6,14 +6,14 @@ import { GET, POST } from '@site/src/components/RequestTag';
 
 ## 运行命令
 
-#### <POST>/runCmd</POST>
+<POST>/runCmd</POST>
 
 ### 请求
 
 <APITable>
 
 | 名称 | 类型 | 必填 | 描述 |
-| --- | :-: | :-: | --- |
+| :-: | :-: | :-: | --- |
 | `cmd` | `string` | 是 | 命令 |
 
 </APITable>
@@ -30,14 +30,14 @@ import { GET, POST } from '@site/src/components/RequestTag';
 
 ## 获取命令的运行状态
 
-#### <GET>/runCmdStatus</GET>
+<GET>/runCmdStatus</GET>
 
 ### 请求
 
 <APITable>
 
 | 名称 | 类型 | 必填 | 描述 |
-| --- | :-: | :-: | --- |
+| :-: | :-: | :-: | --- |
 | `id` | `string` | 是 | 任务临时id |
 
 </APITable>
@@ -56,14 +56,14 @@ true
 
 目前此接口的设计与 `runCmd` 无关，只是看着名字很像
 
-#### <GET>/runLog</GET>
+<GET>/runLog</GET>
 
 ### 请求
 
 <APITable>
 
 | 名称 | 类型 | 必填 | 描述 |
-| --- | :-: | :-: | --- |
+| :-: | :-: | :-: | --- |
 | `jsName` | `string` | 是 | 脚本路径 |
 
 </APITable>

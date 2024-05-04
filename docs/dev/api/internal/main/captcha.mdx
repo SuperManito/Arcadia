@@ -8,14 +8,14 @@ import { GET } from '@site/src/components/RequestTag';
 
 ## 获取验证码图片
 
-#### <GET>/captcha</GET>  
+<GET>/captcha</GET>  
 
 ### 请求
 
 <APITable>
 
 | 名称 | 类型 | 必填 | 描述 |
-| --- | :-: | :-: | --- |
+| :-: | :-: | :-: | --- |
 | `w` | `string` | 否 | 图片宽度，默认120px |
 | `h` | `string` | 否 | 图片高度，默认50px |
 | `background` | `string` | 否 | 背景CSS |
@@ -24,7 +24,7 @@ import { GET } from '@site/src/components/RequestTag';
 
 ## 判断是否需要验证码
 
-#### <GET>/captcha/flag</GET>
+<GET>/captcha/flag</GET>
 
 ### 请求
 
@@ -35,7 +35,7 @@ import { GET } from '@site/src/components/RequestTag';
 <APITable>
 
 | 名称 | 类型 | 描述 |
-| --- | :-: | --- |
+| :-: | :-: | --- |
 | `showCaptcha` | `boolean` | 是否展示验证码 |
 
 </APITable>
