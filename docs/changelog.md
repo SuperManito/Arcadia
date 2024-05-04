@@ -16,7 +16,7 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ### <BugIcon></BugIcon> 修复
 
-- 后端：修复了在添加新的系统定时任务后导致自动删除所有原有任务的错误
+- 后端：修复了在添加新的系统定时任务后导致所有原有任务被自动删除的错误
 - 后端：修复了被禁用的普通变量仍被导出的错误
 - CLI：修复了一些命令的兼容性错误
 - CLI：修复了一些命令选项的错误
