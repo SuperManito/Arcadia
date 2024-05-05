@@ -173,7 +173,7 @@ ${backupMirrortChecked ? 'registry.cn-hangzhou.aliyuncs.com/' : 'docker.io/'}sup
                 </Col>
               </Row>
             }>
-            <Button type="text" style={{ padding: '6px' }}><ICON size="18">mdi:cog-outline</ICON></Button>
+            <Button type="text" shape="circle" size="small" style={{ padding: '2px' }}><ICON size="18">ic:outline-settings</ICON></Button>
           </Popover>
         </Tooltip>
       </Space>

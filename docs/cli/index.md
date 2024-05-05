@@ -1,5 +1,5 @@
 ---
-title: 命令行 (CLI)
+title: 命令 (CLI)
 ---
 import DocCardList from '@theme/DocCardList';
 

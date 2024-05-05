@@ -81,7 +81,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
     },
     {
-      label: '命令行（CLI）',
+      label: '命令（CLI）',
       type: 'category',
       link: {
         type: 'doc',
