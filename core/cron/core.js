@@ -180,7 +180,7 @@ function taskRunner(shell, config) {
   try {
     // 执行定时任务命令
     // logger.log("触发定时任务", shell)
-    const process = exec(`cd ${rootPath}; ${shell}`, {
+    const process = exec(`cd ${rootPath} ; ${shell}`, {
       encoding: 'utf8',
       maxBuffer: 1024 * 1024 * 10, // 10M
     }, config.callback)
