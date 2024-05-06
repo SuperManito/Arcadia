@@ -386,6 +386,64 @@ api.post('/saveItem', async (request, response) => {
   }
 })
 
+api.post('/create', async (request, response) => {
+  try {
+    let data
+    if (Array.isArray(request.body)) {
+      data = request.body.map((e) => Object.assign({}, e))
+    } else {
+      data = [Object.assign({}, request.body)]
+    }
+    const formatData = []
+    for (const obj of data) {
+      // 检查变量重名
+      await checkVaribleExsit(obj.type)
+      formatData.push(obj)
+    }
+    // 操作数据库
+    let result
+    if (data.length === 1) {
+      result = await db.envs_group.$create(formatData[0])
+    } else {
+      result = await db.envs_group.$createMany(formatData)
+    }
+    response.send(API_STATUS_CODE.okData(result))
+    await onChange(false)
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+api.post('/createItem', async (request, response) => {
+  try {
+    let data
+    if (Array.isArray(request.body)) {
+      data = request.body.map((e) => Object.assign({}, e))
+    } else {
+      data = [Object.assign({}, request.body)]
+    }
+    const formatData = []
+    for (const obj of data) {
+      // 检查变量重名
+      if (obj.type) {
+        await checkVaribleExsit(obj.type)
+      }
+      formatData.push(obj)
+    }
+    // 操作数据库
+    let result
+    if (data.length === 1) {
+      result = await db.envs.$create(formatData[0])
+    } else {
+      result = await db.envs.$createMany(formatData)
+    }
+    response.send(API_STATUS_CODE.okData(result))
+    await onChange(true)
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
 apiOpen.post('/v1/create', async (request, response) => {
   const category = request.body.category
   try {
@@ -586,6 +644,56 @@ apiOpen.post('/v1/update', async (request, response) => {
     await onChange(category !== 'composite')
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+api.put('/changeStatus', async (request, response) => {
+  try {
+    const id = request.body.id
+    const ids = Array.isArray(id) ? id : [id]
+    ids.forEach((id) => {
+      if (id <= 0) {
+        throw new Error('参数 id 无效（参数值类型错误）')
+      }
+    })
+    const status = request.body.enable
+    for (const id of ids) {
+      const record = await db.envs_group.$getById(id)
+      if (!record) {
+        throw new Error('变量不存在')
+      }
+      record.enable = status
+      await db.envs_group.$upsertById(record)
+    }
+    response.send(API_STATUS_CODE.ok())
+    await onChange(false)
+  } catch (e) {
+    return response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+api.put('/changeStatusItem', async (request, response) => {
+  try {
+    const id = request.body.id
+    const ids = Array.isArray(id) ? id : [id]
+    ids.forEach((id) => {
+      if (id <= 0) {
+        throw new Error('参数 id 无效（参数值类型错误）')
+      }
+    })
+    const status = request.body.enable
+    for (const id of ids) {
+      const record = await db.envs.$getById(id)
+      if (!record) {
+        throw new Error('变量不存在')
+      }
+      record.enable = status
+      await db.envs.$upsertById(record)
+    }
+    response.send(API_STATUS_CODE.ok())
+    await onChange(true)
+  } catch (e) {
+    return response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
 
