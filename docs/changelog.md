@@ -8,6 +8,15 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 <!-- 正式版的版本号格式为 x.xx.xx，其中第一位为主版本号，第二位为次版本号，第三位为修订版本号，更新修订版本无需重新部署直接更新项目源码即可，次版本根据更新日志的要求而定；如果你使用的是测试版本那么需要持续保持镜像容器至最新 -->
 
 
+## 1.0.0-beta.3 (2024-05-07)
+
+### <FeaturesIcon></FeaturesIcon> 新特性
+
+- 前端：“环境变量” 复合变量值分页表格新增批量导入组件
+- 前端：“环境变量” 页面表格新增更新时间字段
+- 前端：UI细节更新
+
+
 ## 1.0.0-beta.2 (2024-05-05)
 
 ### <FeaturesIcon></FeaturesIcon> 新特性

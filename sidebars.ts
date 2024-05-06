@@ -280,9 +280,11 @@ const sidebars: SidebarsConfig = {
               },
               items: [
                 'dev/api/internal/env/page',
+                'dev/api/internal/env/create',
                 'dev/api/internal/env/save',
                 'dev/api/internal/env/delete',
                 'dev/api/internal/env/order',
+                'dev/api/internal/env/changeStatus',
               ],
               collapsed: true,
             },

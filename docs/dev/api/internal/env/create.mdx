@@ -1,12 +1,14 @@
 ---
-title: 更新插入
+title: 创建
 ---
 import APITable from '@site/src/components/APITable';
 import { POST } from '@site/src/components/RequestTag';
 
+支持批量操作
+
 ## 变量项
 
-<POST>/env/saveItem</POST>
+<POST>/env/createItem</POST>
 
 ### 请求
 
@@ -14,9 +16,8 @@ import { POST } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 必填 | 描述 |
 | :-: | :-: | :-: | --- |
-| `id` | `number` | 否 | 唯一标识 |
-| `group_id` | `number` | 否 | `envs_group` 表 `id` 字段关联记录，为0时表示普通变量 |
-| `type` | `string` | 是 | 变量名称（如果是复合变量的值则需传递空值） |
+| `group_id` | `number` | 是 | `envs_group` 表 `id` 字段关联记录，为0时表示普通变量 |
+| `type` | `string` | 是 | 变量名称（复合变量的值需传递空值） |
 | `tag_list` | `string<object>` | 否 | 标签，`label名称 \| color颜色(HEX)` |
 | `description` | `string` | 否 | 描述 |
 | `remark` | `string` | 否 | 备注 |
@@ -29,7 +30,7 @@ import { POST } from '@site/src/components/RequestTag';
 
 ## 变量组
 
-<POST>/env/save</POST>
+<POST>/env/create</POST>
 
 ### 请求
 
@@ -37,7 +38,6 @@ import { POST } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 必填 | 描述 |
 | :-: | :-: | :-: | --- |
-| `id` | `number` | 否 | 唯一标识 |
 | `type` | `string` | 是 | 变量名称 |
 | `description` | `string` | 否 | 描述 |
 | `tag_list` | `string<object>` | 否 | 标签，`label名称 \| color颜色(HEX)` |

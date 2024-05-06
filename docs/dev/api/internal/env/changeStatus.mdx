@@ -1,12 +1,12 @@
 ---
-title: 删除
+title: 更改状态
 ---
 import APITable from '@site/src/components/APITable';
-import { DELETE } from '@site/src/components/RequestTag';
+import { PUT } from '@site/src/components/RequestTag';
 
 ## 变量项
 
-<DELETE>/env/deleteItem</DELETE>
+<PUT>/env/changeStatusItem</PUT>
 
 ### 请求
 
@@ -15,13 +15,14 @@ import { DELETE } from '@site/src/components/RequestTag';
 | 名称 | 类型 | 必填 | 描述 |
 | :-: | :-: | :-: | --- |
 | `id` | `number \| number[]` | 是 | 唯一标识 |
+| `enable` | `number<0 \| 1>` | 是 | 状态 `1 启用 \| 0 禁用` |
 
 </APITable>
 
 
 ## 变量组
 
-<DELETE>/env/delete</DELETE>
+<PUT>/env/changeStatus</PUT>
 
 ### 请求
 
@@ -30,5 +31,6 @@ import { DELETE } from '@site/src/components/RequestTag';
 | 名称 | 类型 | 必填 | 描述 |
 | :-: | :-: | :-: | --- |
 | `id` | `number \| number[]` | 是 | 唯一标识 |
+| `enable` | `number<0 \| 1>` | 是 | 状态 `1 启用 \| 0 禁用` |
 
 </APITable>
