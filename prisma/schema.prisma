@@ -25,6 +25,7 @@ model envs {
   tag_list    String      @default("")
   description String      @default("")
   remark      String      @default("")
+  update_time DateTime    @default(now()) @updatedAt
   value       String      @default("")
   sort        Int         @default(99999)
   enable      Int         @default(1)
@@ -34,13 +35,14 @@ model envs {
 }
 
 model envs_group {
-  id          Int    @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   type        String
-  description String @default("")
-  tag_list    String @default("")
-  separator   String @default("")
-  sort        Int    @default(99999)
-  enable      Int    @default(1)
+  description String   @default("")
+  update_time DateTime @default(now()) @updatedAt
+  tag_list    String   @default("")
+  separator   String   @default("")
+  sort        Int      @default(99999)
+  enable      Int      @default(1)
   envs        envs[]
 
   @@index([type])
