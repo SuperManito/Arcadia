@@ -10,12 +10,11 @@ import TabItem from '@theme/TabItem';
 ## 安装语言环境
 
 <Tabs>
-  <TabItem value="py" label="Python">
+  <TabItem value="go" label="Go">
 
   ```bash
-  apt-get install -y python3 python3-pip
+  apt-get install -y go
   ```
-  > 已预装，底层功能需要调用，不建议用户卸载
 
   </TabItem>
 
@@ -27,20 +26,23 @@ import TabItem from '@theme/TabItem';
 
   </TabItem>
 
-  <TabItem value="go" label="Go">
-
-  ```bash
-  apt-get install -y go
-  ```
-
-  </TabItem>
-
   <TabItem value="c" label="C">
 
   ```bash
   apt-get install -y gcc
   ```
   > 已预装
+
+  </TabItem>
+
+  <TabItem value="py" label="Python">
+
+  ```bash
+  apt-get install -y python3 python3-pip
+  ```
+  > 已预装，底层功能需要调用，不建议用户卸载  
+
+  若想安装指定版本请自行搜索相关教程，重装后需要执行 `pip3 install yq --no-cache-dir --break-system-packages` 安装 `yq` 依赖库（底层功能需要）
 
   </TabItem>
 
