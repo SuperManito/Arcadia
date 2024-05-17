@@ -26,7 +26,7 @@ function SidebarAd (): any {
   const background = colorMode === 'dark' ? '#161618' : '#f6f8fa'
 
   return (
-    <ConfigProvider autoInsertSpaceInButton={false}>
+    <ConfigProvider button={{ autoInsertSpace: false }}>
       <Carousel autoplay className={styles.ad} dotPosition="right">
         <Link to="/docs/about#%E8%B5%9E%E5%8A%A9" style={{ width: '200px', height: '75px', margin: '0' }}>
           <Heading as="h3" style={{ ...contentStyle, background }}>Arcadia</Heading>
