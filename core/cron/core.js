@@ -118,14 +118,14 @@ function onCron(task) {
 async function runTask(taskId) {
   const task = await dbTasks.$getById(taskId)
   if (!task) {
-    logger.error(`任务 ${taskId} 不存在`)
+    // logger.error(`任务 ${taskId} 不存在`)
     throw new Error('任务不存在')
   }
   if (runningTask[taskId]) {
-    logger.error(`任务 ${taskId} 正在运行`)
-    throw new Error('任务正在运行')
+    // 任务正在运行中
+    return
   }
-  logger.log('主动执行任务', task.shell)
+  // logger.log('主动执行任务', task.shell)
   runningTask[taskId] = task // 将任务添加到正在运行的列表
   const date = new Date()
   runningInstance[taskId] = taskRunner(task.shell, {
@@ -160,7 +160,7 @@ function stopTask(taskId) {
   if (task) {
     task.kill()
     delete runningInstance[taskId]
-    logger.log(`定时任务 ${taskId} 已被终止`)
+    // logger.log(`定时任务 ${taskId} 已被终止`)
   }
 }
 
@@ -222,7 +222,7 @@ async function onCronTask(taskId) {
     // logger.log('触发定时任务', task.shell, '（PASS，原因：正在运行）')
     return
   }
-  logger.log('触发定时任务', task.shell)
+  // logger.log('触发定时任务', task.shell)
   runningTask[taskId] = task // 将任务添加到正在运行的列表
   const date = new Date()
   runningInstance[taskId] = taskRunner(task.shell, {

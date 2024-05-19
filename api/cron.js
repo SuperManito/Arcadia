@@ -269,8 +269,16 @@ api.get('/runningTask', async (request, response) => {
  */
 api.post('/run', async (request, response) => {
   const id = request.body.id
+  let ids
   try {
-    core.runTask(id)
+    if (Array.isArray(id)) {
+      ids = id
+    } else {
+      ids = [id]
+    }
+    for (const id of ids) {
+      core.runTask(id)
+    }
     response.send(API_STATUS_CODE.ok())
   } catch (e) {
     logger.error(e)
