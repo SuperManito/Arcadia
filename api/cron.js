@@ -331,7 +331,7 @@ innerCornApi.post('/updateAll', async (request, response) => {
     if (deleteFiles && deleteFiles.length > 0) {
       const deleteTask = await dbTasks.$list({
         type: 'system',
-        bind: { in: newFiles.map((s) => toBind(type, s.path)) },
+        bind: { in: deleteFiles.map((s) => toBind(type, s.path)) },
       })
       const deleteIds = deleteTask.map((s) => s.id)
       await dbTasks.$deleteById(deleteIds)
