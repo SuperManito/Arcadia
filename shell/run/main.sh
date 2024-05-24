@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-27
+## Modified: 2024-05-25
 
 ## 随机延迟
 function random_delay() {
@@ -81,13 +81,13 @@ function _record_log_end_title() {
 function define_base_command() {
     # 脚本 global-agent 代理（命令选项）
     local global_proxy_option_cmd=""
-    [[ "${RUN_OPTION_AGENT}" == "true" ]] && global_proxy_option_cmd=" -r 'global-agent/bootstrap'"
+    [[ "${RUN_OPTION_AGENT}" == "true" || "${EnableGlobalProxy}" == "true" ]] && global_proxy_option_cmd=" -r 'global-agent/bootstrap'"
 
     # 后台挂起（守护进程）
     if [[ "${RUN_OPTION_DAEMON}" == "true" ]]; then
         case "${FileType}" in
         JavaScript)
-            if [[ "${RUN_OPTION_AGENT}" == "true" ]]; then
+            if [[ "${RUN_OPTION_AGENT}" == "true" ]] || [[ "${EnableGlobalProxy}" == "true" ]]; then
                 base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --name \"${FileName}\" --watch --log <LogFilePath> --${global_proxy_option_cmd}"
             else
                 base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --name \"${FileName}\" --watch --log <LogFilePath>"
