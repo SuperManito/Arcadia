@@ -13,6 +13,7 @@ const runningInstance = {} // 正在运行的任务实例（child_process）
 /**
  * 将定时字符串中的月份减一
  *
+ * @deprecated
  * @param {string} cron 定时字符串
  * @returns {string} 减一后的定时字符串
  */
@@ -151,14 +152,14 @@ async function runTask(taskId) {
 }
 
 /**
- * 添加一个新的函数来停止任务
+ * 终止运行中的任务
  *
  * @param {number} taskId
 */
 function stopTask(taskId) {
   const task = runningInstance[taskId]
   if (task) {
-    task.kill()
+    task.kill('SIGKILL')
     delete runningInstance[taskId]
     // logger.log(`定时任务 ${taskId} 已被终止`)
   }
