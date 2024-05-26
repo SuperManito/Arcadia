@@ -27,17 +27,13 @@ function update_raw() {
         else
             local filter="node_modules"
         fi
-        ## 生成旧的定时文件清单
-        if [[ "${Array_Raw_cronSettings_updateTaskList[i]}" == "true" ]]; then
-            if [[ $(ls $RawDir 2>/dev/null | grep -Ev "${filter}") ]]; then
-                for file in $(ls $RawDir 2>/dev/null | grep -Ev "${filter}"); do
-                    echo "$RawDir/$file" >>$ListOldScripts
-                done
-            fi
-        fi
         ## 遍历远程代码文件配置数组，更新并生成新的定时文件清单
         for ((i = 0; i < ${#Array_Raw_url[*]}; i++)); do
             [[ -z "${Array_Raw_url[i]}" ]] && continue
+
+            if [[ ${Array_Raw_cronSettings_updateTaskList[i]} == "true" ]]; then
+                [ -f "${Array_Raw_path[i]}" ] && echo "${Array_Raw_path[i]}" >>$ListOldScripts
+            fi
             echo "${Array_Raw_url[i]}" | grep -Eq "github|gitee|gitlab"
             if [ $? -eq 0 ]; then
                 echo ${Array_Raw_url[i]} | grep -E "git.*\.io/" -q
