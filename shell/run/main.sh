@@ -321,19 +321,19 @@ function command_run_main() {
     import core/script
     find_script "${1}"
 
-    ## 处理一些命令选项
     # 判断脚本代理
     if [[ "${RUN_OPTION_AGENT}" == "true" ]] && [[ "${FileType}" != "JavaScript" && "${FileType}" != "TypeScript" ]]; then
         output_error "检测到无效参数 ${BLUE}--agent${PLAIN} ，仅支持运行 Node.js 和 TypeScript 脚本！"
     fi
-    # 静默运行（命令选项）
-    [[ "${RUN_OPTION_SILENT}" == "true" ]] && no_send_notify
 
     ## 加载用户配置
     # 用户环境变量（加载优先级应高于配置文件）
     load_user_env
     # 配置文件
     import_config ${FileName}
+
+    # 静默运行（命令选项）
+    [[ "${RUN_OPTION_SILENT}" == "true" ]] && no_send_notify
 
     ## 变量操作相关命令选项
     # 判断变量是否存在并定义原有值变量
