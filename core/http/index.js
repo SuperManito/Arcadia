@@ -58,6 +58,8 @@ function getClientIP(req) {
 
 /**
  * ip转为地址
+ *
+ * @async
  * @param ip
  */
 async function ip2Address(ip) {
@@ -68,8 +70,8 @@ async function ip2Address(ip) {
       parmas: { ip },
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53',
+        'Content-Type': 'application/x-www-form-urlencoded',
         Referer: 'http://ip.360.cn/',
-        Host: 'ip.360.cn',
       },
     })
     if (data) {
@@ -177,6 +179,9 @@ async function request(config) {
           const statusCode = res.response?.status
           if (res.response.data) {
             returnData.data = res.response.data
+          }
+          if (res.response.headers) {
+            returnData.headers = res.response.headers
           }
           const errorMessages = {
             400: '请求错误 [400 Bad Request]',
