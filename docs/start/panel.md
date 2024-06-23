@@ -29,11 +29,11 @@ title: 管理面板
 
   查看服务状态（容器环境）
   ```bash
-  pm2 status web_server
+  pm2 status arcadia_server
   ```
   查看服务日志（容器环境）
   ```bash
-  pm2 logs web_server
+  pm2 logs arcadia_server
   ```
   查看网页内容（容器环境）
   ```bash
@@ -91,12 +91,16 @@ title: 管理面板
 server {
     listen 80;
     listen 443 ssl;
+    // highlight-next-line
     server_name <域名>;
 
+    // highlight-next-line
     ssl_certificate <证书文件路径（crt）>;
+    // highlight-next-line
     ssl_certificate_key <证书私钥路径（crt）>;
 
     location / {
+        // highlight-next-line
         proxy_pass http://127.0.0.1:5678;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-Port $server_port;

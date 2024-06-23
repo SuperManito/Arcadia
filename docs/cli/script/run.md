@@ -61,7 +61,7 @@ arcadia run <name/path/url> [--options]
 
   用于实现一些扩展功能，具体请查看下方的文档内容
 
-## 你需要掌握的一些事项
+## 你需要掌握的一些基础概念
 
 ### 关于日志存储
 
@@ -156,7 +156,7 @@ arcadia run example.js -R TEST_CONFIG @ 1,2@3-5
   ```bash title="查看有哪些守护进程正在运行"
   pm2 list
   ```
-  默认有四个项目内置的服务 `web_server` `web_terminal` `inner_server` `tgbot`，请不要删除它们其中的任何一个
+  默认有四个项目内置的服务 `arcadia_server` `arcadia_ttyd` `arcadia_inner` `tgbot`，请不要删除它们其中的任何一个
 
   ```bash title="停止运行"
   pm2 delete <任务名>
