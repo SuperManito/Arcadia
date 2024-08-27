@@ -1,23 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import type { InputRef } from 'antd'
 import { Button, Col, Checkbox, Divider, Flex, Input, InputNumber, Popover, Row, Segmented, Space, Select, Switch, Tooltip, ConfigProvider, theme } from 'antd'
 import { DockerIcon, PodmanIcon, ICON } from '../Icon'
 import CodeBlock from '@theme/CodeBlock'
-import { useColorMode } from '@docusaurus/theme-common'
+import { useColorMode, useWindowSize } from '@docusaurus/theme-common'
 
 export default function CliInstall () {
-  // isMobile
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 996) // 设置移动设备的宽度阈值，这里假设小于等于768px为移动设备
-    }
-    handleResize() // 初始化判断一次
-    window.addEventListener('resize', handleResize) // 监听窗口大小改变事件
-    return () => {
-      window.removeEventListener('resize', handleResize) // 组件卸载时移除事件监听
-    }
-  }, [])
+  const windowSize = useWindowSize()
+  const isMobile = windowSize === 'mobile'
 
   const { colorMode } = useColorMode() // ConfigProvider 主题
   const [type, setType] = useState('docker') // 类型
@@ -173,7 +163,9 @@ ${backupMirrortChecked ? 'registry.cn-hangzhou.aliyuncs.com/' : 'docker.io/'}sup
                 </Col>
               </Row>
             }>
-            <Button type="text" shape="circle" size="small" style={{ padding: '2px' }}><ICON size="18">ic:outline-settings</ICON></Button>
+            <Button type="text" shape="circle" size="small" style={{ padding: '2px' }}>
+              <ICON size="18" style={{ verticalAlign: '-0.2rem' }}>ic:outline-settings</ICON>
+            </Button>
           </Popover>
         </Tooltip>
       </Space>
