@@ -3,7 +3,7 @@ const eventBus = require('./eventBus').task
 const db = require('../db')
 const dbTaskCore = require('../db').task_core
 const dbTasks = require('../db').tasks
-const { rootPath } = require('../file')
+const { APP_ROOT_DIR } = require('../type')
 const { logger } = require('../logger')
 const { exec } = require('child_process')
 
@@ -181,7 +181,7 @@ function taskRunner(shell, config) {
   try {
     // 执行定时任务命令
     // logger.log("触发定时任务", shell)
-    const process = exec(`cd ${rootPath} ; ${shell}`, {
+    const process = exec(`cd ${APP_ROOT_DIR} ; ${shell}`, {
       encoding: 'utf8',
       maxBuffer: 1024 * 1024 * 10, // 10M
     }, config.callback)

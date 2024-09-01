@@ -9,7 +9,7 @@ const core = require('../core/cron/core')
 const db = require('../core/db')
 const dbTasks = require('../core/db').tasks
 const scriptResolve = require('../core/file/scriptResolve')
-const { DIR_KEY } = require('../core/file')
+const { APP_DIR_TYPE, APP_DIR_PATH } = require('../core/type')
 
 /**
  * 获取定时任务列表
@@ -86,7 +86,7 @@ api.get('/', async (request, response) => {
         try {
           const targetDir = task.bind.split('#')[1]
           const targetFile = task.bind.split('#')[2]
-          task.logPath = `/${DIR_KEY.ROOT}${DIR_KEY.LOG}${targetDir}_${targetFile.split('\.')[0]}`
+          task.logPath = `${APP_DIR_PATH.LOG}/${targetDir}_${targetFile.split('\.')[0]}`
         } catch (e) {
           task.logPath = ''
         }
@@ -99,7 +99,7 @@ api.get('/', async (request, response) => {
         try {
           const targetDir = task.bind.split('#')[1]
           const targetFile = task.bind.split('#')[2]
-          task.scriptPath = `/${DIR_KEY.ROOT}${targetDir === 'raw' ? DIR_KEY.RAW : `${DIR_KEY.REPO + targetDir}/`}${targetFile}`
+          task.scriptPath = `${targetDir === APP_DIR_TYPE.RAW ? APP_DIR_PATH.RAW : `${APP_DIR_PATH.REPO}/${targetDir}`}/${targetFile}`
         } catch (e) {
           task.scriptPath = ''
         }
@@ -313,13 +313,13 @@ api.post('/stopRun', async (request, response) => {
  */
 innerCornApi.post('/updateAll', async (request, response) => {
   function toBind(type, s) {
-    let prefix = `/${DIR_KEY.ROOT}${DIR_KEY.REPO}`
+    let prefix = `${APP_DIR_PATH.REPO}/`
     if (s.startsWith(prefix)) {
       s = s.replace(prefix, '')
     }
-    prefix = `/${DIR_KEY.ROOT}${DIR_KEY.RAW}`
+    prefix = `${APP_DIR_PATH.REPO.RAW}/`
     if (s.startsWith(prefix)) {
-      s = s.replace(prefix, DIR_KEY.RAW)
+      s = s.replace(prefix, `${APP_DIR_TYPE.RAW}/`)
     }
     return `${type}#${s.substring(0, s.indexOf('/'))}#${s.substring(s.indexOf('/') + 1)}`
   }

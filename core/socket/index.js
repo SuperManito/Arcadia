@@ -1,8 +1,9 @@
 const { Server } = require('socket.io')
 const jwt = require('jsonwebtoken')
 const { logger } = require('../logger')
-const { CONFIG_FILE_KEY, getJsonFile } = require('../file')
-const authConfig = getJsonFile(CONFIG_FILE_KEY.AUTH)
+const { getJsonFile } = require('../file')
+const { APP_FILE_TYPE } = require('../type')
+const authConfig = getJsonFile(APP_FILE_TYPE.AUTH)
 const jwtSecret = authConfig.jwtSecret
 const getToken = function fromHeaderOrQuerystring(request) {
   if (request.headers.authorization && request.headers.authorization.split(' ')[0] === 'Bearer') {

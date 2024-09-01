@@ -8,7 +8,8 @@ const random = require('string-random')
 const { legacyCreateProxyMiddleware } = require('http-proxy-middleware')
 
 const { API_STATUS_CODE } = require('./core/http')
-const { checkConfigFile, CONFIG_FILE_KEY, getJsonFile, saveNewConf } = require('./core/file')
+const { checkConfigFile, getJsonFile, saveNewConf } = require('./core/file')
+const { APP_FILE_TYPE } = require('./core/type')
 
 /**
  * 初始化定时任务
@@ -35,12 +36,12 @@ function shouldCompress(req, res) {
 }
 
 // 初始化 JWT 密钥
-const authConfig = getJsonFile(CONFIG_FILE_KEY.AUTH)
+const authConfig = getJsonFile(APP_FILE_TYPE.AUTH)
 let jwtSecret = authConfig.jwtSecret
 if (!jwtSecret || jwtSecret === '') {
   jwtSecret = random(32)
   authConfig.jwtSecret = jwtSecret
-  saveNewConf(CONFIG_FILE_KEY.AUTH, authConfig)
+  saveNewConf(APP_FILE_TYPE.AUTH, authConfig)
 }
 const getToken = function fromHeaderOrQuerystring(req) {
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {

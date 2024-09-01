@@ -6,7 +6,8 @@ const { logger } = require('../core/logger')
 const fs = require('fs')
 const path = require('path')
 const multer = require('multer')
-const { getFile, getDirTree, rootPath, DIR_KEY, saveFileByPath, fileRename, getNeatContent, fileDelete, pathCheck, fileDownload, fileMove, authConfigFile, rootPathCheck, fileCreate, fileInfo, getDirectory } = require('../core/file')
+const { getFile, getDirTree, saveFileByPath, fileRename, getNeatContent, fileDelete, pathCheck, fileDownload, fileMove, APP_FILE_PATH, rootPathCheck, fileCreate, fileInfo, getDirectory } = require('../core/file')
+const { APP_ROOT_DIR, APP_DIR_TYPE } = require('../core/type')
 
 const queryOptions = (request) => {
   const type = request.query.type || 'all'
@@ -24,8 +25,8 @@ api.get('/tree', (request, response) => {
   const query = queryOptions(request)
   const type = query.type
   try {
-    if (Object.keys(DIR_KEY).includes(type.toUpperCase()) || type === 'all') {
-      response.send(API_STATUS_CODE.okData(getDirTree(type, type === 'all' ? rootPath : path.join(rootPath, type), query)))
+    if (Object.keys(APP_DIR_TYPE).includes(type.toUpperCase()) || type === 'all') {
+      response.send(API_STATUS_CODE.okData(getDirTree(type, type === 'all' ? APP_ROOT_DIR : path.join(APP_ROOT_DIR, type), query)))
     } else {
       response.send(API_STATUS_CODE.fail('参数错误'))
     }
@@ -57,7 +58,7 @@ api.get('/tree/scripts', (request, response) => {
   try {
     response.send(
       API_STATUS_CODE.okData(
-        getDirTree('repo_scripts', rootPath, {
+        getDirTree('repo_scripts', APP_ROOT_DIR, {
           keywords,
           startTime,
           endTime,
@@ -229,7 +230,7 @@ const upload = multer({
       const savePath = req.query.path
       let originalName = file.originalname
       // 文件操作限制
-      if (path.join(savePath, originalName) === authConfigFile) {
+      if (path.join(savePath, originalName) === APP_FILE_PATH.AUTH) {
         originalName += '.json'
       }
       cb(null, originalName)

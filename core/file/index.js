@@ -7,70 +7,20 @@ const fs = require('fs')
 const os = require('os')
 const archiver = require('archiver')
 const { execSync } = require('child_process')
+const { APP_ROOT_DIR, APP_DIR_TYPE, APP_FILE_TYPE, APP_FILE_NAME, APP_SOURCE_DIR, APP_DIR_PATH, APP_FILE_PATH } = require('../type')
 
-// Enum
-const DIR_NAME = {
-  ROOT: 'arcadia',
-  CONFIG: 'config',
-  SAMPLE: 'sample',
-  SCRIPTS: 'scripts',
-  LOG: 'log',
-  REPO: 'repo',
-  RAW: 'raw',
-  BAK: 'config/bak',
-}
-const DIR_KEY = {
-  ROOT: `${DIR_NAME.ROOT}/`,
-  CONFIG: `${DIR_NAME.CONFIG}/`,
-  SAMPLE: `${DIR_NAME.SAMPLE}/`,
-  SCRIPTS: `${DIR_NAME.SCRIPTS}/`,
-  LOG: `${DIR_NAME.LOG}/`,
-  REPO: `${DIR_NAME.REPO}/`,
-  RAW: `${DIR_NAME.RAW}/`,
-  BAK: `${DIR_NAME.BAK}/`,
-}
-const CONFIG_FILE_KEY = {
-  CONFIG: 'config',
-  AUTH: 'auth',
-}
-
-// 项目根目录
-const rootPath = path.resolve(__dirname, '../../../')
-const srcPath = path.join(__dirname, '../../')
-// 日志目录
-const logPath = path.join(rootPath, DIR_KEY.LOG)
-// 用户配置目录
-const configPath = path.join(rootPath, DIR_KEY.CONFIG)
-// 代码文件目录
-const scriptsPath = path.join(rootPath, DIR_KEY.SCRIPTS)
-// 仓库目录
-const repoPath = path.join(rootPath, DIR_KEY.REPO)
-// 远程代码文件目录
-const rawPath = path.join(rootPath, DIR_KEY.RAW)
-// 底层脚本目录
-const shellPath = path.join(srcPath, 'shell/')
+const canRunCodeFileExtList = ['js', 'mjs', 'cjs', 'py', 'ts', 'go', 'c', 'sh']
 
 // 创建目录
-if (!fs.existsSync(scriptsPath)) {
-  fs.mkdirSync(scriptsPath)
+if (!fs.existsSync(APP_DIR_PATH.SCRIPTS)) {
+  fs.mkdirSync(APP_DIR_PATH.SCRIPTS)
 }
-if (!fs.existsSync(repoPath)) {
-  fs.mkdirSync(repoPath)
+if (!fs.existsSync(APP_DIR_PATH.REPO)) {
+  fs.mkdirSync(APP_DIR_PATH.REPO)
 }
-if (!fs.existsSync(rawPath)) {
-  fs.mkdirSync(rawPath)
+if (!fs.existsSync(APP_DIR_PATH.RAW)) {
+  fs.mkdirSync(APP_DIR_PATH.RAW)
 }
-
-// config.sh 文件路径
-const configFile = path.join(configPath, 'config.sh')
-// env.sh 文件路径，根据数据库存储的用户数据自动生成的配置
-const generateEnvFile = path.join(configPath, 'env.sh')
-// config.sh 文件备份路径
-const confBakDir = path.join(rootPath, DIR_KEY.BAK)
-// auth.json 文件路径
-const authConfigFile = path.join(configPath, 'auth.json')
-// extra_server.js 文件路径
-const extraServerFile = path.join(configPath, 'extra_server.js')
 
 /**
  * 解析参数
@@ -89,7 +39,7 @@ const getOptions = (options) => {
   }
   if (typeof options === 'object') {
     keywords = options.keywords || ''
-    if (options.type && options.type === 'log') {
+    if (options.type && options.type === APP_DIR_TYPE.LOG) {
       startTime = options.startTime || ''
       endTime = options.endTime || ''
     }
@@ -111,32 +61,40 @@ const getDirectory = (dir, query) => {
   const options = getOptions(query)
   const files = fs.readdirSync(dir)
   const dirStats = fs.statSync(dir)
-  const result = { // 构造文件夹数据
+  const result = {
+    // 构造文件夹数据
     path: dir,
     title: path.basename(dir),
     type: 0,
     mTime: dirStats.mtime,
   }
-  result.children = arrayObjectSort('type', files.filter((item) => {
-    const subPath = path.join(dir, item)
-    const stats = fs.statSync(subPath)
-    if (options.isDir && !stats.isDirectory()) {
-      // 非文件夹
-      return false
-    }
-    return !options.excludeRegExp.test(item)
-  }).map((file) => {
-    const subPath = path.join(dir, file)
-    const stats = fs.statSync(subPath)
-    return {
-      path: subPath,
-      name: file,
-      type: stats.isDirectory() ? 0 : 1,
-      mTime: stats.mtime,
-    }
-  }).filter((item) => {
-    return dirQueryAfter(parentDir, item, options)
-  }), true)
+  result.children = arrayObjectSort(
+    'type',
+    files
+      .filter((item) => {
+        const subPath = path.join(dir, item)
+        const stats = fs.statSync(subPath)
+        if (options.isDir && !stats.isDirectory()) {
+          // 非文件夹
+          return false
+        }
+        return !options.excludeRegExp.test(item)
+      })
+      .map((file) => {
+        const subPath = path.join(dir, file)
+        const stats = fs.statSync(subPath)
+        return {
+          path: subPath,
+          name: file,
+          type: stats.isDirectory() ? 0 : 1,
+          mTime: stats.mtime,
+        }
+      })
+      .filter((item) => {
+        return dirQueryAfter(parentDir, item, options)
+      }),
+    true,
+  )
   return result // 返回数据
 }
 
@@ -151,13 +109,11 @@ const dirQueryAfter = (parentDir, item, options) => {
   const path = item.path.replace(parentDir, '')
   const name = item.name
   if (options.type && options.type !== 'log') {
-    return keywords === '' || (path.indexOf(keywords) > -1)
+    return keywords === '' || path.indexOf(keywords) > -1
   }
 
   // 只有日志才匹配时间
-  return (keywords === '' || (path.indexOf(keywords) > -1))
-        && (startTime === '' || fileNameTimeCompare(name, startTime) > -1)
-        && (endTime === '' || fileNameTimeCompare(name, endTime) < 1)
+  return (keywords === '' || path.indexOf(keywords) > -1) && (startTime === '' || fileNameTimeCompare(name, startTime) > -1) && (endTime === '' || fileNameTimeCompare(name, endTime) < 1)
 }
 
 /**
@@ -186,7 +142,8 @@ const getDirTree = (type, dir, query) => {
       const stats = fs.statSync(subPath)
       if (file !== 'node_modules' && !options.excludeRegExp.test(file)) {
         mapDeep[file] = curIndex + 1
-        if (stats.isDirectory()) { // 判断是否为文件夹类型
+        if (stats.isDirectory()) {
+          // 判断是否为文件夹类型
           return getMap(subPath, mapDeep[file]) // 递归读取文件夹
         }
       }
@@ -196,7 +153,8 @@ const getDirTree = (type, dir, query) => {
   getMap(dir, mapDeep[dir])
 
   const readDirs = (dir, folderName) => {
-    const result = { // 构造文件夹数据
+    const result = {
+      // 构造文件夹数据
       path: dir,
       title: path.basename(dir),
       type: 0,
@@ -204,24 +162,31 @@ const getDirTree = (type, dir, query) => {
     }
 
     const files = fs.readdirSync(dir)
-    const children = arrayObjectSort('type', files.filter((item) => {
-      return !options.excludeRegExp.test(item)
-    }).map((file) => {
-      const subPath = path.join(dir, file)
-      const stats = fs.statSync(subPath)
-      if (stats.isDirectory()) {
-        return readDirs(subPath, file)
-      }
-      return {
-        path: subPath,
-        name: file,
-        type: 1,
-        mTime: stats.mtime,
-      }
-    }).filter((item) => {
-      return dirQueryAfter(parentDir, item, options)
-    }), true)
-    if (type === DIR_NAME.LOG) {
+    const children = arrayObjectSort(
+      'type',
+      files
+        .filter((item) => {
+          return !options.excludeRegExp.test(item)
+        })
+        .map((file) => {
+          const subPath = path.join(dir, file)
+          const stats = fs.statSync(subPath)
+          if (stats.isDirectory()) {
+            return readDirs(subPath, file)
+          }
+          return {
+            path: subPath,
+            name: file,
+            type: 1,
+            mTime: stats.mtime,
+          }
+        })
+        .filter((item) => {
+          return dirQueryAfter(parentDir, item, options)
+        }),
+      true,
+    )
+    if (type === APP_DIR_TYPE.LOG) {
       children.sort((a, b) => b.mTime - a.mTime)
     }
     result.children = children
@@ -229,12 +194,12 @@ const getDirTree = (type, dir, query) => {
   }
   if (type === 'repo_scripts' || type === 'all') {
     if (type === 'all') {
-      filesNameArr.push(readDirs(`${dir}/${DIR_NAME.CONFIG}`, `${dir}/${DIR_NAME.CONFIG}`))
-      filesNameArr.push(readDirs(`${srcPath}/${DIR_NAME.SAMPLE}`, `${srcPath}/${DIR_NAME.SAMPLE}`))
+      filesNameArr.push(readDirs(`${dir}/${APP_DIR_TYPE.CONFIG}`, `${dir}/${APP_DIR_TYPE.CONFIG}`))
+      filesNameArr.push(readDirs(`${APP_SOURCE_DIR}/${APP_DIR_TYPE.SAMPLE}`, `${APP_SOURCE_DIR}/${APP_DIR_TYPE.SAMPLE}`))
     }
-    filesNameArr.push(readDirs(`${dir}/${DIR_NAME.SCRIPTS}`, `${dir}/${DIR_NAME.SCRIPTS}`))
-    filesNameArr.push(readDirs(`${dir}/${DIR_NAME.REPO}`, `${dir}/${DIR_NAME.REPO}`))
-    filesNameArr.push(readDirs(`${dir}/${DIR_NAME.RAW}`, `${dir}/${DIR_NAME.RAW}`))
+    filesNameArr.push(readDirs(`${dir}/${APP_DIR_TYPE.SCRIPTS}`, `${dir}/${APP_DIR_TYPE.SCRIPTS}`))
+    filesNameArr.push(readDirs(`${dir}/${APP_DIR_TYPE.REPO}`, `${dir}/${APP_DIR_TYPE.REPO}`))
+    filesNameArr.push(readDirs(`${dir}/${APP_DIR_TYPE.RAW}`, `${dir}/${APP_DIR_TYPE.RAW}`))
   } else {
     filesNameArr.push(readDirs(dir, dir))
   }
@@ -243,10 +208,11 @@ const getDirTree = (type, dir, query) => {
 }
 
 /**
- * 文件名称进行时间对比
+ * 比较文件名中的时间
  * @param fileName 文件名称 yyyy-MM-dd-HH-mm-ss
  * @param time 时间 yyyy-MM-dd hh:mm:ss
- * @return 正数数则 fileName 的时间大 反之则time的时间大
+ * @return {number} 差异时间
+ * @description 结果是正整数则 fileName 的时间大，反之则 time 的时间大
  */
 function fileNameTimeCompare(fileName, time) {
   try {
@@ -259,15 +225,10 @@ function fileNameTimeCompare(fileName, time) {
 }
 
 /**
- * 检查 config/bak/ 备份目录是否存在，不存在则创建
+ * 去除文件内容中携带的命令行 ANSI 转义字符
+ * @param {string} content - 原始内容
+ * @returns {string}
  */
-function mkdirConfigBakDir() {
-  if (!fs.existsSync(confBakDir)) {
-    fs.mkdirSync(confBakDir)
-  }
-}
-
-// 去除文件内容中携带的命令行 ANSI 转义字符
 function getNeatContent(content) {
   if (!content) return content
   const ansiRegex = ({ onlyFirst = false } = {}) => {
@@ -285,28 +246,31 @@ function getNeatContent(content) {
  * 检查 config.sh 以及 config.sample.sh 文件是否存在
  */
 function checkConfigFile() {
-  if (!fs.existsSync(configFile)) {
-    console.error(rootPath)
+  if (!fs.existsSync(APP_FILE_PATH.CONFIG)) {
+    console.error(APP_ROOT_DIR)
     console.error('服务启动失败，config.sh 文件不存在！')
     process.exit(1)
   }
 }
 
 /**
- * 备份 config.sh 文件 并返回旧的文件内容
+ * 备份 config.sh 文件，并返回旧的文件内容
  */
 function bakConfigFile(file) {
-  mkdirConfigBakDir()
+  // 检查 config/bak/ 备份目录是否存在，不存在则创建
+  if (!fs.existsSync(APP_DIR_PATH.CONFIG_BAK)) {
+    fs.mkdirSync(APP_DIR_PATH.CONFIG_BAK)
+  }
   const date = new Date()
-  const bakDir = path.join(confBakDir, getDateStr(date))
+  const bakDir = path.join(APP_DIR_PATH.CONFIG_BAK, getDateStr(date))
   if (!fs.existsSync(bakDir)) {
     fs.mkdirSync(bakDir)
   }
   const bakConfigFile = `${bakDir}/${file}_${dateToFileName(date)}`
   let oldConfContent = ''
   switch (file) {
-    case CONFIG_FILE_KEY.CONFIG:
-      oldConfContent = getFileContentByName(configFile)
+    case APP_FILE_TYPE.CONFIG:
+      oldConfContent = getFileContentByName(APP_FILE_PATH.CONFIG)
       fs.writeFileSync(bakConfigFile, oldConfContent)
       break
     default:
@@ -319,9 +283,9 @@ function checkConfigSave(oldContent) {
   if (os.type() === 'Linux') {
     // 判断格式是否正确
     try {
-      execSync(`bash ${configFile} >${logPath}.check`, { encoding: 'utf8' })
+      execSync(`bash ${APP_FILE_PATH.CONFIG} >${APP_DIR_PATH.LOG}/.check`, { encoding: 'utf8' })
     } catch (e) {
-      fs.writeFileSync(configFile, oldContent)
+      fs.writeFileSync(APP_FILE_PATH.CONFIG, oldContent)
       let errorMsg,
         line
       try {
@@ -334,7 +298,7 @@ function checkConfigSave(oldContent) {
 }
 
 /**
- * 将 post 提交内容写入 config.sh 文件（同时备份旧的 config.sh 文件到 bak 目录）
+ * 将提交内容写入 config.sh 文件（同时备份旧的 config.sh 文件到 bak 目录）
  * @param file
  * @param content
  * @param isBak 是否备份 默认为true
@@ -342,14 +306,10 @@ function checkConfigSave(oldContent) {
 function saveNewConf(file, content, isBak = true) {
   const oldContent = isBak ? bakConfigFile(file) : ''
   switch (file) {
-    case CONFIG_FILE_KEY.CONFIG:
-    case 'config.sh':
-      fs.writeFileSync(configFile, content)
+    case APP_FILE_TYPE.CONFIG:
+    case APP_FILE_NAME.CONFIG:
+      fs.writeFileSync(APP_FILE_PATH.CONFIG, content)
       isBak && checkConfigSave(oldContent)
-      break
-    case CONFIG_FILE_KEY.AUTH:
-    case 'auth.json':
-      fs.writeFileSync(authConfigFile, JSON.stringify(content, null, 2))
       break
     default:
       break
@@ -375,12 +335,9 @@ function getFileContentByName(fileName) {
  */
 function getLastModifyFilePath(dir) {
   let filePath = ''
-
   if (fs.existsSync(dir)) {
     const lastmtime = 0
-
     const arr = fs.readdirSync(dir)
-
     arr.forEach((item) => {
       const fullpath = path.join(dir, item)
       const stats = fs.statSync(fullpath)
@@ -397,16 +354,16 @@ function getLastModifyFilePath(dir) {
 /**
  * 获取文件内容
  * @param fileKey
- * @return string
+ * @return {string}
  */
 function getFile(fileKey) {
   let content = ''
   switch (fileKey) {
-    case CONFIG_FILE_KEY.CONFIG:
-      content = getFileContentByName(configFile)
+    case APP_FILE_TYPE.CONFIG:
+      content = getFileContentByName(APP_FILE_PATH.CONFIG)
       break
-    case CONFIG_FILE_KEY.AUTH:
-      content = getFileContentByName(authConfigFile)
+    case APP_FILE_TYPE.AUTH:
+      content = getFileContentByName(APP_FILE_PATH.AUTH)
       break
     default:
       content = getFileContentByName(fileKey)
@@ -418,81 +375,10 @@ function getFile(fileKey) {
 /**
  * 获取文件内容
  * @param fileKey
- * @return JSON
+ * @return {object}
  */
 function getJsonFile(fileKey) {
   return JSON.parse(getFile(fileKey))
-}
-
-/**
- * 加载日志文件目录
- * @param keywords
- * @return {*[]}
- */
-function loadLogTree(keywords) {
-  const fileList = fs.readdirSync(logPath, 'utf-8')
-  const dirs = []; const rootFiles = []
-  const excludeRegExp = /(.tmp)/
-  fileList.map((name, _index) => {
-    if ((keywords === '' || name.indexOf(keywords) > -1) && !excludeRegExp.test(name)) {
-      const stat = fs.lstatSync(logPath + name)
-      // 是目录，需要继续
-      if (stat.isDirectory()) {
-        const fileListTmp = fs.readdirSync(`${logPath}${name}`, 'utf-8')
-        fileListTmp.reverse()
-        const dirMap = {
-          dirName: name,
-          files: fileListTmp,
-        }
-        dirs.push(dirMap)
-      } else {
-        rootFiles.push(name)
-      }
-    }
-  })
-  dirs.push({
-    dirName: '@',
-    files: rootFiles,
-  })
-  return dirs
-}
-
-function loadFileTree(loadPath, dirName, keywords, onlyRunJs) {
-  let arrFiles = []; const arrDirs = []
-  let excludeRegExp = /(user.session)|(.git)|(.github)|(node_modules)|(icon)/
-  let fileRegExp = /.*?/g
-  if (onlyRunJs) {
-    excludeRegExp = /(.git)|(.github)|(node_modules)|(icon)|(.json)|(.jpg)|(.png)|(.gif)|(.jpeg)/
-    fileRegExp = /(.js)|(.ts)|(.py)/
-  }
-  const files = fs.readdirSync(`${rootPath}/${loadPath}`, { withFileTypes: true })
-  files.map((item, _index) => {
-    const name = item.name
-    const dirPath = `${loadPath}/${name}`
-    const filter = (!excludeRegExp.test(name) && fileRegExp.test(name)) && (keywords === '' || name.indexOf(keywords) > -1)
-    if (filter || item.isDirectory()) {
-      if (item.isDirectory()) {
-        const dirPathFiles = loadFileTree(dirPath, name, keywords, onlyRunJs)
-        if (filter || (keywords !== '' && dirPathFiles.length > 0)) {
-          if (onlyRunJs) {
-            arrFiles = arrFiles.concat(dirPathFiles)
-          } else {
-            arrDirs.push({
-              dirName: name,
-              dirPath,
-              files: dirPathFiles,
-            })
-          }
-        }
-      } else if (!item.isDirectory()) {
-        arrFiles.push({
-          fileName: name,
-          filePath: dirPath,
-        })
-      }
-    }
-  })
-  return arrDirs.concat(arrFiles)
 }
 
 /**
@@ -502,7 +388,7 @@ function loadFileTree(loadPath, dirName, keywords, onlyRunJs) {
  *
  */
 function saveFile(file, content) {
-  fs.writeFileSync(path.join(rootPath, file), content)
+  fs.writeFileSync(path.join(APP_ROOT_DIR, file), content)
 }
 
 /**
@@ -513,11 +399,12 @@ function saveFile(file, content) {
  */
 function saveFileByPath(filePath, content) {
   pathCheck(filePath)
-  if (filePath === configFile) {
-    saveNewConf(CONFIG_FILE_KEY.CONFIG, content, true)
+  if (filePath === APP_FILE_PATH.CONFIG) {
+    saveNewConf(APP_FILE_TYPE.CONFIG, content, true)
     return
   }
-  if (filePath.endsWith('.js') || filePath.endsWith('.sh') || filePath.endsWith('.py') || filePath.endsWith('.ts')) {
+  // 将换行符强制替换为 LF（Unix）
+  if (canRunCodeFileExtList.some((ext) => filePath.endsWith(`.${ext}`))) {
     content = content.replace(/\r\n/g, '\n')
   }
   fs.writeFileSync(filePath, content)
@@ -530,12 +417,12 @@ function saveFileByPath(filePath, content) {
 function rootPathCheck(checkPath) {
   let root = ''
   try {
-    root = rootPath.split('arcadia')[0]
+    root = APP_ROOT_DIR.split(APP_DIR_TYPE.ROOT)[0]
   } catch {
     root = '/'
   }
   if (!checkPath.startsWith(root)) {
-    throw new Error(`目录必须以${root}开头 ${rootPath}`)
+    throw new Error(`目录 ${checkPath} 必须以${root}为开头命名`)
   }
 }
 
@@ -546,9 +433,9 @@ function rootPathCheck(checkPath) {
 function pathCheck(checkPath) {
   rootPathCheck(checkPath)
   if (!fs.existsSync(checkPath)) {
-    throw new Error('文件(夹)不存在')
+    throw new Error('文件（夹）不存在')
   }
-  if (authConfigFile === path.join(checkPath)) {
+  if (APP_FILE_PATH.AUTH === path.join(checkPath)) {
     throw new Error('该文件无法进行操作')
   }
 }
@@ -690,41 +577,24 @@ function fileInfo(filePath) {
 }
 
 module.exports = {
-  generateEnvFile,
   pathCheck,
   rootPathCheck,
   saveFileByPath,
   getDirTree,
   getDirectory,
-  DIR_KEY,
+  getNeatContent,
   fileRename,
   fileDelete,
   fileDownload,
   fileMove,
   fileCreate,
   fileInfo,
-  mkdirConfigBakDir,
-  getNeatContent,
-  checkConfigFile,
-  bakConfigFile,
   saveFile,
-  checkConfigSave,
   saveNewConf,
+  checkConfigSave,
+  checkConfigFile,
   getFileContentByName,
   getLastModifyFilePath,
   getFile,
-  CONFIG_FILE_KEY,
-  loadLogTree,
-  loadFileTree,
   getJsonFile,
-  rootPath,
-  srcPath,
-  logPath,
-  scriptsPath,
-  configPath,
-  shellPath,
-  extraServerFile,
-  configFile,
-  confBakDir,
-  authConfigFile,
 }

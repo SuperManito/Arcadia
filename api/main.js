@@ -10,14 +10,15 @@ const path = require('path')
 const fs = require('fs')
 const { errorCount } = require('../core')
 const socketCommon = require('../core/socket/common')
-const { rootPath, saveNewConf, getFileContentByName, getLastModifyFilePath, CONFIG_FILE_KEY, getJsonFile, getNeatContent, DIR_KEY } = require('../core/file')
+const { saveNewConf, getFileContentByName, getLastModifyFilePath, getJsonFile, getNeatContent } = require('../core/file')
+const { APP_ROOT_DIR, APP_DIR_TYPE, APP_FILE_TYPE } = require('../core/type')
 const taskRunning = {}
 
 /**
  * 登录是否显示验证码
  */
 api.get('/captcha/flag', (request, response) => {
-  const con = getJsonFile(CONFIG_FILE_KEY.AUTH)
+  const con = getJsonFile(APP_FILE_TYPE.AUTH)
   const authErrorCount = con.authErrorCount || 0
   response.send(API_STATUS_CODE.okData({ showCaptcha: authErrorCount >= errorCount }))
 })
@@ -37,9 +38,9 @@ api.get('/captcha', (req, res) => {
     background,
   }
   const captcha = svgCaptcha.create(options)
-  const con = getJsonFile(CONFIG_FILE_KEY.AUTH)
+  const con = getJsonFile(APP_FILE_TYPE.AUTH)
   con.captcha = captcha.text.toLowerCase() // 小写
-  saveNewConf(CONFIG_FILE_KEY.AUTH, con, false)
+  saveNewConf(APP_FILE_TYPE.AUTH, con, false)
   res.type('svg')
   res.status(200).send(captcha.data)
 })
@@ -48,7 +49,7 @@ api.get('/captcha', (req, res) => {
  * 调用命令执行
  */
 api.post('/runCmd', (request, response) => {
-  const cmd = `cd ${rootPath};${request.body.cmd}`
+  const cmd = `cd ${APP_ROOT_DIR};${request.body.cmd}`
   const name = 'runLog'
   const runId = random(16)
   try {
@@ -102,7 +103,7 @@ api.get('/runCmdStatus', (request, response) => {
  * 停止任务
  */
 api.post('/stopTask', (request, response) => {
-  const cmd = `cd ${rootPath}; arcadia stop ${request.body.path}`
+  const cmd = `cd ${APP_ROOT_DIR}; arcadia stop ${request.body.path}`
   // console.log('before exec');
   // exec maxBuffer 20MB
   exec(cmd, {
@@ -143,18 +144,18 @@ api.get('/runLog', (request, response) => {
   if (jsName.indexOf('.') > -1) {
     jsName = jsName.substring(0, jsName.lastIndexOf('.'))
   }
-  let pathUrl = `${DIR_KEY.LOG}${jsName}/`
-  if (jsName.startsWith(DIR_KEY.SCRIPTS)) {
+  let pathUrl = `${APP_DIR_TYPE.LOG}/${jsName}/`
+  if (jsName.startsWith(`${APP_DIR_TYPE.SCRIPTS}/`)) {
     jsName = jsName.substring(jsName.indexOf('/') + 1)
-    pathUrl = `${DIR_KEY.LOG}${jsName}/`
-  } else if (jsName.startsWith(DIR_KEY.REPO)) {
+    pathUrl = `${APP_DIR_TYPE.LOG}/${jsName}/`
+  } else if (jsName.startsWith(`${APP_DIR_TYPE.REPO}/`)) {
     jsName = jsName.substring(jsName.indexOf('/') + 1)
-    pathUrl = `${DIR_KEY.LOG}${jsName.replace(new RegExp('[/\\-]', 'gm'), '_')}/`
-  } else if (!fs.existsSync(path.join(rootPath, pathUrl))) {
-    pathUrl = `${DIR_KEY.LOG}${jsName}/`
+    pathUrl = `${APP_DIR_TYPE.LOG}/${jsName.replace(new RegExp('[/\\-]', 'gm'), '_')}/`
+  } else if (!fs.existsSync(path.join(APP_ROOT_DIR, pathUrl))) {
+    pathUrl = `${APP_DIR_TYPE.LOG}/${jsName}/`
   }
   const logFile = getLastModifyFilePath(
-    path.join(rootPath, pathUrl),
+    path.join(APP_ROOT_DIR, pathUrl),
   )
 
   if (logFile) {

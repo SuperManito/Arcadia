@@ -5,28 +5,29 @@ const { logger } = require('../core/logger')
 
 const fs = require('fs')
 const util = require('../core/utils')
-const { extraServerFile, getJsonFile, CONFIG_FILE_KEY } = require('../core/file')
+const { getJsonFile } = require('../core/file')
+const { APP_FILE_TYPE, APP_FILE_PATH } = require('../core/type')
 
 // 调用自定义接口
-if (fs.existsSync(extraServerFile)) {
+if (fs.existsSync(APP_FILE_PATH.EXTRA_SERVER)) {
   try {
-    require.resolve(extraServerFile)
-    const extraApi = require(extraServerFile)
+    require.resolve(APP_FILE_PATH.EXTRA_SERVER)
+    const extraApi = require(APP_FILE_PATH.EXTRA_SERVER)
     if (typeof extraApi === 'function') {
       extraApi(api, API_STATUS_CODE, logger)
-      logger.info('用户 Open Api 模块初始化成功')
+      logger.info('用户 Open API 自定义模块初始化成功')
     } else {
-      logger.error('用户 Open Api 模块初始化失败', '未导出函数')
+      logger.error('用户 Open API 自定义模块初始化失败', '未导出函数')
     }
   } catch (e) {
-    logger.error('用户 Open Api 模块初始化失败', e)
+    logger.error('用户 Open API 自定义模块初始化失败', e)
   }
 }
 
 module.exports.openAPI = api
 module.exports.tokenChecker = function (req) {
   // open
-  const authFileJson = getJsonFile(CONFIG_FILE_KEY.AUTH)
+  const authFileJson = getJsonFile(APP_FILE_TYPE.AUTH)
   let token = req.headers['api-token']
   if (!token || token === '') {
     // 取URL中的TOKEN
