@@ -435,6 +435,7 @@ function pathCheck(checkPath) {
   if (!fs.existsSync(checkPath)) {
     throw new Error('文件（夹）不存在')
   }
+  // 文件操作限制（认证文件保护）
   if (APP_FILE_PATH.AUTH === path.join(checkPath)) {
     throw new Error('该文件无法进行操作')
   }

@@ -6,8 +6,8 @@ const { logger } = require('../core/logger')
 const fs = require('fs')
 const path = require('path')
 const multer = require('multer')
-const { getFile, getDirTree, saveFileByPath, fileRename, getNeatContent, fileDelete, pathCheck, fileDownload, fileMove, APP_FILE_PATH, rootPathCheck, fileCreate, fileInfo, getDirectory } = require('../core/file')
-const { APP_ROOT_DIR, APP_DIR_TYPE } = require('../core/type')
+const { getFile, getDirTree, saveFileByPath, fileRename, getNeatContent, fileDelete, pathCheck, fileDownload, fileMove, rootPathCheck, fileCreate, fileInfo, getDirectory } = require('../core/file')
+const { APP_ROOT_DIR, APP_DIR_TYPE, APP_FILE_PATH } = require('../core/type')
 
 const queryOptions = (request) => {
   const type = request.query.type || 'all'
@@ -226,10 +226,9 @@ const upload = multer({
     filename(req, file, cb) {
       // 解决中文名乱码的问题
       file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8')
-
       const savePath = req.query.path
       let originalName = file.originalname
-      // 文件操作限制
+      // 文件操作限制（认证文件保护）
       if (path.join(savePath, originalName) === APP_FILE_PATH.AUTH) {
         originalName += '.json'
       }
