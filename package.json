@@ -8,7 +8,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@prisma/client": "^5.13.0",
+    "@prisma/client": "^5.19.1",
     "archiver": "^7.0.1",
     "axios": "^1.6.8",
     "body-parser": "^1.20.2",
@@ -23,8 +23,8 @@
     "jsonwebtoken": "^9.0.2",
     "log4js": "^6.9.1",
     "multer": "^1.4.5-lts.1",
-    "prisma": "^5.13.0",
-    "prisma-extension-pagination": "^0.7.3",
+    "prisma": "^5.19.1",
+    "prisma-extension-pagination": "^0.7.4",
     "socket.io": "^4.7.5",
     "sqlite3": "^5.1.7",
     "string-random": "^0.1.3",

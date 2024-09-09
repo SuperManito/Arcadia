@@ -1,16 +1,9 @@
 const { PrismaClient } = require('@prisma/client')
 const { pagination } = require('prisma-extension-pagination')
 const { logger } = require('../logger')
-const debug = process.env.DEBUG_SQL === 'true'
+const debug = process.env.ARCADIA_SQL_DEBUG === 'true'
 
 const prisma = new PrismaClient()
-prisma.$use(async (params, next) => {
-  const before = Date.now()
-  const result = await next(params)
-  const after = Date.now()
-  debug && logger.info(`Query ${params.model}.${params.action} 用时 ${after - before}ms,${JSON.stringify(params.args || {})}`)
-  return result
-})
 // eslint-disable-next-line no-extend-native
 BigInt.prototype.toJSON = function () {
   return this.toString()
@@ -19,6 +12,17 @@ const prisma1 = prisma
   .$extends(pagination())
   .$extends({
     name: 'db',
+    query: {
+      $allModels: {
+        $allOperations({ model, operation, args, query }) {
+          const before = Date.now()
+          const result = query(args)
+          const after = Date.now()
+          debug && logger.info(`Query ${model}.${operation} 用时 ${after - before}ms,${JSON.stringify(args || {})}`)
+          return result
+        },
+      },
+    },
     model: {
       $allModels: {
         clean(o) {
