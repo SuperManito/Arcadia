@@ -311,6 +311,9 @@ function saveNewConf(file, content, isBak = true) {
       fs.writeFileSync(APP_FILE_PATH.CONFIG, content)
       isBak && checkConfigSave(oldContent)
       break
+    case APP_FILE_TYPE.AUTH:
+      fs.writeFileSync(APP_FILE_PATH.AUTH, JSON.stringify(content, null, 2))
+      break
     default:
       break
   }
