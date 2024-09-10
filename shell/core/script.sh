@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-20
+## Modified: 2024-09-10
 
 ## 查找代码文件
 # 通过各种判断将得到的必要信息传给接下来运行的函数或命令
@@ -75,15 +75,22 @@ function find_script() {
         if [ -n "${FileName}" ] && [ -n "${FileDir}" ]; then
             ## 添加依赖文件
             check_moudules $FileDir
+            local primary_path secondary_path
             ## 定义日志路径
             if [[ $(echo ${absolute_path} | awk -F '/' '{print$3}') == "repo" ]]; then
-                LogPath="$LogDir/$(echo ${absolute_path} | awk -F '/' '{print$4}')_${FileName}"
+                primary_path="$(echo ${absolute_path} | awk -F '/' '{print$4}')"
+                secondary_path="${FileName}"
+                LogPath="${LogDir}/${primary_path}/${secondary_path}"
+                make_dir "${LogDir}/${primary_path}"
             elif [[ $(echo ${absolute_path} | awk -F '/' '{print$3}') == "raw" ]]; then
-                LogPath="$LogDir/raw_${FileName}"
+                primary_path="raw"
+                secondary_path="${FileName}"
+                LogPath="${LogDir}/${primary_path}/${secondary_path}"
+                make_dir "${LogDir}/${primary_path}"
             else
-                LogPath="$LogDir/${FileName}"
+                LogPath="${LogDir}/${FileName}"
             fi
-            make_dir ${LogPath}
+            make_dir "${LogPath}"
         else
             output_error "在 ${BLUE}${absolute_path%/*}${PLAIN} 目录未检测到 ${BLUE}${absolute_path##*/}${PLAIN} 代码文件的存在，请重新确认！"
         fi
