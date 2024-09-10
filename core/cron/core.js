@@ -3,6 +3,7 @@ const eventBus = require('./eventBus').task
 const db = require('../db')
 const dbTaskCore = require('../db').task_core
 const dbTasks = require('../db').tasks
+const { APP_ROOT_DIR } = require('../type')
 const { logger } = require('../logger')
 const { execShell } = require('../cmd')
 
@@ -121,9 +122,32 @@ async function runTask(taskId) {
     // logger.error(`任务 ${taskId} 不存在`)
     throw new Error('任务不存在')
   }
+  // 解析高级配置
+  try {
+    task.config = JSON.parse(task.config)
+  } catch {
+    task.config = {}
+  }
+  if (typeof task.config?.beforeTaskShell !== 'string') {
+    task.config.beforeTaskShell = ''
+  }
+  if (typeof task.config?.afterTaskShell !== 'string') {
+    task.config.afterTaskShell = ''
+  }
+  const { beforeTaskShell, afterTaskShell } = task.config
+  if (task.active <= 0) {
+    // logger.log("触发定时任务", task.shell, "（PASS，原因：已被禁用）")
+    return
+  }
   if (runningTask[taskId]) {
     // 任务正在运行中
     return
+  }
+  if (beforeTaskShell) {
+    task.shell = `cd ${APP_ROOT_DIR} ; ${beforeTaskShell} ; ${task.shell}`
+  }
+  if (afterTaskShell) {
+    task.shell = `${task.shell} ; cd ${APP_ROOT_DIR} ; ${afterTaskShell}`
   }
   // logger.log('主动执行任务', task.shell)
   runningTask[taskId] = task // 将任务添加到正在运行的列表
@@ -173,13 +197,35 @@ async function onCronTask(taskId) {
     await dbTaskCore.$deleteById(`T_${taskId}`)
     return
   }
+  // 解析高级配置
+  try {
+    task.config = JSON.parse(task.config)
+  } catch {
+    task.config = {}
+  }
+  if (typeof task.config?.beforeTaskShell !== 'string') {
+    task.config.beforeTaskShell = ''
+  }
+  if (typeof task.config?.afterTaskShell !== 'string') {
+    task.config.afterTaskShell = ''
+  }
+  if (typeof task.config?.allowConcurrency !== 'boolean') {
+    task.config.allowConcurrency = false
+  }
+  const { beforeTaskShell, afterTaskShell, allowConcurrency } = task.config
   if (task.active <= 0) {
     // logger.log("触发定时任务", task.shell, "（PASS，原因：已被禁用）")
     return
   }
-  if (runningTask[taskId]) {
+  if (runningTask[taskId] && !allowConcurrency) {
     // logger.log('触发定时任务', task.shell, '（PASS，原因：正在运行）')
     return
+  }
+  if (beforeTaskShell) {
+    task.shell = `cd ${APP_ROOT_DIR} ; ${beforeTaskShell} ; ${task.shell}`
+  }
+  if (afterTaskShell) {
+    task.shell = `${task.shell} ; cd ${APP_ROOT_DIR} ; ${afterTaskShell}`
   }
   // logger.log('触发定时任务', task.shell)
   runningTask[taskId] = task // 将任务添加到正在运行的列表
