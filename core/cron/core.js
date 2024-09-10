@@ -10,13 +10,13 @@ const { exec } = require('child_process')
 const runningTask = {} // 正在运行的任务信息
 const runningInstance = {} // 正在运行的任务实例（child_process）
 
-/**
- * 将定时字符串中的月份减一
- *
- * @deprecated
- * @param {string} cron 定时字符串
- * @returns {string} 减一后的定时字符串
- */
+// /**
+//  * 将定时字符串中的月份减一
+//  *
+//  * @deprecated
+//  * @param {string} cron 定时字符串
+//  * @returns {string} 减一后的定时字符串
+//  */
 // function decreaseMonth (cron) {
 //   const parts = cron.split(' ')
 //   let month = parts.length === 6 ? parts[4] : parts[3]
@@ -132,7 +132,7 @@ async function runTask(taskId) {
   runningInstance[taskId] = taskRunner(task.shell, {
     callback: (error, stdout, _stderr) => {
       if (error) {
-        logger.warn('任务异常', task.shell, '➜', error.toString().substring(stdout.length - 1000))
+        logger.warn('定时任务异常', task.shell, '➜', error.toString().substring(stdout.length - 1000))
       }
     },
     onExit: (_code) => {
@@ -159,9 +159,26 @@ async function runTask(taskId) {
 function stopTask(taskId) {
   const task = runningInstance[taskId]
   if (task) {
-    task.kill('SIGKILL')
-    delete runningInstance[taskId]
-    // logger.log(`定时任务 ${taskId} 已被终止`)
+    let isExited = false
+    let elapsedTime = 0
+
+    task.kill('SIGTERM')
+    task.once('exit', (_code, signal) => {
+      if (signal === 'SIGTERM' || signal === 'SIGKILL') {
+        delete runningInstance[taskId]
+        isExited = true
+        // logger.log(`定时任务 ${taskId} 已被终止`);
+      }
+    })
+    const checkInterval = setInterval(() => {
+      elapsedTime += 1000
+      if (isExited || elapsedTime >= 30000) {
+        clearInterval(checkInterval) // 清除定时器（已终止或超时）
+      } else if (runningInstance[taskId]) {
+        task.kill('SIGKILL') // 强制终止
+        // logger.log(`定时任务 ${taskId} 已被强制终止`);
+      }
+    }, 1000) // 每秒检查一次
   }
 }
 
