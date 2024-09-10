@@ -1,0 +1,1 @@
+import{ay as l,cI as b,cp as m}from"./vendor-191e7315.js";const D=Symbol();function k(F,c=!0){const{on:t,off:i,reset:r,emit:s}=l(D);let e,f;function a(o,{wait:n=150,immediate:p=!1,isPassPars:y=!0}={}){e=m(o,n),f=()=>{e()},t(y?e:()=>{e()}),p&&s()}function u(o){const n=o||e||f;n&&i(n)}return b(()=>{c&&u()}),{on:a,off:u,reset:r,emit:s}}export{k as u};

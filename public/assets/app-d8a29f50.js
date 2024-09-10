@@ -1,0 +1,1 @@
+import{aJ as a,a3 as o,aC as n,ah as t}from"./vendor-191e7315.js";const r={style:{display:"inline-block"},viewBox:"0 0 24 24",width:"1em",height:"1em"};function l(s,e){return o(),n("svg",r,e[0]||(e[0]=[t("path",{fill:"currentColor",d:"M17.51 3.87L15.73 2.1L5.84 12l9.9 9.9l1.77-1.77L9.38 12z"},null,-1)]))}const c=a({name:"ic-sharp-arrow-back-ios",render:l});export{c as _};
