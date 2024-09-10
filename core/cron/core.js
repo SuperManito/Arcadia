@@ -3,9 +3,8 @@ const eventBus = require('./eventBus').task
 const db = require('../db')
 const dbTaskCore = require('../db').task_core
 const dbTasks = require('../db').tasks
-const { APP_ROOT_DIR } = require('../type')
 const { logger } = require('../logger')
-const { exec } = require('child_process')
+const { execShell } = require('../cmd')
 
 const runningTask = {} // 正在运行的任务信息
 const runningInstance = {} // 正在运行的任务实例（child_process）
@@ -128,27 +127,7 @@ async function runTask(taskId) {
   }
   // logger.log('主动执行任务', task.shell)
   runningTask[taskId] = task // 将任务添加到正在运行的列表
-  const date = new Date()
-  runningInstance[taskId] = taskRunner(task.shell, {
-    callback: (error, stdout, _stderr) => {
-      if (error) {
-        logger.warn('定时任务异常', task.shell, '➜', error.toString().substring(stdout.length - 1000))
-      }
-    },
-    onExit: (_code) => {
-      delete runningTask[taskId]
-      delete runningInstance[taskId]
-      dbTasks.update({
-        where: {
-          id: taskId,
-        },
-        data: {
-          last_runtime: date,
-          last_run_use: (new Date().getTime() - date.getTime()) / 1000,
-        },
-      }).catch((_e) => {})
-    },
-  })
+  runningInstance[taskId] = handleCronTaskRun(task)
 }
 
 /**
@@ -183,44 +162,6 @@ function stopTask(taskId) {
 }
 
 /**
- * 执行shell
- *
- * @param {string} shell
- * @param {{
- * callback:(error:any,stdout:string,stderr:string)=>?,
- * onChange:function(data:{},type:'stdout'|'stderr')?,
- * onExit:function(code:number)?,
- * onException:function(error)?
- * }?} config
- * @return child_process.ChildProcess
- */
-function taskRunner(shell, config) {
-  try {
-    // 执行定时任务命令
-    // logger.log("触发定时任务", shell)
-    const process = exec(`cd ${APP_ROOT_DIR} ; ${shell}`, {
-      encoding: 'utf8',
-      maxBuffer: 1024 * 1024 * 10, // 10M
-    }, config.callback)
-    if (config.onExit) {
-      process.on('exit', config.onExit)
-    }
-    const onChange = config.onChange
-    if (onChange) {
-      process.stdout.on('data', (data) => onChange(data, 'stdout'))
-      process.stderr.on('data', (data) => onChange(data, 'stderr'))
-    }
-    return process
-  } catch (e) {
-    try {
-      config.onException && config.onException(e)
-    } finally {
-      config.onExit && config.onExit(1)
-    }
-  }
-}
-
-/**
  * tasks表回调
  *
  * @param {number} taskId
@@ -242,8 +183,19 @@ async function onCronTask(taskId) {
   }
   // logger.log('触发定时任务', task.shell)
   runningTask[taskId] = task // 将任务添加到正在运行的列表
+  runningInstance[taskId] = handleCronTaskRun(task)
+  return runningInstance[taskId]
+}
+
+/**
+ * 处理定时任务运行
+ *
+ * @param {object} task - 任务对象
+ * @returns {Promise<void>}
+ */
+function handleCronTaskRun(task) {
   const date = new Date()
-  runningInstance[taskId] = taskRunner(task.shell, {
+  return execShell(task.shell, {
     callback: (error, stdout, _stderr) => {
       // if (stdout) {
       //   logger.debug(`#${taskId}:`, stdout)
@@ -258,12 +210,12 @@ async function onCronTask(taskId) {
     onExit: (_code) => {
       // 任务结束后的回调
       // logger.log(`定时任务 ${taskId} 运行完毕`)
-      delete runningTask[taskId]
-      delete runningInstance[taskId]
+      delete runningTask[task.id]
+      delete runningInstance[task.id]
       // 更新数据库对应任务的最后运行时间和其运行时长
       dbTasks.update({
         where: {
-          id: taskId,
+          id: task.id,
         },
         data: {
           last_runtime: date,
@@ -272,7 +224,6 @@ async function onCronTask(taskId) {
       }).catch((_e) => {})
     },
   })
-  return runningInstance[taskId]
 }
 
 /**
