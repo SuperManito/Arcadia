@@ -86,7 +86,7 @@ api.get('/', async (request, response) => {
         try {
           const targetDir = task.bind.split('#')[1]
           const targetFile = task.bind.split('#')[2]
-          task.logPath = `${APP_DIR_PATH.LOG}/${targetDir}_${targetFile.split('\.')[0]}`
+          task.logPath = `${APP_DIR_PATH.LOG}/${targetDir}/${targetFile.split('\.')[0]}`
         } catch (e) {
           task.logPath = ''
         }
