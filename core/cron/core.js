@@ -128,13 +128,13 @@ async function runTask(taskId) {
   } catch {
     task.config = {}
   }
-  if (typeof task.config?.beforeTaskShell !== 'string') {
-    task.config.beforeTaskShell = ''
+  if (typeof task.config?.before_task_shell !== 'string') {
+    task.config.before_task_shell = ''
   }
-  if (typeof task.config?.afterTaskShell !== 'string') {
-    task.config.afterTaskShell = ''
+  if (typeof task.config?.after_task_shell !== 'string') {
+    task.config.after_task_shell = ''
   }
-  const { beforeTaskShell, afterTaskShell } = task.config
+  const { before_task_shell, after_task_shell } = task.config
   if (task.active <= 0) {
     // logger.log("触发定时任务", task.shell, "（PASS，原因：已被禁用）")
     return
@@ -143,11 +143,11 @@ async function runTask(taskId) {
     // 任务正在运行中
     return
   }
-  if (beforeTaskShell) {
-    task.shell = `cd ${APP_ROOT_DIR} ; ${beforeTaskShell} ; ${task.shell}`
+  if (before_task_shell) {
+    task.shell = `cd ${APP_ROOT_DIR} ; ${before_task_shell} ; ${task.shell}`
   }
-  if (afterTaskShell) {
-    task.shell = `${task.shell} ; cd ${APP_ROOT_DIR} ; ${afterTaskShell}`
+  if (after_task_shell) {
+    task.shell = `${task.shell} ; cd ${APP_ROOT_DIR} ; ${after_task_shell}`
   }
   // logger.log('主动执行任务', task.shell)
   runningTask[taskId] = task // 将任务添加到正在运行的列表
@@ -203,29 +203,29 @@ async function onCronTask(taskId) {
   } catch {
     task.config = {}
   }
-  if (typeof task.config?.beforeTaskShell !== 'string') {
-    task.config.beforeTaskShell = ''
+  if (typeof task.config?.before_task_shell !== 'string') {
+    task.config.before_task_shell = ''
   }
-  if (typeof task.config?.afterTaskShell !== 'string') {
-    task.config.afterTaskShell = ''
+  if (typeof task.config?.after_task_shell !== 'string') {
+    task.config.after_task_shell = ''
   }
-  if (typeof task.config?.allowConcurrency !== 'boolean') {
-    task.config.allowConcurrency = false
+  if (typeof task.config?.allow_concurrency !== 'boolean') {
+    task.config.allow_concurrency = false
   }
-  const { beforeTaskShell, afterTaskShell, allowConcurrency } = task.config
+  const { before_task_shell, after_task_shell, allow_concurrency } = task.config
   if (task.active <= 0) {
     // logger.log("触发定时任务", task.shell, "（PASS，原因：已被禁用）")
     return
   }
-  if (runningTask[taskId] && !allowConcurrency) {
+  if (runningTask[taskId] && !allow_concurrency) {
     // logger.log('触发定时任务', task.shell, '（PASS，原因：正在运行）')
     return
   }
-  if (beforeTaskShell) {
-    task.shell = `cd ${APP_ROOT_DIR} ; ${beforeTaskShell} ; ${task.shell}`
+  if (before_task_shell) {
+    task.shell = `cd ${APP_ROOT_DIR} ; ${before_task_shell} ; ${task.shell}`
   }
-  if (afterTaskShell) {
-    task.shell = `${task.shell} ; cd ${APP_ROOT_DIR} ; ${afterTaskShell}`
+  if (after_task_shell) {
+    task.shell = `${task.shell} ; cd ${APP_ROOT_DIR} ; ${after_task_shell}`
   }
   // logger.log('触发定时任务', task.shell)
   runningTask[taskId] = task // 将任务添加到正在运行的列表
