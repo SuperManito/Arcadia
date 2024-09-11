@@ -78,30 +78,30 @@ api.get('/', async (request, response) => {
       }
     })
     // 当前运行状态
-    tasks.data.forEach((task) => (task.isRunning = !!core.runningTask[task.id]))
+    tasks.data.forEach((task) => (task.is_running = !!core.runningTask[task.id]))
     // 日志路径（临时）
     tasks.data.forEach((task) => {
-      task.logPath = ''
+      task.log_path = ''
       if (task.bind && task.bind.startsWith('system#') && task.last_runtime) {
         try {
           const targetDir = task.bind.split('#')[1]
           const targetFile = task.bind.split('#')[2]
-          task.logPath = `${APP_DIR_PATH.LOG}/${targetDir}/${targetFile.split('\.')[0]}`
+          task.log_path = `${APP_DIR_PATH.LOG}/${targetDir}/${targetFile.split('\.')[0]}`
         } catch (e) {
-          task.logPath = ''
+          task.log_path = ''
         }
       }
     })
     // 代码文件（临时）
     tasks.data.forEach((task) => {
-      task.scriptPath = ''
+      task.script_path = ''
       if (task.bind && task.bind.startsWith('system#')) {
         try {
           const targetDir = task.bind.split('#')[1]
           const targetFile = task.bind.split('#')[2]
-          task.scriptPath = `${targetDir === APP_DIR_TYPE.RAW ? APP_DIR_PATH.RAW : `${APP_DIR_PATH.REPO}/${targetDir}`}/${targetFile}`
+          task.script_path = `${targetDir === APP_DIR_TYPE.RAW ? APP_DIR_PATH.RAW : `${APP_DIR_PATH.REPO}/${targetDir}`}/${targetFile}`
         } catch (e) {
-          task.scriptPath = ''
+          task.script_path = ''
         }
       }
     })
