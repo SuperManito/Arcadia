@@ -1,7 +1,7 @@
 const { CronJob } = require('cron')
 
 const id2Task = {}
-const CronTimeZone = 'Asia/Shanghai'
+const CronTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai'
 
 /**
  * 设置定时任务
