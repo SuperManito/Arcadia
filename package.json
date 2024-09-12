@@ -46,6 +46,7 @@
     "@docusaurus/types": "^3.5.2",
     "@tsconfig/docusaurus": "^2.0.3",
     "@types/node": "^22.5.4",
+    "@types/prismjs": "^1.26.4",
     "@types/react": "^18.3.5",
     "@typescript-eslint/eslint-plugin": "^7.13.1",
     "commitizen": "^4.3.0",
@@ -58,6 +59,7 @@
     "eslint-plugin-promise": "^6.2.0",
     "eslint-plugin-react": "^7.34.3",
     "husky": "^9.1.5",
+    "prismjs": "^1.29.0",
     "typescript": "~5.5.4"
   },
   "browserslist": {
