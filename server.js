@@ -139,18 +139,46 @@ app.use('/api/open/extra', openApiMiddleware, ExtraOpenAPI) // 用户自定义�
 app.use('/api/open/env', openApiMiddleware, require('./api/env').OpenAPI)
 app.use('/api/open/cron', openApiMiddleware, require('./api/cron').OpenAPI)
 // app.use('/api/open/notify', openApiMiddleware, require('./api/notify').OpenAPI)
+app.use('/api/open/*', (err, req, res, next) => {
+  if (err && err?.name === 'SyntaxError') {
+    return res.status(400).send(API_STATUS_CODE.fail(API_STATUS_CODE.OPEN_API.SYNTAX_ERROR.message, API_STATUS_CODE.OPEN_API.SYNTAX_ERROR.code))
+  }
+  next(err)
+})
+app.use('/api/open/*', (req, res) => {
+  return res.status(404).send(API_STATUS_CODE.fail(API_STATUS_CODE.OPEN_API.NOT_FOUND.message, API_STATUS_CODE.OPEN_API.NOT_FOUND.code))
+})
 
 /**
  * API
  */
-app.use(sessionMiddleware) // JWT 认证中间件
-app.use((err, req, res, next) => {
-  if (err.name === 'UnauthorizedError') {
-    res.send(API_STATUS_CODE.fail(API_STATUS_CODE.API.AUTH_FAIL.message, API_STATUS_CODE.API.AUTH_FAIL.code))
-  } else if (err.name === 'SyntaxError') {
-    res.send(API_STATUS_CODE.fail(API_STATUS_CODE.API.SYNTAX_ERROR.message, API_STATUS_CODE.API.SYNTAX_ERROR.code))
+// JWT 认证中间件
+app.use(sessionMiddleware, (err, req, res, next) => {
+  if (err) {
+    let type
+    let statusCode
+    switch (err?.name) {
+      case 'UnauthorizedError':
+        if (err.message === 'No authorization token was found') {
+          type = 'NO_AUTH'
+          statusCode = 401
+        } else {
+          type = 'AUTH_FAIL'
+          statusCode = 403
+        }
+        break
+      case 'SyntaxError':
+        type = 'SYNTAX_ERROR'
+        statusCode = 400
+        break
+      default:
+        type = 'INTERNAL_ERROR'
+        statusCode = 500
+        break
+    }
+    return res.status(statusCode).send(API_STATUS_CODE.fail(API_STATUS_CODE.API[type].message, API_STATUS_CODE.API[type].code))
   } else {
-    next(err)
+    next()
   }
 })
 app.use('/api', require('./api/main').API)
@@ -169,8 +197,8 @@ const { setSocket } = require('./core/socket/common')
 setSocket(require('./core/socket')(server, sessionMiddleware))
 
 /**
-  * 未匹配的路由
-  */
+ * 未匹配的路由
+ */
 app.use('*', (req, res) => {
   res.send(API_STATUS_CODE.fail(API_STATUS_CODE.API.SYNTAX_ERROR.message, API_STATUS_CODE.API.SYNTAX_ERROR.code))
 })

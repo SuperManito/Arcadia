@@ -51,7 +51,7 @@ function tokenChecker(req) {
 function openApiMiddleware(req, res, next) {
   const failResult = tokenChecker(req)
   if (failResult) {
-    return res.send(failResult)
+    return res.send(API_STATUS_CODE.fail(failResult.message, failResult.code))
   }
   next()
 }
