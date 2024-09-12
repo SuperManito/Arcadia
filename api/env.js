@@ -354,6 +354,32 @@ apiOpen.get('/v1/queryMember', async (request, response) => {
   }
 })
 
+apiOpen.get('/v1/queryById', async (request, response) => {
+  try {
+    // 传参校验
+    validateParams(request, [
+      ['query', 'category', [true, ['ordinary', 'composite', 'composite_value']]],
+      ['query', 'id', [true, 'string']],
+    ])
+    const { category, id } = request.query
+    if (!/^\d+$/.test(id) || parseInt(id) <= 0) {
+      throw new Error('参数 id 无效（参数值类型错误）')
+    }
+    const record = await db[category === 'composite' ? 'envs_group' : 'envs'].$getById(id)
+    if (!record) {
+      throw new Error('变量不存在')
+    }
+    // 查询复合变量组的成员数量
+    if (category === 'composite') {
+      const envs_result = await db.envs.$list({ group_id: record.id }) || []
+      record.envs = envs_result.length
+    }
+    response.send(API_STATUS_CODE.okData(record))
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
 api.post('/save', async (request, response) => {
   try {
     const env = request.body
