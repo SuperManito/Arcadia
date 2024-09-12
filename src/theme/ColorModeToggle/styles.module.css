@@ -1,0 +1,110 @@
+.toggle {
+  width: 2rem;
+  height: 2rem;
+}
+
+.toggleButton {
+  -webkit-tap-highlight-color: transparent;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transition: background var(--ifm-transition-fast);
+}
+
+.toggleButton:hover {
+  background: var(--ifm-color-emphasis-200);
+}
+
+[data-theme='light'] .darkToggleIcon,
+[data-theme='dark'] .lightToggleIcon {
+  display: none;
+}
+
+.toggleButtonDisabled {
+  cursor: not-allowed;
+}
+
+@keyframes light-to-dark {
+  from {
+    clip-path: polygon(0 0,
+        0 0,
+        calc(tan(8deg) * -100vh) 100%,
+        calc(tan(8deg) * -100vh) 100%);
+  }
+
+  to {
+    clip-path: polygon(0 0,
+        calc((tan(8deg) * 100vh) + 100%) 0,
+        100% 100%,
+        calc(tan(8deg) * -100vh) 100%);
+  }
+}
+
+@keyframes dark-to-light {
+  from {
+    clip-path: polygon(calc((tan(8deg) * 100vh) + 100%) 0,
+        calc((tan(8deg) * 100vh) + 100%) 0,
+        100% 100%,
+        100% 100%);
+  }
+
+  to {
+    clip-path: polygon(0 0,
+        calc((tan(8deg) * 100vh) + 100%) 0,
+        100% 100%,
+        calc(tan(8deg) * -100vh) 100%);
+  }
+}
+
+:root::view-transition-group(root) {
+  animation-duration: 1s;
+}
+
+:root::view-transition-new(root),
+:root::view-transition-old(root) {
+  mix-blend-mode: normal;
+}
+
+:root::view-transition-old(root),
+:root[data-theme='dark']::view-transition-old(root) {
+  animation: none;
+}
+
+:root::view-transition-new(root) {
+  animation-name: dark-to-light;
+}
+
+:root[data-theme='dark']::view-transition-new(root) {
+  animation-name: light-to-dark;
+}
+
+/* 移动端专有动画效果 */
+@media (max-width: 996px) {
+  @keyframes light-to-dark {
+    from {
+      clip-path: circle(0% at 50% 0%);
+    }
+
+    to {
+      clip-path: circle(150% at 50% 0%);
+    }
+  }
+
+  @keyframes dark-to-light {
+    from {
+      clip-path: circle(0% at 50% 0%);
+    }
+
+    to {
+      clip-path: circle(150% at 50% 0%);
+    }
+  }
+
+  :root::view-transition-group(root) {
+    animation-duration: 1s;
+    animation-timing-function: cubic-bezier(.32, .72, 0, 1);
+  }
+}

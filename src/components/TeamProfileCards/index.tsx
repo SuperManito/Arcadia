@@ -58,9 +58,6 @@ export function ActiveTeamRow (): JSX.Element {
         <TeamProfileCardCol name="Super Manito" githubUrl="https://github.com/SuperManito">
             项目创始人，全栈开发者兼总设计师。熟悉使用众多编程语言，他不仅人长得帅敲代码也很厉害~
         </TeamProfileCardCol>
-        {/* <TeamProfileCardCol name="Dellear" githubUrl="https://github.com/Dellear">
-            前端开发者，前端工程师。
-        </TeamProfileCardCol> */}
         <TeamProfileCardCol name="mzzsfy" githubUrl="https://github.com/mzzsfy">
             后端开发者，架构工程师。
         </TeamProfileCardCol>

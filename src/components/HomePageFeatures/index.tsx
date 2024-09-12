@@ -12,7 +12,7 @@ const FeatureList = [
     Svg: require('@site/static/img/HomePageFeatures/MdiNoteEditOutline.svg').default,
     description: (
       <>
-        支持对文件内容进行在线编辑，编辑器采用自为 <Icon icon="vscode-icons:file-type-vscode" height="20" style={{ verticalAlign: '-0.15em' }}></Icon> <b><Link href="https://github.com/microsoft/vscode" target="_blank" rel="noreferrer">Visual Studio Code</Link></b> 提供支持的 <b><Link href="https://microsoft.github.io/monaco-editor" target="_blank" rel="noreferrer">Monaco Editor</Link></b>，并且经过了我们的高度定制，提供众多语言解释器支持。
+        支持对文件内容进行在线编辑，编辑器采用自为 <Icon icon="vscode-icons:file-type-vscode" height="20" style={{ verticalAlign: '-0.15em' }}></Icon> <b><Link href="https://github.com/microsoft/vscode" target="_blank" rel="noreferrer">VS Code</Link></b> 提供支持的 <b><Link href="https://microsoft.github.io/monaco-editor" target="_blank" rel="noreferrer">Monaco Editor</Link></b>，并且经过了我们的高度定制，提供众多语言解释器支持。
       </>
     ),
   },
