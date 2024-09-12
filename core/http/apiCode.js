@@ -29,13 +29,13 @@ const API_STATUS_CODE = {
     }
   },
   API: {
-    NEED_LOGIN: {
-      code: 403,
+    NO_AUTH: {
+      code: 401,
       message: '请先登录',
     },
-    NO_PERMISSION: {
-      code: 401,
-      message: '无访问权限',
+    AUTH_FAIL: {
+      code: 403,
+      message: '认证失败',
     },
     SYNTAX_ERROR: {
       code: 400,
@@ -43,17 +43,16 @@ const API_STATUS_CODE = {
     },
   },
   OPEN_API: {
+    NO_AUTH: {
+      code: 4401,
+      message: '请提供令牌',
+    },
     AUTH_FAIL: {
       code: 4403,
       type: '认证失败',
     },
-    NOT_OPEN: {
-      code: 4406,
-      type: '调用失败',
-      message: '请提供令牌',
-    },
     SYNTAX_ERROR: {
-      code: 400,
+      code: 4400,
       message: '请求错误',
     },
   },

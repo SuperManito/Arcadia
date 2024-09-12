@@ -1000,5 +1000,7 @@ async function checkVaribleExsit(name) {
   }
 }
 
-module.exports.API = api
-module.exports.OpenAPI = apiOpen
+module.exports = {
+  API: api,
+  OpenAPI: apiOpen,
+}

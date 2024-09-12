@@ -8,47 +8,55 @@ const util = require('../core/utils')
 const { getJsonFile } = require('../core/file')
 const { APP_FILE_TYPE, APP_FILE_PATH } = require('../core/type')
 
-// 调用自定义接口
+// 加载用户自定义接口
 if (fs.existsSync(APP_FILE_PATH.EXTRA_SERVER)) {
   try {
     require.resolve(APP_FILE_PATH.EXTRA_SERVER)
     const extraApi = require(APP_FILE_PATH.EXTRA_SERVER)
     if (typeof extraApi === 'function') {
       extraApi(api, API_STATUS_CODE, logger)
-      logger.info('用户 Open API 自定义模块初始化成功')
+      logger.info('用户 OpenAPI 自定义模块初始化成功')
     } else {
-      logger.error('用户 Open API 自定义模块初始化失败', '未导出函数')
+      logger.error('用户 OpenAPI 自定义模块初始化失败（未导出函数）')
     }
   } catch (e) {
-    logger.error('用户 Open API 自定义模块初始化失败', e)
+    logger.error(`用户 OpenAPI 自定义模块初始化失败（${JSON.stringify(e.message || e)}）`)
   }
 }
 
-module.exports.openAPI = api
-module.exports.tokenChecker = function (req) {
-  // open
-  const authFileJson = getJsonFile(APP_FILE_TYPE.AUTH)
-  let token = req.headers['api-token']
-  if (!token || token === '') {
-    // 取URL中的TOKEN
-    token = req.query['api-token']
-  }
-  if (util.isNotEmpty(authFileJson.openApiToken)) {
-    if (token && token !== '' && token === authFileJson.openApiToken) {
-      return null
-    } else {
+/**
+ * 鉴权
+ */
+function tokenChecker(req) {
+  try {
+    // 从 Header 和 URL 参数中提取 Token
+    let token = req.headers['api-token']
+    if (!token || token === '') {
+      token = req.query['api-token']
+    }
+    if (!token) {
+      return API_STATUS_CODE.OPEN_API.NO_AUTH
+    }
+    const openApiToken = (getJsonFile(APP_FILE_TYPE.AUTH) || {})?.openApiToken
+    if (!util.isNotEmpty(openApiToken)) {
       return API_STATUS_CODE.OPEN_API.AUTH_FAIL
     }
-  } else {
-    return API_STATUS_CODE.OPEN_API.NOT_OPEN
-  }
+    if (token === openApiToken) {
+      return null // 认证通过
+    }
+  } catch {}
+  return API_STATUS_CODE.OPEN_API.AUTH_FAIL
 }
-module.exports.openApiHandler = function (req, res, next) {
-  // open
-  const fail = module.exports.tokenChecker(req)
-  if (fail) {
-    res.send(fail)
-    return
+
+function openApiMiddleware(req, res, next) {
+  const failResult = tokenChecker(req)
+  if (failResult) {
+    return res.send(failResult)
   }
   next()
+}
+
+module.exports = {
+  ExtraOpenAPI: api,
+  openApiMiddleware,
 }

@@ -40,9 +40,10 @@ const userAgentTools = {
 }
 
 /**
- * @getClientIP
- * @desc 获取用户 ip 地址
- * @param {Object} req - 请求
+ * 获取用户 ip 地址
+ *
+ * @param {object} req - 请求
+ * @returns {string} ip
  */
 function getClientIP(req) {
   let ip = req.headers['x-forwarded-for']
@@ -69,7 +70,7 @@ async function ip2Address(ip) {
       url: 'http://ip.360.cn/IPShare/info',
       parmas: { ip },
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/128.0.0.0',
         'Content-Type': 'application/x-www-form-urlencoded',
         Referer: 'http://ip.360.cn/',
       },

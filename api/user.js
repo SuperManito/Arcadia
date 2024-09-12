@@ -123,4 +123,6 @@ api.get('/logout', (request, response) => {
   response.send(API_STATUS_CODE.ok())
 })
 
-module.exports.userAPI = api
+module.exports = {
+  API: api,
+}

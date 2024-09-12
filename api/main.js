@@ -167,4 +167,6 @@ api.get('/runLog', (request, response) => {
   }
 })
 
-module.exports.mainAPI = api
+module.exports = {
+  API: api,
+}

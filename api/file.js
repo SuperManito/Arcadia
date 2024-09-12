@@ -262,4 +262,6 @@ api.post('/upload/multi', upload.array('file'), (request, response) => {
   response.send(API_STATUS_CODE.ok(fileList))
 })
 
-module.exports.fileAPI = api
+module.exports = {
+  API: api,
+}

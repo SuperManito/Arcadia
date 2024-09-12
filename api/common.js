@@ -9,4 +9,6 @@ api.get('/health', async (request, response) => {
   response.send(API_STATUS_CODE.okData(true))
 })
 
-module.exports.commonAPI = api
+module.exports = {
+  API: api,
+}

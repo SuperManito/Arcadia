@@ -1,7 +1,7 @@
 const express = require('express')
 const api = express()
 const apiOpen = express()
-const innerCornApi = express()
+const apiInner = express()
 const { API_STATUS_CODE } = require('../core/http')
 const { logger } = require('../core/logger')
 
@@ -581,7 +581,7 @@ apiOpen.post('/v1/terminate', async (request, response) => {
 /**
  * 批量更新定时任务（底层专用）
  */
-innerCornApi.post('/updateAll', async (request, response) => {
+apiInner.post('/updateAll', async (request, response) => {
   function toBind(type, s) {
     let prefix = `${APP_DIR_PATH.REPO}/`
     if (s.startsWith(prefix)) {
@@ -691,6 +691,8 @@ innerCornApi.post('/updateAll', async (request, response) => {
   }
 })
 
-module.exports.cronAPI = api
-module.exports.OpenAPI = apiOpen
-module.exports.innerCornApi = innerCornApi
+module.exports = {
+  API: api,
+  OpenAPI: apiOpen,
+  InnerAPI: apiInner,
+}

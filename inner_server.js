@@ -25,7 +25,7 @@ innerApp.use(bodyParser.urlencoded({
   limit: '50mb',
   extended: true,
 }))
-innerApp.use('/inner/cron', require('./api/cron').innerCornApi)
+innerApp.use('/inner/cron', require('./api/cron').InnerAPI)
 
 innerServer.listen(15678, '127.0.0.1', () => {
   console.log('Arcadia Inner Server is running...')

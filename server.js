@@ -11,6 +11,9 @@ const { API_STATUS_CODE } = require('./core/http')
 const { checkConfigFile, getJsonFile, saveNewConf } = require('./core/file')
 const { APP_FILE_TYPE } = require('./core/type')
 
+// 检查配置文件是否存在
+checkConfigFile()
+
 /**
  * 初始化定时任务
  */
@@ -112,52 +115,52 @@ app.use(
           jwt.verify(token, jwtSecret, (err, _decoded) => {
             if (err) {
               // JWT 验证失败
-              res.send(API_STATUS_CODE.fail(API_STATUS_CODE.API.NEED_LOGIN.message, API_STATUS_CODE.API.NEED_LOGIN.code))
+              res.send(API_STATUS_CODE.fail(API_STATUS_CODE.API.AUTH_FAIL.message, API_STATUS_CODE.API.AUTH_FAIL.code))
             } else {
               // JWT 验证成功
               proxyReq.setHeader('Authorization', token) // 将 token 传递给目标服务器
             }
           })
         } else {
-          res.send(API_STATUS_CODE.fail(API_STATUS_CODE.API.NEED_LOGIN.message, API_STATUS_CODE.API.NEED_LOGIN.code))
+          res.send(API_STATUS_CODE.fail(API_STATUS_CODE.API.NO_AUTH.message, API_STATUS_CODE.API.NO_AUTH.code))
         }
       },
     },
   }),
 )
 
-// 下方涉及到处理接口认证的中间件函数，请勿随意调整顺序
+// 下方涉及到处理接口认证的中间件函数，不得随意调整顺序
 
 /**
- * Open Api
+ * OpenAPI
  */
-const { openAPI, openApiHandler } = require('./api/open')
-app.use('/api/open', openApiHandler, openAPI)
-app.use('/api/open/env', openApiHandler, require('./api/env').OpenAPI)
-app.use('/api/open/cron', openApiHandler, require('./api/cron').OpenAPI)
-// app.use('/api/open/notify', openApiHandler, require('./api/notify').OpenAPI)
+const { ExtraOpenAPI, openApiMiddleware } = require('./api/open')
+app.use('/api/open/extra', openApiMiddleware, ExtraOpenAPI) // 用户自定义接口
+app.use('/api/open/env', openApiMiddleware, require('./api/env').OpenAPI)
+app.use('/api/open/cron', openApiMiddleware, require('./api/cron').OpenAPI)
+// app.use('/api/open/notify', openApiMiddleware, require('./api/notify').OpenAPI)
 
 /**
- * Api
+ * API
  */
 app.use(sessionMiddleware) // JWT 认证中间件
 app.use((err, req, res, next) => {
   if (err.name === 'UnauthorizedError') {
-    res.send(API_STATUS_CODE.fail(API_STATUS_CODE.API.NEED_LOGIN.message, API_STATUS_CODE.API.NEED_LOGIN.code))
+    res.send(API_STATUS_CODE.fail(API_STATUS_CODE.API.AUTH_FAIL.message, API_STATUS_CODE.API.AUTH_FAIL.code))
   } else if (err.name === 'SyntaxError') {
     res.send(API_STATUS_CODE.fail(API_STATUS_CODE.API.SYNTAX_ERROR.message, API_STATUS_CODE.API.SYNTAX_ERROR.code))
   } else {
     next(err)
   }
 })
-app.use('/api', require('./api/main').mainAPI)
-app.use('/api/file', require('./api/file').fileAPI)
-app.use('/api/user', require('./api/user').userAPI)
+app.use('/api', require('./api/main').API)
+app.use('/api/file', require('./api/file').API)
+app.use('/api/user', require('./api/user').API)
 app.use('/api/env', require('./api/env').API)
-app.use('/api/cron', require('./api/cron').cronAPI)
-app.use('/api/common', require('./api/common').commonAPI)
-// app.use('/api/config', require('./api/config').configAPI)
+app.use('/api/cron', require('./api/cron').API)
+app.use('/api/common', require('./api/common').API)
 // app.use('/api/notify', require('./api/notify').API)
+// app.use('/api/config', require('./api/config').API)
 
 /**
  * Web Socket 接口
@@ -172,7 +175,6 @@ app.use('*', (req, res) => {
   res.send(API_STATUS_CODE.fail(API_STATUS_CODE.API.SYNTAX_ERROR.message, API_STATUS_CODE.API.SYNTAX_ERROR.code))
 })
 
-checkConfigFile()
 server.listen(5678, '0.0.0.0', () => {
   console.log('Arcadia Server is running...')
 })
