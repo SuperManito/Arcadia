@@ -65,6 +65,15 @@ function getClientIP(req) {
  */
 async function ip2Address(ip) {
   try {
+    // 是否为局域网
+    const localIpRegex = /^(10\.\d{1,3}\.\d{1,3}\.\d{1,3})|(172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})|(192\.168\.\d{1,3}\.\d{1,3})$/
+    if (localIpRegex.test(ip)) {
+      return {
+        ip,
+        address: '局域网',
+      }
+    }
+    // 通过互联网在线查询
     const { data } = await request({
       method: 'GET',
       url: 'http://ip.360.cn/IPShare/info',
@@ -84,7 +93,7 @@ async function ip2Address(ip) {
       }
     }
   } catch (e) {
-    logger.error('IP转换物理地址失败', e)
+    logger.error('IP地理位置查询失败', e)
   }
   return {
     ip,
