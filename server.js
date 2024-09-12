@@ -14,8 +14,8 @@ const { APP_FILE_TYPE } = require('./core/type')
 /**
  * 初始化定时任务
  */
-const cronCore = require('./core/cron/core')
-cronCore.cronInit()
+const CronCore = require('./core/cron/core')
+CronCore.cronJobInit()
 
 const app = express()
 const server = require('http').createServer(app)

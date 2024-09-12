@@ -5,9 +5,8 @@ const innerCornApi = express()
 const { API_STATUS_CODE } = require('../core/http')
 const { logger } = require('../core/logger')
 
-const cron = require('cron')
+const { validateCronExpression } = require('../core/cron/engine')
 const core = require('../core/cron/core')
-const db = require('../core/db')
 const dbTasks = require('../core/db').tasks
 const scriptResolve = require('../core/file/scriptResolve')
 const { APP_DIR_TYPE, APP_DIR_PATH } = require('../core/type')
@@ -220,17 +219,13 @@ api.post('/', async (request, response) => {
   try {
     const task = Object.assign({}, request.body, { create_time: new Date() })
     delete task.id
-    try {
-      // eslint-disable-next-line no-new
-      new cron.CronTime(task.cron)
-    } catch (e) {
-      throw new Error(`定时规则错误：${e.message || e}`)
-    }
+    // 校验定时规则
+    validateCronExpression(task.cron)
     const createResult = await dbTasks.$create(task)
     response.send(API_STATUS_CODE.okData(createResult))
     logger.info('添加定时任务', JSON.stringify(task))
     await core.fixOrder()
-    await core.fixCron(createResult.id)
+    await core.applyCron(createResult.id)
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -264,12 +259,7 @@ apiOpen.post('/v1/create', async (request, response) => {
       task.config = Object.keys(config).length === 0 ? '' : JSON.stringify(config) // 转为字符串
     }
     // 校验定时规则
-    try {
-      // eslint-disable-next-line no-new
-      new cron.CronTime(task.cron)
-    } catch (e) {
-      throw new Error(`定时规则错误：${e.message || e}`)
-    }
+    validateCronExpression(task.cron)
     // 补齐参数
     Object.assign(task, {
       type: 'user', // 只允许创建用户任务
@@ -280,7 +270,7 @@ apiOpen.post('/v1/create', async (request, response) => {
     response.send(API_STATUS_CODE.okData(createResult))
     logger.info('添加定时任务', JSON.stringify(task))
     await core.fixOrder()
-    await core.fixCron(createResult.id)
+    await core.applyCron(createResult.id)
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -301,14 +291,8 @@ api.put('/', async (request, response) => {
       delete task.orderBy
       delete task.bind
       delete task.create_time
-      if (task.cron) {
-        try {
-          // eslint-disable-next-line no-new
-          new cron.CronTime(task.cron)
-        } catch (e) {
-          return response.send(API_STATUS_CODE.fail(`定时规则错误：${e.message || e}`))
-        }
-      }
+      // 校验定时规则
+      validateCronExpression(task.cron)
     }
     const results = []
     const needFixCronIds = []
@@ -330,7 +314,7 @@ api.put('/', async (request, response) => {
     const result = results.every(Boolean)
     response.send(API_STATUS_CODE.okData(result))
     if (needFixCronIds.length > 0) {
-      await core.fixCron(needFixCronIds)
+      await core.applyCron(needFixCronIds)
     }
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -373,19 +357,14 @@ apiOpen.post('/v1/update', async (request, response) => {
       task.config = Object.keys(config).length === 0 ? '' : JSON.stringify(config) // 转为字符串
     }
     // 校验定时规则
-    try {
-      // eslint-disable-next-line no-new
-      new cron.CronTime(task.cron)
-    } catch (e) {
-      throw new Error(`定时规则错误：${e.message || e}`)
-    }
+    validateCronExpression(task.cron)
     // 操作数据库
     const res = await dbTasks.update({ data: task, where: { id: task.id } })
     response.send(API_STATUS_CODE.okData(res))
     logger.info('修改定时任务', JSON.stringify(task))
     // 定时规则变更，重新加载定时任务
     if (task && task.cron && record.cron !== task.cron) {
-      await core.fixCron(task.id)
+      await core.applyCron(task.id)
     }
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -409,7 +388,7 @@ api.delete('/', async (request, response) => {
     if (res) {
       logger.info('删除定时任务', ids.join(','))
       await core.fixOrder()
-      await core.fixCron(ids)
+      await core.applyCron(ids)
     }
   } catch (e) {
     logger.error(e)
@@ -440,7 +419,7 @@ apiOpen.post('/v1/delete', async (request, response) => {
     if (res) {
       logger.info('删除定时任务', ids.join(','))
       await core.fixOrder()
-      await core.fixCron(ids)
+      await core.applyCron(ids)
     }
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -504,26 +483,11 @@ apiOpen.post('/v1/order', async (request, response) => {
 })
 
 /**
- * 查询bind组
+ * 获取标签列表
  */
-async function handleGetBindGroup() {
-  return await db.$queryRaw`
-    SELECT bind, COUNT(*) AS count
-    FROM (
-      SELECT SUBSTR(
-        bind, 
-        INSTR(bind, '#') + 1,
-        INSTR(SUBSTR(bind, INSTR(bind, '#') + 1), '#') - 1
-      ) AS bind
-      FROM tasks
-    )
-    GROUP BY bind
-  `
-}
-
 api.get('/bindGroup', async (request, response) => {
   try {
-    response.send(API_STATUS_CODE.okData(await handleGetBindGroup()))
+    response.send(API_STATUS_CODE.okData(await core.getBindGroup()))
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -531,7 +495,7 @@ api.get('/bindGroup', async (request, response) => {
 
 apiOpen.get('/v1/tagsList', async (request, response) => {
   try {
-    response.send(API_STATUS_CODE.okData(await handleGetBindGroup()))
+    response.send(API_STATUS_CODE.okData(await core.getBindGroup()))
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -664,7 +628,7 @@ innerCornApi.post('/updateAll', async (request, response) => {
           })
         }
       }
-      await core.fixCron(deleteIds)
+      await core.applyCron(deleteIds)
     }
 
     // 新增
@@ -677,7 +641,7 @@ innerCornApi.post('/updateAll', async (request, response) => {
       })
       const deleteIds = deleteTask.map((s) => s.id)
       await dbTasks.$deleteById(deleteIds)
-      await core.fixCron(deleteIds)
+      await core.applyCron(deleteIds)
       // 插入定时任务
       for (const item of newFiles) {
         try {
@@ -718,7 +682,7 @@ innerCornApi.post('/updateAll', async (request, response) => {
 
     await core.fixOrder()
     if (createdIds.length > 0) {
-      await core.fixCron(createdIds)
+      await core.applyCron(createdIds)
     }
     response.send(API_STATUS_CODE.okData(infos))
   } catch (e) {
