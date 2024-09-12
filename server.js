@@ -134,6 +134,7 @@ app.use(
 const { openAPI, openApiHandler } = require('./api/open')
 app.use('/api/open', openApiHandler, openAPI)
 app.use('/api/open/env', openApiHandler, require('./api/env').OpenAPI)
+app.use('/api/open/cron', openApiHandler, require('./api/cron').OpenAPI)
 // app.use('/api/open/notify', openApiHandler, require('./api/notify').OpenAPI)
 
 /**
@@ -152,10 +153,10 @@ app.use((err, req, res, next) => {
 app.use('/api', require('./api/main').mainAPI)
 app.use('/api/file', require('./api/file').fileAPI)
 app.use('/api/user', require('./api/user').userAPI)
+app.use('/api/env', require('./api/env').API)
 app.use('/api/cron', require('./api/cron').cronAPI)
 app.use('/api/common', require('./api/common').commonAPI)
 app.use('/api/config', require('./api/config').configAPI)
-app.use('/api/env', require('./api/env').API)
 // app.use('/api/notify', require('./api/notify').API)
 
 /**

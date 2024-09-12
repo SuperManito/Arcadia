@@ -7,7 +7,7 @@ const { APP_ROOT_DIR } = require('../type')
 const { logger } = require('../logger')
 const { execShell } = require('../cmd')
 
-const runningTask = {} // 正在运行的任务信息
+const runningTasks = {} // 正在运行的任务信息
 const runningInstance = {} // 正在运行的任务实例（child_process）
 
 // /**
@@ -139,7 +139,7 @@ async function runTask(taskId) {
     // logger.log("触发定时任务", task.shell, "（PASS，原因：已被禁用）")
     return
   }
-  if (runningTask[taskId]) {
+  if (runningTasks[taskId]) {
     // 任务正在运行中
     return
   }
@@ -150,7 +150,7 @@ async function runTask(taskId) {
     task.shell = `${task.shell} ; cd ${APP_ROOT_DIR} ; ${after_task_shell}`
   }
   // logger.log('主动执行任务', task.shell)
-  runningTask[taskId] = task // 将任务添加到正在运行的列表
+  runningTasks[taskId] = task // 将任务添加到正在运行的列表
   runningInstance[taskId] = handleCronTaskRun(task)
 }
 
@@ -159,7 +159,7 @@ async function runTask(taskId) {
  *
  * @param {number} taskId
 */
-function stopTask(taskId) {
+function terminateTask(taskId) {
   const task = runningInstance[taskId]
   if (task) {
     let isExited = false
@@ -217,7 +217,7 @@ async function onCronTask(taskId) {
     // logger.log("触发定时任务", task.shell, "（PASS，原因：已被禁用）")
     return
   }
-  if (runningTask[taskId] && !allow_concurrency) {
+  if (runningTasks[taskId] && !allow_concurrency) {
     // logger.log('触发定时任务', task.shell, '（PASS，原因：正在运行）')
     return
   }
@@ -228,7 +228,7 @@ async function onCronTask(taskId) {
     task.shell = `${task.shell} ; cd ${APP_ROOT_DIR} ; ${after_task_shell}`
   }
   // logger.log('触发定时任务', task.shell)
-  runningTask[taskId] = task // 将任务添加到正在运行的列表
+  runningTasks[taskId] = task // 将任务添加到正在运行的列表
   runningInstance[taskId] = handleCronTaskRun(task)
   return runningInstance[taskId]
 }
@@ -256,7 +256,7 @@ function handleCronTaskRun(task) {
     onExit: (_code) => {
       // 任务结束后的回调
       // logger.log(`定时任务 ${taskId} 运行完毕`)
-      delete runningTask[task.id]
+      delete runningTasks[task.id]
       delete runningInstance[task.id]
       // 更新数据库对应任务的最后运行时间和其运行时长
       dbTasks.update({
@@ -306,9 +306,9 @@ async function deleteTaskJob(taskId) {
 
 module.exports = {
   cronInit,
+  runningTasks,
   runTask,
-  stopTask,
-  runningTask,
+  terminateTask,
   /**
    * 设置定时任务
    *

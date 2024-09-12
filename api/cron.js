@@ -1,5 +1,6 @@
 const express = require('express')
 const api = express()
+const apiOpen = express()
 const innerCornApi = express()
 const { API_STATUS_CODE } = require('../core/http')
 const { logger } = require('../core/logger')
@@ -10,6 +11,7 @@ const db = require('../core/db')
 const dbTasks = require('../core/db').tasks
 const scriptResolve = require('../core/file/scriptResolve')
 const { APP_DIR_TYPE, APP_DIR_PATH } = require('../core/type')
+const { validateParams, validateObject, cleanProperties } = require('../core/utils')
 
 /**
  * 获取定时任务列表
@@ -25,7 +27,7 @@ api.get('/', async (request, response) => {
     delete filter.order
     const where = filter
     const or = []
-    // 标签过滤（任务名称 bindGroup）
+    // 任务标签过滤
     if (tags.length > 0) {
       tags.forEach((tag) => {
         or.push({ tags: { contains: tag } })
@@ -68,44 +70,144 @@ api.get('/', async (request, response) => {
       page: request.query.page,
       size: request.query.size,
     })
-    // 创建时间
-    // eslint-disable-next-line no-return-assign
-    tasks.data.forEach((task) => task.create_time = new Date(task.create_time))
-    // 上次运行时间
+    // 格式化数据
     tasks.data.forEach((task) => {
+      // 创建时间
+      if (task.create_time) {
+        task.create_time = new Date(task.create_time)
+      }
+      // 上次运行时间
       if (task.last_runtime) {
         task.last_runtime = new Date(task.last_runtime)
       }
-    })
-    // 当前运行状态
-    tasks.data.forEach((task) => (task.is_running = !!core.runningTask[task.id]))
-    // 日志路径（临时）
-    tasks.data.forEach((task) => {
+      // 当前运行状态
+      task.is_running = !!core.runningTasks[task.id]
+      // 日志路径与代码文件（临时）
       task.log_path = ''
-      if (task.bind && task.bind.startsWith('system#') && task.last_runtime) {
-        try {
-          const targetDir = task.bind.split('#')[1]
-          const targetFile = task.bind.split('#')[2]
-          task.log_path = `${APP_DIR_PATH.LOG}/${targetDir}/${targetFile.split('\.')[0]}`
-        } catch (e) {
-          task.log_path = ''
-        }
-      }
-    })
-    // 代码文件（临时）
-    tasks.data.forEach((task) => {
       task.script_path = ''
       if (task.bind && task.bind.startsWith('system#')) {
         try {
-          const targetDir = task.bind.split('#')[1]
-          const targetFile = task.bind.split('#')[2]
+          // eslint-disable-next-line no-unused-vars
+          const [_type, targetDir, targetFile] = task.bind.split('#')
+          if (task.last_runtime) {
+            try {
+              task.log_path = `${APP_DIR_PATH.LOG}/${targetDir}/${targetFile.split('.')[0]}`
+            } catch {
+              task.log_path = ''
+            }
+          }
           task.script_path = `${targetDir === APP_DIR_TYPE.RAW ? APP_DIR_PATH.RAW : `${APP_DIR_PATH.REPO}/${targetDir}`}/${targetFile}`
-        } catch (e) {
+        } catch {
+          task.log_path = ''
           task.script_path = ''
         }
       }
     })
+    // 返回数据
     response.send(API_STATUS_CODE.okData(tasks))
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+apiOpen.get('/v1/page', async (request, response) => {
+  try {
+    // 传参校验
+    validateParams(request, [
+      ['query', 'type', [false, ['user', 'system']]],
+      ['query', 'active', [false, ['1', '0']]],
+    ])
+    const active = request.query.active ? request.query.active.split(',') : []
+    const tags = request.query.tags ? request.query.tags.split(',').map((s) => s.trim()).filter((s) => s) : []
+    const filter = Object.assign({}, request.query)
+    delete filter.active
+    delete filter.tags
+    delete filter.orderBy
+    delete filter.order
+    const where = filter
+    const or = []
+    // 任务标签过滤
+    if (tags.length > 0) {
+      tags.forEach((tag) => {
+        or.push({ tags: { contains: tag } })
+      })
+    }
+    // 启用/禁用状态过滤
+    if (active.length > 0) {
+      active.forEach((active) => {
+        or.push({ active: { equals: parseInt(active) } })
+      })
+    }
+    // 搜索过滤
+    if (request.query.search) {
+      where.AND = {
+        OR: [
+          { name: { contains: request.query.search } },
+          { shell: { contains: request.query.search } },
+        ],
+      }
+    }
+    if (or.length > 0) {
+      where.OR = or
+    }
+    for (const fieldsKey in dbTasks.fields) {
+      if (where[fieldsKey]) {
+        where[fieldsKey] = { contains: where[fieldsKey] }
+      }
+    }
+    // 排序
+    const orderBy = request.query.orderBy || 'sort'
+    let desc = true // desc 降序，asc 升序
+    if (request.query.order === '0') {
+      desc = false // 0 升序，1 降序
+    }
+    const tasks = await dbTasks.$page({
+      where,
+      orderBy: [
+        { [orderBy]: desc ? 'desc' : 'asc' },
+      ],
+      page: request.query.page,
+      size: request.query.size,
+    })
+    // 格式化数据
+    tasks.data.forEach((task) => {
+      // 创建时间
+      if (task.create_time) {
+        task.create_time = new Date(task.create_time)
+      }
+      // 上次运行时间
+      if (task.last_runtime) {
+        task.last_runtime = new Date(task.last_runtime)
+      }
+      // 当前运行状态
+      task.is_running = !!core.runningTasks[task.id]
+    })
+    // 返回数据
+    response.send(API_STATUS_CODE.okData(tasks))
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+/**
+ * 查询
+ */
+apiOpen.get('/v1/query', async (request, response) => {
+  try {
+    // 传参校验
+    validateParams(request, [
+      ['query', 'id', [true, 'string']],
+    ])
+    const id = request.query.id
+    if (!/^\d+$/.test(id) || parseInt(id) <= 0) {
+      throw new Error('参数 id 无效（参数值类型错误）')
+    }
+    const record = await dbTasks.$getById(parseInt(id))
+    if (!record) {
+      throw new Error('任务不存在')
+    }
+    // 返回数据
+    response.send(API_STATUS_CODE.okData(record))
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -115,9 +217,9 @@ api.get('/', async (request, response) => {
  * 创建定时任务
  */
 api.post('/', async (request, response) => {
-  const task = Object.assign({}, request.body, { create_time: new Date() })
-  delete task.id
   try {
+    const task = Object.assign({}, request.body, { create_time: new Date() })
+    delete task.id
     try {
       // eslint-disable-next-line no-new
       new cron.CronTime(task.cron)
@@ -125,10 +227,60 @@ api.post('/', async (request, response) => {
       throw new Error(`定时规则错误：${e.message || e}`)
     }
     const createResult = await dbTasks.$create(task)
-    logger.info('添加定时任务', task)
+    response.send(API_STATUS_CODE.okData(createResult))
+    logger.info('添加定时任务', JSON.stringify(task))
     await core.fixOrder()
     await core.fixCron(createResult.id)
-    response.send(API_STATUS_CODE.okData(task))
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+apiOpen.post('/v1/create', async (request, response) => {
+  try {
+    // 传参校验
+    validateParams(request, [
+      ['body', 'name', [true, 'string']],
+      ['body', 'cron', [true, 'string']],
+      ['body', 'shell', [true, 'string']],
+      ['body', 'active', [false, [1, 0]]],
+      ['body', 'remark', [false, 'string']],
+      ['body', 'config', [false, 'object']],
+    ])
+    let task = Object.assign({}, request.body)
+    task = cleanProperties(request.body, ['name', 'cron', 'shell', 'active', 'remark', 'config'])
+    // 校验高级配置
+    if (task.config) {
+      let config = task.config
+      const configValidateRules = [
+        ['before_task_shell', [false, 'string']],
+        ['after_task_shell', [false, 'string']],
+        ['log_directory', [false, 'string']],
+        ['source_file', [false, 'string']],
+        ['allow_concurrency', [false, 'boolean']],
+      ]
+      validateObject(config, configValidateRules)
+      config = cleanProperties(config, configValidateRules.map((rule) => rule[0]))
+      task.config = Object.keys(config).length === 0 ? '' : JSON.stringify(config) // 转为字符串
+    }
+    // 校验定时规则
+    try {
+      // eslint-disable-next-line no-new
+      new cron.CronTime(task.cron)
+    } catch (e) {
+      throw new Error(`定时规则错误：${e.message || e}`)
+    }
+    // 补齐参数
+    Object.assign(task, {
+      type: 'user', // 只允许创建用户任务
+      create_time: new Date(),
+    })
+    // 操作数据库
+    const createResult = await dbTasks.$create(task)
+    response.send(API_STATUS_CODE.okData(createResult))
+    logger.info('添加定时任务', JSON.stringify(task))
+    await core.fixOrder()
+    await core.fixCron(createResult.id)
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -138,40 +290,158 @@ api.post('/', async (request, response) => {
  * 修改
  */
 api.put('/', async (request, response) => {
-  let tasks
-  if (Array.isArray(request.body)) {
-    tasks = request.body.map((task) => Object.assign({}, task))
-  } else {
-    tasks = [Object.assign({}, request.body)]
-  }
-  for (const task of tasks) {
-    delete task.orderBy
-    delete task.bind
-    delete task.create_time
-    if (task.cron) {
-      try {
-        // eslint-disable-next-line no-new
-        new cron.CronTime(task.cron)
-      } catch (e) {
-        return response.send(API_STATUS_CODE.fail(`定时规则错误：${e.message || e}`))
+  try {
+    let tasks
+    if (Array.isArray(request.body)) {
+      tasks = request.body.map((task) => Object.assign({}, task))
+    } else {
+      tasks = [Object.assign({}, request.body)]
+    }
+    for (const task of tasks) {
+      delete task.orderBy
+      delete task.bind
+      delete task.create_time
+      if (task.cron) {
+        try {
+          // eslint-disable-next-line no-new
+          new cron.CronTime(task.cron)
+        } catch (e) {
+          return response.send(API_STATUS_CODE.fail(`定时规则错误：${e.message || e}`))
+        }
       }
     }
-  }
-  try {
-    let ok = false
+    const results = []
+    const needFixCronIds = []
     for (const task of tasks) {
       const originTask = await dbTasks.$getById(task.id)
-      await dbTasks.update({ data: task, where: { id: task.id } })
-      logger.info('修改定时任务', JSON.stringify(task))
-      // 定时规则变更，重新加载定时任务
-      if (task && task.cron && originTask.cron !== task.cron) {
-        await core.fixCron(task.id)
-      }
-      if (!ok) {
-        ok = !!task
+      try {
+        const res = await dbTasks.update({ data: task, where: { id: task.id } })
+        logger.info('修改定时任务', JSON.stringify(res))
+        // 定时规则变更，重新加载定时任务
+        if (task && task.cron && originTask.cron !== task.cron) {
+          needFixCronIds.push(task.id)
+        }
+        results.push(true)
+      } catch (error) {
+        logger.error('修改定时任务失败', JSON.stringify(error.message || error))
+        results.push(false)
       }
     }
-    response.send(API_STATUS_CODE.okData(ok))
+    const result = results.every(Boolean)
+    response.send(API_STATUS_CODE.okData(result))
+    if (needFixCronIds.length > 0) {
+      await core.fixCron(needFixCronIds)
+    }
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+apiOpen.post('/v1/update', async (request, response) => {
+  try {
+    // 传参校验
+    validateParams(request, [
+      ['body', 'id', [true, 'number']],
+      ['body', 'name', [false, 'string']],
+      ['body', 'cron', [false, 'string']],
+      ['body', 'shell', [false, 'string']],
+      ['body', 'active', [false, [1, 0]]],
+      ['body', 'remark', [false, 'string']],
+      ['body', 'config', [false, 'object']],
+    ])
+    if (request.body.id <= 0) {
+      throw new Error('参数 id 无效（参数值类型错误）')
+    }
+    const record = await dbTasks.$getById(request.body.id)
+    if (!record) {
+      throw new Error('任务不存在')
+    }
+    let task = Object.assign({}, request.body)
+    task = cleanProperties(request.body, ['id', 'name', 'cron', 'shell', 'type', 'active', 'remark', 'config'])
+    // 校验高级配置
+    if (task.config) {
+      let config = task.config
+      const configValidateRules = [
+        ['before_task_shell', [false, 'string']],
+        ['after_task_shell', [false, 'string']],
+        ['log_directory', [false, 'string']],
+        ['source_file', [false, 'string']],
+        ['allow_concurrency', [false, 'boolean']],
+      ]
+      validateObject(config, configValidateRules)
+      config = cleanProperties(config, configValidateRules.map((rule) => rule[0]))
+      task.config = Object.keys(config).length === 0 ? '' : JSON.stringify(config) // 转为字符串
+    }
+    // 校验定时规则
+    try {
+      // eslint-disable-next-line no-new
+      new cron.CronTime(task.cron)
+    } catch (e) {
+      throw new Error(`定时规则错误：${e.message || e}`)
+    }
+    // 操作数据库
+    const res = await dbTasks.update({ data: task, where: { id: task.id } })
+    response.send(API_STATUS_CODE.okData(res))
+    logger.info('修改定时任务', JSON.stringify(task))
+    // 定时规则变更，重新加载定时任务
+    if (task && task.cron && record.cron !== task.cron) {
+      await core.fixCron(task.id)
+    }
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+/**
+ * 删除
+ */
+api.delete('/', async (request, response) => {
+  try {
+    const id = request.body.id
+    let ids
+    if (Array.isArray(id)) {
+      ids = id
+    } else {
+      ids = [id]
+    }
+    const res = await dbTasks.$deleteById(ids)
+    response.send(API_STATUS_CODE.okData(res))
+    if (res) {
+      logger.info('删除定时任务', ids.join(','))
+      await core.fixOrder()
+      await core.fixCron(ids)
+    }
+  } catch (e) {
+    logger.error(e)
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+apiOpen.post('/v1/delete', async (request, response) => {
+  try {
+    // 传参校验
+    validateParams(request, [
+      ['body', 'id', [true, 'number | number[]']],
+    ])
+    const id = request.body.id
+    let ids
+    if (Array.isArray(id)) {
+      ids = id
+    } else {
+      ids = [id]
+    }
+    ids.forEach((id) => {
+      if (id <= 0) {
+        throw new Error('参数 id 无效（参数值类型错误）')
+      }
+    })
+    const res = await dbTasks.$deleteById(ids)
+    response.send(API_STATUS_CODE.okData(res))
+    if (res) {
+      logger.info('删除定时任务', ids.join(','))
+      await core.fixOrder()
+      await core.fixCron(ids)
+    }
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -189,44 +459,46 @@ api.put('/order', async (request, response) => {
     }
     // 移动到最后
     if (request.body.moveToEnd) {
-      const data = await dbTasks.$page({
-        orderBy: [
-          { sort: 'desc' },
-        ],
-        page: 1,
-        size: 1,
-      })
+      const data = await dbTasks.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
       order = data.data[0]?.sort
       if (!order && order !== 0) {
         return response.send(API_STATUS_CODE.fail('未找到最大排序值'))
       }
     }
-    await core.fixOrder()
     response.send(API_STATUS_CODE.okData(await core.updateSortById(id, order)))
+    await core.fixOrder()
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
 
-/**
- * 删除
- */
-api.delete('/', async (request, response) => {
-  const id = request.body.id
-  let ids
+apiOpen.post('/v1/order', async (request, response) => {
   try {
-    if (Array.isArray(id)) {
-      ids = id
-    } else {
-      ids = [id]
+    // 传参校验
+    validateParams(request, [
+      ['body', 'id', [true, 'number']],
+      ['body', 'order', [false, 'number']],
+      ['body', 'moveToEnd', [false, 'boolean']],
+    ])
+    const id = request.body.id
+    let order = request.body.order
+    if (!order && !request.body.moveToEnd) {
+      return response.send(API_STATUS_CODE.fail('缺少必要的参数 order 或 moveToEnd'))
     }
-    const res = await dbTasks.$deleteById(ids)
-    logger.info('删除定时任务', ids.join(','))
+    if (order && order <= 0) {
+      return response.send(API_STATUS_CODE.fail('参数 order 无效（参数值类型错误）'))
+    }
+    // 移动到最后
+    if (request.body.moveToEnd) {
+      const data = await dbTasks.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
+      order = data.data[0]?.sort
+      if (!order && order !== 0) {
+        return response.send(API_STATUS_CODE.fail('未找到最大排序值'))
+      }
+    }
+    response.send(API_STATUS_CODE.okData(await core.updateSortById(id, order)))
     await core.fixOrder()
-    await core.fixCron(ids)
-    response.send(API_STATUS_CODE.okData(res))
   } catch (e) {
-    logger.error(e)
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -234,19 +506,32 @@ api.delete('/', async (request, response) => {
 /**
  * 查询bind组
  */
+async function handleGetBindGroup() {
+  return await db.$queryRaw`
+    SELECT bind, COUNT(*) AS count
+    FROM (
+      SELECT SUBSTR(
+        bind, 
+        INSTR(bind, '#') + 1,
+        INSTR(SUBSTR(bind, INSTR(bind, '#') + 1), '#') - 1
+      ) AS bind
+      FROM tasks
+    )
+    GROUP BY bind
+  `
+}
+
 api.get('/bindGroup', async (request, response) => {
   try {
-    response.send(
-      API_STATUS_CODE.okData(
-        await db.$queryRaw`
-                    select bind, count(*) count
-                    from (SELECT SUBSTR(bind, INSTR(bind, '#') + 1,
-                                        INSTR(SUBSTR(bind, INSTR(bind, '#') + 1), '#') - 1
-                                 ) AS bind
-                          FROM tasks)
-                    GROUP BY bind`,
-      ),
-    )
+    response.send(API_STATUS_CODE.okData(await handleGetBindGroup()))
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+apiOpen.get('/v1/tagsList', async (request, response) => {
+  try {
+    response.send(API_STATUS_CODE.okData(await handleGetBindGroup()))
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -255,10 +540,17 @@ api.get('/bindGroup', async (request, response) => {
 /**
  * 查询正在运行中的任务
  */
-api.get('/runningTask', async (request, response) => {
+api.get('/runningTasks', async (request, response) => {
   try {
-    const runningTasks = Object.values(core.runningTask)
-    response.send(API_STATUS_CODE.okData(runningTasks))
+    response.send(API_STATUS_CODE.okData(Object.values(core.runningTasks)))
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+apiOpen.get('/v1/runningTasks', async (request, response) => {
+  try {
+    response.send(API_STATUS_CODE.okData(Object.values(core.runningTasks)))
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -267,10 +559,9 @@ api.get('/runningTask', async (request, response) => {
 /**
  * 主动运行任务
  */
-api.post('/run', async (request, response) => {
-  const id = request.body.id
-  let ids
+function handleRun(id, response) {
   try {
+    let ids
     if (Array.isArray(id)) {
       ids = id
     } else {
@@ -284,28 +575,43 @@ api.post('/run', async (request, response) => {
     logger.error(e)
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
+}
+
+api.post('/run', async (request, response) => {
+  handleRun(request.body.id, response)
+})
+
+apiOpen.post('/v1/run', async (request, response) => {
+  handleRun(request.body.id, response)
 })
 
 /**
  * 终止正在运行的任务
  */
-api.post('/stopRun', async (request, response) => {
-  const id = request.body.id
-  let ids
+function handleTerminate(id, response) {
   try {
+    let ids
     if (Array.isArray(id)) {
       ids = id
     } else {
       ids = [id]
     }
     for (const id of ids) {
-      core.stopTask(id)
+      core.terminateTask(id)
     }
     response.send(API_STATUS_CODE.ok())
   } catch (e) {
     logger.error(e)
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
+}
+
+api.post('/terminate', async (request, response) => {
+  handleTerminate(request.body.id, response)
+})
+
+apiOpen.post('/v1/terminate', async (request, response) => {
+  handleTerminate(request.body.id, response)
 })
 
 /**
@@ -345,7 +651,7 @@ innerCornApi.post('/updateAll', async (request, response) => {
             path,
             name: item.name,
             remark: item.remark,
-            message: 'ok',
+            message: 'success',
           })
         } catch (e) {
           infos.push({
@@ -394,7 +700,7 @@ innerCornApi.post('/updateAll', async (request, response) => {
             type: 0,
             path: task.path,
             name: task.name,
-            message: 'ok',
+            message: 'success',
           })
         } catch (e) {
           const arr = item.path.split('/')
@@ -422,4 +728,5 @@ innerCornApi.post('/updateAll', async (request, response) => {
 })
 
 module.exports.cronAPI = api
+module.exports.OpenAPI = apiOpen
 module.exports.innerCornApi = innerCornApi
