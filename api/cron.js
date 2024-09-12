@@ -10,7 +10,7 @@ const core = require('../core/cron/core')
 const dbTasks = require('../core/db').tasks
 const scriptResolve = require('../core/file/scriptResolve')
 const { APP_DIR_TYPE, APP_DIR_PATH } = require('../core/type')
-const { validateParams, validateObject, cleanProperties } = require('../core/utils')
+const { validateParams, validatePageParams, validateObject, cleanProperties } = require('../core/utils')
 
 /**
  * 获取定时任务列表
@@ -112,6 +112,7 @@ api.get('/', async (request, response) => {
 apiOpen.get('/v1/page', async (request, response) => {
   try {
     // 传参校验
+    validatePageParams(request, ['sort', 'last_runtime', 'last_run_use'])
     validateParams(request, [
       ['query', 'type', [false, ['user', 'system']]],
       ['query', 'active', [false, ['1', '0']]],

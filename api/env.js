@@ -2,7 +2,7 @@ const express = require('express')
 const api = express()
 const apiOpen = express()
 const { API_STATUS_CODE } = require('../core/http')
-const { validateParams, validateObject, cleanProperties } = require('../core/utils')
+const { validateParams, validatePageParams, validateObject, cleanProperties } = require('../core/utils')
 
 const db = require('../core/db')
 const { generateEnvSh } = require('../core/env/generate')
@@ -148,6 +148,7 @@ api.get('/pageItem', async (request, response) => {
 apiOpen.get('/v1/page', async (request, response) => {
   try {
     // 传参校验
+    validatePageParams(request, ['sort', 'update_time'])
     validateParams(request, [
       ['query', 'category', [true, ['ordinary', 'composite', 'composite_value']]],
       ['query', 'enable', [false, ['1', '0']]],
@@ -207,9 +208,6 @@ apiOpen.get('/v1/page', async (request, response) => {
     }
     // 排序
     const orderBy = request.query.orderBy || 'sort'
-    if (!['sort'].includes(orderBy)) {
-      throw new Error('参数 orderBy 无效（参数值类型错误）')
-    }
     let desc = true // desc 降序，asc 升序
     if (request.query.order === '0') {
       desc = false // 0 升序，1 降序

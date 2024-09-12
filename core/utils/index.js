@@ -189,6 +189,27 @@ function validateParams(req, params) {
 }
 
 /**
+ * 校验分页接口常用参数
+ */
+function validatePageParams(req, orderByFields) {
+  validateParams(req, [
+    ['query', 'page', [false, 'string']],
+    ['query', 'size', [false, 'string']],
+    ['query', 'order', [false, ['1', '0']]],
+    ['query', 'orderBy', [false, orderByFields ?? 'string']],
+  ])
+  for (const field of ['page', 'size']) {
+    const keyValue = req.query[field]
+    if (!keyValue) {
+      continue
+    }
+    if (!/^\d+$/.test(keyValue) || parseInt(keyValue) <= 0) {
+      throw new Error(`参数 ${field} 无效（参数值类型错误）`)
+    }
+  }
+}
+
+/**
  * 对象格式校验（拦截器）
  */
 function validateObject(obj, params) {
@@ -238,6 +259,7 @@ function cleanProperties(obj, fields) {
 
 module.exports = {
   validateParams,
+  validatePageParams,
   validateObject,
   cleanProperties,
   dateToString,
