@@ -251,16 +251,19 @@ apiOpen.get('/v1/query', async (request, response) => {
     // 传参校验
     validateParams(request, [
       ['query', 'name', [false, 'string']],
+      ['query', 'type', [false, 'string']],
       ['query', 'description', [false, 'string']],
     ])
-    const { name, description } = request.query
-    if (!name && !description) {
-      throw new Error('至少需要提供 name、description 的其中一个参数')
+    const { name, type, description } = request.query
+    if (!name && !type && !description) {
+      throw new Error('至少需要提供 name、type、description 的其中一个参数')
     }
     const result = []
     // 构建查询条件
     const queryConditions = []
-    if (name) {
+    if (type) {
+      queryConditions.push({ type: { contains: type } }) // 优先使用 type
+    } else if (name) {
       queryConditions.push({ type: { contains: name } })
     }
     if (description) {
