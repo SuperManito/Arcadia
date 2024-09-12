@@ -156,7 +156,7 @@ app.use('/api/user', require('./api/user').userAPI)
 app.use('/api/env', require('./api/env').API)
 app.use('/api/cron', require('./api/cron').cronAPI)
 app.use('/api/common', require('./api/common').commonAPI)
-app.use('/api/config', require('./api/config').configAPI)
+// app.use('/api/config', require('./api/config').configAPI)
 // app.use('/api/notify', require('./api/notify').API)
 
 /**
