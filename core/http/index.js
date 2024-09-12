@@ -138,7 +138,7 @@ async function request(config) {
     Object.assign(axios.defaults, {
       headers: {
         common: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/128.0.0.0',
         },
       },
       maxContentLength: Infinity,
@@ -175,39 +175,53 @@ async function request(config) {
       config.data = querystring.stringify(config.data)
     }
     await axios(config)
-      .then((res) => {
+      .then((response) => {
         returnData.success = true
-        returnData.status = res.status
-        returnData.data = res.data
-        returnData.headers = res.headers
+        returnData.status = response.status
+        returnData.data = response.data
+        returnData.headers = response.headers
         returnData.connected = true
       })
-      .catch((res) => {
+      .catch((error) => {
         let errorMessage = null
-        if (res.response) {
+        if (error.response) {
           returnData.connected = true
-          const statusCode = res.response?.status
-          if (res.response.data) {
-            returnData.data = res.response.data
+          const statusCode = error.response?.status
+          if (error.response.data) {
+            returnData.data = error.response.data
           }
-          if (res.response.headers) {
-            returnData.headers = res.response.headers
+          if (error.response.headers) {
+            returnData.headers = error.response.headers
           }
           const errorMessages = {
+            301: '永久移动 [301 Moved Permanently]',
+            302: '临时移动 [302 Found]',
+            304: '资源未修改 [304 Not Modified]',
+            307: '临时重定向 [307 Temporary Redirect]',
+            308: '永久重定向 [308 Permanent Redirect]',
             400: '请求错误 [400 Bad Request]',
             401: '未授权 [401 Unauthorized]',
             403: '禁止访问 [403 Forbidden]',
-            493: '禁止访问 [493 Forbidden]',
             404: '资源未找到 [404 Not Found]',
+            405: '方法不被允许 [405 Method Not Allowed]',
+            406: '不可接受 [406 Not Acceptable]',
             408: '请求超时 [408 Request Timeout]',
             429: '请求过多 [429 Too Many Requests]',
+            413: '请求实体过大 [413 Payload Too Large]',
+            414: '请求的 URI 过长 [414 URI Too Long]',
+            415: '不支持的媒体类型 [415 Unsupported Media Type]',
+            416: '请求范围不符合要求 [416 Range Not Satisfiable]',
+            493: '禁止访问 [493 Forbidden]',
             500: '服务器内部错误 [500 Internal Server Error]',
+            501: '服务器不支持请求 [501 Not Implemented]',
             502: '网关错误 [502 Bad Gateway]',
             503: '服务不可用 [503 Service Unavailable]',
+            504: '网关超时 [504 Gateway Timeout]',
+            505: 'HTTP 版本不受支持 [505 HTTP Version Not Supported]',
           }
           errorMessage = errorMessages[statusCode] || `请求失败 [Response code ${statusCode}]`
         } else {
-          if (res.request) {
+          if (error.request) {
             const errorMessages = {
               ECONNABORTED: '请求被中断',
               ECONNRESET: '连接被对方重置',
@@ -235,14 +249,38 @@ async function request(config) {
               ERR_HTTP2_SESSION_ERROR: 'HTTP2 会话出错',
               ERR_QUICSESSION_VERSION_NEGOTIATION: 'QUIC 会话版本协商失败',
               EAI_AGAIN: 'DNS 查找超时',
+              ERR_CONNECTION_TIMED_OUT: '连接超时',
+              ERR_INTERNET_DISCONNECTED: '互联网连接已断开',
+              ERR_SSL_PROTOCOL_ERROR: 'SSL 协议错误',
+              ERR_ADDRESS_UNREACHABLE: '地址无法到达',
+              ERR_BLOCKED_BY_CLIENT: '请求被客户端阻止',
+              ERR_BLOCKED_BY_RESPONSE: '响应被阻止',
+              ERR_CERT_COMMON_NAME_INVALID: '证书的通用名称无效',
+              ERR_CERT_DATE_INVALID: '证书日期无效',
+              ERR_CERT_AUTHORITY_INVALID: '证书颁发机构无效',
+              ERR_CONTENT_LENGTH_MISMATCH: '内容长度不匹配',
+              ERR_INSECURE_RESPONSE: '响应不安全',
+              ERR_NAME_NOT_RESOLVED: '名称无法解析',
+              ERR_NETWORK_CHANGED: '网络更改',
+              ERR_NO_SUPPORTED_PROXIES: '没有支持的代理',
+              ERR_PROXY_CONNECTION_FAILED: '代理连接失败',
+              ERR_SSL_VERSION_OR_CIPHER_MISMATCH: 'SSL 版本或密码不匹配',
+              ERR_TIMED_OUT: '操作超时',
+              ERR_TOO_MANY_REDIRECTS: '重定向过多',
+              ERR_UNSAFE_PORT: '不安全的端口',
+              ERR_SSL_OBSOLETE_VERSION: 'SSL 版本过时',
+              ERR_CERT_REVOKED: '证书已被吊销',
+              ERR_CERT_TRANSPARENCY_REQUIRED: '需要证书透明度',
+              ERR_SSL_PINNED_KEY_NOT_IN_CERT_CHAIN: '固定的 SSL 密钥不在证书链中',
+              ERR_TUNNEL_CONNECTION_FAILED: '隧道连接失败',
             }
-            errorMessage = `${errorMessages[res.code] ?? '未知网络错误'} [${res.code}]`
+            errorMessage = `${errorMessages[error.code] ?? '未知网络错误'} [${error.code}]`
           } else {
-            errorMessage = res.message || '未知错误状态'
+            errorMessage = error.message || '未知错误状态'
           }
         }
         returnData.error = errorMessage
-        returnData.status = res.response?.status || null
+        returnData.status = error.response?.status || null
       })
   } catch (error) {
     returnData.error = error.message || error
