@@ -255,7 +255,7 @@ apiOpen.post('/v1/create', async (request, response) => {
         ['source_file', [false, 'string']],
         ['allow_concurrency', [false, 'boolean']],
       ]
-      validateObject(config, configValidateRules)
+      validateObject(config, configValidateRules, 'config')
       config = cleanProperties(config, configValidateRules.map((rule) => rule[0]))
       task.config = Object.keys(config).length === 0 ? '' : JSON.stringify(config) // 转为字符串
     }
@@ -353,7 +353,7 @@ apiOpen.post('/v1/update', async (request, response) => {
         ['source_file', [false, 'string']],
         ['allow_concurrency', [false, 'boolean']],
       ]
-      validateObject(config, configValidateRules)
+      validateObject(config, configValidateRules, 'config')
       config = cleanProperties(config, configValidateRules.map((rule) => rule[0]))
       task.config = Object.keys(config).length === 0 ? '' : JSON.stringify(config) // 转为字符串
     }

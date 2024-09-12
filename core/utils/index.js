@@ -198,13 +198,13 @@ function validatePageParams(req, orderByFields) {
     ['query', 'order', [false, ['1', '0']]],
     ['query', 'orderBy', [false, orderByFields ?? 'string']],
   ])
-  for (const field of ['page', 'size']) {
-    const keyValue = req.query[field]
+  for (const param of ['page', 'size']) {
+    const keyValue = req.query[param]
     if (!keyValue) {
       continue
     }
     if (!/^\d+$/.test(keyValue) || parseInt(keyValue) <= 0) {
-      throw new Error(`参数 ${field} 无效（参数值类型错误）`)
+      throw new Error(`参数 ${param} 无效（参数值类型错误）`)
     }
   }
 }
@@ -212,33 +212,36 @@ function validatePageParams(req, orderByFields) {
 /**
  * 对象格式校验（拦截器）
  */
-function validateObject(obj, params) {
+function validateObject(obj, params, objName = '') {
+  if (objName) {
+    objName = ` ${objName} `
+  }
   params.forEach(([paramName, options = []]) => {
     const [required = false, type = 'string'] = options
 
     if (!Object.prototype.hasOwnProperty.call(obj, paramName)) {
       if (required) {
-        throw new Error(`源对象中缺少必要的属性 ${paramName}`)
+        throw new Error(`源对象${objName}中缺少必要的属性 ${paramName}`)
       }
       return // 如果该参数不是必需的且不存在，则跳过其余检查
     }
     const paramValue = obj[paramName]
     if (required) {
       if ((['undefined', 'None', null].includes(paramValue) || Number.isNaN(paramValue)) || (Array.isArray(paramValue) && paramValue.length === 0) || (typeof paramValue === 'string' && paramValue === '')) {
-        throw new Error(`源对象中的属性 ${paramName} 无效（属性值不能为空）`)
+        throw new Error(`源对象${objName}中的属性 ${paramName} 无效（属性值不能为空）`)
       }
     }
     if (Array.isArray(type)) {
       if (!type.includes(paramValue)) {
-        throw new Error(`源对象中的属性 ${paramName} 无效（属性值类型错误）`)
+        throw new Error(`源对象${objName}中的属性 ${paramName} 无效（属性值类型错误）`)
       }
     } else if (type.includes('|')) {
       const types = type.replace(/\s/g, '').split('|')
       if (!types.some((t) => checkType(paramValue, t))) {
-        throw new Error(`源对象中的属性 ${paramName} 无效（属性值类型错误）`)
+        throw new Error(`源对象${objName}中的属性 ${paramName} 无效（属性值类型错误）`)
       }
     } else if (!checkType(paramValue, type)) {
-      throw new Error(`源对象中的属性 ${paramName} 无效（属性值类型错误）`)
+      throw new Error(`源对象${objName}中的属性 ${paramName} 无效（属性值类型错误）`)
     }
   })
 }
