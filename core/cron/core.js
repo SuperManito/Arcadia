@@ -22,11 +22,14 @@ function cronJobInit() {
       const taskCoreId = task.id
       const tasksId = parseInt(taskCoreId.substring(2))
       const cronExpression = task.cron.trim()
+
+      // 高危操作
       // 删除不存在的定时任务（处理不符合预期未被移除的非正常任务）
-      if (!(await dbTasks.$deleteById(tasksId))) {
-        await dbTaskCore.$getById(taskCoreId)
+      if (!(await dbTasks.$getById(tasksId))) {
+        await dbTaskCore.$deleteById(taskCoreId)
         // logger.warn(`定时任务 ${tasksId} 不存在，已删除`)
       }
+
       // 定时表达式格式校验
       const cronParams = cronExpression.split(' ')
       if (cronParams.length < 5 || cronParams.length > 6) {
