@@ -141,14 +141,9 @@ function runCronTaskShell(task) {
   const date = new Date()
   return execShell(task.shell, {
     callback: (error, stdout, _stderr) => {
-      // if (stdout) {
-      //   logger.debug(`#${taskId}:`, stdout)
-      // }
       // 任务回调
       if (error) {
-        // logger.log("定时任务运行完毕", task.shell, stdout.substring(stdout.length - 1000))
-        // } else {
-        logger.warn('定时任务异常', task.shell, '➜', error.toString().substring(stdout.length - 1000))
+        logger.warn(`定时任务 "${task.shell}" 执行异常`, error.toString().substring(stdout.length - 1000))
       }
     },
     onExit: (_code) => {

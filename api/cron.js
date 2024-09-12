@@ -269,7 +269,7 @@ apiOpen.post('/v1/create', async (request, response) => {
     // 操作数据库
     const createResult = await dbTasks.$create(task)
     response.send(API_STATUS_CODE.okData(createResult))
-    logger.info('添加定时任务', JSON.stringify(task))
+    logger.info('[OpenAPI · Cron]', '添加定时任务', JSON.stringify(task))
     await core.fixOrder()
     await core.applyCron(createResult.id)
   } catch (e) {
@@ -362,7 +362,7 @@ apiOpen.post('/v1/update', async (request, response) => {
     // 操作数据库
     const res = await dbTasks.update({ data: task, where: { id: task.id } })
     response.send(API_STATUS_CODE.okData(res))
-    logger.info('修改定时任务', JSON.stringify(task))
+    logger.info('[OpenAPI · Cron]', '修改定时任务', JSON.stringify(task))
     // 定时规则变更，重新加载定时任务
     if (task && task.cron && record.cron !== task.cron) {
       await core.applyCron(task.id)
@@ -418,7 +418,7 @@ apiOpen.post('/v1/delete', async (request, response) => {
     const res = await dbTasks.$deleteById(ids)
     response.send(API_STATUS_CODE.okData(res))
     if (res) {
-      logger.info('删除定时任务', ids.join(','))
+      logger.info('[OpenAPI · Cron]', '删除定时任务', ids.join(','))
       await core.fixOrder()
       await core.applyCron(ids)
     }
@@ -524,8 +524,9 @@ apiOpen.get('/v1/runningTasks', async (request, response) => {
 /**
  * 主动运行任务
  */
-function handleRun(id, response) {
+api.post('/run', async (request, response) => {
   try {
+    const id = request.body.id
     let ids
     if (Array.isArray(id)) {
       ids = id
@@ -540,21 +541,34 @@ function handleRun(id, response) {
     logger.error(e)
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
-}
-
-api.post('/run', async (request, response) => {
-  handleRun(request.body.id, response)
 })
 
 apiOpen.post('/v1/run', async (request, response) => {
-  handleRun(request.body.id, response)
+  try {
+    const id = request.body.id
+    let ids
+    if (Array.isArray(id)) {
+      ids = id
+    } else {
+      ids = [id]
+    }
+    for (const id of ids) {
+      core.runTask(id)
+    }
+    response.send(API_STATUS_CODE.ok())
+    logger.info('[OpenAPI · Cron]', '运行定时任务', ids.join(','))
+  } catch (e) {
+    logger.error(e)
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
 })
 
 /**
  * 终止正在运行的任务
  */
-function handleTerminate(id, response) {
+api.post('/terminate', async (request, response) => {
   try {
+    const id = request.body.id
     let ids
     if (Array.isArray(id)) {
       ids = id
@@ -569,14 +583,26 @@ function handleTerminate(id, response) {
     logger.error(e)
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
-}
-
-api.post('/terminate', async (request, response) => {
-  handleTerminate(request.body.id, response)
 })
 
 apiOpen.post('/v1/terminate', async (request, response) => {
-  handleTerminate(request.body.id, response)
+  const id = request.body.id
+  try {
+    let ids
+    if (Array.isArray(id)) {
+      ids = id
+    } else {
+      ids = [id]
+    }
+    for (const id of ids) {
+      core.terminateTask(id)
+    }
+    response.send(API_STATUS_CODE.ok())
+    logger.info('[OpenAPI · Cron]', '终止定时任务', ids.join(','))
+  } catch (e) {
+    logger.error(e)
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
 })
 
 /**

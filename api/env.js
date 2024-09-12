@@ -2,10 +2,11 @@ const express = require('express')
 const api = express()
 const apiOpen = express()
 const { API_STATUS_CODE } = require('../core/http')
-const { validateParams, validatePageParams, validateObject, cleanProperties } = require('../core/utils')
+const { logger } = require('../core/logger')
 
 const db = require('../core/db')
 const { generateEnvSh } = require('../core/env/generate')
+const { validateParams, validatePageParams, validateObject, cleanProperties } = require('../core/utils')
 
 // 初始化
 ;(async function init() {
@@ -575,6 +576,7 @@ apiOpen.post('/v1/create', async (request, response) => {
       result = await db[category === 'composite' ? 'envs_group' : 'envs'].$createMany(formatData)
     }
     response.send(API_STATUS_CODE.okData(result))
+    logger.info('[OpenAPI · Env]', '创建环境变量', JSON.stringify(data.length === 1 ? formatData[0] : formatData))
     await onChange(category !== 'composite')
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -697,6 +699,7 @@ apiOpen.post('/v1/update', async (request, response) => {
       }
     }
     response.send(API_STATUS_CODE.okData(result))
+    logger.info('[OpenAPI · Env]', '更新环境变量', JSON.stringify(data.length === 1 ? formatData[0] : formatData))
     await onChange(category !== 'composite')
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -777,6 +780,7 @@ apiOpen.post('/v1/changeStatus', async (request, response) => {
       }
       record.enable = status
       await db[isComposite ? 'envs_group' : 'envs'].$upsertById(record)
+      logger.info('[OpenAPI · Env]', '更改环境变量状态', id, status === 1 ? '启用' : '禁用', record)
     }
     response.send(API_STATUS_CODE.ok())
     await onChange(!isComposite)
@@ -852,6 +856,7 @@ apiOpen.post('/v1/delete', async (request, response) => {
       await db.envs.$deleteById(ids)
     }
     response.send(API_STATUS_CODE.ok())
+    logger.info('[OpenAPI · Env]', '删除环境变量', ids.join(','))
     await onChange(!isComposite)
   } catch (e) {
     return response.send(API_STATUS_CODE.fail(e.message || e))
