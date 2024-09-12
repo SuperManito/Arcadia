@@ -250,24 +250,34 @@ apiOpen.get('/v1/query', async (request, response) => {
   try {
     // 传参校验
     validateParams(request, [
-      ['query', 'name', [true, 'string']],
+      ['query', 'name', [false, 'string']],
+      ['query', 'description', [false, 'string']],
     ])
-    const name = request.query.name
+    const { name, description } = request.query
+    if (!name && !description) {
+      throw new Error('至少需要提供 name、description 的其中一个参数')
+    }
     const result = []
+    // 构建查询条件
+    const queryConditions = []
+    if (name) {
+      queryConditions.push({ type: { contains: name } })
+    }
+    if (description) {
+      queryConditions.push({ description: { contains: description } })
+    }
+    // 查询 envs 表
     const envs_result = await db.envs.$list({
       group_id: 0,
-      AND: [
-        { type: { contains: name } },
-      ],
+      AND: queryConditions,
     }) || []
     if (envs_result.length > 0) {
       result.push(...envs_result)
     }
+    // 查询 envs_group 表
     const envs_group_result = await db.envs_group.$list({
       id: { not: 0 },
-      AND: [
-        { type: { contains: name } },
-      ],
+      AND: queryConditions,
     }, undefined, { include: { envs: true } }) || []
     if (envs_group_result.length > 0) {
       // 替换关联数据为它的长度
@@ -280,7 +290,11 @@ apiOpen.get('/v1/query', async (request, response) => {
       result.push(...format_data)
     }
     // 二次过滤（注：SQLite 的 contains 操作符不区分大小写）
-    const filteredData = result.filter((item) => item.type.includes(name))
+    const filteredData = result.filter((item) => {
+      const matchesName = name ? item.type.includes(name) : true
+      const matchesDescription = description ? item.description.includes(description) : true
+      return matchesName && matchesDescription
+    })
     // 返回数据
     if (filteredData.length <= 0) {
       return response.send(API_STATUS_CODE.okData([]))
@@ -307,13 +321,28 @@ apiOpen.get('/v1/queryMember', async (request, response) => {
     // 传参校验
     validateParams(request, [
       ['query', 'id', [true, 'string']],
-      ['query', 'value', [true, 'string']],
+      ['query', 'value', [false, 'string']],
+      ['query', 'remark', [false, 'string']],
     ])
+    const { id, value, remark } = request.query
+    if (!/^\d+$/.test(id) || parseInt(id) <= 0) {
+      throw new Error('参数 id 无效（参数值类型错误）')
+    }
+    if (!value && !remark) {
+      throw new Error('至少需要提供 value、remark 的其中一个参数')
+    }
+    // 构建查询条件
+    const queryConditions = []
+    if (value) {
+      queryConditions.push({ value: { contains: value } })
+    }
+    if (remark) {
+      queryConditions.push({ remark: { contains: remark } })
+    }
+    // 查询 envs 表
     const result = await db.envs.$list({
-      group_id: parseInt(request.query.id),
-      AND: [
-        { value: { contains: request.query.value } },
-      ],
+      group_id: parseInt(id),
+      AND: queryConditions,
     }) || []
     // 返回数据
     response.send(API_STATUS_CODE.okData(result))
