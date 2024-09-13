@@ -98,32 +98,38 @@ async function onCronMain(taskId) {
     return
   }
   // 解析高级配置
-  let before_task_shell = ''
-  let after_task_shell = ''
-  let allow_concurrency = false
-  try {
-    const config = JSON.parse(task.config)
-    if (typeof config.before_task_shell === 'string') {
-      before_task_shell = config.before_task_shell
+  if (task.config) {
+    let before_task_shell = ''
+    let after_task_shell = ''
+    let allow_concurrency = false
+    try {
+      const config = JSON.parse(task.config)
+      if (typeof config.before_task_shell === 'string') {
+        before_task_shell = config.before_task_shell
+      }
+      if (typeof config.after_task_shell === 'string') {
+        after_task_shell = config.after_task_shell
+      }
+      if (typeof config.allow_concurrency === 'boolean') {
+        allow_concurrency = config.allow_concurrency
+      }
+    } catch {}
+    // 跳过正在运行的任务（运行并发时除外）
+    if (runningTasks[taskId] && !allow_concurrency) {
+      // logger.log('触发定时任务', task.shell, '（PASS，原因：正在运行）')
+      return
     }
-    if (typeof config.after_task_shell === 'string') {
-      after_task_shell = config.after_task_shell
+    // 补齐命令
+    if (before_task_shell) {
+      task.shell = `bash -c "cd ${APP_ROOT_DIR} ; ${before_task_shell}" ; ${task.shell}`
     }
-    if (typeof config.allow_concurrency === 'boolean') {
-      allow_concurrency = config.allow_concurrency
+    if (after_task_shell) {
+      task.shell = `${task.shell} ; bash -c "cd ${APP_ROOT_DIR} ; ${after_task_shell}"`
     }
-  } catch {}
-  // 跳过正在运行的任务（运行并发时除外）
-  if (runningTasks[taskId] && !allow_concurrency) {
+  } else if (runningTasks[taskId]) {
+    // 跳过正在运行的任务
     // logger.log('触发定时任务', task.shell, '（PASS，原因：正在运行）')
     return
-  }
-  // 补齐命令
-  if (before_task_shell) {
-    task.shell = `bash -c "cd ${APP_ROOT_DIR} ; ${before_task_shell}" ; ${task.shell}`
-  }
-  if (after_task_shell) {
-    task.shell = `${task.shell} ; bash -c "cd ${APP_ROOT_DIR} ; ${after_task_shell}"`
   }
 
   runningTasks[taskId] = task // 将任务添加到正在运行的列表
@@ -148,15 +154,35 @@ function runCronTaskShell(task) {
     },
     onExit: (_code) => {
       // logger.log(`定时任务 ${taskId} 运行完毕`)
-      delete runningTasks[task.id]
-      delete runningInstance[task.id]
-      // 更新最后运行时间和其运行时长
-      dbTasks.update({ where: { id: task.id },
-        data: {
-          last_runtime: date,
-          last_run_use: (new Date().getTime() - date.getTime()) / 1000,
-        },
-      }).catch((_e) => {})
+      const data = { last_runtime: date, last_run_use: (new Date().getTime() - date.getTime()) / 1000 }
+      let allow_concurrency = false // 是否允许并发
+      if (task.config) {
+        try {
+          const config = JSON.parse(task.config)
+          if (typeof config.allow_concurrency === 'boolean') {
+            allow_concurrency = config.allow_concurrency
+          }
+        } catch {}
+      }
+      // 允许并发后存在任务重叠的情况，需要具体判断
+      if (allow_concurrency) {
+        dbTasks.$getById(task.id).then((task) => {
+          // 如果记录的最后时间比当前时间早，则更新
+          if (task.last_runtime.getTime() <= date.getTime()) {
+            // 从正在运行的任务中删除
+            delete runningTasks[task.id]
+            delete runningInstance[task.id]
+            // 更新最后运行时间和其运行时长
+            dbTasks.update({ where: { id: task.id }, data }).catch((_e) => {})
+          }
+        }).catch((_e) => {})
+      } else {
+        // 从正在运行的任务中删除
+        delete runningTasks[task.id]
+        delete runningInstance[task.id]
+        // 更新最后运行时间和其运行时长
+        dbTasks.update({ where: { id: task.id }, data }).catch((_e) => {})
+      }
     },
   })
 }
@@ -178,23 +204,25 @@ async function runTask(taskId) {
     throw new Error('任务正在运行')
   }
   // 解析高级配置
-  let before_task_shell = ''
-  let after_task_shell = ''
-  try {
-    const config = JSON.parse(task.config)
-    if (typeof config.before_task_shell === 'string') {
-      before_task_shell = config.before_task_shell
+  if (task.config) {
+    let before_task_shell = ''
+    let after_task_shell = ''
+    try {
+      const config = JSON.parse(task.config)
+      if (typeof config.before_task_shell === 'string') {
+        before_task_shell = config.before_task_shell
+      }
+      if (typeof config.after_task_shell === 'string') {
+        after_task_shell = config.after_task_shell
+      }
+    } catch {}
+    // 补齐命令
+    if (before_task_shell) {
+      task.shell = `bash -c "cd ${APP_ROOT_DIR} ; ${before_task_shell}" ; ${task.shell}`
     }
-    if (typeof config.after_task_shell === 'string') {
-      after_task_shell = config.after_task_shell
+    if (after_task_shell) {
+      task.shell = `${task.shell} ; bash -c "cd ${APP_ROOT_DIR} ; ${after_task_shell}"`
     }
-  } catch {}
-  // 补齐命令
-  if (before_task_shell) {
-    task.shell = `bash -c "cd ${APP_ROOT_DIR} ; ${before_task_shell}" ; ${task.shell}`
-  }
-  if (after_task_shell) {
-    task.shell = `${task.shell} ; bash -c "cd ${APP_ROOT_DIR} ; ${after_task_shell}"`
   }
 
   runningTasks[taskId] = task // 将任务添加到正在运行的列表
