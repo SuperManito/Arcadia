@@ -28,10 +28,10 @@ function SidebarAd (): any {
   return (
     <ConfigProvider button={{ autoInsertSpace: false }}>
       <Carousel autoplay className={styles.ad} dotPosition="right">
-        <Link to="/docs/about#%E8%B5%9E%E5%8A%A9" style={{ width: '200px', height: '75px', margin: '0' }}>
+        <Link to="/docs/about#%E7%A4%BE%E5%8C%BA" style={{ width: '200px', height: '75px', margin: '0' }}>
           <Heading as="h3" style={{ ...contentStyle, background }}>Arcadia</Heading>
         </Link>
-        <Link to="/docs/about#%E8%B5%9E%E5%8A%A9" style={{ width: '200px', height: '75px', margin: '0' }}>
+        <Link to="/docs/about#%E7%A4%BE%E5%8C%BA" style={{ width: '200px', height: '75px', margin: '0' }}>
           <Heading as="h3" style={{ ...contentStyle, background }}>赞助商广告</Heading>
         </Link>
       </Carousel>

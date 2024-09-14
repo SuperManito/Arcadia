@@ -31,5 +31,5 @@ pnpm run build
 - bash
 
   ```bash
-  GIT_USER=<用户名> && pnpm run deploy
+  export GIT_USER=<用户名> && pnpm run deploy
   ```
