@@ -2,10 +2,11 @@ const express = require('express')
 const api = express()
 const apiOpen = express()
 const { API_STATUS_CODE } = require('../core/http')
-const { validateParams, validateObject, cleanProperties } = require('../core/utils')
+const { logger } = require('../core/logger')
 
 const db = require('../core/db')
 const { generateEnvSh } = require('../core/env/generate')
+const { validateParams, validatePageParams, validateObject, cleanProperties } = require('../core/utils')
 
 // 初始化
 ;(async function init() {
@@ -148,6 +149,7 @@ api.get('/pageItem', async (request, response) => {
 apiOpen.get('/v1/page', async (request, response) => {
   try {
     // 传参校验
+    validatePageParams(request, ['sort', 'update_time'])
     validateParams(request, [
       ['query', 'category', [true, ['ordinary', 'composite', 'composite_value']]],
       ['query', 'enable', [false, ['1', '0']]],
@@ -207,9 +209,6 @@ apiOpen.get('/v1/page', async (request, response) => {
     }
     // 排序
     const orderBy = request.query.orderBy || 'sort'
-    if (!['sort'].includes(orderBy)) {
-      throw new Error('参数 orderBy 无效（参数值类型错误）')
-    }
     let desc = true // desc 降序，asc 升序
     if (request.query.order === '0') {
       desc = false // 0 升序，1 降序
@@ -252,24 +251,37 @@ apiOpen.get('/v1/query', async (request, response) => {
   try {
     // 传参校验
     validateParams(request, [
-      ['query', 'name', [true, 'string']],
+      ['query', 'name', [false, 'string']],
+      ['query', 'type', [false, 'string']],
+      ['query', 'description', [false, 'string']],
     ])
-    const name = request.query.name
+    const { name, type, description } = request.query
+    if (!name && !type && !description) {
+      throw new Error('至少需要提供 name、type、description 的其中一个参数')
+    }
     const result = []
+    // 构建查询条件
+    const queryConditions = []
+    if (type) {
+      queryConditions.push({ type: { contains: type } }) // 优先使用 type
+    } else if (name) {
+      queryConditions.push({ type: { contains: name } })
+    }
+    if (description) {
+      queryConditions.push({ description: { contains: description } })
+    }
+    // 查询 envs 表
     const envs_result = await db.envs.$list({
       group_id: 0,
-      AND: [
-        { type: { contains: name } },
-      ],
+      AND: queryConditions,
     }) || []
     if (envs_result.length > 0) {
       result.push(...envs_result)
     }
+    // 查询 envs_group 表
     const envs_group_result = await db.envs_group.$list({
       id: { not: 0 },
-      AND: [
-        { type: { contains: name } },
-      ],
+      AND: queryConditions,
     }, undefined, { include: { envs: true } }) || []
     if (envs_group_result.length > 0) {
       // 替换关联数据为它的长度
@@ -282,7 +294,11 @@ apiOpen.get('/v1/query', async (request, response) => {
       result.push(...format_data)
     }
     // 二次过滤（注：SQLite 的 contains 操作符不区分大小写）
-    const filteredData = result.filter((item) => item.type.includes(name))
+    const filteredData = result.filter((item) => {
+      const matchesName = name ? item.type.includes(name) : true
+      const matchesDescription = description ? item.description.includes(description) : true
+      return matchesName && matchesDescription
+    })
     // 返回数据
     if (filteredData.length <= 0) {
       return response.send(API_STATUS_CODE.okData([]))
@@ -309,16 +325,57 @@ apiOpen.get('/v1/queryMember', async (request, response) => {
     // 传参校验
     validateParams(request, [
       ['query', 'id', [true, 'string']],
-      ['query', 'value', [true, 'string']],
+      ['query', 'value', [false, 'string']],
+      ['query', 'remark', [false, 'string']],
     ])
+    const { id, value, remark } = request.query
+    if (!/^\d+$/.test(id) || parseInt(id) <= 0) {
+      throw new Error('参数 id 无效（参数值类型错误）')
+    }
+    if (!value && !remark) {
+      throw new Error('至少需要提供 value、remark 的其中一个参数')
+    }
+    // 构建查询条件
+    const queryConditions = []
+    if (value) {
+      queryConditions.push({ value: { contains: value } })
+    }
+    if (remark) {
+      queryConditions.push({ remark: { contains: remark } })
+    }
+    // 查询 envs 表
     const result = await db.envs.$list({
-      group_id: parseInt(request.query.id),
-      AND: [
-        { value: { contains: request.query.value } },
-      ],
+      group_id: parseInt(id),
+      AND: queryConditions,
     }) || []
     // 返回数据
     response.send(API_STATUS_CODE.okData(result))
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+apiOpen.get('/v1/queryById', async (request, response) => {
+  try {
+    // 传参校验
+    validateParams(request, [
+      ['query', 'category', [true, ['ordinary', 'composite', 'composite_value']]],
+      ['query', 'id', [true, 'string']],
+    ])
+    const { category, id } = request.query
+    if (!/^\d+$/.test(id) || parseInt(id) <= 0) {
+      throw new Error('参数 id 无效（参数值类型错误）')
+    }
+    const record = await db[category === 'composite' ? 'envs_group' : 'envs'].$getById(id)
+    if (!record) {
+      throw new Error('变量不存在')
+    }
+    // 查询复合变量组的成员数量
+    if (category === 'composite') {
+      const envs_result = await db.envs.$list({ group_id: record.id }) || []
+      record.envs = envs_result.length
+    }
+    response.send(API_STATUS_CODE.okData(record))
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -519,6 +576,7 @@ apiOpen.post('/v1/create', async (request, response) => {
       result = await db[category === 'composite' ? 'envs_group' : 'envs'].$createMany(formatData)
     }
     response.send(API_STATUS_CODE.okData(result))
+    logger.info('[OpenAPI · Env]', '创建环境变量', JSON.stringify(data.length === 1 ? formatData[0] : formatData))
     await onChange(category !== 'composite')
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -641,6 +699,7 @@ apiOpen.post('/v1/update', async (request, response) => {
       }
     }
     response.send(API_STATUS_CODE.okData(result))
+    logger.info('[OpenAPI · Env]', '更新环境变量', JSON.stringify(data.length === 1 ? formatData[0] : formatData))
     await onChange(category !== 'composite')
   } catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -721,6 +780,7 @@ apiOpen.post('/v1/changeStatus', async (request, response) => {
       }
       record.enable = status
       await db[isComposite ? 'envs_group' : 'envs'].$upsertById(record)
+      logger.info('[OpenAPI · Env]', '更改环境变量状态', id, status === 1 ? '启用' : '禁用', record)
     }
     response.send(API_STATUS_CODE.ok())
     await onChange(!isComposite)
@@ -796,6 +856,7 @@ apiOpen.post('/v1/delete', async (request, response) => {
       await db.envs.$deleteById(ids)
     }
     response.send(API_STATUS_CODE.ok())
+    logger.info('[OpenAPI · Env]', '删除环境变量', ids.join(','))
     await onChange(!isComposite)
   } catch (e) {
     return response.send(API_STATUS_CODE.fail(e.message || e))
@@ -1000,5 +1061,7 @@ async function checkVaribleExsit(name) {
   }
 }
 
-module.exports.API = api
-module.exports.OpenAPI = apiOpen
+module.exports = {
+  API: api,
+  OpenAPI: apiOpen,
+}

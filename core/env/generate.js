@@ -1,5 +1,5 @@
 const fs = require('fs')
-const { generateEnvFile } = require('../file/index')
+const { APP_FILE_PATH } = require('../type')
 
 /**
  * 生成环境变量批量声明脚本
@@ -45,7 +45,7 @@ function generateEnvSh(group, items) {
       lines.push(`export ${g.type}=''`)
     }
   })
-  fs.writeFileSync(generateEnvFile, lines.join('\n'))
+  fs.writeFileSync(APP_FILE_PATH.ENV, lines.join('\n'))
 }
 
 module.exports = {

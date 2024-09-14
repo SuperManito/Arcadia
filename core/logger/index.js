@@ -1,5 +1,5 @@
 const log4js = require('log4js')
-const { logPath } = require('../file')
+const { APP_DIR_PATH } = require('../type')
 
 /**
  * 日志组件
@@ -9,7 +9,7 @@ log4js.configure({
     console: { type: 'console' },
     file: {
       type: 'file',
-      filename: `${logPath}server.log`,
+      filename: `${APP_DIR_PATH.LOG}/server.log`,
       layout: {
         type: 'pattern',
         // pattern: '%d{yyyy-MM-dd hh:mm:ss} [%p] %c - %m'

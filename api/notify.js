@@ -68,5 +68,7 @@ apiOpen.post('/new', async (request, response) => {
   }
 })()
 
-module.exports.API = api
-module.exports.OpenAPI = apiOpen
+module.exports = {
+  API: api,
+  OpenAPI: apiOpen,
+}

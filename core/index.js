@@ -1,5 +1,6 @@
 const random = require('string-random')
-const { CONFIG_FILE_KEY, getJsonFile, saveNewConf } = require('./file')
+const { getJsonFile, saveNewConf } = require('./file')
+const { APP_FILE_TYPE } = require('./type')
 const utils = require('./utils')
 const errorCount = 1
 
@@ -7,7 +8,7 @@ const errorCount = 1
  * 初始化
  */
 function init() {
-  const authFileJson = getJsonFile(CONFIG_FILE_KEY.AUTH)
+  const authFileJson = getJsonFile(APP_FILE_TYPE.AUTH)
   if (!utils.isNotEmpty(authFileJson.openApiToken)) {
     authFileJson.openApiToken = random(32)
   }
@@ -15,7 +16,7 @@ function init() {
   if (!utils.isNotEmpty(authFileJson.jwtSecret)) {
     authFileJson.jwtSecret = random(16)
   }
-  saveNewConf(CONFIG_FILE_KEY.AUTH, authFileJson, true)
+  saveNewConf(APP_FILE_TYPE.AUTH, authFileJson, true)
 }
 
 init()

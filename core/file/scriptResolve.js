@@ -1,5 +1,5 @@
 const childProcess = require('child_process')
-const { shellPath } = require('.')
+const { APP_FILE_PATH } = require('../type')
 
 /**
  * @param filePath 文件路径
@@ -9,7 +9,7 @@ async function resolveScript(filePath) {
   // 判断文件夹是否存在
   // 如果不存在,则创建,并从指定地址拉取
   /* eslint-disable no-promise-executor-return */
-  return new Promise((resolve, reject) => childProcess.exec(`bash ${shellPath}utils/resolve.sh ${filePath}`, (error, stdout, _stderr) => {
+  return new Promise((resolve, reject) => childProcess.exec(`bash ${APP_FILE_PATH.RESOLVE_SCRIPT} ${filePath}`, (error, stdout, _stderr) => {
     if (error) {
       reject(error)
     } else {

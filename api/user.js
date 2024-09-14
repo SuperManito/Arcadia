@@ -4,7 +4,8 @@ const { API_STATUS_CODE, getClientIP, ip2Address } = require('../core/http')
 const { logger } = require('../core/logger')
 
 const { errorCount } = require('../core')
-const { saveNewConf, CONFIG_FILE_KEY, getJsonFile } = require('../core/file')
+const { saveNewConf, getJsonFile } = require('../core/file')
+const { APP_FILE_TYPE } = require('../core/type')
 const random = require('string-random')
 const util = require('../core/utils')
 const jwt = require('jsonwebtoken')
@@ -15,7 +16,7 @@ const jwt = require('jsonwebtoken')
 api.post('/auth', async (request, response) => {
   const { username, password, captcha = '' } = request.body
   logger.info(`检测到用户登录行为，尝试登录用户名 ${username}`)
-  const con = getJsonFile(CONFIG_FILE_KEY.AUTH)
+  const con = getJsonFile(APP_FILE_TYPE.AUTH)
   const curTime = new Date()
   let authErrorCount = con.authErrorCount || 0
   if (authErrorCount >= 3 && con.authErrorTime) {
@@ -63,7 +64,7 @@ api.post('/auth', async (request, response) => {
         if (ip !== '127.0.0.1' && ip !== 'localhost') {
           logger.info(`用户 ${username} 已登录，登录地址：${ip} ${address}`)
         }
-        saveNewConf(CONFIG_FILE_KEY.AUTH, con, false)
+        saveNewConf(APP_FILE_TYPE.AUTH, con, false)
       })
       result.token = jwt.sign({
         username,
@@ -73,7 +74,7 @@ api.post('/auth', async (request, response) => {
       authErrorCount++
       con.authErrorCount = authErrorCount
       con.authErrorTime = curTime.getTime()
-      saveNewConf(CONFIG_FILE_KEY.AUTH, con, false)
+      saveNewConf(APP_FILE_TYPE.AUTH, con, false)
       response.send(API_STATUS_CODE.fail('错误的用户名或密码，请重试'))
     }
   } else {
@@ -85,7 +86,7 @@ api.post('/auth', async (request, response) => {
  * 获取用户信息
  */
 api.get('/info', (request, response) => {
-  const con = getJsonFile(CONFIG_FILE_KEY.AUTH)
+  const con = getJsonFile(APP_FILE_TYPE.AUTH)
   response.send(API_STATUS_CODE.okData({ username: con.user, lastLoginInfo: con.lastLoginInfo || {} }))
 })
 
@@ -96,7 +97,7 @@ api.post('/changePwd', (request, response) => {
   const username = request.body.username
   const password = request.body.password
   if (username && password) {
-    const config = getJsonFile(CONFIG_FILE_KEY.AUTH)
+    const config = getJsonFile(APP_FILE_TYPE.AUTH)
     // 如果不是默认用户和密码，重置令牌
     // const originUser = config.user
     // const originPwd = config.password
@@ -107,7 +108,7 @@ api.post('/changePwd', (request, response) => {
     config.openApiToken = random(32)
     config.password = password
     config.user = username
-    saveNewConf(CONFIG_FILE_KEY.AUTH, config, true)
+    saveNewConf(APP_FILE_TYPE.AUTH, config, true)
     logger.info('用户更改了认证信息，令牌已重置')
     response.send(API_STATUS_CODE.ok('修改成功！'))
   } else {
@@ -122,4 +123,6 @@ api.get('/logout', (request, response) => {
   response.send(API_STATUS_CODE.ok())
 })
 
-module.exports.userAPI = api
+module.exports = {
+  API: api,
+}

@@ -1,6 +1,6 @@
 <p align="center">
     <a href="https://arcadia.cool">
-        <img src="./public/logo.jpg" width="180">
+        <img src="./public/app-logo.jpg" width="180">
     </a>
 </p>
 <h1 align="center">

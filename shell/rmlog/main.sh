@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-18
+## Modified: 2024-09-10
 
 ## 删除日志功能
 # rmlog [days]
@@ -18,7 +18,7 @@ function command_rmlog_main() {
         fi
     }
     function rm_script_log() {
-        local log_file_list=$(ls -l $LogDir/*/*.log 2>/dev/null | awk '{print $9}' | grep -v "log/bot")
+        local log_file_list=$(ls -l $LogDir/*/*.log $LogDir/*/*/*.log 2>/dev/null | awk '{print $9}' | grep -v "log/bot")
         for log in ${log_file_list}; do
             ## 文件名比文件属性获得的日期要可靠
             local log_date=$(echo ${log} | awk -F '/' '{print $NF}' | grep -Eo "20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]")

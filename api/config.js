@@ -82,4 +82,6 @@ api.get('/type/single/:type', async (request, response) => {
   response.send(API_STATUS_CODE.okData(configs?.length > 0 ? configs[0] : null))
 })
 
-module.exports.configAPI = api
+module.exports = {
+  API: api,
+}
