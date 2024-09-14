@@ -15,7 +15,7 @@ import { GET } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 必填 | 描述 |
 | :-: | :-: | :-: | --- |
-| `type` | `string` | 否 | 获取类型，固定可选值 [**TypeEnum**](./tree#TypeEnum)（对应各目录），不提供则为全部 |
+| `type` | `string` | 否 | 获取类型，固定可选值 [**type**](#type)（对应各目录），不提供则为全部 |
 | `keywords` | `string` | 否 | 过滤关键字，用于文件名搜索 |
 | `startTime` | `string` | 否 | 开始日期时间，用于日期范围搜索，格式固定为 `yyyy-MM-dd HH:mm` |
 | `endTime` | `string` | 否 | 结束日期时间，用于日期范围搜索，格式固定为 `yyyy-MM-dd HH:mm`，不提供则默认为当前时间 |
@@ -23,7 +23,7 @@ import { GET } from '@site/src/components/RequestTag';
 
 </APITable>
 
-#### TypeEnum
+#### type
 
 <APITable>
 
