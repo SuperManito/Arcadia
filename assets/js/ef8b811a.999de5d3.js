@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkarcadia=self.webpackChunkarcadia||[]).push([[8947],{6600:a=>{a.exports=JSON.parse('{"authors":[{"name":"SuperManito","title":"\u9879\u76ee\u521b\u59cb\u4eba","url":"https://github.com/SuperManito","imageURL":"https://github.com/SuperManito.png","key":"supermanito","page":null,"count":1}]}')}}]);
