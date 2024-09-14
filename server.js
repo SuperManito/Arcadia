@@ -164,7 +164,7 @@ app.use(sessionMiddleware, (err, req, res, next) => {
           statusCode = 401
         } else {
           type = 'AUTH_FAIL'
-          statusCode = 403
+          statusCode = 200
         }
         break
       case 'SyntaxError':
