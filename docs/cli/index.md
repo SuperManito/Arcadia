@@ -31,7 +31,7 @@ import DocCardList from '@theme/DocCardList';
 
   服务管理
   service <args>  项目后端服务
-  tgbot <args>    电报机器人
+  tgbot <args>    TG机器人
 
   其它
   rmlog           清理运行日志文件

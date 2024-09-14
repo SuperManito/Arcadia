@@ -1,0 +1,304 @@
+---
+title: Cron 定时任务
+toc_max_heading_level: 2
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import APITable from '@site/src/components/APITable';
+import { GET, POST } from '@site/src/components/RequestTag';
+
+:::tip 请求参数与响应内容基本与内部接口一致。
+:::
+
+## 获取分页
+
+<GET>/cron/v1/page</GET>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `type` | `string` | 否 | 任务类型过滤，当前固定分为 `user` 和 `system` |
+| `search` | `string` | 否 | 搜索内容过滤，仅涉及任务名称和任务执行命令 |
+| `active` | `string<'0' \| '1'>` | 否 | 启用/禁用状态过滤 `1 启用 \| 0 禁用`，默认不过滤 |
+| `tags` | `string` | 否 | 任务标签过滤（仅限系统任务，具体通过下方 [获取标签列表](#获取标签列表) 获取） |
+| `orderBy` | `string<'sort' \| 'last_runtime' \| 'last_run_use'>` | 否 | 指定排序字段，默认 `sort` |
+| `order` | `string<'0' \| '1'>` | 否 | 指定排序方式 `0 升序 \| 1 降序`，默认降序 |
+| `page` | `string` | 否 | 指定页数，默认1 |
+| `size` | `string` | 否 | 指定分页大小数量，默认`20` |
+
+</APITable>
+
+### 响应
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| :-: | :-: | --- |
+| `data` | `object[]` | 数据项 |
+| `page` | `number` | 当前页码 |
+| `size` | `number` | 每页数据量 |
+| `total` | `number` | 数据总量 |
+
+</APITable>
+
+<details>
+<summary>点此展开查看具体响应数据示例</summary>
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| :-: | :-: | --- |
+| `id` | `number` | 唯一标识 |
+| `name` | `string` | 任务名称 |
+| `type` | `string` | 任务类型，当前固定分为 user 和 system |
+| `cron` | `string` | 定时规则（5位或6位的定时表达式） |
+| `shell` | `string` | 执行的命令 |
+| `active` | `number<0 \| 1>` | 状态 `1 启用 \| 0 禁用` |
+| `config` | `string<object>` | 高级配置，具体详见下方[创建接口请求参数](#创建) |
+| `tags` | `string` | 任务标签 |
+| `last_runtime` | `string` | 最后一次运行的时间 |
+| `last_run_use` | `number` | 最后一次运行的时长（单位秒，精确到小数点后3位） |
+| `sort` | `number` | 在分页中的位置序号（正整数），默认按照先后顺序递增 |
+| `create_time` | `string` | 任务创建时间 |
+| `remark` | `string` | 备注 |
+| `bind` | `string` | 后端用于关联底层内容的参数（仅系统任务使用） |
+| `is_running` | `boolean` | 当前运行状态（任务是否正在运行） |
+
+</APITable>
+
+```json title="示例"
+{
+  "data": [
+    {
+      "id": 2,
+      "name": "系统测试任务",
+      "type": "system",
+      "cron": "30 */2 * * *",
+      "shell": "arcadia run example.js",
+      "active": 1,
+      "config": "",
+      "tags": "",
+      "last_runtime": null,
+      "last_run_use": null,
+      "sort": 1,
+      "create_time": "2024-01-01 00:00:00",
+      "remark": "",
+      "bind": "",
+      "is_running": false
+    },
+    {
+      "id": 1,
+      "name": "用户测试任务",
+      "type": "user",
+      "cron": "0 0 * * *",
+      "shell": "arcadia rmlog",
+      "active": 0,
+      "config": "",
+      "tags": "",
+      "last_runtime": "2024-01-01 00:00:00",
+      "last_run_use": 1,
+      "sort": 1,
+      "create_time": "2024-01-01 00:00:00",
+      "remark": "",
+      "bind": "",
+      "is_running": true
+    },
+    ...
+  ],
+  "total": 5,
+  "page": 1,
+  "size": 20
+}
+```
+
+> 默认倒序返回
+
+</details>
+
+
+## 查询
+
+### 请求
+
+<GET>/cron/v1/query</GET>
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `id` | `string` | 是 | 唯一标识 |
+
+</APITable>
+
+### 响应
+
+参考上方[获取分页接口响应](#获取分页)
+
+
+## 创建
+
+<POST>/cron/v1/create</POST>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `name` | `string` | 是 | 任务名称 |
+| `cron` | `string` | 是 | 定时表达式 |
+| `shell` | `string` | 是 | 执行的命令 |
+| `active` | `number<0 \| 1>` | 否 | 状态 `1启用 \| 0禁用`，默认启用 |
+| `remark` | `string` | 否 | 任务备注 |
+| `config` | `string<object>` | 否 | 高级配置 |
+
+</APITable>
+
+- `config` 高级配置字段说明
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `before_task_shell` | `string` | 否 | 任务运行前的执行命令 |
+| `after_task_shell` | `string` | 否 | 任务运行后的执行命令 |
+| `log_directory` | `string` | 否 | 日志目录路径 |
+| `source_file` | `string` | 否 | 源码文件路径 |
+| `allow_concurrency` | `boolean` | 否 | 是否允许并发 |
+
+</APITable>
+
+:::info 根据项目功能设计，开放接口目前只允许创建用户任务。
+:::
+
+### 响应
+
+参考上方[获取分页接口响应](#获取分页)
+
+
+## 更新
+
+<POST>/cron/v1/update</POST>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `id` | `number` | 是 | 唯一标识 |
+| `name` | `string` | 否 | 任务名称 |
+| `cron` | `string` | 否 | 定时表达式 |
+| `shell` | `string` | 否 | 执行的命令 |
+| `active` | `number<0 \| 1>` | 否 | 状态 `1启用 \| 0禁用` |
+| `remark` | `string` | 否 | 任务备注 |
+| `config` | `string<object>` | 否 | 高级配置，具体详见上方[创建接口请求参数](#创建) |
+
+</APITable>
+
+### 响应
+
+参考上方[获取分页接口响应](#获取分页)
+
+
+## 删除
+
+<POST>/cron/v1/delete</POST>
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `id` | `number \| number[]` | 是 | 唯一标识 |
+
+</APITable>
+
+
+## 调整排序
+
+<POST>/cron/v1/order</POST>
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `id` | `number` | 是 | 唯一标识 |
+| `order` | `number` | 否 | 目的修改位置 |
+| `moveToEnd` | `boolean` | 否 | 是否移动到最后 |
+
+</APITable>
+
+至少需要提供 `order` 或 `moveToEnd` 其中一个，设置 `moveToEnd` 时 `order` 参数的值会被覆盖为所有记录 `sort` 字段中的最大值，与其相反的操作是将 `order` 参数的值设置为 `1`。关于置顶或置底操作应建立在可视角度上，后端分页数据默认均为倒序返回所以应注意区分使用场景。
+
+
+## 获取标签列表
+
+<GET>/cron/v1/tagsList</GET>
+
+### 请求
+
+无参数
+
+### 响应
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| :-: | :-: | --- |
+| `bind` | `string` | 标签名称 |
+| `count` | `string<number>` | 累计使用该标签的任务数量 |
+
+</APITable>
+
+:::info 目前用于系统定时任务类型过滤，使用分页接口的 `tags` 参数，具体取自 `bind` 记录值的中间字段。
+:::
+
+
+## 查询运行中的任务
+
+<GET>/cron/v1/runningTasks</GET>
+
+### 请求
+
+无参数
+
+### 响应
+
+参考上方[获取分页接口响应](#获取分页)
+
+
+## 运行任务
+
+<POST>/cron/v1/run</POST>
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `id` | `number \| number[]` | 是 | 唯一标识 |
+
+</APITable>
+
+:::tip 主动运行和按照定时计划自动触发运行的过程大致相同，不过要注意区分的是前端管理面板设计的调试功能，该调试仅执行定时任务记录项所存储的 `shell` 字段命令，在运行完毕后不会更新定时任务的运行状态、最后运行时间等关键信息。
+:::
+
+
+
+## 终止任务
+
+<POST>/cron/v1/terminate</POST>
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `id` | `number \| number[]` | 是 | 唯一标识 |
+
+</APITable>
+
+:::warning 无法有效判断操作结果，因为存在少数任务进程没有被终止的异常情况，`is_running` 字段的值在任务被终止后或正常运行完毕后才会更新。
+:::
+

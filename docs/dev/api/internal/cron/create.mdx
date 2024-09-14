@@ -17,36 +17,26 @@ import { POST } from '@site/src/components/RequestTag';
 | `shell` | `string` | 是 | 执行的命令 |
 | `active` | `number<0 \| 1>` | 否 | 状态 `1启用 \| 0禁用`，默认启用 |
 | `remark` | `string` | 否 | 任务备注 |
-| `type` | `string` | 否 | 任务类型过滤，当前固定分为 user 和 system |
+| `type` | `string` | 否 | 任务类型，当前固定分为 `user` 和 `system` |
 | `bind` | `string` | 否 | 后端关联脚本参数 |
-| `config` | `string` | 否 | 后端配置参数 |
+| `config` | `string<object>` | 否 | 高级配置 |
+
+</APITable>
+
+- `config` 高级配置字段说明
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `before_task_shell` | `string` | 否 | 任务运行前的执行命令 |
+| `after_task_shell` | `string` | 否 | 任务运行后的执行命令 |
+| `log_directory` | `string` | 否 | 日志目录路径 |
+| `source_file` | `string` | 否 | 源码文件路径 |
+| `allow_concurrency` | `boolean` | 否 | 是否允许并发 |
 
 </APITable>
 
 ## 响应
 
-<APITable>
-
-| 名称 | 类型 | 描述 |
-| :-: | :-: | --- |
-| `id` | `number` | 唯一标识 |
-| `name` | `string` | 任务名称 |
-| `cron` | `string` | 定时表达式 |
-| `shell` | `string` | 执行的命令 |
-| `type` | `string` | 任务类型，当前固定分为 user 和 system |
-| `active` | `number<0 \| 1>` | 状态 `1启用 \| 0禁用` |
-| `create_time` | `string` | 任务创建时间 |
-
-</APITable>
-
-```json title="示例"
-{
-  "active": 1,
-  "create_time": "2024-01-01 00:00:00",
-  "cron": "30 6 * * *",
-  "id": 1,
-  "name": "测试任务",
-  "shell": "echo test",
-  "type": "user"
-}
-```
+参考[获取分页接口响应](./page.mdx#响应)

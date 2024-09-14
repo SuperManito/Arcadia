@@ -1,0 +1,38 @@
+---
+title: Cron 定时任务
+---
+
+## 数据关系模型
+
+数据库对于该功能设计了两个数据表 `tasks` 和 `task_core`。为了提高效率，额外设计了 `task_core` 表，专用于定时任务工作引擎的数据关联。
+
+```prisma
+model tasks {
+  id           Int       @id @default(autoincrement())
+  name         String
+  cron         String
+  type         String
+  shell        String    @default("")
+  active       Int       @default(1)
+  last_runtime DateTime?
+  last_run_use Int?
+  tags         String    @default("")
+  sort         Int       @default(99999)
+  create_time  DateTime  @default(now())
+  config       String    @default("")
+  remark       String    @default("")
+  bind         String    @default("")
+}
+
+model task_core {
+  id       String @id
+  cron     String
+  callback String
+}
+```
+
+## 接口类别
+
+import DocCardList from '@theme/DocCardList';
+
+<DocCardList />

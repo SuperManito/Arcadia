@@ -14,11 +14,10 @@ import { GET } from '@site/src/components/RequestTag';
 | :-: | :-: | :-: | --- |
 | `page` | `string` | 否 | 指定页数，默认1 |
 | `size` | `string` | 否 | 指定分页大小数量，默认`20` |
-| `type` | `string` | 否 | 任务类型过滤，当前固定分为 user 和 system |
+| `type` | `string` | 否 | 任务类型过滤，当前固定分为 `user` 和 `system` |
 | `search` | `string` | 否 | 搜索内容过滤，仅涉及任务名称和任务执行命令 |
 | `active` | `string<'0' \| '1'>` | 否 | 启用/禁用状态过滤 `1 启用 \| 0 禁用`，默认不过滤 |
-| `tags` | `string` | 否 | 标签过滤 |
-| `remark` | `string` | 否 | 备注内容过滤 |
+| `tags` | `string` | 否 | 任务标签过滤（仅限系统任务，取自 `bind` 值的中间字段，可通过 [bindGroup](./bind-group) 获取） |
 | `orderBy` | `string` | 否 | 指定排序字段，默认 `sort` |
 | `order` | `string<'0' \| '1'>` | 否 | 指定排序方式 `0 升序 \| 1 降序`，默认降序 |
 
@@ -30,7 +29,7 @@ import { GET } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 描述 |
 | :-: | :-: | --- |
-| `data` | `array[]` | 数据项 |
+| `data` | `object[]` | 数据项 |
 | `page` | `number` | 当前页码 |
 | `size` | `number` | 每页数据量 |
 | `total` | `number` | 数据总量 |
@@ -49,15 +48,15 @@ import { GET } from '@site/src/components/RequestTag';
 | `cron` | `string` | 定时规则（5位或6位的定时表达式） |
 | `shell` | `string` | 执行的命令 |
 | `active` | `number<0 \| 1>` | 状态 `1 启用 \| 0 禁用` |
-| `config` | `string` | 后端配置参数 |
+| `config` | `string<object>` | 高级配置 |
 | `tags` | `string` | 任务标签 |
 | `last_runtime` | `string` | 最后一次运行的时间 |
 | `last_run_use` | `number` | 最后一次运行的时长（单位秒，精确到小数点后3位） |
 | `sort` | `number` | 在分页中的位置序号（正整数），默认按照先后顺序递增 |
 | `create_time` | `string` | 任务创建时间 |
 | `remark` | `string` | 备注 |
-| `bind` | `string` | 后端关联脚本参数 |
-| `isRunning` | `boolean` | 当前运行状态（任务是否正在运行） |
+| `bind` | `string` | 后端用于关联底层内容的参数（仅系统任务使用） |
+| `is_running` | `boolean` | 当前运行状态（任务是否正在运行） |
 
 </APITable>
 
@@ -79,7 +78,7 @@ import { GET } from '@site/src/components/RequestTag';
       "create_time": "2024-01-01 00:00:00",
       "remark": "",
       "bind": "",
-      "isRunning": false
+      "is_running": false
     },
     {
       "id": 1,
@@ -96,7 +95,7 @@ import { GET } from '@site/src/components/RequestTag';
       "create_time": "2024-01-01 00:00:00",
       "remark": "",
       "bind": "",
-      "isRunning": true
+      "is_running": true
     },
     ...
   ],

@@ -4,13 +4,45 @@ toc_max_heading_level: 2
 ---
 import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
-公共测试期间不具体实行版本号管理
+公共测试期间不具体实施版本号管理
 <!-- 正式版的版本号格式为 x.xx.xx，其中第一位为主版本号，第二位为次版本号，第三位为修订版本号，更新修订版本无需重新部署直接更新项目源码即可，次版本根据更新日志的要求而定；如果你使用的是测试版本那么需要持续保持镜像容器至最新 -->
+
+
+## 1.0.0-beta.4 (2024-09-14)
+
+### <FeaturesIcon /> 新特性
+
+- 前端：更新了整体框架布局和大量页面以及组件的 UI 设计
+- 前端：代码编辑器工具箱新增封装多个功能操作
+- 前端：“定时任务” 页面编辑任务组件新增定时高级配置
+- 前端：“运行日志” 页面支持轮询更新
+- 前端：“运行日志” 页面支持日志反转
+- 前端：“文件管理” 页面支持批量操作
+- 前端：代码编辑器新增部分深色主题
+- 后端：新增封装 “定时任务” 系列 OpenAPI 接口，具体详见开发者文档
+- 后端：新增 “环境变量” OpenAPI 精准查询接口
+- 后端：为 “环境变量” OpenAPI 查询接口添加了描述与备注字段的匹配
+
+### <BugIcon /> 修复
+
+- 后端：修复了在更新项目源码后，后端服务不符合预期自动重启的错误
+- 后端：修复了一些错误
+
+### <OptimizeIcon /> 优化
+
+- 前端：提高了代码编辑器的渲染性能
+- 前端：优化了静态资源的打包体积，提高了页面加载速度
+- 前端：表格分页大小的用户设置支持本地存储
+- 后端：优化了终止定时任务的实现逻辑
+- 后端：为最近登录地理位置信息添加了局域网识别
+- 后端：完善了接口响应机制
+- 后端：优化了部分接口的处理逻辑，提高了性能
+- CLI：调整了运行代码存储日志文件的路径
 
 
 ## 1.0.0-beta.3 (2024-05-07)
 
-### <FeaturesIcon></FeaturesIcon> 新特性
+### <FeaturesIcon /> 新特性
 
 - 前端：“环境变量” 复合变量值分页表格新增批量导入组件
 - 前端：“环境变量” 页面表格新增更新时间字段
@@ -19,25 +51,25 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ## 1.0.0-beta.2 (2024-05-05)
 
-### <FeaturesIcon></FeaturesIcon> 新特性
+### <FeaturesIcon /> 新特性
 
 - 后端：新增封装 “环境变量” 系列 OpenAPI 接口，具体详见开发者文档
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - 后端：修复了在添加新的系统定时任务后导致所有原有任务被自动删除的错误
 - 后端：修复了被禁用的普通变量仍被导出的错误
 - CLI：修复了一些命令的兼容性错误
 - CLI：修复了一些命令选项的错误
 
-### <OptimizeIcon></OptimizeIcon> 优化
+### <OptimizeIcon /> 优化
 
 - 后端：优化了批量管理系统定时任务接口的性能，提高了底层定时导入速度
 
 
 ## 1.0.0-beta.1 (2024-04-28)
 
-### <FeaturesIcon></FeaturesIcon> 新特性
+### <FeaturesIcon /> 新特性
 
 - 前端：新增 “环境变量” 页面，可通过表格和表单来管理用户变量数据
 - 前端：全面应用了基于 TextMate 的代码语法高亮引擎，现在代码编辑器不仅更加美观还大幅提高了渲染速度，并且对于长文本解析有着出色的性能表现。
@@ -55,13 +87,13 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 - CLI：底层Shell完全重构，重新设计了项目指令，新增部分命令选项
 - CLI：新增支持运行 Go 语言和 C 语言的代码文件
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - 前端：修复了运行日志通用组件位于标题栏的运行计时显示错误
 - 前端：修复了在部分情况下编辑器需要刷新页面才能正常显示的问题
 - 前端：修复了 “文件管理” 页面当文件（夹）名称过长时不符合预期的显示错误
 
-### <OptimizeIcon></OptimizeIcon> 优化
+### <OptimizeIcon /> 优化
 
 - 前端：大幅提高了 “运行日志” 和 “文件编辑” 页面在移动端上的性能表现
 - 前端：改进了多个页面的运行效率，优化了内存占用。
@@ -77,7 +109,7 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ## 1.0.0-alpha.16 (2023-12-27)
 
-### <FeaturesIcon></FeaturesIcon> 新特性
+### <FeaturesIcon /> 新特性
 
 - 前端：新增 “脚本调试” 页面，支持标签页
 - 前端：“运行日志” 页面批量删除功能新增适配对话确认弹窗
@@ -89,14 +121,14 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 - 前端：大量UI细节更新
 - CLI：运行脚本命令新增忽略日志命令选项
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - 前端：修复了移动端 ”文件管理“ 页面一个关于文件详情抽屉无法被正常关闭的错误
 - 前端：修复了 “脚本管理” 页面标签页面板高度异常的错误
 - 前端：更正了 “定时任务” 页面批量操作功能的相关文字描述
 - 后端：修复 Open Api 用户自定义接口的鉴权错误
 
-### <OptimizeIcon></OptimizeIcon> 优化
+### <OptimizeIcon /> 优化
 
 - 前端：优化了部分页面首次进入页面时的加载状态
 - 前端：优化了登录页面表单验证码组件的展示效果
@@ -104,7 +136,7 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ## 1.0.0-alpha.15 (2023-11-14)
 
-### <FeaturesIcon></FeaturesIcon> 新特性
+### <FeaturesIcon /> 新特性
 
 - 前端：更新了 “定时任务” 页面和编辑任务表单的多处UI设计
 - 前端：“定时任务” 页面编辑任务表单新增表达式可视化配置功能和随机定时规则功能
@@ -120,12 +152,12 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 - 前端：更换了全局加载页面的背景
 - 前端：大量UI细节更新
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - 后端：修复了一个在某些情况下修改定时任务后原任务仍然有效的错误
 - CLI：修复了一个关于存储运行日志文件的绝对路径计算错误
 
-### <OptimizeIcon></OptimizeIcon> 优化
+### <OptimizeIcon /> 优化
 
 - 前端：优化了上次登录信息消息提醒的推送机制
 - 前端：压缩了一个等宽字体的大小
@@ -133,18 +165,18 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ## 1.0.0-alpha.14 (2023-11-02)
 
-### <FeaturesIcon></FeaturesIcon> 新特性
+### <FeaturesIcon /> 新特性
 
 - 后端：新增一个应用开放接口
 - 后端：大幅加强了认证接口关于图形验证码的强度
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - CLI：更正了 `Raw` 类型脚本的运行日志路径
 - 后端：修复了一个获取文件列表内置过滤规则的错误
 - 后端：修复了自定义初始化脚本未能执行的错误
 
-### <OptimizeIcon></OptimizeIcon> 优化
+### <OptimizeIcon /> 优化
 
 - CLI：优化脚本配置文件查询性能，大幅降低项目更新命令的耗时
 - 后端：更新了定时任务核心组件库 cron 的版本并优化了一些问题
@@ -152,14 +184,14 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ## 1.0.0-alpha.13 (2023-09-09)
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - 前端：修复了上版本产生的一个导致苹果设备无法访问的错误
 
 
 ## 1.0.0-alpha.12 (2023-09-08)
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - 前端：修复了 “运行日志” 页面在移动端点击跳转至底部按钮无效的问题
 - CLI：修复了一些问题
@@ -167,7 +199,7 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ## 1.0.0-alpha.11 (2023-08-30)
 
-### <FeaturesIcon></FeaturesIcon> 新特性
+### <FeaturesIcon /> 新特性
 
 - 前端：将所有涉及模态框（弹窗）的功能在移动端更换为抽屉组件展示
 - 前端：更新移动端 “脚本调试” 页面和 “运行日志” 页面的大量UI设计，新增文件树菜单展示切换按钮等
@@ -189,14 +221,14 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 - 前端：更新上次登录信息的消息提醒样式
 - 前端：大量细节更新与优化
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - 后端：修复了定时规则月份单位的兼容性错误并优化解析
 - 前端：修复了编辑器的一些错误并优化
 - CLI：修复了一些并发运行脚本的错误
 - CLI：修复了tgbot组件一些地方的命令错误
 
-### <OptimizeIcon></OptimizeIcon> 优化
+### <OptimizeIcon /> 优化
 
 - 前端：优化打包的静态资源
 - 前端：更新部分页面的路径
@@ -211,14 +243,14 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ## 1.0.0-alpha.10 (2023-07-13)
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - 修复更新指定路径下仓库时未能更新定时任务的错误
 
 
 ## 1.0.0-alpha.9 (2023-07-08)
 
-### <FeaturesIcon></FeaturesIcon> 新特性
+### <FeaturesIcon /> 新特性
 
 - 面板定时任务页面：新增脚本文件弹窗，可直接查看脚本文件内容，支持复制内容、跳转编辑
 - 面板定时任务页面表格：新增对于 “最后运行时间” 列数据的排序
@@ -227,7 +259,7 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 - 新增代码编辑器工具箱，整合了原有功能设计，并新增查找替换按钮以便于移动端操作
 - 更新了多个地方的UI设计与动画效果
 
-### <OptimizeIcon></OptimizeIcon> 优化
+### <OptimizeIcon /> 优化
 
 - 面板定时任务页面表格：优化了在内容过长时的文本省略，现在不会溢出屏幕
 - 前端：更换了运行日志弹窗内容的等宽字体，现在实现了与终端一样的文本对齐效果
@@ -237,14 +269,14 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ## 1.0.0-alpha.8 (2023-06-16)
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - 修复导入代码仓库配置 `autoDisable` 参数功能无效的错误
 
 
 ## 1.0.0-alpha.7 (2023-06-15)
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - 修复了批量添加的定时任务因出现定时规则错误而导致影响其它定时任务运行的错误，并更新了相关日志打印
 - 修复面板部分UI的一些错误
@@ -252,7 +284,7 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ## 1.0.0-alpha.6 (2023-06-14)
 
-### <FeaturesIcon></FeaturesIcon> 新特性
+### <FeaturesIcon /> 新特性
 
 - 面板定时任务页面：部分UI更新
 - 面板定时任务页面：优化了历史日志弹窗的工作逻辑并更新了相关UI设计
@@ -266,7 +298,7 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ## 1.0.0-alpha.5 (2023-06-05)
 
-### <FeaturesIcon></FeaturesIcon> 新特性
+### <FeaturesIcon /> 新特性
 
 - 面板定时任务页面UI更新
 - 面板定时任务页面：新增支持批量启用/禁用任务
@@ -275,19 +307,19 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 - 面板文件管理页面：新增支持操作 Raw 远程文件目录
 - 面板运行日志页面：调整了跳转底部按钮的位置
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - 修复更新 Raw 远程文件后无法保存脚本的错误
 
 
 ## 1.0.0-alpha.4 (2023-06-04)
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - 修复定时任务连续运行两次的错误
 - 修复在保存配置文件内容时关于检测语法的错误
 
-### <OptimizeIcon></OptimizeIcon> 优化
+### <OptimizeIcon /> 优化
 
 - 日志目录排列顺序调整为倒序
 - 优化相关处理定时任务的命令
@@ -296,7 +328,7 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ## 1.0.0-alpha.3 (2023-06-01)
 
-### <BugIcon></BugIcon> 修复
+### <BugIcon /> 修复
 
 - 修复修改定时任务后无法生效的错误
 - 修复定时任务最后运行时间显示异常的错误
@@ -304,21 +336,21 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 - 修复导入脚本随机定时机制的错误
 - 修复 Raw 远程文件更新命令报错
 - 修复代码仓库 `autoDisable` 配置无效的错误
-- 修复电报机器人连接异常报错，降低了其依赖版本
+- 修复TG机器人连接异常报错，降低了其依赖版本
 - 修复在更新后端依赖后未能自动重启面板的错误
 - 修复前端面板日志页持续显示日志为最新的错误
 - 修复定时任务在部分情况下连续运行两次的错误
 
-### <OptimizeIcon></OptimizeIcon> 优化
+### <OptimizeIcon /> 优化
 
 - 更换定时任务核心组件库
 - 重写定时算法，现在能更有效的从脚本中提取定时（规则）表达式
-- 优化电报机器人打印日志的样式
+- 优化TG机器人打印日志的样式
 
 
 ## 1.0.0-alpha.2 (2023-05-31)
 
-### <FeaturesIcon></FeaturesIcon> 新特性
+### <FeaturesIcon /> 新特性
 
 - 定时任务页UI更新，适配移动端、I18n国际化
 - 运行日志页新增跳转到底部按钮

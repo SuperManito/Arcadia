@@ -8,7 +8,7 @@ description: 管理环境变量数据
 该命令当前仅支持管理用户配置文件（非数据库）中用 `export` 关键字声明的全局变量
 :::
 
-```txt
+```txt title="$ arcadia envm"
 ❖ Arcadia CLI - 用户环境变量管理
 
   使用方法：

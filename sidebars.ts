@@ -233,7 +233,7 @@ const sidebars: SidebarsConfig = {
               collapsed: true,
             },
             {
-              label: 'File 文件',
+              label: 'File 文件系统',
               type: 'category',
               link: {
                 type: 'generated-index',
@@ -253,25 +253,6 @@ const sidebars: SidebarsConfig = {
               collapsed: true,
             },
             {
-              label: 'Cron 定时任务',
-              type: 'category',
-              link: {
-                type: 'generated-index',
-              },
-              items: [
-                'dev/api/internal/cron/page',
-                'dev/api/internal/cron/create',
-                'dev/api/internal/cron/edit',
-                'dev/api/internal/cron/delete',
-                'dev/api/internal/cron/order',
-                'dev/api/internal/cron/bind-group',
-                'dev/api/internal/cron/running-task',
-                'dev/api/internal/cron/run',
-                'dev/api/internal/cron/stop-run',
-              ],
-              collapsed: true,
-            },
-            {
               label: 'Env 环境变量',
               type: 'category',
               link: {
@@ -285,6 +266,26 @@ const sidebars: SidebarsConfig = {
                 'dev/api/internal/env/delete',
                 'dev/api/internal/env/order',
                 'dev/api/internal/env/changeStatus',
+              ],
+              collapsed: true,
+            },
+            {
+              label: 'Cron 定时任务',
+              type: 'category',
+              link: {
+                type: 'doc',
+                id: 'dev/api/internal/cron/index',
+              },
+              items: [
+                'dev/api/internal/cron/page',
+                'dev/api/internal/cron/create',
+                'dev/api/internal/cron/edit',
+                'dev/api/internal/cron/delete',
+                'dev/api/internal/cron/order',
+                'dev/api/internal/cron/bind-group',
+                'dev/api/internal/cron/running-tasks',
+                'dev/api/internal/cron/run',
+                'dev/api/internal/cron/terminate',
               ],
               collapsed: true,
             },
@@ -336,7 +337,23 @@ const sidebars: SidebarsConfig = {
             type: 'doc',
             id: 'dev/api/open/index',
           },
-          items: ['dev/api/open/env'],
+          items: [
+            {
+              label: 'Env 环境变量',
+              type: 'doc',
+              id: 'dev/api/open/env',
+            },
+            {
+              label: 'Cron 定时任务',
+              type: 'doc',
+              id: 'dev/api/open/cron',
+            },
+            {
+              label: 'File 文件系统',
+              type: 'doc',
+              id: 'dev/api/open/file',
+            },
+          ],
           collapsed: false,
         },
       ],

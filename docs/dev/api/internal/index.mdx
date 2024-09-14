@@ -15,7 +15,7 @@ import APITable from '@site/src/components/APITable';
 
 关于如何获取 `Token` 详见登录认证接口 [详见此处](/docs/dev/api/internal/user/auth)
 
-### 通用返回内容格式
+### 返回内容格式
 
 数据返回格式统一使用 JSON
 
@@ -30,6 +30,20 @@ import APITable from '@site/src/components/APITable';
 
 </APITable>
 
+### 返回状态说明
+
+<APITable>
+
+|  状态码   |         含义           | 说明                             |
+| :------: | :-------------------: | :-----------------------------: |
+|  `200`   |          OK           | 请求成功                          |
+|  `400`   |      BAD REQUEST      | 请求的地址不存在或者包含不支持的参数   |
+|  `401`   |     UNAUTHORIZED      | 未提供授权信息                     |
+|  `403`   |       FORBIDDEN       | 认证失败                          |
+|  `500`   | INTERNAL SERVER ERROR | 内部错误                          |
+
+</APITable>
+
 ### 业务代码说明
 
 <APITable>
@@ -38,7 +52,6 @@ import APITable from '@site/src/components/APITable';
 | :---: | :-----: |
 |  `0`  |  请求失败 |
 |  `1`  |  请求成功 |
-| `403` |  认证失败 |
 
 </APITable>
 

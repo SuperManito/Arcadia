@@ -17,39 +17,63 @@ import { GET, POST, DELETE } from '@site/src/components/RequestTag';
 ```bash title="获取令牌的方法"
 arcadia service info
 ```
-每次修改管理面板登录认证信息后都会随机生成一个新的 `32` 位字符串
+每次修改管理面板登录认证信息后都会修改成一个新的 `32` 位字符串  
+如果你只是想重置此令牌那么可以在修改管理面板登录认证信息时使用原先的用户名和密码
 
 ## 安全的操作
 
-接口方法都经过了严格的设计和实现，以确保操作的安全性，并且加强了传参的校验  
-接口响应一般不会返回原生错误信息，当然如果你遇到了请主动反馈
+接口封装方法都经过了严格的设计以确保操作的安全性，会对传参进行格式校验  
+接口一般不会响应原生错误信息，如果遇到了请主动反馈
 
-## 接口响应规范
+### 返回内容格式
 
 数据返回格式统一使用 JSON
 
-| 状态码 |   说明   |
-| :---: | :-----: |
-|  `0`  |  请求失败 |
-|  `1`  |  请求成功 |
-| `4403` |  认证失败 |
+<APITable>
 
 | 参数 | 说明 |
 | :----: | :-----: |
 |  code  | 业务代码 |
 |  message | 消息 |
 |  type | 类型 |
-|  result | 返回结果 |
+|  result | 返回结果（不一定有） |
 
-***
+</APITable>
 
-## 用户自定义接口
+## 返回状态说明
+
+<APITable>
+
+|  状态码   |         含义           | 说明                             |
+| :------: | :-------------------: | :-----------------------------: |
+|  `200`   |          OK           | 请求成功                          |
+|  `400`   |      BAD REQUEST      | 请求的地址不存在或者包含不支持的参数   |
+|  `401`   |     UNAUTHORIZED      | 未提供授权信息                     |
+|  `403`   |       FORBIDDEN       | 认证失败                          |
+|  `500`   | INTERNAL SERVER ERROR | 内部错误                          |
+
+</APITable>
+
+### 业务代码说明
+
+<APITable>
+
+| 状态码 |   说明   |
+| :---: | :-----: |
+|  `0`  |  请求失败 |
+|  `1`  |  请求成功 |
+
+</APITable>
+
+## 编程接口
+
+> 接口基准地址 `http://localhost:5678/api/open/extra`
 
 目前后端使用 Node.js® 编写，所以如果你想使用这个功能则需要会写一些 JavaScript 代码
 
 :::info 编写规范
-将代码存放在 **config** 目录下的 `extra_server.js` 脚本（自行创建）中，执行 `arcadia service restart` 重启服务后生效，注意届时检查日志进行确认  
-脚本需要导出唯一函数名，已固定函数传参详见下方示例，接口框架使用 [Express v4](https://www.expressjs.com.cn)，更多编写方法请查阅其文档
+将代码存放在 **config** 目录下的 `extra_server.js` 脚本中（自行创建），执行 `arcadia service restart` 重启服务后生效，注意届时检查日志进行确认  
+脚本需要导出唯一函数名，已固定函数传参详见下方示例，接口框架使用 [Express v4](https://expressjs.com)，更多编写方法请查阅其文档
 :::
 
 请参考下方的简单示例
@@ -58,11 +82,12 @@ arcadia service info
 async function Main(api, API_STATUS_CODE, logger) {
     // api express框架实例
     // API_STATUS_CODE 接口响应封装模板
-    // logger 日志组件，支持分级（info、warn、debug、error、fatal）
+    // logger 日志组件，支持分级（info、warn、debug、error、fatal），之后你可以在 server.log 中查看
+
     api.get('/test1', function (request, response) {
         // queryParams = request.query
         try {
-            const msg = '/api/open/test1 GET 接口请求成功'
+            const msg = '/api/open/extra/test1 GET 接口请求成功'
             response.send(API_STATUS_CODE.okData(msg)) // 请求成功
             logger.info(msg)
         } catch (e) {
@@ -72,7 +97,7 @@ async function Main(api, API_STATUS_CODE, logger) {
     api.post('/test2', function (request, response) {
         // bodyParams = request.body
         try {
-            const msg = '/api/open/test2 POST 接口请求成功'
+            const msg = '/api/open/extra/test2 POST 接口请求成功'
             response.send(API_STATUS_CODE.okData(msg)) // 请求成功
             logger.info(msg)
         } catch (e) {

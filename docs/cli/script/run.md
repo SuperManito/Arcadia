@@ -7,7 +7,7 @@ import APITable from '@site/src/components/APITable';
 
 ✍在本篇内容中你将学习到如何运行脚本这一基础使用功能。看上去内容很多？实际上一点也不难
 
-```txt
+```txt title="$ arcadia run"
 ❖ Arcadia CLI - 执行代码文件
 
   使用方法：

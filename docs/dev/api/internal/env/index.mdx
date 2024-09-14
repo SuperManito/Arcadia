@@ -10,7 +10,7 @@ import APITable from '@site/src/components/APITable';
 
 数据库对于该功能设计了两个数据表 `envs` `envs_group`，分别代表变量项和变量组
 
-```
+```prisma
 model envs {
   id          Int         @id @default(autoincrement())
   group_id    Int
@@ -88,3 +88,9 @@ model envs_group {
 | `envs` | `number` | 成员（复合变量的值）长度 |
 
 </APITable>
+
+## 接口类别
+
+import DocCardList from '@theme/DocCardList';
+
+<DocCardList />

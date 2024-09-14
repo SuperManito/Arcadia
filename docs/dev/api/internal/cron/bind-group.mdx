@@ -1,10 +1,10 @@
 ---
-title: 获取任务分类
+title: 获取标签列表
 ---
 import APITable from '@site/src/components/APITable';
 import { GET } from '@site/src/components/RequestTag';
 
-<GET>/cron/order/bindGroup</GET>
+<GET>/cron/bindGroup</GET>
 
 ## 请求
 
@@ -33,3 +33,6 @@ import { GET } from '@site/src/components/RequestTag';
   }
 ]
 ```
+
+:::info 目前用于系统定时任务类型过滤，使用分页接口的 `tags` 参数，具体取自 `bind` 记录值的中间字段。
+:::

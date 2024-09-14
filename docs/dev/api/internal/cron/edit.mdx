@@ -12,15 +12,34 @@ import { PUT } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 必填 | 描述 |
 | :-: | :-: | :-: | --- |
-| `name` | `string` | 是 | 任务名称 |
-| `cron` | `string` | 是 | 定时表达式 |
-| `shell` | `string` | 是 | 执行的命令 |
+| `id` | `number` | 是 | 唯一标识 |
+| `name` | `string` | 否 | 任务名称 |
+| `cron` | `string` | 否 | 定时表达式 |
+| `shell` | `string` | 否 | 执行的命令 |
 | `active` | `number<0 \| 1>` | 否 | 状态 `1启用 \| 0禁用` |
 | `remark` | `string` | 否 | 任务备注 |
-| `type` | `string` | 否 | 任务类型过滤，当前固定分为 user 和 system |
+| `type` | `string` | 否 | 任务类型，当前固定分为 `user` 和 `system` |
 | `bind` | `string` | 否 | 后端关联脚本参数 |
-| `config` | `string` | 否 | 后端配置参数 |
+| `config` | `string<object>` | 否 | 高级配置 |
+
+</APITable>
+
+- `config` 高级配置字段说明
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `before_task_shell` | `string` | 否 | 任务运行前的执行命令 |
+| `after_task_shell` | `string` | 否 | 任务运行后的执行命令 |
+| `log_directory` | `string` | 否 | 日志目录路径 |
+| `source_file` | `string` | 否 | 源码文件路径 |
+| `allow_concurrency` | `boolean` | 否 | 是否允许并发 |
 
 </APITable>
 
 支持批量操作（改成数组）
+
+## 响应
+
+返回布尔值，如果是批量创建只要有一个失败就返回 `false`
