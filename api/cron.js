@@ -293,7 +293,9 @@ api.put('/', async (request, response) => {
       delete task.bind
       delete task.create_time
       // 校验定时规则
-      validateCronExpression(task.cron)
+      if (task.cron) {
+        validateCronExpression(task.cron)
+      }
     }
     const results = []
     const needFixCronIds = []
@@ -358,7 +360,9 @@ apiOpen.post('/v1/update', async (request, response) => {
       task.config = Object.keys(config).length === 0 ? '' : JSON.stringify(config) // 转为字符串
     }
     // 校验定时规则
-    validateCronExpression(task.cron)
+    if (task.cron) {
+      validateCronExpression(task.cron)
+    }
     // 操作数据库
     const res = await dbTasks.update({ data: task, where: { id: task.id } })
     response.send(API_STATUS_CODE.okData(res))
