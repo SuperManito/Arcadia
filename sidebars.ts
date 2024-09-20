@@ -239,10 +239,11 @@ const sidebars: SidebarsConfig = {
                 type: 'generated-index',
               },
               items: [
+                'dev/api/internal/file/list',
+                'dev/api/internal/file/tree',
                 'dev/api/internal/file/get-content',
                 'dev/api/internal/file/save-content',
                 'dev/api/internal/file/delete',
-                'dev/api/internal/file/tree',
                 'dev/api/internal/file/attribute',
                 'dev/api/internal/file/create',
                 'dev/api/internal/file/move',
@@ -339,6 +340,11 @@ const sidebars: SidebarsConfig = {
           },
           items: [
             {
+              label: 'File 文件系统',
+              type: 'doc',
+              id: 'dev/api/open/file',
+            },
+            {
               label: 'Env 环境变量',
               type: 'doc',
               id: 'dev/api/open/env',
@@ -347,11 +353,6 @@ const sidebars: SidebarsConfig = {
               label: 'Cron 定时任务',
               type: 'doc',
               id: 'dev/api/open/cron',
-            },
-            {
-              label: 'File 文件系统',
-              type: 'doc',
-              id: 'dev/api/open/file',
             },
           ],
           collapsed: false,

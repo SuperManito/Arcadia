@@ -4,7 +4,7 @@ title: Cron 定时任务
 
 ## 数据关系模型
 
-数据库对于该功能设计了两个数据表 `tasks` 和 `task_core`。为了提高效率，额外设计了 `task_core` 表，专用于定时任务工作引擎的数据关联。
+数据库对于该功能设计了两个数据表 `tasks` 和 `task_core`。为了提高效率额外设计了 `task_core` 表，专用于定时任务工作引擎的数据关联。
 
 ```prisma
 model tasks {

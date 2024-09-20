@@ -1,6 +1,5 @@
 ---
-title: 查询文件属性
-description: 你会在系统的右键菜单里点击属性吗？
+title: 查询属性
 ---
 import APITable from '@site/src/components/APITable';
 import { GET } from '@site/src/components/RequestTag';
@@ -23,26 +22,30 @@ import { GET } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 描述 |
 | :-: | :-: | --- |
-| `fileSize` | `string` | 大小 |
-| `birthtime` | `string` | 创建时间 |
-| `atime` | `string` | 最近一次被访问的时间 |
-| `ctime` | `string` | 目标对象的属性最近一次被修改的时间 |
-| `mtime` | `string` | 目标对象的内容最近一次被修改的时间 |
+| `type` | `string<'folder' \| 'file'>` | 文件类型 |
 | `name` | `string` | 名称 |
-| `path` | `string` | 存储位置路径 |
-| `mode` | `string` | 权限 |
+| `parent_path` | `string` | 存储位置路径 |
+| `mode` | `string` | 权限（3位数字） |
+| `size` | `number` | 大小（单位字节） |
+| `display_size` | `string` | 格式化大小（带单位） |
+| `modified_time` | `string` | 内容最后一次被修改的时间 |
+| `accessed_time` | `string` | 最后一次被访问的时间 |
+| `created_time` | `string` | 创建时间 |
+| `changed_time` | `string` | 属性（如权限或链接）最后一次被更改的时间 |
 
 </APITable>
 
 ```json title="示例"
 {
-  "fileSize": "64.00 KB",
-  "birthtime": "2024-01-01 00:00:00",
-  "atime": "2024-01-01 00:00:00",
-  "ctime": "2024-01-01 00:00:00",
-  "mtime": "2024-01-01 00:00:00",
-  "name": "example.js",
-  "path": "/arcadia/scripts/template",
-  "mode": "644"
+  "type": "file",
+  "name": "example",
+  "parent_path": "/arcadia/log",
+  "mode": "644",
+  "size": 2048,
+  "display_size": "2.00 KB",
+  "modified_time": "2024-01-01 00:00:00",
+  "accessed_time": "2024-01-01 00:00:00",
+  "created_time": "2024-01-01 00:00:00",
+  "changed_time": "2024-01-01 00:00:00"
 }
 ```

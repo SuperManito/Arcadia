@@ -43,11 +43,15 @@ model envs_group {
 - `envs` 表
 
     用于存储所有普通变量和复合变量的值，复合变量的值不使用 `type`、`tag_list`、`description` 字段  
-    其中 `group_id` 字段用于关联 `envs_group` 表的 `id` 字段，为 `0` 表示一个独立的普通变量
+    其中 `group_id` 字段用于关联 `envs_group` 表的 `id` 字段，为 `0` 时表示记录项是一个普通变量
 
 - `envs_group` 表
 
     用于存储组变量（复合变量）
+
+:::tip 总结
+`envs` 表存储所有普通变量和复合变量(组)成员的值，其中 `group_id` 为 `0` 时视为普通变量。`envs_group` 表存储所有复合变量(组)。
+:::
 
 ## 具体字段说明
 

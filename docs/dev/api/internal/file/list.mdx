@@ -1,0 +1,90 @@
+---
+title: 获取文件列表
+---
+import APITable from '@site/src/components/APITable';
+import { GET } from '@site/src/components/RequestTag';
+
+<GET>/file/list</GET>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `path` | `string` | 是 | 绝对路径 |
+
+</APITable>
+
+### 响应
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| :-: | :-: | --- |
+| `path` | `string` | 绝对路径 |
+| `title` | `string` | 目标路径所属目录的名称 |
+| `name` | `string` | 文件或目录名称 |
+| `type` | `string<'folder' \| 'file'>` | 文件类型  |
+| `updated_at` | `string` | 最后修改时间 |
+| `created_at` | `string` | 创建时间 |
+| `children` | `object[]` | 成员，即下级内容（注：成员名称字段均为 `name`） |
+
+</APITable>
+
+```json title="示例"
+{
+  "path": "/arcadia",
+  "title": "arcadia",
+  "type": "folder",
+  "updated_at": "2024-01-01 00:00:00",
+  "created_at": "2024-01-01 00:00:00",
+  "children": [
+    {
+      "path": "/arcadia/config",
+      "name": "config",
+      "type": "folder",
+      "updated_at": "2024-01-01 00:00:00",
+      "created_at": "2024-01-01 00:00:00"
+    },
+    {
+      "path": "/arcadia/log",
+      "name": "log",
+      "type": "folder",
+      "updated_at": "2024-01-01 00:00:00",
+      "created_at": "2024-01-01 00:00:00"
+    },
+    {
+      "path": "/arcadia/raw",
+      "name": "raw",
+      "type": "folder",
+      "updated_at": "2024-01-01 00:00:00",
+      "created_at": "2024-01-01 00:00:00"
+    },
+    {
+      "path": "/arcadia/repo",
+      "name": "repo",
+      "type": "folder",
+      "updated_at": "2024-01-01 00:00:00",
+      "created_at": "2024-01-01 00:00:00"
+    },
+    {
+      "path": "/arcadia/scripts",
+      "name": "scripts",
+      "type": "folder",
+      "updated_at": "2024-01-01 00:00:00",
+      "created_at": "2024-01-01 00:00:00"
+    },
+    {
+      "path": "/arcadia/src",
+      "name": "src",
+      "type": "folder",
+      "updated_at": "2024-01-01 00:00:00",
+      "created_at": "2024-01-01 00:00:00"
+    }
+  ]
+}
+```
+
+:::info 不包含 `log` 目录和一些不适合展示的文件目录
+:::

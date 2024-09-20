@@ -1,11 +1,11 @@
 ---
-title: 获取文件列表
-description: 漂亮的文件树就是由它实现的😊
+title: 获取文件树
+description: /file/tree、/file/tree/:type
 ---
 import APITable from '@site/src/components/APITable';
 import { GET } from '@site/src/components/RequestTag';
 
-## 通用
+## 常规
 
 <GET>/file/tree</GET>
 
@@ -15,27 +15,10 @@ import { GET } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 必填 | 描述 |
 | :-: | :-: | :-: | --- |
-| `type` | `string` | 否 | 获取类型，固定可选值 [**type**](#type)（对应各目录），不提供则为全部 |
-| `keywords` | `string` | 否 | 过滤关键字，用于文件名搜索 |
-| `startTime` | `string` | 否 | 开始日期时间，用于日期范围搜索，格式固定为 `yyyy-MM-dd HH:mm` |
-| `endTime` | `string` | 否 | 结束日期时间，用于日期范围搜索，格式固定为 `yyyy-MM-dd HH:mm`，不提供则默认为当前时间 |
-| `isDir` | `string` | 否 | 获取目录树，仅统计目录不包含任何文件，不提供默认为 `false` |
-
-</APITable>
-
-#### type
-
-<APITable>
-
-| 名称 | 含义 |
-| :-: | :-: |
-| `config` | 配置文件目录 |
-| `sample` | 模板文件目录 |
-| `log` | 日志文件目录 |
-| `repo` | 代码仓库文件目录 |
-| `raw` | 远程文件目录 |
-| `scripts` | 个人脚本文件目录 |
-| `all` | 除日志文件目录以外上述全部 |
+| `onlyDir` | `string<'true' \| 'false'>` | 否 | 仅返回目录数据即过滤掉文件，默认为 `false` |
+| `search` | `string` | 否 | 文件与目录名称关键字过滤，用于搜索 |
+| `startTime` | `string` | 否 | 文件与目录名称的开始日期时间过滤（目前仅应用于运行日志），格式固定为 `yyyy-MM-dd HH:mm` |
+| `endTime` | `string` | 否 | 文件与目录名称的结束日期时间过滤（目前仅应用于运行日志），格式固定为 `yyyy-MM-dd HH:mm` |
 
 </APITable>
 
@@ -46,36 +29,47 @@ import { GET } from '@site/src/components/RequestTag';
 | 名称 | 类型 | 描述 |
 | :-: | :-: | --- |
 | `path` | `string` | 绝对路径 |
-| `title` | `string` | 文件或目录的名称 |
-| `type` | `number` | 文件类型，`1` 文件 `0` 文件夹 |
-| `deep` | `number` | 深度 |
-| `children` | `array` | 成员，即下级目录内容 |
+| `title` | `string` | 目录名称 |
+| `name` | `string` | 文件名称 |
+| `type` | `string<'folder' \| 'file'>` | 文件类型  |
+| `updated_at` | `string` | 最后修改时间 |
+| `created_at` | `string` | 创建时间 |
+| `children` | `object[]` | 成员，即下级内容 |
 
 </APITable>
+
+:::tip 含有 `children` 属性的对象为目录，应使用 `title` 字段获取目录名称
+:::
 
 ```json title="示例"
 [
   {
     "path": "/arcadia",
-    "title": "MyFile",
-    "type": 0,
-    "deep": 0,
+    "title": "arcadia",
+    "type": "folder",
+    "updated_at": "2024-01-01 00:00:00",
+    "created_at": "2024-01-01 00:00:00",
     "children": [
       {
         "path": "/arcadia/script",
         "title": "script",
-        "type": 0,
-        "deep": 1,
+        "type": "folder",
+        "updated_at": "2024-01-01 00:00:00",
+        "created_at": "2024-01-01 00:00:00",
         "children": [
           {
             "path": "/arcadia/script/example.js",
             "name": "example.js",
-            "type": 1
+            "type": "file",
+            "updated_at": "2024-01-01 00:00:00",
+            "created_at": "2024-01-01 00:00:00"
           },
           {
             "path": "/arcadia/script/template.sh",
             "name": "template.sh",
-            "type": 1
+            "type": "file",
+            "updated_at": "2024-01-01 00:00:00",
+            "created_at": "2024-01-01 00:00:00"
           },
           ...
         ]
@@ -86,9 +80,12 @@ import { GET } from '@site/src/components/RequestTag';
 ]
 ```
 
-## 指定目录
+:::info 不包含 `log` 目录和一些不适合展示的文件目录
+:::
 
-<GET>/file/dir</GET>
+## 获取指定类型的文件树
+
+<GET>/file/tree/:type</GET>
 
 ### 请求
 
@@ -96,53 +93,37 @@ import { GET } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 必填 | 描述 |
 | :-: | :-: | :-: | --- |
-| `path` | `string` | 是 | 绝对路径 |
+| `type` | `string<FileTreeType>` | 否 | 获取类型，具体详见 [**FileTreeType**](#FileTreeType)，默认为 `all` 全部 |
+| `onlyDir` | `string<'true' \| 'false'>` | 否 | 仅返回目录数据即过滤掉文件，默认为 `false` |
+| `search` | `string` | 否 | 文件与目录名称关键字过滤，用于搜索 |
+| `startTime` | `string` | 否 | 文件与目录名称开始日期时间过滤（目前仅应用于运行日志），格式固定为 `yyyy-MM-dd HH:mm` |
+| `endTime` | `string` | 否 | 文件与目录名称结束日期时间过滤（目前仅应用于运行日志），格式固定为 `yyyy-MM-dd HH:mm` |
 
 </APITable>
 
-### 响应
+#### FileTreeType
 
 <APITable>
 
-| 名称 | 类型 | 描述 |
-| :-: | :-: | --- |
-| `path` | `string` | 绝对路径 |
-| `title` | `string` | 文件或目录的名称 |
-| `type` | `number` | 文件类型，`1` 文件 `0` 文件夹 |
-| `deep` | `number` | 深度 |
-| `children` | `array` | 成员，即下级目录内容 |
+| 名称 | 含义 |
+| :-: | :-: |
+| `all` | 全部 |
+| `arcadia` | `/arcadia` |
+| `src` | `/arcadia/src` |
+| `config` | `/arcadia/config` |
+| `sample` | `/arcadia/src/sample` |
+| `scripts` | `/arcadia/scripts` |
+| `shell` | `/arcadia/src/shell` |
+| `log` | `/arcadia/log` |
+| `repo` | `/arcadia/repo` |
+| `raw` | `/arcadia/raw` |
+| `config_bak` | `/arcadia/config/bak` |
 
 </APITable>
 
-```json title="示例"
-[
-  {
-    "path": "/arcadia",
-    "title": "MyFile",
-    "type": 0,
-    "deep": 0,
-    "children": [
-      {
-        "path": "/arcadia/script",
-        "title": "script",
-        "type": 0,
-        "deep": 1,
-        "children": [
-          {
-            "path": "/arcadia/script/example.js",
-            "name": "example.js",
-            "type": 1
-          },
-          {
-            "path": "/arcadia/script/template.sh",
-            "name": "template.sh",
-            "type": 1
-          },
-          ...
-        ]
-      },
-      ...
-    ]
-  }
-]
-```
+类型 `arcadia` 等价于 `all`，且均不包含 `log` 目录和一些不适合展示的文件目录
+使用 `arcadia` 或 `all` 时与 [常规](#常规) 接口响应相同，即获取完整文件树。
+
+### 响应
+
+参考上方[接口响应](#常规)

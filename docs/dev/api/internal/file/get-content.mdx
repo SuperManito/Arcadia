@@ -1,11 +1,10 @@
 ---
 title: 获取文件内容
-description: 我想看看脚本里写了什么，不然总有人又要被偷家了。
 ---
 import APITable from '@site/src/components/APITable';
 import { GET } from '@site/src/components/RequestTag';
 
-<GET>/file</GET>
+<GET>/file/content</GET>
 
 ## 请求
 
@@ -22,5 +21,5 @@ import { GET } from '@site/src/components/RequestTag';
 - ContentType `text/plain`
 
 ```json title="示例"
-public function template() {\n    console.log(\"Hello World\");\n}
+function template() {\n    console.log(\"Hello World\");\n}
 ```

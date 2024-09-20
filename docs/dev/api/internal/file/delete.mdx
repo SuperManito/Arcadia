@@ -1,11 +1,10 @@
 ---
-title: 文件删除
-description: 旧的不去新的不来，看不见最好。
+title: 删除
 ---
 import APITable from '@site/src/components/APITable';
 import { DELETE } from '@site/src/components/RequestTag';
 
-<DELETE>/file</DELETE>
+<DELETE>/file/delete</DELETE>
 
 ## 请求
 
@@ -13,6 +12,8 @@ import { DELETE } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 必填 | 描述 |
 | :-: | :-: | :-: | --- |
-| `path` | `string` | 是 | 绝对路径 |
+| `path` | `string \| string[]` | 是 | 绝对路径 |
 
 </APITable>
+
+支持批量
