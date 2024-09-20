@@ -6,12 +6,10 @@ const { API_STATUS_CODE } = require('../core/http')
 const random = require('string-random')
 const svgCaptcha = require('svg-captcha')
 const { exec } = require('child_process')
-const path = require('path')
-const fs = require('fs')
 const { errorCount } = require('../core')
 const socketCommon = require('../core/socket/common')
-const { saveNewConf, getFileContentByName, getLastModifyFilePath, getJsonFile, getNeatContent } = require('../core/file')
-const { APP_ROOT_DIR, APP_DIR_TYPE, APP_FILE_TYPE } = require('../core/type')
+const { saveNewConf, getJsonFile, getNeatContent } = require('../core/file')
+const { APP_ROOT_DIR, APP_FILE_TYPE } = require('../core/type')
 const taskRunning = {}
 
 /**
@@ -129,42 +127,6 @@ api.post('/stopTask', (request, response) => {
     }
     response.send(API_STATUS_CODE.okData('执行结束，无结果返回。'))
   })
-})
-
-// global.io.emit("runLog", API_STATUS_CODE.okData({
-//     runId, log: getNeatContent(`${stdout}`)
-// }))
-
-/**
- * 使用jsName获取最新的日志
- */
-api.get('/runLog', (request, response) => {
-  let jsName = request.query.jsName
-
-  if (jsName.indexOf('.') > -1) {
-    jsName = jsName.substring(0, jsName.lastIndexOf('.'))
-  }
-  let pathUrl = `${APP_DIR_TYPE.LOG}/${jsName}/`
-  if (jsName.startsWith(`${APP_DIR_TYPE.SCRIPTS}/`)) {
-    jsName = jsName.substring(jsName.indexOf('/') + 1)
-    pathUrl = `${APP_DIR_TYPE.LOG}/${jsName}/`
-  } else if (jsName.startsWith(`${APP_DIR_TYPE.REPO}/`)) {
-    jsName = jsName.substring(jsName.indexOf('/') + 1)
-    pathUrl = `${APP_DIR_TYPE.LOG}/${jsName.replace(new RegExp('[/\\-]', 'gm'), '_')}/`
-  } else if (!fs.existsSync(path.join(APP_ROOT_DIR, pathUrl))) {
-    pathUrl = `${APP_DIR_TYPE.LOG}/${jsName}/`
-  }
-  const logFile = getLastModifyFilePath(
-    path.join(APP_ROOT_DIR, pathUrl),
-  )
-
-  if (logFile) {
-    const content = getFileContentByName(logFile)
-    response.setHeader('Content-Type', 'text/plain')
-    response.send(API_STATUS_CODE.okData(getNeatContent(content)))
-  } else {
-    response.send(API_STATUS_CODE.okData('no logs'))
-  }
 })
 
 module.exports = {

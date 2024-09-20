@@ -9,6 +9,7 @@ const APP_FILE_TYPE = {
 }
 
 const APP_FILE_NAME = {
+  DB: 'config.db',
   CONFIG: 'config.sh',
   ENV: 'env.sh',
   AUTH: 'auth.json',
@@ -17,6 +18,7 @@ const APP_FILE_NAME = {
 
 const APP_DIR_TYPE = {
   ROOT: 'arcadia',
+  SRC: 'src',
   CONFIG: 'config',
   SAMPLE: 'sample',
   SCRIPTS: 'scripts',
@@ -24,21 +26,24 @@ const APP_DIR_TYPE = {
   LOG: 'log',
   REPO: 'repo',
   RAW: 'raw',
-  BAK: 'bak',
+  CONFIG_BAK: 'bak',
 }
 
 const APP_DIR_PATH = {
-  SRC: APP_SOURCE_DIR,
-  LOG: path.join(APP_ROOT_DIR, APP_DIR_TYPE.LOG), // 日志目录（用户）
+  ROOT: APP_ROOT_DIR,
+  SRC: path.join(APP_ROOT_DIR, APP_DIR_TYPE.SRC), // 源码文件目录
   CONFIG: path.join(APP_ROOT_DIR, APP_DIR_TYPE.CONFIG), // 配置文件目录（用户）
+  SAMPLE: path.join(APP_SOURCE_DIR, APP_DIR_TYPE.SAMPLE), // 配置文件模板目录
   SCRIPTS: path.join(APP_ROOT_DIR, APP_DIR_TYPE.SCRIPTS), // 代码文件目录（用户）
+  SHELL: path.join(APP_SOURCE_DIR, APP_DIR_TYPE.SHELL), // 底层脚本目录
+  LOG: path.join(APP_ROOT_DIR, APP_DIR_TYPE.LOG), // 日志目录（用户）
   REPO: path.join(APP_ROOT_DIR, APP_DIR_TYPE.REPO), // 代码仓库目录（用户）
   RAW: path.join(APP_ROOT_DIR, APP_DIR_TYPE.RAW), // 远程代码文件目录（用户）
-  SHELL: path.join(APP_SOURCE_DIR, APP_DIR_TYPE.SHELL), // 底层脚本目录
-  CONFIG_BAK: path.join(APP_ROOT_DIR, APP_DIR_TYPE.CONFIG, APP_DIR_TYPE.BAK), // 配置文件备份目录
+  CONFIG_BAK: path.join(APP_ROOT_DIR, APP_DIR_TYPE.CONFIG, APP_DIR_TYPE.CONFIG_BAK), // 配置文件备份目录
 }
 
 const APP_FILE_PATH = {
+  DB: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.DB), // config.db 文件路径
   CONFIG: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.CONFIG), // config.sh 文件路径
   ENV: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.ENV), // env.sh 文件路径
   AUTH: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.AUTH), // auth.json 文件路径

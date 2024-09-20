@@ -4,183 +4,164 @@ const { API_STATUS_CODE } = require('../core/http')
 const { logger } = require('../core/logger')
 
 const fs = require('fs')
-const path = require('path')
+const nodePath = require('path')
 const multer = require('multer')
-const { getFile, getDirTree, saveFileByPath, fileRename, getNeatContent, fileDelete, pathCheck, fileDownload, fileMove, rootPathCheck, fileCreate, fileInfo, getDirectory } = require('../core/file')
-const { APP_ROOT_DIR, APP_DIR_TYPE, APP_FILE_PATH } = require('../core/type')
+const { getFile, getFileTree, saveFile, fileRename, fileDelete, pathCheck, fileDownload, fileMove, rootPathCheck, fileCreate, fileInfo, getFileList } = require('../core/file')
+const { APP_ROOT_DIR, APP_DIR_TYPE, APP_DIR_PATH, APP_FILE_PATH } = require('../core/type')
 
-const queryOptions = (request) => {
-  const type = request.query.type || 'all'
-  const keywords = request.query.keywords || ''
-  const startTime = request.query.startTime || ''
-  const endTime = request.query.endTime || ''
-  const isDir = request.query.isDir || false
-  return { type, keywords, startTime, endTime, isDir }
+/**
+ * 获取文件列表
+ */
+api.get('/list', (request, response) => {
+  const path = request.query.path || APP_ROOT_DIR
+  try {
+    pathCheck(path)
+    response.send(API_STATUS_CODE.okData(getFileList(path)))
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+/**
+ * 处理文件树接口传参
+ */
+const handleFileTreeParams = (query) => {
+  const type = query.type || 'all'
+  const search = query.search || ''
+  const startTime = query.startTime || ''
+  const endTime = query.endTime || ''
+  const onlyDir = query.onlyDir === 'true'
+  return { type, search, startTime, endTime, onlyDir }
 }
 
 /**
- * 获取目录树
+ * 获取文件树
  */
 api.get('/tree', (request, response) => {
-  const query = queryOptions(request)
-  const type = query.type
   try {
+    const params = handleFileTreeParams(request.query)
+    response.send(API_STATUS_CODE.okData(getFileTree('all', APP_ROOT_DIR, params)))
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+/**
+ * 获取指定类型的文件树
+ */
+api.get('/tree/:type', (request, response) => {
+  try {
+    const type = request.params.type
+    const params = handleFileTreeParams(request.query)
+    params.type = type
     if (Object.keys(APP_DIR_TYPE).includes(type.toUpperCase()) || type === 'all') {
-      response.send(API_STATUS_CODE.okData(getDirTree(type, type === 'all' ? APP_ROOT_DIR : path.join(APP_ROOT_DIR, type), query)))
+      response.send(API_STATUS_CODE.okData(getFileTree(type, type === 'all' ? APP_ROOT_DIR : APP_DIR_PATH[type.toUpperCase()], params)))
     } else {
       response.send(API_STATUS_CODE.fail('参数错误'))
     }
   } catch (e) {
-    response.send(API_STATUS_CODE.fail(e.message))
-  }
-})
-
-/**
- * 获取目录下的文件
- */
-api.get('/dir', (request, response) => {
-  const path = request.query.path
-  try {
-    pathCheck(path)
-    response.send(API_STATUS_CODE.okData(getDirectory(path, queryOptions(request))))
-  } catch (e) {
-    response.send(API_STATUS_CODE.fail(e.message))
-  }
-})
-
-/**
- * 获取代码文件
- */
-api.get('/tree/scripts', (request, response) => {
-  const keywords = request.query.keywords || ''
-  const startTime = request.query.startTime || ''
-  const endTime = request.query.endTime || ''
-  try {
-    response.send(
-      API_STATUS_CODE.okData(
-        getDirTree('repo_scripts', APP_ROOT_DIR, {
-          keywords,
-          startTime,
-          endTime,
-        }),
-      ),
-    )
-  } catch (e) {
-    response.send(API_STATUS_CODE.fail(e.message))
+    response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
 
 /**
  * 获取文件内容
  */
-api.get('/', (request, response) => {
-  const path = request.query.path
+api.get('/content', (request, response) => {
   try {
+    const path = request.query.path
     pathCheck(path)
-    response.setHeader('Content-Type', 'text/plain')
-    // 日志文件去掉颜色标记，其他文件暂不处理
-    const content = path.includes('/log/') ? getNeatContent(getFile(path)) : getFile(path)
-    response.send(API_STATUS_CODE.okData(content))
+    response.send(API_STATUS_CODE.okData(getFile(path)))
   } catch (e) {
-    response.send(API_STATUS_CODE.fail(e.message))
+    response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
 
 /**
- * 查看文件详情
+ * 保存文件内容
  */
-api.get('/info', (request, response) => {
-  const path = request.query.path
+api.post('/content', (request, response) => {
   try {
+    const { path, content } = request.body
     pathCheck(path)
-    response.send(API_STATUS_CODE.okData(fileInfo(path)))
-  } catch (e) {
-    response.send(API_STATUS_CODE.fail(e.message))
-  }
-})
-
-/**
- * 保存文件
- */
-api.post('/', (request, response) => {
-  const path = request.body.path
-  const content = request.body.content
-  try {
-    pathCheck(path)
-    saveFileByPath(path, content)
+    saveFile(path, content)
     response.send(API_STATUS_CODE.ok())
   } catch (e) {
     logger.error('文件保存失败', e)
-    response.send(API_STATUS_CODE.fail(`文件保存失败：${e.message}`))
+    response.send(API_STATUS_CODE.fail(`保存失败：${e.message}`))
   }
 })
 
 /**
- * 重命名
+ * 查看文件/目录属性（详细信息）
+ */
+api.get('/info', (request, response) => {
+  try {
+    const path = request.query.path
+    pathCheck(path)
+    response.send(API_STATUS_CODE.okData(fileInfo(path)))
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+/**
+ * 重命名文件/目录
  */
 api.post('/rename', (request, response) => {
-  const path = request.body.path
-  const name = request.body.name
   try {
+    const { path, name } = request.body
     pathCheck(path)
     fileRename(path, name)
     response.send(API_STATUS_CODE.ok())
   } catch (e) {
-    logger.error('文件保存失败', e)
-    response.send(API_STATUS_CODE.fail(`文件重命名失败：${e.message}`))
+    logger.error('文件或目录重命名失败', e)
+    response.send(API_STATUS_CODE.fail(`重命名失败：${e.message || e}`))
   }
 })
 
 /**
- * 文件移动
+ * 移动文件/目录
  */
 api.post('/move', (request, response) => {
-  const oldPath = request.body.path
-  const newPath = request.body.newPath
   try {
+    const { path: oldPath, newPath } = request.body
     pathCheck(oldPath)
     rootPathCheck(newPath)
     fileMove(oldPath, newPath)
     response.send(API_STATUS_CODE.ok())
   } catch (e) {
-    logger.error('文件移动失败', e)
-    response.send(API_STATUS_CODE.fail(`文件移动失败：${e.message}`))
+    logger.error('文件或目录移动失败', e)
+    response.send(API_STATUS_CODE.fail(`移动失败：${e.message || e}`))
   }
 })
 
 /**
- * 文件创建
- * @param dir 目录
- * @param name 名称 含后缀
- * @param type 0 目录 1 文件
- * @param content 内容 非必填 如果 type = 0 该参数无效
+ * 创建文件/目录
  */
 api.post('/create', (request, response) => {
-  const dir = request.body.dir
-  const name = request.body.name
-  const type = request.body.type
-  const content = request.body.content || ''
   try {
-    rootPathCheck(dir)
-    response.send(API_STATUS_CODE.okData(fileCreate(dir, name, type, content)))
+    const { path, name, type } = request.body
+    rootPathCheck(path)
+    response.send(API_STATUS_CODE.okData(fileCreate(path, name, type)))
   } catch (e) {
-    logger.error(`${type === 0 ? '目录' : '文件'}创建失败`, e)
-    response.send(API_STATUS_CODE.fail(`${type === 0 ? '目录' : '文件'}创建失败：${e.message}`))
+    logger.error('文件或目录创建失败', e)
+    response.send(API_STATUS_CODE.fail(`创建失败：${e.message || e}`))
   }
 })
 
 /**
- * 文件删除
+ * 删除文件/目录
  */
-api.delete('/', (request, response) => {
-  const path = request.body.path
-  let files = []
-  if (Array.isArray(path)) {
-    files = request.body.path.map((path) => path)
-  } else {
-    files = [path]
-  }
+api.delete('/delete', (request, response) => {
   try {
+    const path = request.body.path
+    let files
+    if (Array.isArray(path)) {
+      files = request.body.path.map((path) => path)
+    } else {
+      files = [path]
+    }
     for (const filePath of files) {
       logger.info('删除文件', filePath)
       pathCheck(filePath)
@@ -188,13 +169,13 @@ api.delete('/', (request, response) => {
     }
     response.send(API_STATUS_CODE.ok())
   } catch (e) {
-    logger.error('文件删除失败', e)
-    response.send(API_STATUS_CODE.fail(`文件删除失败：${e.message}`))
+    logger.error('文件或目录删除失败', e)
+    response.send(API_STATUS_CODE.fail(`删除失败：${e.message || e}`))
   }
 })
 
 /**
- * 文件下载
+ * 下载文件
  */
 api.get('/download', (request, response) => {
   const path = request.query.path
@@ -202,11 +183,14 @@ api.get('/download', (request, response) => {
     pathCheck(path)
     fileDownload(path, response)
   } catch (e) {
-    logger.error('文件下载失败', e)
-    response.send(API_STATUS_CODE.fail(`文件下载失败：${e.message}`))
+    logger.error('文件或目录下载失败', e)
+    response.send(API_STATUS_CODE.fail(`下载失败：${e.message || e}`))
   }
 })
 
+/**
+ * 文件上传（仅支持单文件，不支持目录）
+ */
 const upload = multer({
   storage: multer.diskStorage({
     destination(req, file, cb) {
@@ -216,10 +200,14 @@ const upload = multer({
       try {
         stat = fs.statSync(savePath)
       } catch (err) {
-        fs.mkdirSync(savePath)
+        if (err.code === 'ENOENT') {
+          fs.mkdirSync(savePath, { recursive: true })
+        } else {
+          return cb(err)
+        }
       }
       if (stat && !stat.isDirectory()) {
-        throw new Error('文件夹不存在')
+        return cb(new Error('路径不是一个目录'))
       }
       cb(null, savePath)
     },
@@ -229,17 +217,15 @@ const upload = multer({
       const savePath = req.query.path
       let originalName = file.originalname
       // 文件操作限制（认证文件保护）
-      if (path.join(savePath, originalName) === APP_FILE_PATH.AUTH) {
+      if (nodePath.join(savePath, originalName) === APP_FILE_PATH.AUTH) {
         originalName += '.json'
       }
+      // 检查文件名中的非法字符
+      originalName = originalName.replace(/[<>:"/\\|?*]+/g, '_')
       cb(null, originalName)
     },
   }),
 })
-
-/**
- * 单个文件上传
- */
 api.post('/upload', upload.single('file'), (request, response) => {
   response.send(
     API_STATUS_CODE.ok({
@@ -249,18 +235,18 @@ api.post('/upload', upload.single('file'), (request, response) => {
   )
 })
 
-/**
- * 多个文件上传
- */
-api.post('/upload/multi', upload.array('file'), (request, response) => {
-  const fileList = request.files.map((elem) => {
-    return {
-      fileName: elem.originalname,
-      filePath: elem.path,
-    }
-  })
-  response.send(API_STATUS_CODE.ok(fileList))
-})
+// /**
+//  * 多文件上传
+//  */
+// api.post('/upload/multi', upload.array('file'), (request, response) => {
+//   const fileList = request.files.map((elem) => {
+//     return {
+//       fileName: elem.originalname,
+//       filePath: elem.path,
+//     }
+//   })
+//   response.send(API_STATUS_CODE.ok(fileList))
+// })
 
 module.exports = {
   API: api,
