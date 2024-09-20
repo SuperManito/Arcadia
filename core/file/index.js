@@ -126,7 +126,20 @@ function getFileTree(type, dirPath, params) {
       true,
     )
     if (type === APP_DIR_TYPE.LOG) {
-      children.sort((a, b) => b.updated_at - a.updated_at)
+      children.sort((a, b) => {
+        // 只对文件进行排序
+        if (a.type === FILE_TYPES.FOLDER && b.type === FILE_TYPES.FOLDER) {
+          return 0
+        }
+        // 目录排在前面
+        if (a.type === FILE_TYPES.FOLDER) {
+          return -1
+        }
+        if (b.type === FILE_TYPES.FOLDER) {
+          return 1
+        }
+        return b.updated_at - a.updated_at
+      })
     }
     result.children = children
     return result
