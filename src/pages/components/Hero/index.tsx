@@ -11,7 +11,7 @@ export default function Hero () {
   return (
         <header className={clsx('container', styles.heroBanner)}>
             <div className="row padding-horiz--md">
-                <div className="col col--7 xl:mt-[6.5rem]">
+                <div className="col col--7 lg:mt-[6.5rem]">
                     <div className={clsx(styles.relative, 'row')}>
                         <div className="col">
                             <Heading as="h1" className={styles.tagline}>
@@ -52,11 +52,11 @@ export default function Hero () {
                                 </filter>
                             </defs>
                             <g filter="url(#bbblurry-filter)">
-                                <ellipse rx="78.5" ry="80" cx="511.3427734375" cy="474.40447998046875" fill="#9b24ffff"></ellipse>
-                                <ellipse rx="78.5" ry="80" cx="512.676306439944" cy="299.23062005966744" fill="#684ae3ff"></ellipse>
-                                <ellipse rx="78.5" ry="80" cx="452.3887306732656" cy="396.6923141080048" fill="#0094ffff"></ellipse>
-                                <ellipse rx="78.5" ry="80" cx="339.2578494086939" cy="302.0300610926763" fill="#0094ffff"></ellipse>
-                                <ellipse rx="78.5" ry="80" cx="335.5279350879929" cy="473.333784812408" fill="#0094ffff"></ellipse>
+                                <ellipse rx="78.5" ry="80" cx="511.3427734375" cy="474.40447998046875" fill="#4c9fd7"></ellipse>
+                                <ellipse rx="78.5" ry="80" cx="512.676306439944" cy="299.23062005966744" fill="#4c9fd7"></ellipse>
+                                <ellipse rx="78.5" ry="80" cx="452.3887306732656" cy="396.6923141080048" fill="#0094ff"></ellipse>
+                                <ellipse rx="78.5" ry="80" cx="339.2578494086939" cy="302.0300610926763" fill="#42f38c"></ellipse>
+                                <ellipse rx="78.5" ry="80" cx="335.5279350879929" cy="473.333784812408" fill="#4c9fd7"></ellipse>
                             </g>
                         </svg>
                     </div>

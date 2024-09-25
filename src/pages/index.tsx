@@ -9,7 +9,7 @@ import Features from './components/Features'
 import LanguageSupport from './components/LanguageSupport'
 import Footer from './components/Footer'
 
-function HeroHighlight ({
+function HeroHighlightBackground ({
   children,
   className,
   containerClassName,
@@ -70,7 +70,7 @@ export default function Home () {
   const { siteConfig } = useDocusaurusContext() as any
   return (
     <Layout title={`${siteConfig.title as string} · ${siteConfig.tagline as string}`} description={siteConfig.description}>
-        <HeroHighlight className="w-[100vw] min-h-[100vh]">
+        <HeroHighlightBackground className="w-[100vw] min-h-[calc(100vh-60px)] lg:min-h-[calc(100vh-44px)]">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: [20, -5, 0] }}
@@ -79,7 +79,7 @@ export default function Home () {
           <Hero />
           <Preview />
           </motion.div>
-        </HeroHighlight>
+        </HeroHighlightBackground>
         <LanguageSupport />
         <Features />
         <Footer />

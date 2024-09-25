@@ -46,7 +46,7 @@ const TypewriterEffect = ({
   }
 
   return (
-    <div className={cn('flex space-x-1 my-4 xl:my-6 ml-6', className)} style={{ fontFamily: 'var(--ifm-font-family-monospace' }}>
+    <div className={cn('flex space-x-1 my-4 lg:my-6 ml-6', className)} style={{ fontFamily: 'var(--ifm-font-family-monospace' }}>
       <motion.div
         className="overflow-hidden pb-2"
         initial={{
@@ -83,7 +83,7 @@ const TypewriterEffect = ({
           repeatType: 'reverse',
         }}
         className={cn(
-          'block rounded-sm w-[4px] h-6 sm:h-6 xl:h-12 bg-blue-500',
+          'block rounded-sm w-[4px] h-6 sm:h-6 lg:h-12 bg-blue-500',
           cursorClassName,
         )}
       ></motion.span>
@@ -127,12 +127,12 @@ export default function LanguageSupport () {
   ]
 
   return (
-    <div className="flex flex-col items-center justify-center h-[16rem] xl:h-[20rem] bg-[var(--ifm-color-emphasis-100)]">
+    <div className="flex flex-col items-center justify-center h-[16rem] lg:h-[20rem] bg-[var(--ifm-color-emphasis-100)]">
       <p className="text-neutral-600 dark:text-neutral-200">
-        <span className="mb-0 text-[1.25rem] xl:text-[1.5rem] font-semibold">一键运行代码文件</span>
+        <span className="mb-0 text-[1.25rem] lg:text-[1.5rem] font-semibold">一键运行代码文件</span>
       </p>
       <TypewriterEffect words={words} />
-      <div className="mt-4 ml-8 xl:ml-20 flex flex-wrap justify-center items-center space-y-4">
+      <div className="mt-4 ml-8 lg:ml-20 flex flex-wrap justify-center items-center space-y-4">
         <div>
           <Link href="https://nodejs.org" title="Node.js" target="_blank" rel="noreferrer">
             <Icon icon="logos:nodejs" height={isMobile ? 24 : 56} className={isMobile ? 'mt-4 mr-4' : 'mt-4 mr-20'} />

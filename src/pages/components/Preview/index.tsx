@@ -3,12 +3,11 @@ import clsx from 'clsx'
 import Heading from '@theme/Heading'
 import { ConfigProvider, Image } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
-import { useColorMode, useWindowSize } from '@docusaurus/theme-common'
+import { useColorMode } from '@docusaurus/theme-common'
 import { Icon } from '../../../components/Icon'
 import styles from '../index.module.css'
 
 export default function Preview () {
-  const isMobile = useWindowSize() === 'mobile'
   const { colorMode } = useColorMode()
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const previewImg = colorMode === 'dark' ? require('./dark.png').default : require('./light.png').default
@@ -61,9 +60,9 @@ export default function Preview () {
                     </div>
                 </div>
                 <br />
-                {!isMobile && <><span style={{ marginTop: '10px' }}>使用前沿技术编写，界面简洁美观，功能强大。</span></>}
+                <span style={{ marginTop: '10px' }}>前沿技术编写，界面简洁美观、功能强大。</span>
             </div>
-            <div className="col col--6">
+            <div className="col col--6 pt-20 lg:pt-0">
                 <div className="video-container">
                     <ConfigProvider locale={zhCN}>
                         <Image.PreviewGroup
