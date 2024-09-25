@@ -1,13 +1,25 @@
 import React from 'react'
-import { Icon } from '@iconify/react'
+import { Icon as IconifyIcon } from '@iconify/react'
 
-export function ICON ({ children, size, color, style }: { children: string, size?: string, color?: string, style?: React.CSSProperties }) {
+interface IconProps {
+  icon?: string
+  size?: string | number
+  color?: string
+  style?: React.CSSProperties
+  children?: string
+}
+
+export function Icon ({ icon, size, color, style, children }: IconProps) {
+  const iconName = icon || children
+  if (!iconName) {
+    return null
+  }
   if (!size) size = '24'
   const verticalAlign = size === '18' ? '-0.15em' : size === '20' ? '-0.2em' : size === '22' ? '-0.3em' : size === '24' ? '-0.4em' : 'baseline'
   return (
     <span>
-      <Icon
-        icon={children}
+      <IconifyIcon
+        icon={iconName}
         width={size}
         height={size}
         color={color}
@@ -15,7 +27,7 @@ export function ICON ({ children, size, color, style }: { children: string, size
           verticalAlign,
           ...(style ?? {}),
         }}
-      ></Icon>
+      ></IconifyIcon>
     </span>
   )
 }
@@ -23,7 +35,7 @@ export function ICON ({ children, size, color, style }: { children: string, size
 export function CHECK () {
   return (
     <span>
-      <Icon icon="mdi:check" height="24" style={{ verticalAlign: '-0.35em', color: 'var(--ifm-color-success)' }}></Icon>
+      <IconifyIcon icon="mdi:check" height="24" style={{ verticalAlign: '-0.35em', color: 'var(--ifm-color-success)' }}></IconifyIcon>
     </span>
   )
 }
@@ -31,7 +43,7 @@ export function CHECK () {
 export function CLOSE () {
   return (
     <span>
-      <Icon icon="mdi:close" height="24" style={{ verticalAlign: '-0.35em', color: 'var(--ifm-color-danger)' }}></Icon>
+      <IconifyIcon icon="mdi:close" height="24" style={{ verticalAlign: '-0.35em', color: 'var(--ifm-color-danger)' }}></IconifyIcon>
     </span>
   )
 }
@@ -39,7 +51,7 @@ export function CLOSE () {
 export function DockerIcon () {
   return (
     <span>
-      <Icon icon="logos:docker-icon" height="16" style={{ verticalAlign: '-0.25em' }}></Icon>
+      <IconifyIcon icon="logos:docker-icon" height="16" style={{ verticalAlign: '-0.25em' }}></IconifyIcon>
     </span>
   )
 }
@@ -47,7 +59,7 @@ export function DockerIcon () {
 export function PodmanIcon () {
   return (
     <span>
-      <Icon icon="devicon:podman" height="18" style={{ verticalAlign: '-0.35em' }}></Icon>
+      <IconifyIcon icon="devicon:podman" height="18" style={{ verticalAlign: '-0.35em' }}></IconifyIcon>
     </span>
   )
 }
@@ -55,7 +67,7 @@ export function PodmanIcon () {
 export function FeaturesIcon () {
   return (
     <span>
-      <Icon icon="fluent-emoji:rocket" height="26" style={{ verticalAlign: '-0.2em' }}></Icon>
+      <IconifyIcon icon="fluent-emoji:rocket" height="26" style={{ verticalAlign: '-0.2em' }}></IconifyIcon>
     </span>
   )
 }
@@ -63,7 +75,7 @@ export function FeaturesIcon () {
 export function BugIcon () {
   return (
     <span>
-      <Icon icon="fluent-emoji:bug" height="26" style={{ verticalAlign: '-0.2em' }}></Icon>
+      <IconifyIcon icon="fluent-emoji:bug" height="26" style={{ verticalAlign: '-0.2em' }}></IconifyIcon>
     </span>
   )
 }
@@ -71,7 +83,7 @@ export function BugIcon () {
 export function OptimizeIcon () {
   return (
     <span>
-      <Icon icon="fluent-emoji:hammer-and-wrench" height="26" style={{ verticalAlign: '-0.2em' }}></Icon>
+      <IconifyIcon icon="fluent-emoji:hammer-and-wrench" height="26" style={{ verticalAlign: '-0.2em' }}></IconifyIcon>
     </span>
   )
 }

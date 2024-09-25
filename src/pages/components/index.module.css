@@ -172,7 +172,8 @@ html[data-theme='dark'] .getStarted {
     padding-top: 20px;
 }
 
-.try, .features {
+.try,
+.features {
     color: #41465d;
 }
 
@@ -181,7 +182,7 @@ html[data-theme='dark'] .features {
     color: #f0f0f0;
 }
 
-.features > * {
+.features>* {
     margin: 2em 0;
 }
 

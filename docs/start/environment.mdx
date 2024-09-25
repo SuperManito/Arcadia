@@ -1,7 +1,7 @@
 ---
 title: 运行环境
 ---
-import { ICON } from '@site/src/components/Icon';
+import { Icon } from '@site/src/components/Icon';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -66,13 +66,13 @@ import TabItem from '@theme/TabItem';
 <Tabs>
   <TabItem value="js&ts" label="Node.js / TypeScript" default>
 
-  适用于 <ICON>vscode-icons\:file-type-light-js</ICON> `.js` `.mjs` `.cjs` 和 <ICON>vscode-icons\:file-type-typescript</ICON> `.ts`
+  适用于 <Icon>vscode-icons\:file-type-light-js</Icon> `.js` `.mjs` `.cjs` 和 <Icon>vscode-icons\:file-type-typescript</Icon> `.ts`
 
   ```bash
   npm install -g <xxx>
   ```
   当运行报错提示 `need module xxx` 类似字样说明缺少代码运行所需的依赖，对应 `xxx` 的位置就是缺失的依赖名称  
-  如果依赖名称中开头为 `/` 则表示本地模块文件，否则一般为 <ICON size="18">logos\:npm-icon</ICON> [NPM](https://www.npmjs.com) 上的第三方库
+  如果依赖名称中开头为 `/` 则表示本地模块文件，否则一般为 <Icon size="18">logos\:npm-icon</Icon> [NPM](https://www.npmjs.com) 上的第三方库
 
   默认命令 `npm install <xxx>` 安装的依赖库是相对位置的，可以解决项目使用不同版本的依赖库问题  
   使用 `-g` 命令选项代表全局安装即不需要解决目录关系，因为一般来说这样安装更省事
@@ -81,7 +81,7 @@ import TabItem from '@theme/TabItem';
 
   <TabItem value="py" label="Python">
 
-  适用于 <ICON>vscode-icons\:file-type-python</ICON> `.py`
+  适用于 <Icon>vscode-icons\:file-type-python</Icon> `.py`
 
   ```bash
   pip3 install <xxx> --no-cache-dir --break-system-packages
@@ -91,7 +91,7 @@ import TabItem from '@theme/TabItem';
 
   <TabItem value="go" label="Go">
 
-  适用于 <ICON>vscode-icons\:file-type-go</ICON> `.go`
+  适用于 <Icon>vscode-icons\:file-type-go</Icon> `.go`
 
   ```bash
   go get -u xxx

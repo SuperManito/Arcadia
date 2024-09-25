@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { ICON } from '../Icon'
+import { Icon } from '../Icon'
 
 export default function Pronounce () {
   const audioRef: any = useRef()
@@ -30,9 +30,9 @@ export default function Pronounce () {
       onMouseLeave={handleMouseLeave}
       onClick={play}
     >
-      <ICON>
+      <Icon>
         streamline:entertainment-volume-level-high-speaker-high-volume-control-audio-music
-      </ICON>
+      </Icon>
       <audio src={audio} ref={audioRef} style={{ display: 'none' }}></audio>
     </span>
   )

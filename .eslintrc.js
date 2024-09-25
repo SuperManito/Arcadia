@@ -29,5 +29,6 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/strict-boolean-expressions': 'off',
     '@docusaurus/no-untranslated-text': 'off',
+    '@typescript-eslint/prefer-nullish-coalescing': 'off',
   },
 }

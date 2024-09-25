@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react'
 import type { InputRef } from 'antd'
 import { Button, Col, Checkbox, Divider, Flex, Input, InputNumber, Popover, Row, Segmented, Space, Select, Switch, Tooltip, ConfigProvider, theme } from 'antd'
-import { DockerIcon, PodmanIcon, ICON } from '../Icon'
+import { DockerIcon, PodmanIcon, Icon } from '../Icon'
 import Heading from '@theme/Heading'
 import CodeBlock from '@theme/CodeBlock'
 import { useColorMode, useWindowSize } from '@docusaurus/theme-common'
@@ -222,7 +222,7 @@ services:
                               onKeyDown={(e) => { e.stopPropagation() }}
                             />
                             <Button size="small" type="text" style={{ padding: '0 4px' }} onClick={addNetworkItem}>
-                              <ICON size="16px" style={{ verticalAlign: '-0.25em' }}>mdi:plus</ICON>
+                              <Icon size="16px" style={{ verticalAlign: '-0.25em' }}>mdi:plus</Icon>
                             </Button>
                           </Flex>
                         </>
@@ -247,7 +247,7 @@ services:
               </Row>
             }>
             <Button type="text" shape="circle" size="small" style={{ padding: '2px' }}>
-              <ICON size="18" style={{ verticalAlign: '-0.2rem' }}>ic:outline-settings</ICON>
+              <Icon size="18" style={{ verticalAlign: '-0.2rem' }}>ic:outline-settings</Icon>
             </Button>
           </Popover>
         </Tooltip>

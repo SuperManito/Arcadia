@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "default",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/css/globals.css",
+    "baseColor": "slate",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "src/pages/components",
+    "utils": "src/pages/lib/utils",
+    "ui": "src/pages/components",
+    "examples": "src/pages/components/examples",
+    "blocks": "src/pages/components/blocks"
+  }
+}

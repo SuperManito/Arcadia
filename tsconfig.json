@@ -47,6 +47,8 @@
     "src/**/**/*.js",
     "src/**/**/*.tsx",
     "src/pages/index.tsx",
-    ".eslintrc.js"
+    ".eslintrc.js",
+    "tailwind.config.js",
+    "postcss.config.js"
   ],
 }
