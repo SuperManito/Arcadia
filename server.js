@@ -136,6 +136,7 @@ app.use(
  */
 const { ExtraOpenAPI, openApiMiddleware } = require('./api/open')
 app.use('/api/open/extra', openApiMiddleware, ExtraOpenAPI) // 用户自定义接口
+app.use('/api/open/file', openApiMiddleware, require('./api/file').OpenAPI)
 app.use('/api/open/env', openApiMiddleware, require('./api/env').OpenAPI)
 app.use('/api/open/cron', openApiMiddleware, require('./api/cron').OpenAPI)
 // app.use('/api/open/notify', openApiMiddleware, require('./api/notify').OpenAPI)

@@ -150,7 +150,7 @@ function checkType(value, type) {
  */
 function validateParams(req, params) {
   params.forEach(([paramType, paramName, options = []]) => {
-    const [required = false, type = 'string'] = options
+    const [required = false, type = 'string', allowEmptyString = false] = options
     const params = req[paramType]
 
     if (!Object.prototype.hasOwnProperty.call(params, paramName)) {
@@ -163,12 +163,12 @@ function validateParams(req, params) {
     if (required) {
       if (paramType === 'query') {
         const value = params[paramName]
-        if ((['undefined', 'None', null].includes(value) || value === '')) {
+        if ((['undefined', 'None', null].includes(value) || (!allowEmptyString && value === ''))) {
           throw new Error(`参数 ${paramName} 无效（参数值不能为空）`)
         }
       } else if (paramType === 'body') {
         const value = params[paramName]
-        if ((['undefined', 'None', null].includes(value) || Number.isNaN(value)) || (Array.isArray(value) && value.length === 0) || (typeof value === 'string' && value === '')) {
+        if ((['undefined', 'None', null].includes(value) || Number.isNaN(value)) || (Array.isArray(value) && value.length === 0) || (!allowEmptyString && typeof value === 'string' && value === '')) {
           throw new Error(`参数 ${paramName} 无效（参数值不能为空）`)
         }
       }

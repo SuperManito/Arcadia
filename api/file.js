@@ -1,20 +1,48 @@
 const express = require('express')
 const api = express()
+const apiOpen = express()
 const { API_STATUS_CODE } = require('../core/http')
 const { logger } = require('../core/logger')
 
 const fs = require('fs')
 const nodePath = require('path')
 const multer = require('multer')
-const { getFile, getFileTree, saveFile, fileRename, fileDelete, pathCheck, fileDownload, fileMove, rootPathCheck, fileCreate, fileInfo, getFileList } = require('../core/file')
+const {
+  getFile,
+  getFileTree,
+  saveFile,
+  fileRename,
+  fileDelete,
+  pathCheck,
+  fileDownload,
+  fileMove,
+  rootPathCheck,
+  fileCreate,
+  fileInfo,
+  getFileList,
+} = require('../core/file')
 const { APP_ROOT_DIR, APP_DIR_TYPE, APP_DIR_PATH, APP_FILE_PATH } = require('../core/type')
+const { validateParams } = require('../core/utils')
 
 /**
  * 获取文件列表
  */
 api.get('/list', (request, response) => {
-  const path = request.query.path || APP_ROOT_DIR
   try {
+    const path = request.query.path || APP_ROOT_DIR
+    pathCheck(path)
+    response.send(API_STATUS_CODE.okData(getFileList(path)))
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+apiOpen.get('/list', (request, response) => {
+  try {
+    validateParams(request, [
+      ['query', 'path', [true, 'string']],
+    ])
+    const path = request.query.path || APP_ROOT_DIR
     pathCheck(path)
     response.send(API_STATUS_CODE.okData(getFileList(path)))
   } catch (e) {
@@ -64,11 +92,68 @@ api.get('/tree/:type', (request, response) => {
   }
 })
 
+// apiOpen.get('/tree', (request, response) => {
+//   try {
+//     validateParams(request, [
+//       ['query', 'type', [false, [
+//         'all',
+//         'arcadia',
+//         'src',
+//         'config',
+//         'sample',
+//         'scripts',
+//         'shell',
+//         'log',
+//         'repo',
+//         'raw',
+//         'config_bak',
+//       ], true]],
+//       ['query', 'onlyDir', [false, ['true', 'false']]],
+//       ['query', 'search', [false, 'string']],
+//       ['query', 'startTime', [false, 'string']],
+//       ['query', 'endTime', [false, 'string']],
+//     ])
+//     // 检查日期格式
+//     if (request.query.startTime || request.query.endTime) {
+//       const { startTime, endTime } = request.query
+//       const regex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/
+//       if (startTime && !regex.test(startTime)) {
+//         throw new Error('参数 startTime 无效（参数值类型错误）')
+//       }
+//       if (endTime && !regex.test(endTime)) {
+//         throw new Error('参数 endTime 无效（参数值类型错误）')
+//       }
+//     }
+//     const params = handleFileTreeParams(request.query)
+//     const type = params.type
+//     if (Object.keys(APP_DIR_TYPE).includes(type.toUpperCase()) || type === 'all') {
+//       response.send(API_STATUS_CODE.okData(getFileTree(type, type === 'all' ? APP_ROOT_DIR : APP_DIR_PATH[type.toUpperCase()], params)))
+//     } else {
+//       response.send(API_STATUS_CODE.fail('参数错误'))
+//     }
+//   } catch (e) {
+//     response.send(API_STATUS_CODE.fail(e.message || e))
+//   }
+// })
+
 /**
  * 获取文件内容
  */
 api.get('/content', (request, response) => {
   try {
+    const path = request.query.path
+    pathCheck(path)
+    response.send(API_STATUS_CODE.okData(getFile(path)))
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+apiOpen.get('/content', (request, response) => {
+  try {
+    validateParams(request, [
+      ['query', 'path', [true, 'string']],
+    ])
     const path = request.query.path
     pathCheck(path)
     response.send(API_STATUS_CODE.okData(getFile(path)))
@@ -92,6 +177,22 @@ api.post('/content', (request, response) => {
   }
 })
 
+apiOpen.post('/content', (request, response) => {
+  try {
+    validateParams(request, [
+      ['body', 'path', [true, 'string']],
+      ['body', 'content', [true, 'string', true]],
+    ])
+    const { path, content } = request.body
+    pathCheck(path)
+    saveFile(path, content)
+    response.send(API_STATUS_CODE.ok())
+  } catch (e) {
+    logger.error('文件保存失败', e)
+    response.send(API_STATUS_CODE.fail(`保存失败：${e.message}`))
+  }
+})
+
 /**
  * 查看文件/目录属性（详细信息）
  */
@@ -105,11 +206,40 @@ api.get('/info', (request, response) => {
   }
 })
 
+apiOpen.get('/info', (request, response) => {
+  try {
+    validateParams(request, [
+      ['query', 'path', [true, 'string']],
+    ])
+    const path = request.query.path
+    pathCheck(path)
+    response.send(API_STATUS_CODE.okData(fileInfo(path)))
+  } catch (e) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
 /**
  * 重命名文件/目录
  */
 api.post('/rename', (request, response) => {
   try {
+    const { path, name } = request.body
+    pathCheck(path)
+    fileRename(path, name)
+    response.send(API_STATUS_CODE.ok())
+  } catch (e) {
+    logger.error('文件或目录重命名失败', e)
+    response.send(API_STATUS_CODE.fail(`重命名失败：${e.message || e}`))
+  }
+})
+
+apiOpen.post('/rename', (request, response) => {
+  try {
+    validateParams(request, [
+      ['body', 'path', [true, 'string']],
+      ['body', 'name', [true, 'string']],
+    ])
     const { path, name } = request.body
     pathCheck(path)
     fileRename(path, name)
@@ -136,11 +266,40 @@ api.post('/move', (request, response) => {
   }
 })
 
+apiOpen.post('/move', (request, response) => {
+  try {
+    const { path: oldPath, newPath } = request.body
+    pathCheck(oldPath)
+    rootPathCheck(newPath)
+    fileMove(oldPath, newPath)
+    response.send(API_STATUS_CODE.ok())
+  } catch (e) {
+    logger.error('文件或目录移动失败', e)
+    response.send(API_STATUS_CODE.fail(`移动失败：${e.message || e}`))
+  }
+})
+
 /**
  * 创建文件/目录
  */
 api.post('/create', (request, response) => {
   try {
+    const { path, name, type } = request.body
+    rootPathCheck(path)
+    response.send(API_STATUS_CODE.okData(fileCreate(path, name, type)))
+  } catch (e) {
+    logger.error('文件或目录创建失败', e)
+    response.send(API_STATUS_CODE.fail(`创建失败：${e.message || e}`))
+  }
+})
+
+apiOpen.post('/create', (request, response) => {
+  try {
+    validateParams(request, [
+      ['body', 'path', [true, 'string']],
+      ['body', 'name', [true, 'string']],
+      ['body', 'type', [true, ['folder', 'file']]],
+    ])
     const { path, name, type } = request.body
     rootPathCheck(path)
     response.send(API_STATUS_CODE.okData(fileCreate(path, name, type)))
@@ -174,12 +333,50 @@ api.delete('/delete', (request, response) => {
   }
 })
 
+apiOpen.delete('/delete', (request, response) => {
+  try {
+    validateParams(request, [
+      ['body', 'path', [true, 'string | string[]']],
+    ])
+    const path = request.body.path
+    let files
+    if (Array.isArray(path)) {
+      files = request.body.path.map((path) => path)
+    } else {
+      files = [path]
+    }
+    for (const filePath of files) {
+      logger.info('删除文件', filePath)
+      pathCheck(filePath)
+      fileDelete(filePath)
+    }
+    response.send(API_STATUS_CODE.ok())
+  } catch (e) {
+    logger.error('文件或目录删除失败', e)
+    response.send(API_STATUS_CODE.fail(`删除失败：${e.message || e}`))
+  }
+})
+
 /**
  * 下载文件
  */
 api.get('/download', (request, response) => {
-  const path = request.query.path
   try {
+    const path = request.query.path
+    pathCheck(path)
+    fileDownload(path, response)
+  } catch (e) {
+    logger.error('文件或目录下载失败', e)
+    response.send(API_STATUS_CODE.fail(`下载失败：${e.message || e}`))
+  }
+})
+
+apiOpen.get('/download', (request, response) => {
+  try {
+    validateParams(request, [
+      ['query', 'path', [true, 'string']],
+    ])
+    const path = request.query.path
     pathCheck(path)
     fileDownload(path, response)
   } catch (e) {
@@ -235,6 +432,15 @@ api.post('/upload', upload.single('file'), (request, response) => {
   )
 })
 
+apiOpen.post('/upload', upload.single('file'), (request, response) => {
+  response.send(
+    API_STATUS_CODE.ok({
+      fileName: request.file.originalname,
+      filePath: request.file.path,
+    }),
+  )
+})
+
 // /**
 //  * 多文件上传
 //  */
@@ -250,4 +456,5 @@ api.post('/upload', upload.single('file'), (request, response) => {
 
 module.exports = {
   API: api,
+  OpenAPI: apiOpen,
 }
