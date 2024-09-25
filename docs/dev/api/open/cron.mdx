@@ -1,14 +1,14 @@
 ---
 title: Cron 定时任务
 toc_max_heading_level: 2
+description: /api/open/cron
 ---
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import APITable from '@site/src/components/APITable';
 import { GET, POST } from '@site/src/components/RequestTag';
 
-:::tip 请求参数与响应内容基本与内部接口一致。
-:::
+请求参数与响应内容与内部接口基本一致
 
 ## 获取分页
 
@@ -282,7 +282,7 @@ import { GET, POST } from '@site/src/components/RequestTag';
 
 </APITable>
 
-:::tip 主动运行和按照定时计划自动触发运行的过程大致相同，不过要注意区分前端管理面板设计的调试功能，该调试仅执行定时任务记录项所存储的 `shell` 字段命令，在运行完毕后不会更新定时任务的运行状态、最后运行时间等关键信息。
+:::tip 主动运行和按照定时计划自动触发运行的过程大致相同，不过要注意区分后台管理面板设计的调试功能，该调试仅执行定时任务记录项所存储的 `shell` 字段命令，在运行完毕后不会更新定时任务的运行状态、最后运行时间等关键信息。
 :::
 
 

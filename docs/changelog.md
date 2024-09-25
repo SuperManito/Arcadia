@@ -12,11 +12,14 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ### <FeaturesIcon /> 新特性
 
+- 前端：“代码编辑” 页面支持批量删除
 - 后端：新增封装 “文件系统” 系列 OpenAPI 接口，具体详见开发者文档
 
 ### <OptimizeIcon /> 优化
 
 - 前端：改善了一些功能针对特定场景的工作逻辑
+- 前端：改善了代码编辑器在移动端的使用体验
+- 前端：为部分弹窗功能适配了键盘回车确认
 - 后端：重新设计了整个文件系统，调整了内部接口的路径、传参以及响应参数
 
 

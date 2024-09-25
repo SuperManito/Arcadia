@@ -332,7 +332,7 @@ const sidebars: SidebarsConfig = {
           collapsed: false,
         },
         {
-          label: '开放接口',
+          label: 'OpenAPI',
           type: 'category',
           link: {
             type: 'doc',
@@ -355,6 +355,16 @@ const sidebars: SidebarsConfig = {
               id: 'dev/api/open/cron',
             },
           ],
+          collapsed: false,
+        },
+        {
+          label: '消息中心',
+          type: 'category',
+          link: {
+            type: 'doc',
+            id: 'dev/message/index',
+          },
+          items: [],
           collapsed: false,
         },
       ],
