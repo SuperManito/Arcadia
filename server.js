@@ -134,12 +134,12 @@ app.use(
 /**
  * OpenAPI
  */
-const { ExtraOpenAPI, openApiMiddleware } = require('./api/open')
+const { ExtraOpenAPI, openApiMiddleware } = require('./core/api/open')
 app.use('/api/open/extra', openApiMiddleware, ExtraOpenAPI) // 用户自定义接口
-app.use('/api/open/file', openApiMiddleware, require('./api/file').OpenAPI)
-app.use('/api/open/env', openApiMiddleware, require('./api/env').OpenAPI)
-app.use('/api/open/cron', openApiMiddleware, require('./api/cron').OpenAPI)
-// app.use('/api/open/notify', openApiMiddleware, require('./api/notify').OpenAPI)
+app.use('/api/open/file', openApiMiddleware, require('./core/api/file').OpenAPI)
+app.use('/api/open/env', openApiMiddleware, require('./core/api/env').OpenAPI)
+app.use('/api/open/cron', openApiMiddleware, require('./core/api/cron').OpenAPI)
+// app.use('/api/open/notify', openApiMiddleware, require('./core/api/notify').OpenAPI)
 app.use('/api/open/*', (err, req, res, next) => {
   if (err && err?.name === 'SyntaxError') {
     return res.status(400).send(API_STATUS_CODE.fail(API_STATUS_CODE.OPEN_API.SYNTAX_ERROR.message, API_STATUS_CODE.OPEN_API.SYNTAX_ERROR.code))
@@ -182,14 +182,14 @@ app.use(sessionMiddleware, (err, req, res, next) => {
     next()
   }
 })
-app.use('/api', require('./api/main').API)
-app.use('/api/file', require('./api/file').API)
-app.use('/api/user', require('./api/user').API)
-app.use('/api/env', require('./api/env').API)
-app.use('/api/cron', require('./api/cron').API)
-app.use('/api/common', require('./api/common').API)
-// app.use('/api/notify', require('./api/notify').API)
-// app.use('/api/config', require('./api/config').API)
+app.use('/api', require('./core/api/main').API)
+app.use('/api/file', require('./core/api/file').API)
+app.use('/api/user', require('./core/api/user').API)
+app.use('/api/env', require('./core/api/env').API)
+app.use('/api/cron', require('./core/api/cron').API)
+app.use('/api/common', require('./core/api/common').API)
+// app.use('/api/notify', require('./core/api/notify').API)
+// app.use('/api/config', require('./core/api/config').API)
 
 /**
  * Web Socket 接口
