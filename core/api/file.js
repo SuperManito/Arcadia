@@ -1,8 +1,8 @@
 const express = require('express')
 const api = express()
 const apiOpen = express()
-const { API_STATUS_CODE } = require('../core/http')
-const { logger } = require('../core/logger')
+const { API_STATUS_CODE } = require('../http')
+const { logger } = require('../logger')
 
 const fs = require('fs')
 const nodePath = require('path')
@@ -20,9 +20,9 @@ const {
   fileCreate,
   fileInfo,
   getFileList,
-} = require('../core/file')
-const { APP_ROOT_DIR, APP_DIR_TYPE, APP_DIR_PATH, APP_FILE_PATH } = require('../core/type')
-const { validateParams } = require('../core/utils')
+} = require('../file')
+const { APP_ROOT_DIR, APP_DIR_TYPE, APP_DIR_PATH, APP_FILE_PATH } = require('../type')
+const { validateParams } = require('../utils')
 
 /**
  * 获取文件列表

@@ -1,8 +1,8 @@
 const express = require('express')
 const api = express()
-const { API_STATUS_CODE } = require('../core/http')
+const { API_STATUS_CODE } = require('../http')
 
-const dbConfig = require('../core/db').config
+const dbConfig = require('../db').config
 
 api.get('/type', async (request, response) => {
   response.send(API_STATUS_CODE.okData(await dbConfig.$list({ type: request.params.type }, { sort: 'asc' })))

@@ -1,14 +1,14 @@
 const express = require('express')
 const api = express()
-const { API_STATUS_CODE, getClientIP, ip2Address } = require('../core/http')
-const { logger } = require('../core/logger')
+const { API_STATUS_CODE, getClientIP, ip2Address } = require('../http')
+const { logger } = require('../logger')
 
-const { errorCount } = require('../core')
-const { saveNewConf, getJsonFile } = require('../core/file')
-const { APP_FILE_TYPE } = require('../core/type')
 const random = require('string-random')
-const util = require('../core/utils')
 const jwt = require('jsonwebtoken')
+const { saveNewConf, getJsonFile } = require('../file')
+const { APP_FILE_TYPE } = require('../type')
+const util = require('../utils')
+const errorCount = 1
 
 /**
  * auth

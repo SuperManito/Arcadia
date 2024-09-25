@@ -1,12 +1,12 @@
 const express = require('express')
 const api = express()
 const apiOpen = express()
-const { API_STATUS_CODE } = require('../core/http')
-const { logger } = require('../core/logger')
+const { API_STATUS_CODE } = require('../http')
+const { logger } = require('../logger')
 
-const db = require('../core/db')
-const { generateEnvSh } = require('../core/env/generate')
-const { validateParams, validatePageParams, validateObject, cleanProperties } = require('../core/utils')
+const db = require('../db')
+const { generateEnvSh } = require('../env/generate')
+const { validateParams, validatePageParams, validateObject, cleanProperties } = require('../utils')
 
 // 初始化
 ;(async function init() {

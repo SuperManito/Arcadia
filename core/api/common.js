@@ -1,6 +1,6 @@
 const express = require('express')
 const api = express()
-const { API_STATUS_CODE } = require('../core/http')
+const { API_STATUS_CODE } = require('../http')
 
 /**
  * 健康检测

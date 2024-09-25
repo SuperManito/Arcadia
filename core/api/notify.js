@@ -1,9 +1,9 @@
 const express = require('express')
 const api = express()
 const apiOpen = express()
-const { API_STATUS_CODE } = require('../core/http')
+const { API_STATUS_CODE } = require('../http')
 
-const dbNotify = require('../core/db').notify
+const dbNotify = require('../db').notify
 let maxId = 0
 
 /**

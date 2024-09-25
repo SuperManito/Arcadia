@@ -1,16 +1,16 @@
 const express = require('express')
 const api = express()
-const { logger } = require('../core/logger')
-const { API_STATUS_CODE } = require('../core/http')
+const { logger } = require('../logger')
+const { API_STATUS_CODE } = require('../http')
 
 const random = require('string-random')
 const svgCaptcha = require('svg-captcha')
 const { exec } = require('child_process')
-const { errorCount } = require('../core')
-const socketCommon = require('../core/socket/common')
-const { saveNewConf, getJsonFile, getNeatContent } = require('../core/file')
-const { APP_ROOT_DIR, APP_FILE_TYPE } = require('../core/type')
+const socketCommon = require('../socket/common')
+const { saveNewConf, getJsonFile, getNeatContent } = require('../file')
+const { APP_ROOT_DIR, APP_FILE_TYPE } = require('../type')
 const taskRunning = {}
+const errorCount = 1
 
 /**
  * 登录是否显示验证码

@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "echo 'y' | prisma db push --accept-data-loss > ./prisma_push.log && node server",
-    "lint": "eslint ."
+    "lint": "eslint ./core"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
