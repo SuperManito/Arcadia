@@ -92,7 +92,7 @@ const TypewriterEffect = ({
 }
 
 export default function LanguageSupport () {
-  const files = ['js ', 'py ', 'ts ', 'go ', 'bun', 'lua', 'rb ', 'pl ', 'c  ', 'sh ']
+  const files = ['js ', 'py ', 'ts ', 'go ', 'rs ', 'lua', 'rb ', 'pl ', 'c  ', 'sh ']
   const [fileType, setFileType] = useState(files[0])
   const [index, setIndex] = useState(0)
   const isMobile = useWindowSize() === 'mobile'
@@ -154,8 +154,8 @@ export default function LanguageSupport () {
           </Link>
         </div>
         <div>
-          <Link href="https://bun.sh" title="Bun" target="_blank" rel="noreferrer">
-            <Icon icon="logos:bun" height={isMobile ? 20 : 48} className={isMobile ? 'mr-4' : 'mr-20'} />
+          <Link href="https://www.rust-lang.org" title="Rust" target="_blank" rel="noreferrer">
+            <Icon icon="logos:rust" height={isMobile ? 18 : 48} className={isMobile ? 'mr-4' : 'mr-20'} />
           </Link>
         </div>
         <div>
@@ -170,7 +170,7 @@ export default function LanguageSupport () {
         </div>
         <div>
           <Link href="https://www.perl.org" title="Perl" target="_blank" rel="noreferrer">
-            <Icon icon="devicon:perl" height={isMobile ? 20 : 48} className={isMobile ? 'mr-4' : 'mr-20'} />
+            <Icon icon="vscode-icons:file-type-perl" height={isMobile ? 20 : 48} className={isMobile ? 'mr-4' : 'mr-20'} />
           </Link>
         </div>
       </div>

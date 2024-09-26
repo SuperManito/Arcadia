@@ -21,9 +21,9 @@ import { GET, POST } from '@site/src/components/RequestTag';
 | 名称 | 类型 | 必填 | 描述 |
 | :-: | :-: | :-: | --- |
 | `type` | `string` | 否 | 任务类型过滤，当前固定分为 `user` 和 `system` |
-| `search` | `string` | 否 | 搜索内容过滤，仅涉及任务名称和任务执行命令 |
 | `active` | `string<'0' \| '1'>` | 否 | 启用/禁用状态过滤 `1 启用 \| 0 禁用`，默认不过滤 |
 | `tags` | `string` | 否 | 任务标签过滤（仅限系统任务，具体通过下方 [获取标签列表](#获取标签列表) 获取） |
+| `search` | `string` | 否 | 搜索内容过滤，过滤字段：`name`、`shell` |
 | `orderBy` | `string<'sort' \| 'last_runtime' \| 'last_run_use'>` | 否 | 指定排序字段，默认 `sort` |
 | `order` | `string<'0' \| '1'>` | 否 | 指定排序方式 `0 升序 \| 1 降序`，默认降序 |
 | `page` | `string` | 否 | 指定页数，默认1 |

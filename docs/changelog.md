@@ -12,6 +12,7 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 
 ### <FeaturesIcon /> 新特性
 
+- 前端：“环境变量” 与 “定时任务” 页面支持搜索内容高亮
 - 前端：“代码编辑” 页面支持批量删除
 - 后端：新增封装 “文件系统” 系列 OpenAPI 接口，具体详见开发者文档
 
