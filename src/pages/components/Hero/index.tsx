@@ -3,7 +3,6 @@ import clsx from 'clsx'
 import Heading from '@theme/Heading'
 import Link from '@docusaurus/Link'
 import { useWindowSize } from '@docusaurus/theme-common'
-import Logo from '@site/static/img/logo/arcadia-pure-logo.png'
 import styles from '../index.module.css'
 
 export default function Hero () {
@@ -61,7 +60,7 @@ export default function Hero () {
                         </svg>
                     </div>
                     <div className={styles.logo} style={{ userSelect: 'none' }}>
-                        <img src={Logo} className={clsx(styles.hideSmall)} draggable={false} />
+                        <img src="/img/logo/arcadia-pure-logo.png" className={clsx(styles.hideSmall)} draggable={false} />
                     </div>
                 </div>
             </div>

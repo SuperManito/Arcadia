@@ -1,8 +1,10 @@
 import React from 'react'
+import { useColorMode } from '@docusaurus/theme-common'
 import Heading from '@theme/Heading'
 import Link from '@docusaurus/Link'
 
 export default function Footer () {
+  const { colorMode } = useColorMode()
   return (
     <footer className="footer">
       <div className="container container--fluid">
@@ -57,7 +59,7 @@ export default function Footer () {
             <img
               className="footer__logo h-10 mt-2 mb-10 lg:mt-10 lg:mb-10"
               alt="Meta Open Source Logo"
-              src="/img/logo/arcadia-dark-sub.png" />
+              src={colorMode === 'dark' ? '/img/logo/arcadia-dark-sub.png' : '/img/logo/arcadia-light-sub.png'} />
           </div>
           Copyright © {new Date().getFullYear()} SuperManito
         </div>
