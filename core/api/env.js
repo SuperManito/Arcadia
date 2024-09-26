@@ -163,10 +163,12 @@ apiOpen.get('/v1/page', async (request, response) => {
         where.group_id = { equals: 0 }
         // 搜索过滤
         if (request.query.search) {
+          const search = request.query.search
           where.AND = {
             OR: [
-              { type: { contains: request.query.search } },
-              { value: { contains: request.query.search } },
+              { type: { contains: search } },
+              { value: { contains: search } },
+              { description: { contains: search } },
             ],
           }
         }
@@ -176,9 +178,11 @@ apiOpen.get('/v1/page', async (request, response) => {
         where.id = { not: 0 }
         // 搜索过滤
         if (request.query.search) {
+          const search = request.query.search
           where.AND = {
             OR: [
-              { type: { contains: request.query.search } },
+              { type: { contains: search } },
+              { description: { contains: search } },
             ],
           }
         }
@@ -194,8 +198,12 @@ apiOpen.get('/v1/page', async (request, response) => {
         where.group_id = { equals: parseInt(request.query.compositeId) }
         // 搜索过滤
         if (request.query.search) {
+          const search = request.query.search
           where.AND = {
-            OR: [{ value: { contains: request.query.search } }],
+            OR: [
+              { value: { contains: search } },
+              { remark: { contains: search } },
+            ],
           }
         }
         break

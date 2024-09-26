@@ -116,6 +116,7 @@ apiOpen.get('/v1/page', async (request, response) => {
     validateParams(request, [
       ['query', 'type', [false, ['user', 'system']]],
       ['query', 'active', [false, ['1', '0']]],
+      ['query', 'tags', [false, 'string', true]],
     ])
     const active = request.query.active ? request.query.active.split(',') : []
     const tags = request.query.tags ? request.query.tags.split(',').map((s) => s.trim()).filter((s) => s) : []
@@ -140,10 +141,11 @@ apiOpen.get('/v1/page', async (request, response) => {
     }
     // 搜索过滤
     if (request.query.search) {
+      const search = request.query.search
       where.AND = {
         OR: [
-          { name: { contains: request.query.search } },
-          { shell: { contains: request.query.search } },
+          { name: { contains: search } },
+          { shell: { contains: search } },
         ],
       }
     }

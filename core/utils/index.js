@@ -193,6 +193,7 @@ function validateParams(req, params) {
  */
 function validatePageParams(req, orderByFields) {
   validateParams(req, [
+    ['query', 'search', [false, 'string', true]],
     ['query', 'page', [false, 'string']],
     ['query', 'size', [false, 'string']],
     ['query', 'order', [false, ['1', '0']]],
