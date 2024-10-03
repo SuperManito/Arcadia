@@ -25,30 +25,29 @@ api.get('/', async (request, response) => {
     delete filter.orderBy
     delete filter.order
     const where = filter
-    const or = []
+    const and = []
     // 任务标签过滤
     if (tags.length > 0) {
-      tags.forEach((tag) => {
-        or.push({ tags: { contains: tag } })
-      })
+      const tagFilters = tags.map((tag) => ({ tags: { contains: tag } }))
+      and.push({ OR: tagFilters })
     }
     // 启用/禁用状态过滤
     if (active.length > 0) {
-      active.forEach((active) => {
-        or.push({ active: { equals: parseInt(active) } })
-      })
+      const activeFilters = active.map((active) => ({ active: { equals: parseInt(active) } }))
+      and.push({ OR: activeFilters })
     }
     // 搜索过滤
     if (request.query.search) {
-      where.AND = {
+      const search = request.query.search
+      and.push({
         OR: [
-          { name: { contains: request.query.search } },
-          { shell: { contains: request.query.search } },
+          { name: { contains: search } },
+          { shell: { contains: search } },
         ],
-      }
+      })
     }
-    if (or.length > 0) {
-      where.OR = or
+    if (and.length > 0) {
+      where.AND = and
     }
     for (const fieldsKey in dbTasks.fields) {
       if (where[fieldsKey]) {
@@ -126,31 +125,29 @@ apiOpen.get('/v1/page', async (request, response) => {
     delete filter.orderBy
     delete filter.order
     const where = filter
-    const or = []
+    const and = []
     // 任务标签过滤
     if (tags.length > 0) {
-      tags.forEach((tag) => {
-        or.push({ tags: { contains: tag } })
-      })
+      const tagFilters = tags.map((tag) => ({ tags: { contains: tag } }))
+      and.push({ OR: tagFilters })
     }
     // 启用/禁用状态过滤
     if (active.length > 0) {
-      active.forEach((active) => {
-        or.push({ active: { equals: parseInt(active) } })
-      })
+      const activeFilters = active.map((active) => ({ active: { equals: parseInt(active) } }))
+      and.push({ OR: activeFilters })
     }
     // 搜索过滤
     if (request.query.search) {
       const search = request.query.search
-      where.AND = {
+      and.push({
         OR: [
           { name: { contains: search } },
           { shell: { contains: search } },
         ],
-      }
+      })
     }
-    if (or.length > 0) {
-      where.OR = or
+    if (and.length > 0) {
+      where.AND = and
     }
     for (const fieldsKey in dbTasks.fields) {
       if (where[fieldsKey]) {
