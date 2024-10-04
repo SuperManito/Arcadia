@@ -92,7 +92,7 @@ const TypewriterEffect = ({
 }
 
 export default function LanguageSupport () {
-  const files = ['js ', 'py ', 'ts ', 'go ', 'rs ', 'lua', 'rb ', 'pl ', 'c  ', 'sh ']
+  const files = ['js ', 'ts ', 'py ', 'go ', 'rs ', 'lua', 'rb ', 'pl ', 'c  ', 'sh ']
   const [fileType, setFileType] = useState(files[0])
   const [index, setIndex] = useState(0)
   const isMobile = useWindowSize() === 'mobile'
@@ -139,13 +139,18 @@ export default function LanguageSupport () {
           </Link>
         </div>
         <div>
-          <Link href="https://www.python.org" title="Python" target="_blank" rel="noreferrer">
-            <Icon icon="logos:python" height={isMobile ? 18 : 48} className={isMobile ? 'mr-4' : 'mr-20'} />
+          <Link href="https://typestrong.org/ts-node" title="ts-node" target="_blank" rel="noreferrer">
+            <Icon icon="logos:tsnode" height={isMobile ? 18 : 48} className={isMobile ? 'mr-4' : 'mr-20'} />
           </Link>
         </div>
         <div>
-          <Link href="https://typestrong.org/ts-node" title="ts-node" target="_blank" rel="noreferrer">
-            <Icon icon="logos:tsnode" height={isMobile ? 18 : 48} className={isMobile ? 'mr-4' : 'mr-16'} />
+          <Link href="https://www.python.org" title="Python" target="_blank" rel="noreferrer">
+            <Icon icon="logos:bun" height={isMobile ? 18 : 48} className={isMobile ? 'mr-4' : 'mr-20'} />
+          </Link>
+        </div>
+        <div>
+          <Link href="https://www.python.org" title="Python" target="_blank" rel="noreferrer">
+            <Icon icon="logos:python" height={isMobile ? 18 : 48} className={isMobile ? 'mr-4' : 'mr-16'} />
           </Link>
         </div>
         <div>
@@ -165,7 +170,7 @@ export default function LanguageSupport () {
         </div>
         <div>
           <Link href="https://www.ruby-lang.org" title="Ruby" target="_blank" rel="noreferrer">
-            <Icon icon="logos:ruby" height={isMobile ? 18 : 42} className={isMobile ? 'mr-4' : 'mr-20'} />
+            <Icon icon="logos:ruby" height={isMobile ? 16 : 42} className={isMobile ? 'mr-4' : 'mr-20'} />
           </Link>
         </div>
         <div>

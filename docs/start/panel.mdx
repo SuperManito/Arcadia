@@ -1,13 +1,16 @@
 ---
 title: 管理面板
 ---
+import { Icon } from '@site/src/components/Icon';
 
-默认通过 `http://localhost:5678` 访问，如若更改了面板服务的主机映射端口则需要访问对应端口  
-管理面板用于登录的初始用户名和密码分别为 `useradmin` `passwd`
+默认通过 `http://localhost:5678` 访问，如若更改了面板服务的主机映射端口则需要访问对应端口
+
+用于登录的初始用户名和密码分别为 `useradmin` `passwd`，登录后请按照引导提示尽快修改认证信息。
 
 :::info 浏览器限制
-由于使用了较新的技术，不支持低于 `16.4` 版本的 Safari 浏览器（2023年4月份以前）
-即 iOS `16.4` 以下版本的设备可能无法正常访问，macOS 受到的影响较小，Chromium 内核的浏览器忽略此限制
+由于使用了较新的技术，一些旧版本的浏览器可能存在兼容性问题。建议使用 Chromium 内核的64位浏览器如 Chrome、Edge 等，并且不建议使用 FireFox 等其它内核的浏览器。
+
+在 <Icon>simple-icons\:apple</Icon> Apple 设备上使用时，`iOS / iPadOS` 最低需要 `16.4` （不支持2023年4月以前的版本使用），`macOS` 受到的影响较小
 :::
 
 ## 排除面板故障

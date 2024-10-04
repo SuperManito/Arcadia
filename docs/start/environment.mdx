@@ -18,7 +18,25 @@ import TabItem from '@theme/TabItem';
 
   </TabItem>
 
-  <TabItem value="ts" label="TypeScript">
+  <TabItem value="bun" label="Bun (JavaScript)">
+
+  > 代完善
+
+  </TabItem>
+
+  <TabItem value="lua" label="Lua">
+
+  > 代完善
+
+  </TabItem>
+
+  <TabItem value="ruby" label="Ruby">
+
+  > 代完善
+
+  </TabItem>
+
+  <TabItem value="ts-nopde" label="ts-node (TypeScript)">
 
   ```bash
   npm install -g typescript ts-node
@@ -35,7 +53,7 @@ import TabItem from '@theme/TabItem';
 
   </TabItem>
 
-  <TabItem value="py" label="Python">
+  <TabItem value="python" label="Python">
 
   ```bash
   apt-get install -y python3 python3-pip
@@ -46,7 +64,16 @@ import TabItem from '@theme/TabItem';
 
   </TabItem>
 
-  <TabItem value="js" label="Node.js">
+  <TabItem value="perl" label="Perl">
+
+  ```bash
+  apt-get install -y perl
+  ```
+  > 已预装，CLI底层需要调用，用户不能卸载否则会导致项目无法正常运行
+
+  </TabItem>
+
+  <TabItem value="nodejs" label="Node.js (JavaScript)">
 
   ```bash
   NODE_MAJOR=20 # 指定安装版本（自行修改）
@@ -55,7 +82,7 @@ import TabItem from '@theme/TabItem';
   echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
   apt-get update && apt-get install nodejs -y
   ```
-  > 已预装，由于项目后端使用 Node.js 开发故用户不能卸载否则会导致项目无法正常运行
+  > 已预装，由于项目后端使用 Node.js 开发故用户不能卸载否则会导致项目无法正常运行，需要安装指定版本时可借鉴该命令
 
   </TabItem>
 </Tabs>
@@ -64,24 +91,28 @@ import TabItem from '@theme/TabItem';
 ## 安装依赖库
 
 <Tabs>
-  <TabItem value="js&ts" label="Node.js / TypeScript" default>
+  <TabItem value="js&ts" label="JavaScript 和 TypeScript (Node.js / ts-node / Bun)" default>
 
-  适用于 <Icon>vscode-icons\:file-type-light-js</Icon> `.js` `.mjs` `.cjs` 和 <Icon>vscode-icons\:file-type-typescript</Icon> `.ts`
+  适用文件类型 `.js` `.mjs` `.cjs` 和 `.ts`
 
   ```bash
   npm install -g <xxx>
   ```
+  :::tip
   当运行报错提示 `need module xxx` 类似字样说明缺少代码运行所需的依赖，对应 `xxx` 的位置就是缺失的依赖名称  
   如果依赖名称中开头为 `/` 则表示本地模块文件，否则一般为 <Icon size="18">logos\:npm-icon</Icon> [NPM](https://www.npmjs.com) 上的第三方库
+  :::
 
-  默认命令 `npm install <xxx>` 安装的依赖库是相对位置的，可以解决项目使用不同版本的依赖库问题  
+  默认命令 `npm install <xxx>` 安装的依赖库是相对位置的，可以解决代码使用不同版本依赖库的问题  
   使用 `-g` 命令选项代表全局安装即不需要解决目录关系，因为一般来说这样安装更省事
+
+  当然，你也可以使用 `pnpm` 或 `yarn` 等包管理工具
 
   </TabItem>
 
   <TabItem value="py" label="Python">
 
-  适用于 <Icon>vscode-icons\:file-type-python</Icon> `.py`
+  适用文件类型 `.py`
 
   ```bash
   pip3 install <xxx> --no-cache-dir --break-system-packages
@@ -91,7 +122,7 @@ import TabItem from '@theme/TabItem';
 
   <TabItem value="go" label="Go">
 
-  适用于 <Icon>vscode-icons\:file-type-go</Icon> `.go`
+  适用文件类型 `.go`
 
   ```bash
   go get -u xxx

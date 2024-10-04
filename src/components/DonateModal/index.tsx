@@ -27,7 +27,7 @@ export default function DonateModal () {
       }}
     >
       <Button type="primary" style={{ backgroundColor: '#ce26ef29', color: '#ce26ef', fontWeight: '550' }} onClick={showModal}>
-        <Icon icon="simple-icons:githubsponsors" height="18" style={{ verticalAlign: '-0.3em' }}></Icon>&nbsp; 点击捐赠
+        <Icon icon="line-md:heart" style={{ fontSize: '20px' }}></Icon>&nbsp;点击捐赠
       </Button>
       <Modal centered width={340} styles={{ body: { justifyContent: 'center', display: 'flex', height: '340px' } }} closable={false} open={isModalOpen} cancelText="" onOk={handleOk} onCancel={handleCancel} footer={[]}>
         <Space direction="vertical">

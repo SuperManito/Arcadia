@@ -12,17 +12,17 @@ export default function Hero () {
             <div className="row padding-horiz--md">
                 <div className="col col--7 lg:mt-[6.5rem]">
                     <div className={clsx(styles.relative, 'row')}>
-                        <div className="col">
+                        <div className="col" style={{ userSelect: 'none' }}>
                             <Heading as="h1" className={styles.tagline}>
                                 <span>
-                                    Arcadia
+                                    Arcadia <span style={{ fontSize: '1rem' }}>阿卡迪亚</span>
                                     <br className="block" />
                                 </span>{' '}
                                 一站式代码运维平台
                             </Heading>
                             <Heading as="h1" className={styles.tagline}>
                                 <span>
-                                    Arcadia
+                                    Arcadia <span style={{ fontSize: '1rem' }}>阿卡迪亚</span>
                                     <br className="block" />
                                 </span>{' '}
                                 一站式代码运维平台
@@ -30,7 +30,7 @@ export default function Hero () {
                         </div>
                     </div>
                     <div className="row">
-                        <div className="col">
+                        <div className="col" style={{ userSelect: 'none' }}>
                             <Heading as={!isMobile ? 'h2' : 'h4'}>
                                 高效 易用 简约 漂亮 稳定 安全
                             </Heading>

@@ -31,7 +31,7 @@ export default function Pronounce () {
       onClick={play}
     >
       <Icon>
-        streamline:entertainment-volume-level-high-speaker-high-volume-control-audio-music
+        line-md:volume-high
       </Icon>
       <audio src={audio} ref={audioRef} style={{ display: 'none' }}></audio>
     </span>

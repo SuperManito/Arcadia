@@ -4,24 +4,28 @@ import { Icon as IconifyIcon } from '@iconify/react'
 interface IconProps {
   icon?: string
   size?: string | number
+  width?: string | number
+  height?: string | number
   color?: string
   style?: React.CSSProperties
   children?: string
 }
 
-export function Icon ({ icon, size, color, style, children }: IconProps) {
+export function Icon ({ icon, size, width, height, color, style, children }: IconProps) {
   const iconName = icon || children
   if (!iconName) {
     return null
   }
-  if (!size) size = '24'
-  const verticalAlign = size === '18' ? '-0.15em' : size === '20' ? '-0.2em' : size === '22' ? '-0.3em' : size === '24' ? '-0.4em' : 'baseline'
+
+  const fontSize = size ? (typeof size === 'number' ? `${size}px` : size) : undefined
+  const verticalAlign = fontSize === '18px' ? '-0.15rem' : fontSize === '20px' ? '-0.2rem' : fontSize === '22px' ? '-0.3rem' : fontSize === '24px' ? '-0.3rem' : '-0.15rem'
+
   return (
-    <span>
+    <span style={{ fontSize }}>
       <IconifyIcon
         icon={iconName}
-        width={size}
-        height={size}
+        width={width}
+        height={height}
         color={color}
         style={{
           verticalAlign,

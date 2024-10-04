@@ -17,8 +17,8 @@ import { GET } from '@site/src/components/RequestTag';
 | `type` | `string` | 否 | 任务类型过滤，当前固定分为 `user` 和 `system` |
 | `search` | `string` | 否 | 搜索内容过滤，仅涉及任务名称和任务执行命令 |
 | `active` | `string<'0' \| '1'>` | 否 | 启用/禁用状态过滤 `1 启用 \| 0 禁用`，默认不过滤 |
-| `tags` | `string` | 否 | 任务标签过滤（仅限系统任务，取自 `bind` 值的中间字段，可通过 [bindGroup](./bind-group) 获取） |
-| `orderBy` | `string` | 否 | 指定排序字段，默认 `sort` |
+| `tags` | `string` | 否 | 任务标签过滤（仅限系统任务，取自 `bind` 值的中间字段，可通过 [bindGroup](./bind-group) 获取，支持多个用英文逗号分隔） |
+| `orderBy` | `string<'sort' \| 'last_runtime' \| 'last_run_use'>` | 否 | 指定排序字段，默认 `sort` |
 | `order` | `string<'0' \| '1'>` | 否 | 指定排序方式 `0 升序 \| 1 降序`，默认降序 |
 
 </APITable>

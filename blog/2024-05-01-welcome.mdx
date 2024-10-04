@@ -16,7 +16,7 @@ import TabItem from '@theme/TabItem'
 首先，请克隆本仓库到本地并进入根目录
 
 ```bash
-git clone -b website https://github.com/SuperManito/Arcadia.git
+git clone -b website --single-branch https://github.com/SuperManito/Arcadia.git
 cd Arcadia
 ```
 
@@ -29,7 +29,7 @@ npm run start
 
 默认情况下，系统浏览器会自动打开一个窗口 [http://localhost:3000](http://localhost:3000)
 
-## 2. 创建博客
+## 2. 创建文章
 
 在 `blog` 目录下创建一个 `.md` 或 `.mdx` 文件，文件名需要使用英文，格式为 `yyyy-mm-dd-文章标题.md`，例如：`2024-05-01-welcome.md`，之后你就可以在本地开发服务器的博客页面看到这篇文章了。
 
@@ -41,9 +41,9 @@ blog
       └── image.png
 ```
 
-## 3. 编辑博客
+## 3. 编辑文章
 
-  - ### 博客前言
+  - ### 前言配置
 
     这是一个示例，有关更多配置字段详见 [Markdown 前言](https://docusaurus.io/zh-CN/docs/api/plugins/@docusaurus/plugin-content-blog#markdown-front-matter)
     ```
@@ -54,7 +54,7 @@ blog
     tags: ['教程', '新手'] # 底部标签
     ---
     ```
-  - ### 博客内容
+  - ### 内容
 
     如果你不熟悉 Markdown 语法那么请先学习 [Markdown 基本撰写和格式语法](https://docs.github.com/zh/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax)，这是一个简单的语法，你可以很快学会。
 

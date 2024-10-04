@@ -222,7 +222,7 @@ services:
                               onKeyDown={(e) => { e.stopPropagation() }}
                             />
                             <Button size="small" type="text" style={{ padding: '0 4px' }} onClick={addNetworkItem}>
-                              <Icon size="16px" style={{ verticalAlign: '-0.25em' }}>mdi:plus</Icon>
+                            <Icon>mdi:plus</Icon>
                             </Button>
                           </Flex>
                         </>
@@ -247,7 +247,7 @@ services:
               </Row>
             }>
             <Button type="text" shape="circle" size="small" style={{ padding: '2px' }}>
-              <Icon size="18" style={{ verticalAlign: '-0.2rem' }}>ic:outline-settings</Icon>
+              <Icon size={20} style={{ verticalAlign: '-0.1rem' }}>line-md:cog-loop</Icon>
             </Button>
           </Popover>
         </Tooltip>
