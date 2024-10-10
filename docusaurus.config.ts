@@ -25,8 +25,8 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
     projectName: 'Arcadia', // Usually your repo name.
     deploymentBranch: 'gh-pages', // Branch that contains the docs.
     i18n: {
-      defaultLocale: 'zh',
-      locales: ['zh'],
+      defaultLocale: 'zh-Hans',
+      locales: ['zh-Hans'],
       path: '/',
       localeConfigs: {
         zh: {
