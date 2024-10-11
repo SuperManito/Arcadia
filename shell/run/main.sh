@@ -113,6 +113,9 @@ function define_base_command() {
             Ruby)
                 base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/ruby --name \"${FileName}\" --log <LogFilePath>"
                 ;;
+            Perl)
+                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/perl --name \"${FileName}\" --log <LogFilePath>"
+                ;;
             C)
                 base_cmd="gcc -o ${FileName} ${FileName}.${FileSuffix} ; pm2 start \"${FileName}\" --name \"${FileName}\" --log <LogFilePath>"
                 ;;
@@ -144,6 +147,9 @@ function define_base_command() {
                 ;;
             Ruby)
                 base_cmd="ruby ${FileName}.${FileSuffix} 2>&1"
+                ;;
+            Perl)
+                base_cmd="perl ${FileName}.${FileSuffix} 2>&1"
                 ;;
             C)
                 base_cmd="gcc -o ${FileName} ${FileName}.${FileSuffix} && ./${FileName} 2>&1"

@@ -12,9 +12,9 @@ function find_script() {
     # 传入内容
     local input_content=$1
     # 支持的代码文件类型
-    local supported_file_types=("js" "mjs" "cjs" "py" "ts" "go" "lua" "rb" "c" "sh")
+    local supported_file_types=("js" "mjs" "cjs" "py" "ts" "go" "lua" "rb" "pl" "c" "sh")
     # 支持的代码文件类型名称
-    local supported_file_type_names=("JavaScript" "JavaScript" "JavaScript" "Python" "TypeScript" "Go" "Lua" "Ruby" "C" "Shell")
+    local supported_file_type_names=("JavaScript" "JavaScript" "JavaScript" "Python" "TypeScript" "Go" "Lua" "Ruby" "Perl" "C" "Shell")
     FileName=""
     FileDir=""
     FileType=""
@@ -283,6 +283,10 @@ function find_script() {
     if [[ "${FileType}" == "Ruby" ]] && [[ -z "$(command -v ruby)" ]]; then
         output_error "当前未安装 ${BLUE}Ruby${PLAIN} 运行环境！"
     fi
+    # Perl
+    # if [[ "${FileType}" == "Perl" ]] && [[ -z "$(command -v perl)" ]]; then
+    #     output_error "当前未安装 ${BLUE}Perl${PLAIN} 运行环境！"
+    # fi
     # C
     if [[ "${FileType}" == "C" ]] && [[ -z "$(command -v gcc)" ]]; then
         output_error "当前未安装 ${BLUE}C${PLAIN} 运行环境！"
