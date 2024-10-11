@@ -9,6 +9,18 @@
 #   "FileDir"      代码文件所在目录（绝对路径）
 # 不论何种匹配方式或查找方式，当未指定代码文件类型但存在同名代码文件时执行优先级为 Node.js > Python > TypeScript > Shell
 function find_script() {
+    # 根据代码文件名后缀匹配语言类型
+    function match_script_type() {
+        local file_extension="$1"
+        for i in "${!supported_file_types[@]}"; do
+            if [[ "$file_extension" == "${supported_file_types[$i]}" ]]; then
+                FileType="${supported_file_type_names[$i]}"
+                return
+            fi
+        done
+        output_error "项目不支持运行 ${BLUE}.$1${PLAIN} 类型的代码文件！"
+    }
+
     # 传入内容
     local input_content=$1
     # 支持的代码文件类型
@@ -291,31 +303,4 @@ function find_script() {
     if [[ "${FileType}" == "C" ]] && [[ -z "$(command -v gcc)" ]]; then
         output_error "当前未安装 ${BLUE}C${PLAIN} 运行环境！"
     fi
-}
-
-# 根据代码文件名后缀匹配语言类型
-function match_script_type() {
-    case "$1" in
-    js | mjs | cjs)
-        FileType="JavaScript"
-        ;;
-    py)
-        FileType="Python"
-        ;;
-    ts)
-        FileType="TypeScript"
-        ;;
-    go)
-        FileType="Go"
-        ;;
-    c)
-        FileType="C"
-        ;;
-    sh)
-        FileType="Shell"
-        ;;
-    *)
-        output_error "项目不支持运行 ${BLUE}.$1${PLAIN} 类型的代码文件！"
-        ;;
-    esac
 }
