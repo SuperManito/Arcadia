@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-09-10
+## Modified: 2024-10-11
 
 ## 查找代码文件
 # 通过各种判断将得到的必要信息传给接下来运行的函数或命令
@@ -256,9 +256,17 @@ function find_script() {
     if [[ "${FileType}" == "Python" ]] && [[ -z "$(command -v python3)" ]]; then
         output_error "当前未安装 ${BLUE}Python 3${PLAIN} 运行环境！"
     fi
-    # TypeScript
-    if [[ "${FileType}" == "TypeScript" ]] && [[ -z "$(command -v ts-node)" ]]; then
-        output_error "当前未安装 ${BLUE}TypeScript${PLAIN} 运行环境！"
+    # Bun
+    if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+        if [[ "${FileType}" == "JavaScript" ]] || [[ "${FileType}" == "TypeScript" ]] && [[ -z "$(command -v bun)" ]]; then
+            # /root/.bun/bin/bun
+            output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
+        fi
+    else
+        # TypeScript
+        if [[ "${FileType}" == "TypeScript" ]] && [[ -z "$(command -v ts-node)" ]]; then
+            output_error "当前未安装 ${BLUE}TypeScript${PLAIN} 运行环境！"
+        fi
     fi
     # Go
     if [[ "${FileType}" == "Go" ]] && [[ -z "$(command -v go)" ]]; then
