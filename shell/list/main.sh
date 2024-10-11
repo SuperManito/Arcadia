@@ -21,6 +21,12 @@ function command_list_main() {
     if [ "$(command -v ruby)" ]; then
         ScriptType="${ScriptType}|\.rb\$"
     fi
+    if [ "$(command -v rustc)" && "$(command -v cargo)" ]; then
+        ScriptType="${ScriptType}|\.rs\$"
+    fi
+    if [ "$(command -v perl)" ]; then
+        ScriptType="${ScriptType}|\.pl\$"
+    fi
     if [ "$(command -v gcc)" ]; then
         ScriptType="${ScriptType}|\.c\$"
     fi

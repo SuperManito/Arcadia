@@ -24,9 +24,9 @@ function find_script() {
     # 传入内容
     local input_content=$1
     # 支持的代码文件类型
-    local supported_file_types=("js" "mjs" "cjs" "py" "ts" "go" "lua" "rb" "pl" "c" "sh")
+    local supported_file_types=("js" "mjs" "cjs" "py" "ts" "go" "lua" "rb" "rs" "pl" "c" "sh")
     # 支持的代码文件类型名称
-    local supported_file_type_names=("JavaScript" "JavaScript" "JavaScript" "Python" "TypeScript" "Go" "Lua" "Ruby" "Perl" "C" "Shell")
+    local supported_file_type_names=("JavaScript" "JavaScript" "JavaScript" "Python" "TypeScript" "Go" "Lua" "Ruby" "Rust" "Perl" "C" "Shell")
     FileName=""
     FileDir=""
     FileType=""
@@ -294,6 +294,10 @@ function find_script() {
     # Ruby
     if [[ "${FileType}" == "Ruby" ]] && [[ -z "$(command -v ruby)" ]]; then
         output_error "当前未安装 ${BLUE}Ruby${PLAIN} 运行环境！"
+    fi
+    # Rust
+    if [[ "${FileType}" == "Rust" ]] && [[ -z "$(command -v rustc)" || -z "$(command -v cargo)" ]]; then
+        output_error "当前未安装 ${BLUE}Rust${PLAIN} 运行环境！"
     fi
     # Perl
     # if [[ "${FileType}" == "Perl" ]] && [[ -z "$(command -v perl)" ]]; then

@@ -113,6 +113,9 @@ function define_base_command() {
             Ruby)
                 base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/ruby --name \"${FileName}\" --log <LogFilePath>"
                 ;;
+            Rust)
+                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter $(which cargo) --name \"${FileName}\" --log <LogFilePath> -- script"
+                ;;
             Perl)
                 base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/perl --name \"${FileName}\" --log <LogFilePath>"
                 ;;
@@ -147,6 +150,9 @@ function define_base_command() {
                 ;;
             Ruby)
                 base_cmd="ruby ${FileName}.${FileSuffix} 2>&1"
+                ;;
+            Rust)
+                base_cmd="cargo script ${FileName}.${FileSuffix} 2>&1"
                 ;;
             Perl)
                 base_cmd="perl ${FileName}.${FileSuffix} 2>&1"
