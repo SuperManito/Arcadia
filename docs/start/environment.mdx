@@ -5,58 +5,54 @@ import { Icon } from '@site/src/components/Icon';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-##
+如果你对相关技术不是很熟悉那么请认真学习以下内容
 
 ## 安装语言环境
 
 <Tabs>
-  <TabItem value="go" label="Go">
+  <TabItem value="js&ts" label="JavaScript / TypeScript">
 
-  ```bash
-  apt-get install -y go
-  ```
+    <Tabs>
+      <TabItem value="nodejs" label="Node.js">
 
-  </TabItem>
+      ```bash
+      NODE_MAJOR=20 # 指定安装版本（自行修改）
+      apt-get update && apt-get install -y ca-certificates curl gnupg
+      curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+      echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+      apt-get update && apt-get install nodejs -y
+      ```
+      > 已预装LTS版本，底层功能依赖请勿卸载，否则会导致项目无法正常运行，需要安装指定版本时可借鉴该命令
 
-  <TabItem value="bun" label="Bun (JavaScript)">
+      </TabItem>
 
-  > 代完善
+      <TabItem value="ts-nopde" label="ts-node">
 
-  </TabItem>
+      ```bash
+      npm install -g typescript ts-node
+      ```
+      > **ts-node** 是项目当前运行 `.ts` 代码文件的默认引擎，因为 Node.js 对于运行 TypeScript 文件的功能仍处在实验阶段，另外你也可以使用 **Bun**。
 
-  <TabItem value="lua" label="Lua">
+      </TabItem>
 
-  > 代完善
+      <TabItem value="bun" label="Bun">
 
-  </TabItem>
+      ```bash
+      apt-get update && apt-get install -y unzip
+      curl -fsSL https://bun.sh/install | bash
+      bash
+      ```
+      > [Bun](https://bun.sh) 是一个 JavaScript 运行时环境，可以替代默认的 Node.js 和 ts-node，以速度快、性能高著称
 
-  <TabItem value="ruby" label="Ruby">
-
-  > 代完善
-
-  </TabItem>
-
-  <TabItem value="ts-nopde" label="ts-node (TypeScript)">
-
-  ```bash
-  npm install -g typescript ts-node
-  ```
-
-  </TabItem>
-
-  <TabItem value="c" label="C">
-
-  ```bash
-  apt-get install -y gcc
-  ```
-  > 已预装
+      </TabItem>
+    </Tabs>
 
   </TabItem>
 
   <TabItem value="python" label="Python">
 
   ```bash
-  apt-get install -y python3 python3-pip
+  apt-get update && apt-get install -y python3 python3-pip
   ```
   > 已预装，底层功能需要调用，不建议用户卸载  
 
@@ -64,31 +60,55 @@ import TabItem from '@theme/TabItem';
 
   </TabItem>
 
-  <TabItem value="perl" label="Perl">
+  <TabItem value="go" label="Go">
 
   ```bash
-  apt-get install -y perl
+  apt-get update && apt-get install -y go
   ```
-  > 已预装，CLI底层需要调用，用户不能卸载否则会导致项目无法正常运行
 
   </TabItem>
 
-  <TabItem value="nodejs" label="Node.js (JavaScript)">
+  <TabItem value="lua" label="Lua">
 
   ```bash
-  NODE_MAJOR=20 # 指定安装版本（自行修改）
-  apt-get update && apt-get install -y ca-certificates curl gnupg
-  curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-  apt-get update && apt-get install nodejs -y
+  apt-get update && apt-get install -y lua5.4 luarocks
   ```
-  > 已预装，由于项目后端使用 Node.js 开发故用户不能卸载否则会导致项目无法正常运行，需要安装指定版本时可借鉴该命令
+
+  </TabItem>
+
+  <TabItem value="ruby" label="Ruby">
+
+  ```bash
+  apt-get update && apt-get install -y ruby
+  ```
+
+  </TabItem>
+
+  <TabItem value="c" label="C">
+
+  ```bash
+  apt-get update && apt-get install -y gcc
+  ```
+  :::warning
+  已预装，底层功能依赖请勿卸载，否则会导致项目无法正常运行
+  :::
+
+  </TabItem>
+
+  <TabItem value="perl" label="Perl">
+
+  ```bash
+  apt-get update && apt-get install -y perl
+  ```
+  :::warning
+  已预装，底层功能依赖请勿卸载，否则会导致项目无法正常运行
+  :::
 
   </TabItem>
 </Tabs>
 
 
-## 安装依赖库
+## 解决依赖
 
 <Tabs>
   <TabItem value="js&ts" label="JavaScript 和 TypeScript (Node.js / ts-node / Bun)" default>
@@ -106,7 +126,7 @@ import TabItem from '@theme/TabItem';
   默认命令 `npm install <xxx>` 安装的依赖库是相对位置的，可以解决代码使用不同版本依赖库的问题  
   使用 `-g` 命令选项代表全局安装即不需要解决目录关系，因为一般来说这样安装更省事
 
-  当然，你也可以使用 `pnpm` 或 `yarn` 等包管理工具
+  当然，你也可以使用 `pnpm` 或 `yarn` 等包管理工具，使用 `Bun` 时也可以使用其官方的 `bun install` 命令
 
   </TabItem>
 
@@ -126,6 +146,36 @@ import TabItem from '@theme/TabItem';
 
   ```bash
   go get -u xxx
+  ```
+
+  </TabItem>
+
+  <TabItem value="lua" label="Lua">
+
+  适用文件类型 `.lua`
+
+  ```bash
+  luarocks install <xxx>
+  ```
+
+  </TabItem>
+
+  <TabItem value="rb" label="Ruby">
+
+  适用文件类型 `.rb`
+
+  ```bash
+  gem install <xxx>
+  ```
+
+  </TabItem>
+
+  <TabItem value="pl" label="Perl">
+
+  适用文件类型 `.pl` `.pm`，建议使用 `cpanm`，安装命令 `cpan App::cpanminus`
+
+  ```bash
+  cpanm <xxx>
   ```
 
   </TabItem>
