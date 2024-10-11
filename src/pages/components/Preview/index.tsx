@@ -6,11 +6,15 @@ import zhCN from 'antd/locale/zh_CN'
 import { useColorMode } from '@docusaurus/theme-common'
 import { Icon } from '../../../components/Icon'
 import styles from '../index.module.css'
+import ImgCodeEditLight from './code-edit-light.png'
+import ImgCodeEditDark from './code-edit-dark.png'
+import ImgCodeDebugLight from './code-debug-light.png'
+import ImgCodeDebugDark from './code-debug-dark.png'
 
 export default function Preview () {
   const { colorMode } = useColorMode()
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const previewImg = colorMode === 'dark' ? require('./dark.png').default : require('./light.png').default
+  const previewImg = colorMode === 'dark' ? ImgCodeEditDark : ImgCodeEditLight
+  const previewImgs = colorMode === 'dark' ? [ImgCodeEditDark, ImgCodeDebugDark] : [ImgCodeEditLight, ImgCodeDebugLight]
   return (
     <section className={clsx('container', styles.features)}>
         <div className="row">
@@ -68,9 +72,7 @@ export default function Preview () {
                 <div className="video-container">
                     <ConfigProvider locale={zhCN}>
                         <Image.PreviewGroup
-                            items={[
-                              previewImg,
-                            ]}
+                            items={previewImgs}
                         >
                             <Image src={previewImg} />
                         </Image.PreviewGroup>
