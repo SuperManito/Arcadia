@@ -9,9 +9,12 @@
 #   "FileDir"      代码文件所在目录（绝对路径）
 # 不论何种匹配方式或查找方式，当未指定代码文件类型但存在同名代码文件时执行优先级为 Node.js > Python > TypeScript > Shell
 function find_script() {
-    local input_content=$1                                                                                          # 传入内容
-    local supported_file_types=("js" "mjs" "cjs" "py" "ts" "go" "c" "sh")                                           # 支持的代码文件类型
-    local supported_file_type_names=("JavaScript" "JavaScript" "JavaScript" "Python" "TypeScript" "Go" "C" "Shell") # 支持的代码文件类型名称
+    # 传入内容
+    local input_content=$1
+    # 支持的代码文件类型
+    local supported_file_types=("js" "mjs" "cjs" "py" "ts" "go" "lua" "rb" "c" "sh")
+    # 支持的代码文件类型名称
+    local supported_file_type_names=("JavaScript" "JavaScript" "JavaScript" "Python" "TypeScript" "Go" "Lua" "Ruby" "C" "Shell")
     FileName=""
     FileDir=""
     FileType=""
@@ -271,6 +274,14 @@ function find_script() {
     # Go
     if [[ "${FileType}" == "Go" ]] && [[ -z "$(command -v go)" ]]; then
         output_error "当前未安装 ${BLUE}Go${PLAIN} 运行环境！"
+    fi
+    # Lua
+    if [[ "${FileType}" == "Lua" ]] && [[ -z "$(command -v lua)" ]]; then
+        output_error "当前未安装 ${BLUE}Lua${PLAIN} 运行环境！"
+    fi
+    # Ruby
+    if [[ "${FileType}" == "Ruby" ]] && [[ -z "$(command -v ruby)" ]]; then
+        output_error "当前未安装 ${BLUE}Ruby${PLAIN} 运行环境！"
     fi
     # C
     if [[ "${FileType}" == "C" ]] && [[ -z "$(command -v gcc)" ]]; then

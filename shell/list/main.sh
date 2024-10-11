@@ -15,6 +15,12 @@ function command_list_main() {
     if [ "$(command -v go)" ]; then
         ScriptType="${ScriptType}|\.go\$"
     fi
+    if [ "$(command -v lua)" ]; then
+        ScriptType="${ScriptType}|\.lua\$"
+    fi
+    if [ "$(command -v ruby)" ]; then
+        ScriptType="${ScriptType}|\.rb\$"
+    fi
     if [ "$(command -v gcc)" ]; then
         ScriptType="${ScriptType}|\.c\$"
     fi
