@@ -17,7 +17,7 @@ import { FeaturesIcon, BugIcon, OptimizeIcon } from '@site/src/components/Icon';
 - 前端：“环境变量” 与 “定时任务” 页面支持搜索内容高亮
 - 前端：“代码编辑” 页面支持批量删除
 - 后端：新增封装 “文件系统” 系列 OpenAPI 接口，具体详见开发者文档
-- CLI：新增适配 Bun、Lua、Ruby、Perl 运行环境
+- CLI：新增适配 Bun、Lua、Ruby、Rust、Perl 运行环境，前端同步适配
 
 ### <OptimizeIcon /> 优化
 

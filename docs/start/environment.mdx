@@ -16,10 +16,10 @@ import TabItem from '@theme/TabItem';
       <TabItem value="nodejs" label="Node.js">
 
       ```bash
-      NODE_MAJOR=20 # 指定安装版本（自行修改）
+      NODE_VERSION=20 # 指定安装版本（自行修改）
       apt-get update && apt-get install -y ca-certificates curl gnupg
       curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-      echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+      echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_VERSION}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
       apt-get update && apt-get install nodejs -y
       ```
       > 已预装LTS版本，底层功能依赖请勿卸载，否则会导致项目无法正常运行，需要安装指定版本时可借鉴该命令
@@ -38,11 +38,14 @@ import TabItem from '@theme/TabItem';
       <TabItem value="bun" label="Bun">
 
       ```bash
+      # 建议分步执行以下命令
       apt-get update && apt-get install -y unzip
-      curl -fsSL https://bun.sh/install | bash
+      curl -fsSL https://bun.sh/install | bash # 失败时请自行解决网络环境等问题
       bash
+      ln -sf $(which bun) /usr/local/bin/bun
       ```
-      > [Bun](https://bun.sh) 是一个 JavaScript 运行时环境，可以替代默认的 Node.js 和 ts-node，以速度快、性能高著称
+      > [Bun](https://bun.sh) 是一个 JavaScript 运行时环境，可以替代默认的 Node.js 和 ts-node，以速度快、性能高著称  
+      > 建议采用官方默认提供的安装方法，另外如果你通过其它方法安装那么需要在处理 `PATH` 时设置 `/usr/local/bin` 的软链接
 
       </TabItem>
     </Tabs>
@@ -81,6 +84,20 @@ import TabItem from '@theme/TabItem';
   ```bash
   apt-get update && apt-get install -y ruby
   ```
+
+  </TabItem>
+
+  <TabItem value="rust" label="Rust">
+
+  ```bash
+  # 建议分步执行以下命令
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh # 失败时请自行解决网络环境等问题
+  bash
+  ln -sf $(which rustc) /usr/local/bin/rustc
+  ln -sf $(which cargo) /usr/local/bin/cargo
+  cargo install cargo-script # 失败时请自行解决网络环境等问题
+  ```
+  > 建议采用官方默认提供的安装方法，因为通过 `apt` 包管理工具安装的版本较低，另外如果你通过其它方法安装那么需要在处理 `PATH` 时设置 `/usr/local/bin` 的软链接
 
   </TabItem>
 
@@ -126,7 +143,7 @@ import TabItem from '@theme/TabItem';
   默认命令 `npm install <xxx>` 安装的依赖库是相对位置的，可以解决代码使用不同版本依赖库的问题  
   使用 `-g` 命令选项代表全局安装即不需要解决目录关系，因为一般来说这样安装更省事
 
-  当然，你也可以使用 `pnpm` 或 `yarn` 等包管理工具，使用 `Bun` 时也可以使用其官方的 `bun install` 命令
+  当然，你也可以使用 `pnpm` 或 `yarn` 等包管理工具，使用 `Bun` 时建议使用官方的 `bun install` 命令
 
   </TabItem>
 
@@ -166,6 +183,31 @@ import TabItem from '@theme/TabItem';
 
   ```bash
   gem install <xxx>
+  ```
+
+  </TabItem>
+
+  <TabItem value="rs" label="Rust">
+
+  适用文件类型 `.rs`
+
+  1. 在 `Cargo.toml` 文件中添加依赖：
+
+  ```toml
+  [dependencies]
+  <xxx> = "<version>"
+  ```
+
+  2. 运行以下命令安装依赖：
+
+  ```bash
+  cargo build
+  ```
+
+  或者仅安装依赖而不构建项目：
+
+  ```bash
+  cargo check
   ```
 
   </TabItem>
