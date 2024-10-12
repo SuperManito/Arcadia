@@ -47,11 +47,11 @@ api.get('/captcha', (req, res) => {
  * 调用命令执行
  */
 api.post('/runCmd', (request, response) => {
-  const cmd = `cd ${APP_ROOT_DIR};${request.body.cmd}`
+  const cmd = `cd ${APP_ROOT_DIR} ; ${request.body.cmd}`
   const name = 'runLog'
   const runId = random(16)
   try {
-    const result = exec(cmd, { encoding: 'utf-8' })
+    const result = exec(cmd, { shell: '/bin/bash', encoding: 'utf-8' })
     result.stdout.on('data', (data) => {
       taskRunning[runId] = true
       socketCommon.emit(name, API_STATUS_CODE.okData({

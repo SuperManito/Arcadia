@@ -17,6 +17,7 @@ function execShell(cmd, config) {
   try {
     const process = exec(`cd ${APP_ROOT_DIR} ; ${cmd}`, {
       encoding: 'utf8',
+      shell: '/bin/bash',
       maxBuffer: 1024 * 1024 * 10, // 10M
     }, config.callback)
     if (config.onExit) {
