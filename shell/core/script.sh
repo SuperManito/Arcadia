@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-10-11
+## Modified: 2024-10-12
 
 ## 查找代码文件
 # 通过各种判断将得到的必要信息传给接下来运行的函数或命令
@@ -267,44 +267,64 @@ function find_script() {
     fi
 
     ## 检测代码文件运行环境
-    # Python
-    if [[ "${FileType}" == "Python" ]] && [[ -z "$(command -v python3)" ]]; then
-        output_error "当前未安装 ${BLUE}Python 3${PLAIN} 运行环境！"
-    fi
-    # Bun
-    if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-        if [[ "${FileType}" == "JavaScript" ]] || [[ "${FileType}" == "TypeScript" ]] && [[ -z "$(command -v bun)" ]]; then
-            # /root/.bun/bin/bun
-            output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
+    case "${FileType}" in
+    "JavaScript")
+        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+            if [[ -z "$(command -v bun)" ]]; then
+                output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
+            fi
         fi
-    else
-        # TypeScript
-        if [[ "${FileType}" == "TypeScript" ]] && [[ -z "$(command -v ts-node)" ]]; then
-            output_error "当前未安装 ${BLUE}TypeScript${PLAIN} 运行环境！"
+        ;;
+    "TypeScript")
+        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+            if [[ -z "$(command -v bun)" ]]; then
+                output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
+            fi
+        else
+            if [[ -z "$(command -v ts-node)" ]]; then
+                output_error "当前未安装 ${BLUE}TypeScript${PLAIN} 运行环境！"
+            fi
         fi
-    fi
-    # Go
-    if [[ "${FileType}" == "Go" ]] && [[ -z "$(command -v go)" ]]; then
-        output_error "当前未安装 ${BLUE}Go${PLAIN} 运行环境！"
-    fi
-    # Lua
-    if [[ "${FileType}" == "Lua" ]] && [[ -z "$(command -v lua)" ]]; then
-        output_error "当前未安装 ${BLUE}Lua${PLAIN} 运行环境！"
-    fi
-    # Ruby
-    if [[ "${FileType}" == "Ruby" ]] && [[ -z "$(command -v ruby)" ]]; then
-        output_error "当前未安装 ${BLUE}Ruby${PLAIN} 运行环境！"
-    fi
-    # Rust
-    if [[ "${FileType}" == "Rust" ]] && [[ -z "$(command -v rustc)" || -z "$(command -v cargo)" ]]; then
-        output_error "当前未安装 ${BLUE}Rust${PLAIN} 运行环境！"
-    fi
-    # Perl
-    # if [[ "${FileType}" == "Perl" ]] && [[ -z "$(command -v perl)" ]]; then
-    #     output_error "当前未安装 ${BLUE}Perl${PLAIN} 运行环境！"
-    # fi
-    # C
-    if [[ "${FileType}" == "C" ]] && [[ -z "$(command -v gcc)" ]]; then
-        output_error "当前未安装 ${BLUE}C${PLAIN} 运行环境！"
-    fi
+        ;;
+    "Python")
+        if [[ -z "$(command -v python3)" ]]; then
+            output_error "当前未安装 ${BLUE}Python 3${PLAIN} 运行环境！"
+        fi
+        ;;
+    "Python")
+        if [[ -z "$(command -v python3)" ]]; then
+            output_error "当前未安装 ${BLUE}Python 3${PLAIN} 运行环境！"
+        fi
+        ;;
+    "Go")
+        if [[ -z "$(command -v go)" ]]; then
+            output_error "当前未安装 ${BLUE}Go${PLAIN} 运行环境！"
+        fi
+        ;;
+    "Lua")
+        if [[ -z "$(command -v lua)" ]]; then
+            output_error "当前未安装 ${BLUE}Lua${PLAIN} 运行环境！"
+        fi
+        ;;
+    "Ruby")
+        if [[ -z "$(command -v ruby)" ]]; then
+            output_error "当前未安装 ${BLUE}Ruby${PLAIN} 运行环境！"
+        fi
+        ;;
+    "Rust")
+        if [[ -z "$(command -v rustc)" || -z "$(command -v cargo)" ]]; then
+            output_error "当前未安装 ${BLUE}Rust${PLAIN} 运行环境！"
+        fi
+        ;;
+    "C")
+        if [[ -z "$(command -v gcc)" ]]; then
+            output_error "当前未安装 ${BLUE}C${PLAIN} 运行环境！"
+        fi
+        ;;
+    esac
+    # "Perl")
+    #     if [[ -z "$(command -v perl)" ]]; then
+    #         output_error "当前未安装 ${BLUE}Perl${PLAIN} 运行环境！"
+    #     fi
+    #     ;;
 }
