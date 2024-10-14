@@ -37,7 +37,7 @@ api.get('/list', (request, response) => {
   }
 })
 
-apiOpen.get('/list', (request, response) => {
+apiOpen.get('/v1/list', (request, response) => {
   try {
     validateParams(request, [
       ['query', 'path', [true, 'string']],
@@ -92,50 +92,6 @@ api.get('/tree/:type', (request, response) => {
   }
 })
 
-// apiOpen.get('/tree', (request, response) => {
-//   try {
-//     validateParams(request, [
-//       ['query', 'type', [false, [
-//         'all',
-//         'arcadia',
-//         'src',
-//         'config',
-//         'sample',
-//         'scripts',
-//         'shell',
-//         'log',
-//         'repo',
-//         'raw',
-//         'config_bak',
-//       ], true]],
-//       ['query', 'onlyDir', [false, ['true', 'false']]],
-//       ['query', 'search', [false, 'string']],
-//       ['query', 'startTime', [false, 'string']],
-//       ['query', 'endTime', [false, 'string']],
-//     ])
-//     // 检查日期格式
-//     if (request.query.startTime || request.query.endTime) {
-//       const { startTime, endTime } = request.query
-//       const regex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/
-//       if (startTime && !regex.test(startTime)) {
-//         throw new Error('参数 startTime 无效（参数值类型错误）')
-//       }
-//       if (endTime && !regex.test(endTime)) {
-//         throw new Error('参数 endTime 无效（参数值类型错误）')
-//       }
-//     }
-//     const params = handleFileTreeParams(request.query)
-//     const type = params.type
-//     if (Object.keys(APP_DIR_TYPE).includes(type.toUpperCase()) || type === 'all') {
-//       response.send(API_STATUS_CODE.okData(getFileTree(type, type === 'all' ? APP_ROOT_DIR : APP_DIR_PATH[type.toUpperCase()], params)))
-//     } else {
-//       response.send(API_STATUS_CODE.fail('参数错误'))
-//     }
-//   } catch (e) {
-//     response.send(API_STATUS_CODE.fail(e.message || e))
-//   }
-// })
-
 /**
  * 获取文件内容
  */
@@ -149,7 +105,7 @@ api.get('/content', (request, response) => {
   }
 })
 
-apiOpen.get('/content', (request, response) => {
+apiOpen.get('/v1/content', (request, response) => {
   try {
     validateParams(request, [
       ['query', 'path', [true, 'string']],
@@ -177,7 +133,7 @@ api.post('/content', (request, response) => {
   }
 })
 
-apiOpen.post('/content', (request, response) => {
+apiOpen.post('/v1/content', (request, response) => {
   try {
     validateParams(request, [
       ['body', 'path', [true, 'string']],
@@ -206,7 +162,7 @@ api.get('/info', (request, response) => {
   }
 })
 
-apiOpen.get('/info', (request, response) => {
+apiOpen.get('/v1/info', (request, response) => {
   try {
     validateParams(request, [
       ['query', 'path', [true, 'string']],
@@ -234,7 +190,7 @@ api.post('/rename', (request, response) => {
   }
 })
 
-apiOpen.post('/rename', (request, response) => {
+apiOpen.post('/v1/rename', (request, response) => {
   try {
     validateParams(request, [
       ['body', 'path', [true, 'string']],
@@ -266,7 +222,7 @@ api.post('/move', (request, response) => {
   }
 })
 
-apiOpen.post('/move', (request, response) => {
+apiOpen.post('/v1/move', (request, response) => {
   try {
     const { path: oldPath, newPath } = request.body
     pathCheck(oldPath)
@@ -293,7 +249,7 @@ api.post('/create', (request, response) => {
   }
 })
 
-apiOpen.post('/create', (request, response) => {
+apiOpen.post('/v1/create', (request, response) => {
   try {
     validateParams(request, [
       ['body', 'path', [true, 'string']],
@@ -333,7 +289,7 @@ api.delete('/delete', (request, response) => {
   }
 })
 
-apiOpen.delete('/delete', (request, response) => {
+apiOpen.delete('/v1/delete', (request, response) => {
   try {
     validateParams(request, [
       ['body', 'path', [true, 'string | string[]']],
@@ -371,7 +327,7 @@ api.get('/download', (request, response) => {
   }
 })
 
-apiOpen.get('/download', (request, response) => {
+apiOpen.get('/v1/download', (request, response) => {
   try {
     validateParams(request, [
       ['query', 'path', [true, 'string']],
@@ -432,7 +388,7 @@ api.post('/upload', upload.single('file'), (request, response) => {
   )
 })
 
-apiOpen.post('/upload', upload.single('file'), (request, response) => {
+apiOpen.post('/v1/upload', upload.single('file'), (request, response) => {
   response.send(
     API_STATUS_CODE.ok({
       fileName: request.file.originalname,
