@@ -144,7 +144,7 @@ export default function LanguageSupport () {
           </Link>
         </div>
         <div>
-          <Link href="https://www.python.org" title="Python" target="_blank" rel="noreferrer">
+          <Link href="https://bun.sh" title="Bun" target="_blank" rel="noreferrer">
             <Icon icon="logos:bun" height={isMobile ? 18 : 48} className={isMobile ? 'mr-4' : 'mr-20'} />
           </Link>
         </div>

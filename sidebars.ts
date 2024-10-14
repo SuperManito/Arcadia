@@ -10,7 +10,7 @@ const sidebars: SidebarsConfig = {
     {
       label: '更新日志',
       type: 'doc',
-      id: 'changelog',
+      id: 'CHANGELOG',
     },
     {
       label: '开始使用',

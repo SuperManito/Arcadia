@@ -10,11 +10,43 @@ import ImgCodeEditLight from './code-edit-light.png'
 import ImgCodeEditDark from './code-edit-dark.png'
 import ImgCodeDebugLight from './code-debug-light.png'
 import ImgCodeDebugDark from './code-debug-dark.png'
+import ImgCronLight from './cron-light.png'
+import ImgCronDark from './cron-dark.png'
+import ImgLogLight from './log-light.png'
+import ImgLogDark from './log-dark.png'
+import ImgEnvLight from './env-light.png'
+import ImgEnvDark from './env-dark.png'
+import ImgFileLight from './file-light.png'
+import ImgFileDark from './file-dark.png'
+import ImgTerminalLight from './terminal-light.png'
+import ImgTerminalDark from './terminal-dark.png'
+import ImgLoginLight from './login-light.png'
+import ImgLoginDark from './login-dark.png'
 
 export default function Preview () {
   const { colorMode } = useColorMode()
   const previewImg = colorMode === 'dark' ? ImgCodeEditDark : ImgCodeEditLight
-  const previewImgs = colorMode === 'dark' ? [ImgCodeEditDark, ImgCodeDebugDark] : [ImgCodeEditLight, ImgCodeDebugLight]
+  const previewImgs = colorMode === 'dark'
+    ? [
+        ImgCodeEditDark,
+        ImgCodeDebugDark,
+        ImgCronDark,
+        ImgLogDark,
+        ImgEnvDark,
+        ImgFileDark,
+        ImgTerminalDark,
+        ImgLoginDark,
+      ]
+    : [
+        ImgCodeEditLight,
+        ImgCodeDebugLight,
+        ImgCronLight,
+        ImgLogLight,
+        ImgEnvLight,
+        ImgFileLight,
+        ImgTerminalLight,
+        ImgLoginLight,
+      ]
   return (
     <section className={clsx('container', styles.features)}>
         <div className="row">
