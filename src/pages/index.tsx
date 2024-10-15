@@ -1,13 +1,13 @@
 import React from 'react'
 import Layout from '@theme/Layout'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
-import { cn } from './lib/utils'
 import { useMotionValue, motion, useMotionTemplate } from 'framer-motion'
-import Hero from './components/Hero'
-import Preview from './components/Preview'
-import Features from './components/Features'
-import LanguageSupport from './components/LanguageSupport'
-import Footer from './components/Footer'
+import cn from '../components/lib/utils'
+import Hero from '../components/Hero'
+import Preview from '../components/Preview'
+import Features from '../components/Features'
+import LanguageSupport from '../components/LanguageSupport'
+import Footer from '../components/Footer'
 
 function HeroHighlightBackground ({
   children,
@@ -70,19 +70,19 @@ export default function Home () {
   const { siteConfig } = useDocusaurusContext() as any
   return (
     <Layout title={`${siteConfig.title as string} · ${siteConfig.tagline as string}`} description={siteConfig.description}>
-        <HeroHighlightBackground className="w-[100vw] min-h-[calc(100vh-60px)] lg:min-h-[calc(100vh-44px)]">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: [20, -5, 0] }}
-            transition={{ duration: 0.5, ease: [0.4, 0.0, 0.2, 1] }}
-          >
-          <Hero />
-          <Preview />
-          </motion.div>
-        </HeroHighlightBackground>
-        <LanguageSupport />
-        <Features />
-        <Footer />
+      <HeroHighlightBackground className="w-[100vw] min-h-[calc(100vh-60px)] lg:min-h-[calc(100vh-44px)]">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: [20, -5, 0] }}
+          transition={{ duration: 0.5, ease: [0.4, 0.0, 0.2, 1] }}
+        >
+        <Hero />
+        <Preview />
+        </motion.div>
+      </HeroHighlightBackground>
+      <LanguageSupport />
+      <Features />
+      <Footer />
     </Layout>
   )
 }

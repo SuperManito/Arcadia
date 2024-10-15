@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import Heading from '@theme/Heading'
 import Link from '@docusaurus/Link'
 import { useWindowSize } from '@docusaurus/theme-common'
-import styles from '../index.module.css'
+import styles from './index.module.css'
 
 export default function Hero () {
   const isMobile = useWindowSize() === 'mobile'

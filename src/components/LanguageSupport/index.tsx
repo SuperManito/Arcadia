@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useWindowSize } from '@docusaurus/theme-common'
 import Link from '@docusaurus/Link'
-import { cn } from '../../lib/utils'
+import cn from '../lib/utils'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 

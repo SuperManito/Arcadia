@@ -1,0 +1,10 @@
+.features {
+    color: #41465d;
+}
+html[data-theme='dark'] .features {
+    color: #f0f0f0;
+}
+
+.features>* {
+    margin: 2em 0;
+}

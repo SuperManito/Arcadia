@@ -1,14 +1,3 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
-
-.buttons {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .tagline {
     font-family: 'Lota Grotesque', sans-serif;
     font-size: 64px;
@@ -98,11 +87,6 @@ html[data-theme='dark'] .heroBanner h2 {
 }
 
 @media only screen and (max-device-width: 996px) {
-    .codeBlock {
-        position: relative;
-        top: 50px;
-    }
-
     .logo,
     .logoBlur {
         display: none;
@@ -127,66 +111,8 @@ html[data-theme='dark'] .heroBanner h2 {
     .hideSmall {
         display: none;
     }
-
-    .codeBlock {
-        top: 0;
-    }
-}
-
-@media only screen and (max-device-width: 450px) {
-    .codeBlock code {
-        font-size: 0.8em;
-    }
-}
-
-@media only screen and (max-device-width: 350px) {
-    .codeBlock code {
-        font-size: 0.7em;
-    }
 }
 
 .tagline span {
     color: var(--ifm-color-primary);
-}
-
-.getStarted {
-    font-size: 18px;
-    line-height: 28px;
-    padding: 10px 36px;
-    background: #ed3545;
-    border-radius: 8px;
-    color: white;
-    font-weight: 600;
-}
-
-.getStarted:hover {
-    color: white;
-    background: #ad1934;
-}
-
-html[data-theme='dark'] .getStarted {
-    border-color: #f0f0f0;
-}
-
-.try {
-    padding-top: 20px;
-}
-
-.try,
-.features {
-    color: #41465d;
-}
-
-html[data-theme='dark'] .try,
-html[data-theme='dark'] .features {
-    color: #f0f0f0;
-}
-
-.features>* {
-    margin: 2em 0;
-}
-
-.bottomLogo path:nth-child(1) {
-    fill: url(#gradient-1) !important;
-    stroke: url(#gradient-1) !important;
 }
