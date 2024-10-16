@@ -369,14 +369,8 @@ function saveFile(filePath, content) {
  * @param checkPath
  */
 function rootPathCheck(checkPath) {
-  let root
-  try {
-    root = APP_ROOT_DIR.split(APP_DIR_TYPE.ROOT)[0]
-  } catch {
-    root = '/'
-  }
-  if (!checkPath.startsWith(root)) {
-    throw new Error(`目录 ${checkPath} 必须以${root}为开头命名`)
+  if (!checkPath.startsWith(APP_ROOT_DIR)) {
+    throw new Error('非法操作')
   }
 }
 
