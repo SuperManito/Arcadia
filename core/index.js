@@ -2,7 +2,6 @@ const random = require('string-random')
 const { getJsonFile, saveNewConf } = require('./file')
 const { APP_FILE_TYPE } = require('./type')
 const utils = require('./utils')
-const errorCount = 1
 
 /**
  * 初始化
@@ -20,7 +19,3 @@ function init() {
 }
 
 init()
-
-module.exports = {
-  errorCount,
-}

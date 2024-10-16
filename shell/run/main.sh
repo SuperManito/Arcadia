@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-05-25
+## Modified: 2024-10-11
 
 ## 随机延迟
 function random_delay() {
@@ -85,52 +85,86 @@ function define_base_command() {
 
     # 后台挂起（守护进程）
     if [[ "${RUN_OPTION_DAEMON}" == "true" ]]; then
-        case "${FileType}" in
-        JavaScript)
-            if [[ "${RUN_OPTION_AGENT}" == "true" ]] || [[ "${EnableGlobalProxy}" == "true" ]]; then
-                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --name \"${FileName}\" --watch --log <LogFilePath> --${global_proxy_option_cmd}"
-            else
-                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --name \"${FileName}\" --watch --log <LogFilePath>"
+        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+            if [[ "${global_proxy_option_cmd}" ]]; then
+                global_proxy_option_cmd=" --${global_proxy_option_cmd}"
             fi
-            ;;
-        Python)
-            base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/python3 --log <LogFilePath> -- -u"
-            ;;
-        TypeScript)
-            base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/ts-node --name \"${FileName}\" --log <LogFilePath> -- -T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd}"
-            ;;
-        Go)
-            base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/go --name \"${FileName}\" --log <LogFilePath>"
-            ;;
-        C)
-            base_cmd="gcc -o ${FileName} ${FileName}.${FileSuffix} ; pm2 start \"${FileName}\" --name \"${FileName}\" --log <LogFilePath>"
-            ;;
-        Shell)
-            base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter bash --name \"${FileName}\" --log <LogFilePath>"
-            ;;
-        esac
+            base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter $(which bun) --name \"${FileName}\" --log <LogFilePath>${global_proxy_option_cmd}"
+        else
+            case "${FileType}" in
+            JavaScript)
+                if [[ "${global_proxy_option_cmd}" ]]; then
+                    global_proxy_option_cmd=" --${global_proxy_option_cmd}"
+                fi
+                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --name \"${FileName}\" --watch --log <LogFilePath>${global_proxy_option_cmd}"
+                ;;
+            Python)
+                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/python3 --log <LogFilePath> -- -u"
+                ;;
+            TypeScript)
+                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/ts-node --name \"${FileName}\" --log <LogFilePath> -- -T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd}"
+                ;;
+            Go)
+                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/go --name \"${FileName}\" --log <LogFilePath>"
+                ;;
+            Lua)
+                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/lua --name \"${FileName}\" --log <LogFilePath>"
+                ;;
+            Ruby)
+                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/ruby --name \"${FileName}\" --log <LogFilePath>"
+                ;;
+            Rust)
+                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter $(which cargo) --name \"${FileName}\" --log <LogFilePath> -- script"
+                ;;
+            Perl)
+                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/perl --name \"${FileName}\" --log <LogFilePath>"
+                ;;
+            C)
+                base_cmd="gcc -o ${FileName} ${FileName}.${FileSuffix} ; pm2 start \"${FileName}\" --name \"${FileName}\" --log <LogFilePath>"
+                ;;
+            Shell)
+                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter bash --name \"${FileName}\" --log <LogFilePath>"
+                ;;
+            esac
+        fi
 
     else
-        case "${FileType}" in
-        JavaScript)
-            base_cmd="node${global_proxy_option_cmd} ${FileName}.${FileSuffix} 2>&1"
-            ;;
-        Python)
-            base_cmd="python3 -u ${FileName}.${FileSuffix} 2>&1"
-            ;;
-        TypeScript)
-            base_cmd="ts-node -T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd} ${FileName}.${FileSuffix} 2>&1"
-            ;;
-        Go)
-            base_cmd="go run ${FileName}.${FileSuffix} 2>&1"
-            ;;
-        C)
-            base_cmd="gcc -o ${FileName} ${FileName}.${FileSuffix} && ./${FileName} 2>&1"
-            ;;
-        Shell)
-            base_cmd="bash ${FileName}.${FileSuffix} 2>&1"
-            ;;
-        esac
+        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+            base_cmd="bun run${global_proxy_option_cmd} ${FileName}.${FileSuffix} 2>&1"
+        else
+            case "${FileType}" in
+            JavaScript)
+                base_cmd="node${global_proxy_option_cmd} ${FileName}.${FileSuffix} 2>&1"
+                ;;
+            Python)
+                base_cmd="python3 -u ${FileName}.${FileSuffix} 2>&1"
+                ;;
+            TypeScript)
+                base_cmd="ts-node -T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd} ${FileName}.${FileSuffix} 2>&1"
+                ;;
+            Go)
+                base_cmd="go run ${FileName}.${FileSuffix} 2>&1"
+                ;;
+            Lua)
+                base_cmd="lua ${FileName}.${FileSuffix} 2>&1"
+                ;;
+            Ruby)
+                base_cmd="ruby ${FileName}.${FileSuffix} 2>&1"
+                ;;
+            Rust)
+                base_cmd="cargo script ${FileName}.${FileSuffix} 2>&1"
+                ;;
+            Perl)
+                base_cmd="perl ${FileName}.${FileSuffix} 2>&1"
+                ;;
+            C)
+                base_cmd="gcc -o ${FileName} ${FileName}.${FileSuffix} && ./${FileName} 2>&1"
+                ;;
+            Shell)
+                base_cmd="bash ${FileName}.${FileSuffix} 2>&1"
+                ;;
+            esac
+        fi
     fi
 }
 
@@ -321,9 +355,15 @@ function command_run_main() {
     import core/script
     find_script "${1}"
 
-    # 判断脚本代理
-    if [[ "${RUN_OPTION_AGENT}" == "true" ]] && [[ "${FileType}" != "JavaScript" && "${FileType}" != "TypeScript" ]]; then
-        output_error "检测到无效参数 ${BLUE}--agent${PLAIN} ，仅支持运行 Node.js 和 TypeScript 脚本！"
+    if [[ "${FileType}" != "JavaScript" && "${FileType}" != "TypeScript" ]]; then
+        # 判断脚本代理
+        if [[ "${RUN_OPTION_AGENT}" == "true" ]]; then
+            output_error "检测到无效参数 ${BLUE}--agent${PLAIN} ，仅支持运行 JavaScript 和 TypeScript 代码文件！"
+        fi
+        # 判断 Bun 运行环境
+        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+            output_error "检测到无效参数 ${BLUE}--use-bun${PLAIN} ，仅支持运行 JavaScript 和 TypeScript 代码文件！"
+        fi
     fi
 
     ## 加载用户配置
@@ -467,6 +507,9 @@ function command_run() {
                 ;;
             -d | --daemon)
                 RUN_OPTION_DAEMON="true"
+                ;;
+            -B | --use-bun)
+                RUN_OPTION_USE_BUN="true"
                 ;;
             -b | --background)
                 RUN_OPTION_BACKGROUND="true"

@@ -1,175 +1,113 @@
-const { arrayObjectSort, parseFileNameDate, dateToFileName, getDateStr } = require('../utils')
+const { parseFileNameDate, dateToFileName, getDateStr } = require('../utils')
 const { API_STATUS_CODE } = require('../http/apiCode')
 const { logger } = require('../logger')
 
-const path = require('path')
+const nodePath = require('path')
 const fs = require('fs')
 const os = require('os')
 const archiver = require('archiver')
 const { execSync } = require('child_process')
-const { APP_ROOT_DIR, APP_DIR_TYPE, APP_FILE_TYPE, APP_FILE_NAME, APP_SOURCE_DIR, APP_DIR_PATH, APP_FILE_PATH } = require('../type')
+const { APP_ROOT_DIR, APP_DIR_TYPE, APP_FILE_TYPE, APP_FILE_NAME, APP_DIR_PATH, APP_FILE_PATH } = require('../type')
 
-const canRunCodeFileExtList = ['js', 'mjs', 'cjs', 'py', 'ts', 'go', 'c', 'sh']
-
-// 创建目录
-if (!fs.existsSync(APP_DIR_PATH.SCRIPTS)) {
-  fs.mkdirSync(APP_DIR_PATH.SCRIPTS)
-}
-if (!fs.existsSync(APP_DIR_PATH.REPO)) {
-  fs.mkdirSync(APP_DIR_PATH.REPO)
-}
-if (!fs.existsSync(APP_DIR_PATH.RAW)) {
-  fs.mkdirSync(APP_DIR_PATH.RAW)
+const canRunCodeFileExtList = ['js', 'mjs', 'cjs', 'py', 'ts', 'go', 'bun', 'lua', 'rb', 'pl', 'c', 'sh'] // 底层Shell已适配可执行代码文件类型的后缀
+const excludeRegExp = /(user\.session)|(\.cache$)|(\.check$)|(\.git$)|(\.tmp$)|(__pycache__$)|(node_modules)/ // 全局过滤正则
+const FILE_TYPES = {
+  FOLDER: 'folder',
+  FILE: 'file',
 }
 
 /**
- * 解析参数
- * @param options
- * @return {{excludeRegExp: RegExp, keywords: string, startTime: string, endTime: string, isDir: boolean}}
+ * 获取文件列表（仅一层，非递归）
+ *
+ * @param {string} dirPath - 目录路径
+ * @returns {object}
  */
-const getOptions = (options) => {
-  const excludeRegExp = /(user\.session)|(\.git$)|(\.tmp$)|(\.check$)|(node_modules)|(auth\.json$)/
-  let keywords = ''
-  // 用于日志查询
-  let startTime = ''
-  let endTime = ''
-  let isDir = false
-  if (typeof options === 'string') {
-    keywords = options
-  }
-  if (typeof options === 'object') {
-    keywords = options.keywords || ''
-    if (options.type && options.type === APP_DIR_TYPE.LOG) {
-      startTime = options.startTime || ''
-      endTime = options.endTime || ''
-    }
-    isDir = options.isDir || false
-  }
-  return { keywords, startTime, endTime, isDir, excludeRegExp, type: options.type }
-}
-
-/**
- * 根据目录返回目录下的文件夹和文件
- * @param dir
- * @param query
- */
-const getDirectory = (dir, query) => {
-  if (!fs.existsSync(dir)) {
-    throw new Error(`目录 ${dir} 不存在`)
-  }
-  const parentDir = dir
-  const options = getOptions(query)
-  const files = fs.readdirSync(dir)
-  const dirStats = fs.statSync(dir)
+function getFileList(dirPath) {
+  const files = fs.readdirSync(dirPath)
+  const dirStats = fs.statSync(dirPath)
   const result = {
     // 构造文件夹数据
-    path: dir,
-    title: path.basename(dir),
-    type: 0,
-    mTime: dirStats.mtime,
+    path: dirPath,
+    title: nodePath.basename(dirPath),
+    type: FILE_TYPES.FOLDER,
+    updated_at: dirStats.mtime,
+    created_at: dirStats.birthtime,
   }
-  result.children = arrayObjectSort(
-    'type',
+  result.children = sortFilesAndFolders(
     files
       .filter((item) => {
-        const subPath = path.join(dir, item)
-        const stats = fs.statSync(subPath)
-        if (options.isDir && !stats.isDirectory()) {
-          // 非文件夹
-          return false
-        }
-        return !options.excludeRegExp.test(item)
+        return !excludeRegExp.test(item)
       })
       .map((file) => {
-        const subPath = path.join(dir, file)
+        const subPath = nodePath.join(dirPath, file)
         const stats = fs.statSync(subPath)
         return {
           path: subPath,
           name: file,
-          type: stats.isDirectory() ? 0 : 1,
-          mTime: stats.mtime,
+          type: stats.isDirectory() ? FILE_TYPES.FOLDER : FILE_TYPES.FILE,
+          updated_at: stats.mtime,
+          created_at: stats.birthtime,
         }
-      })
-      .filter((item) => {
-        return dirQueryAfter(parentDir, item, options)
       }),
     true,
   )
-  return result // 返回数据
-}
-
-const dirQueryAfter = (parentDir, item, options) => {
-  const { keywords, startTime, endTime, isDir } = options
-  if (item.type === 1 && isDir) {
-    return false
-  }
-  if (item.type === 0) {
-    return true
-  }
-  const path = item.path.replace(parentDir, '')
-  const name = item.name
-  if (options.type && options.type !== 'log') {
-    return keywords === '' || path.indexOf(keywords) > -1
-  }
-
-  // 只有日志才匹配时间
-  return (keywords === '' || path.indexOf(keywords) > -1) && (startTime === '' || fileNameTimeCompare(name, startTime) > -1) && (endTime === '' || fileNameTimeCompare(name, endTime) < 1)
+  return result
 }
 
 /**
- * 目录数
- * @param type 类型 all、config、repo、scripts、repo_scripts、sample、log、dirs
- * @param dir
- * @param query 参数
+ * 目录树（递归）
+ *
+ * @param {string} type - 类型 APP_DIR_TYPE
+ * @param {string} dirPath - 目录路径
+ * @param {object} params - 参数
  * @returns {*[]}
  */
-const getDirTree = (type, dir, query) => {
-  const filesNameArr = []
-  if (!fs.existsSync(dir)) {
-    return filesNameArr
+function getFileTree(type, dirPath, params) {
+  if (!fs.existsSync(dirPath)) {
+    return []
   }
-  const parentDir = dir
-  const options = getOptions(query)
+  let filesNameArr
+  const parentDir = dirPath
+  const filterPaths = [APP_FILE_PATH.DB, APP_FILE_PATH.AUTH] // 默认过滤的文件路径
 
-  // 用个hash队列保存每个目录的深度
-  const mapDeep = {}
-  mapDeep[dir] = 0
-  // 先遍历一遍给其建立深度索引
-  const getMap = (dir, curIndex) => {
-    const files = fs.readdirSync(dir) // 同步拿到文件目录下的所有文件名
-    files.forEach((file) => {
-      const subPath = path.join(dir, file)
-      const stats = fs.statSync(subPath)
-      if (file !== 'node_modules' && !options.excludeRegExp.test(file)) {
-        mapDeep[file] = curIndex + 1
-        if (stats.isDirectory()) {
-          // 判断是否为文件夹类型
-          return getMap(subPath, mapDeep[file]) // 递归读取文件夹
-        }
-      }
-    })
-  }
-
-  getMap(dir, mapDeep[dir])
-
-  const readDirs = (dir, folderName) => {
-    const result = {
-      // 构造文件夹数据
-      path: dir,
-      title: path.basename(dir),
-      type: 0,
-      deep: mapDeep[folderName],
+  const options = (({ search = '', startTime = '', endTime = '', onlyDir = false, type } = {}) => {
+    if (type === APP_DIR_TYPE.LOG) {
+      startTime = startTime || ''
+      endTime = endTime || ''
     }
+    return { search, startTime, endTime, onlyDir }
+  })(params)
 
-    const files = fs.readdirSync(dir)
-    const children = arrayObjectSort(
-      'type',
+  // 处理过滤参数
+  const handleFilterParams = (parentDir, item, options) => {
+    const { search = '', startTime = '', endTime = '', onlyDir } = options
+    if (item.type === FILE_TYPES.FILE && onlyDir) {
+      return false
+    }
+    const matchesSearch = search === '' || item.path.replace(parentDir, '').includes(search)
+    const matchesStartTime = startTime === '' || fileNameTimeCompare(item.name, startTime) >= 0
+    const matchesEndTime = endTime === '' || fileNameTimeCompare(item.name, endTime) <= 0
+    return matchesSearch && matchesStartTime && matchesEndTime
+  }
+
+  // 递归读取目录
+  const readDirs = (dirPath) => {
+    const dirStats = fs.statSync(dirPath)
+    const result = {
+      path: dirPath,
+      title: nodePath.basename(dirPath),
+      type: FILE_TYPES.FOLDER,
+      updated_at: dirStats.mtime,
+      created_at: dirStats.birthtime,
+    }
+    const files = fs.readdirSync(dirPath)
+    const children = sortFilesAndFolders(
       files
         .filter((item) => {
-          return !options.excludeRegExp.test(item)
+          return !excludeRegExp.test(item) && !filterPaths.includes(nodePath.join(dirPath, item))
         })
         .map((file) => {
-          const subPath = path.join(dir, file)
+          const subPath = nodePath.join(dirPath, file)
           const stats = fs.statSync(subPath)
           if (stats.isDirectory()) {
             return readDirs(subPath, file)
@@ -177,40 +115,66 @@ const getDirTree = (type, dir, query) => {
           return {
             path: subPath,
             name: file,
-            type: 1,
-            mTime: stats.mtime,
+            type: FILE_TYPES.FILE,
+            updated_at: stats.mtime,
+            created_at: stats.birthtime,
           }
         })
         .filter((item) => {
-          return dirQueryAfter(parentDir, item, options)
+          return handleFilterParams(parentDir, item, options) && !filterPaths.includes(item.path)
         }),
       true,
     )
     if (type === APP_DIR_TYPE.LOG) {
-      children.sort((a, b) => b.mTime - a.mTime)
+      children.sort((a, b) => {
+        // 只对文件进行排序
+        if (a.type === FILE_TYPES.FOLDER && b.type === FILE_TYPES.FOLDER) {
+          return 0
+        }
+        // 目录排在前面
+        if (a.type === FILE_TYPES.FOLDER) {
+          return -1
+        }
+        if (b.type === FILE_TYPES.FOLDER) {
+          return 1
+        }
+        return b.updated_at - a.updated_at
+      })
     }
     result.children = children
-    return result // 返回数据
+    return result
   }
-  if (type === 'repo_scripts' || type === 'all') {
-    if (type === 'all') {
-      filesNameArr.push(readDirs(`${dir}/${APP_DIR_TYPE.CONFIG}`, `${dir}/${APP_DIR_TYPE.CONFIG}`))
-      filesNameArr.push(readDirs(`${APP_SOURCE_DIR}/${APP_DIR_TYPE.SAMPLE}`, `${APP_SOURCE_DIR}/${APP_DIR_TYPE.SAMPLE}`))
-    }
-    filesNameArr.push(readDirs(`${dir}/${APP_DIR_TYPE.SCRIPTS}`, `${dir}/${APP_DIR_TYPE.SCRIPTS}`))
-    filesNameArr.push(readDirs(`${dir}/${APP_DIR_TYPE.REPO}`, `${dir}/${APP_DIR_TYPE.REPO}`))
-    filesNameArr.push(readDirs(`${dir}/${APP_DIR_TYPE.RAW}`, `${dir}/${APP_DIR_TYPE.RAW}`))
+
+  if (type === 'all' || type === APP_DIR_TYPE.ROOT) {
+    filterPaths.push(APP_DIR_PATH.LOG)
+    filesNameArr = readDirs(APP_ROOT_DIR).children
   } else {
-    filesNameArr.push(readDirs(dir, dir))
+    filesNameArr = readDirs(dirPath).children
   }
 
   return filesNameArr
 }
 
 /**
+ * 文件目录排序（使文件夹排在数组中位置靠前）
+ *
+ * @param array 需要排序的数组
+ * @param isAsc 是否升序
+ * @returns {*[]}
+ */
+function sortFilesAndFolders(array = [], isAsc = true) {
+  array.sort((a, b) => {
+    const typeOrder = { [FILE_TYPES.FOLDER]: 0, [FILE_TYPES.FILE]: 1 }
+    return isAsc ? typeOrder[a.type] - typeOrder[b.type] : typeOrder[b.type] - typeOrder[a.type]
+  })
+  return array
+}
+
+/**
  * 比较文件名中的时间
- * @param fileName 文件名称 yyyy-MM-dd-HH-mm-ss
- * @param time 时间 yyyy-MM-dd hh:mm:ss
+ *
+ * @param {string} fileName - 文件名称 yyyy-MM-dd-HH-mm-ss
+ * @param {string} time - 时间 yyyy-MM-dd hh:mm:ss
  * @return {number} 差异时间
  * @description 结果是正整数则 fileName 的时间大，反之则 time 的时间大
  */
@@ -226,6 +190,7 @@ function fileNameTimeCompare(fileName, time) {
 
 /**
  * 去除文件内容中携带的命令行 ANSI 转义字符
+ *
  * @param {string} content - 原始内容
  * @returns {string}
  */
@@ -243,7 +208,7 @@ function getNeatContent(content) {
 }
 
 /**
- * 检查 config.sh 以及 config.sample.sh 文件是否存在
+ * 检查主配置文件是否存在（初始化）
  */
 function checkConfigFile() {
   if (!fs.existsSync(APP_FILE_PATH.CONFIG)) {
@@ -251,10 +216,20 @@ function checkConfigFile() {
     console.error('服务启动失败，config.sh 文件不存在！')
     process.exit(1)
   }
+  // 创建目录
+  if (!fs.existsSync(APP_DIR_PATH.SCRIPTS)) {
+    fs.mkdirSync(APP_DIR_PATH.SCRIPTS)
+  }
+  if (!fs.existsSync(APP_DIR_PATH.REPO)) {
+    fs.mkdirSync(APP_DIR_PATH.REPO)
+  }
+  if (!fs.existsSync(APP_DIR_PATH.RAW)) {
+    fs.mkdirSync(APP_DIR_PATH.RAW)
+  }
 }
 
 /**
- * 备份 config.sh 文件，并返回旧的文件内容
+ * 备份配置文件，并返回旧的文件内容
  */
 function bakConfigFile(file) {
   // 检查 config/bak/ 备份目录是否存在，不存在则创建
@@ -262,16 +237,16 @@ function bakConfigFile(file) {
     fs.mkdirSync(APP_DIR_PATH.CONFIG_BAK)
   }
   const date = new Date()
-  const bakDir = path.join(APP_DIR_PATH.CONFIG_BAK, getDateStr(date))
+  const bakDir = nodePath.join(APP_DIR_PATH.CONFIG_BAK, getDateStr(date))
   if (!fs.existsSync(bakDir)) {
     fs.mkdirSync(bakDir)
   }
-  const bakConfigFile = `${bakDir}/${file}_${dateToFileName(date)}`
+  const bakFilePath = `${bakDir}/${file}_${dateToFileName(date)}`
   let oldConfContent = ''
   switch (file) {
     case APP_FILE_TYPE.CONFIG:
       oldConfContent = getFileContentByName(APP_FILE_PATH.CONFIG)
-      fs.writeFileSync(bakConfigFile, oldConfContent)
+      fs.writeFileSync(bakFilePath, oldConfContent)
       break
     default:
       break
@@ -279,6 +254,9 @@ function bakConfigFile(file) {
   return oldConfContent
 }
 
+/**
+ * 校验主配置文件合法性（检测是否报错）
+ */
 function checkConfigSave(oldContent) {
   if (os.type() === 'Linux') {
     // 判断格式是否正确
@@ -298,16 +276,18 @@ function checkConfigSave(oldContent) {
 }
 
 /**
- * 将提交内容写入 config.sh 文件（同时备份旧的 config.sh 文件到 bak 目录）
- * @param file
- * @param content
- * @param isBak 是否备份 默认为true
+ * 保存配置文件
+ *
+ * @param {string} file
+ * @param {string} content
+ * @param {boolean} isBak - 是否备份 默认为true
  */
 function saveNewConf(file, content, isBak = true) {
   const oldContent = isBak ? bakConfigFile(file) : ''
   switch (file) {
     case APP_FILE_TYPE.CONFIG:
     case APP_FILE_NAME.CONFIG:
+      // 备份旧的文件到 bak 目录
       fs.writeFileSync(APP_FILE_PATH.CONFIG, content)
       isBak && checkConfigSave(oldContent)
       break
@@ -321,46 +301,12 @@ function saveNewConf(file, content, isBak = true) {
 
 /**
  * 获取文件内容
- * @param fileName 文件路径
- * @returns {string}
- */
-function getFileContentByName(fileName) {
-  if (fs.existsSync(fileName)) {
-    return fs.readFileSync(fileName, 'utf8')
-  }
-  return ''
-}
-
-/**
- * 获取目录中最后修改的文件的路径
- * @param dir 目录路径
- * @returns {string} 最新文件路径
- */
-function getLastModifyFilePath(dir) {
-  let filePath = ''
-  if (fs.existsSync(dir)) {
-    const lastmtime = 0
-    const arr = fs.readdirSync(dir)
-    arr.forEach((item) => {
-      const fullpath = path.join(dir, item)
-      const stats = fs.statSync(fullpath)
-      if (stats.isFile()) {
-        if (stats.mtimeMs >= lastmtime) {
-          filePath = fullpath
-        }
-      }
-    })
-  }
-  return filePath
-}
-
-/**
- * 获取文件内容
+ *
  * @param fileKey
  * @return {string}
  */
 function getFile(fileKey) {
-  let content = ''
+  let content
   switch (fileKey) {
     case APP_FILE_TYPE.CONFIG:
       content = getFileContentByName(APP_FILE_PATH.CONFIG)
@@ -376,7 +322,21 @@ function getFile(fileKey) {
 }
 
 /**
- * 获取文件内容
+ * 根据文件名称获取文件内容
+ *
+ * @param filePath 文件路径
+ * @returns {string}
+ */
+function getFileContentByName(filePath) {
+  if (fs.existsSync(filePath)) {
+    return getNeatContent(fs.readFileSync(filePath, 'utf8'))
+  }
+  return ''
+}
+
+/**
+ * 获取 Json 文件内容
+ *
  * @param fileKey
  * @return {object}
  */
@@ -385,22 +345,12 @@ function getJsonFile(fileKey) {
 }
 
 /**
- * 保存文件
- * @param file
- * @param content
+ * 保存文件内容
  *
- */
-function saveFile(file, content) {
-  fs.writeFileSync(path.join(APP_ROOT_DIR, file), content)
-}
-
-/**
- * 保存文件
  * @param filePath
  * @param content
- *
  */
-function saveFileByPath(filePath, content) {
+function saveFile(filePath, content) {
   pathCheck(filePath)
   if (filePath === APP_FILE_PATH.CONFIG) {
     saveNewConf(APP_FILE_TYPE.CONFIG, content, true)
@@ -415,22 +365,18 @@ function saveFileByPath(filePath, content) {
 
 /**
  * 目录参数检查
+ *
  * @param checkPath
  */
 function rootPathCheck(checkPath) {
-  let root = ''
-  try {
-    root = APP_ROOT_DIR.split(APP_DIR_TYPE.ROOT)[0]
-  } catch {
-    root = '/'
-  }
-  if (!checkPath.startsWith(root)) {
-    throw new Error(`目录 ${checkPath} 必须以${root}为开头命名`)
+  if (!checkPath.startsWith(APP_ROOT_DIR)) {
+    throw new Error('非法操作')
   }
 }
 
 /**
- * 目录参数检查
+ * 路径以及操作合法性检查
+ *
  * @param checkPath
  */
 function pathCheck(checkPath) {
@@ -439,32 +385,34 @@ function pathCheck(checkPath) {
     throw new Error('文件（夹）不存在')
   }
   // 文件操作限制（认证文件保护）
-  if (APP_FILE_PATH.AUTH === path.join(checkPath)) {
+  if (APP_FILE_PATH.AUTH === nodePath.join(checkPath)) {
     throw new Error('该文件无法进行操作')
   }
 }
 
 /**
- * 文件（夹）命名
+ * 重命名
+ *
  * @param filePath 当前路径
  * @param name 名称
  */
 function fileRename(filePath, name) {
-  const parentPath = path.join(filePath, '../')
-  fs.renameSync(filePath, path.join(parentPath, name))
+  const parentPath = nodePath.join(filePath, '../')
+  fs.renameSync(filePath, nodePath.join(parentPath, name))
 }
 
 /**
- * 删除指定目录下所有子文件
- * @param {*} path
+ * 清空目录（删除指定目录下所有子文件或文件夹）
+ *
+ * @param folderPath 目录路径
  */
-function emptyDir(path) {
-  const files = fs.readdirSync(path)
+function clearDirectory(folderPath) {
+  const files = fs.readdirSync(folderPath)
   files.forEach((file) => {
-    const filePath = `${path}/${file}`
+    const filePath = `${folderPath}/${file}`
     const stats = fs.statSync(filePath)
     if (stats.isDirectory()) {
-      emptyDir(filePath)
+      clearDirectory(filePath)
       fs.rmdirSync(filePath)
     } else {
       fs.unlinkSync(filePath)
@@ -474,12 +422,13 @@ function emptyDir(path) {
 
 /**
  * 文件（夹）删除
+ *
  * @param filePath 当前路径
  */
 function fileDelete(filePath) {
   const file = fs.statSync(filePath)
   if (file.isDirectory()) {
-    emptyDir(filePath)
+    clearDirectory(filePath)
     fs.rmdirSync(filePath)
     return
   }
@@ -488,6 +437,7 @@ function fileDelete(filePath) {
 
 /**
  * 文件（夹）移动
+ *
  * @param filePath 当前路径
  * @param newPath 目标路径
  */
@@ -497,12 +447,14 @@ function fileMove(filePath, newPath) {
 
 /**
  * 文件下载
- * @param filePath
- * @param response
+ *
+ * @param {string} fileOrFolderPath
+ * @param {object} response
  */
-function fileDownload(filePath, response) {
-  const file = fs.statSync(filePath)
-  const fileName = path.basename(filePath)
+function fileDownload(fileOrFolderPath, response) {
+  fileOrFolderPath = nodePath.resolve(fileOrFolderPath)
+  const file = fs.statSync(fileOrFolderPath)
+  const fileName = nodePath.basename(fileOrFolderPath)
   if (file.isDirectory()) {
     const archive = archiver('zip', {})
     archive.on('error', (err) => {
@@ -512,35 +464,39 @@ function fileDownload(filePath, response) {
       logger.info('Archive wrote %d bytes', archive.pointer())
     })
     response.attachment(`${fileName}.zip`)
-
     archive.pipe(response)
-    archive.directory(filePath, fileName)
+    archive.directory(fileOrFolderPath, fileName)
     archive.finalize()
   } else {
     response.writeHead(200, {
       'Content-Type': 'application/octet-stream', // 告诉浏览器这是一个二进制文件
-      'Content-Disposition': `attachment; filename=${fileName}`, // 告诉浏览器这是一个需要下载的文件
+      'Content-Disposition': `attachment; filename=${encodeURIComponent(fileName)}`, // 告诉浏览器这是一个需要下载的文件
     })
-    fs.createReadStream(filePath).pipe(response)
+    fs.createReadStream(fileOrFolderPath)
+      .on('error', (err) => {
+        response.send(API_STATUS_CODE.fail(err.message))
+      })
+      .pipe(response)
   }
 }
 
 /**
  * 文件创建
- * @param fileDir 路径
- * @param fileName 名称 含后缀
- * @param type 0 目录 1 文件
- * @param content 内容
+ *
+ * @param {string} fileDir - 路径
+ * @param {string} fileName - 名称 含后缀
+ * @param {string} type - 0 目录 1 文件
+ * @param {string} content - 内容
  */
 function fileCreate(fileDir, fileName, type, content = '') {
   if (!fs.existsSync(fileDir)) {
     fs.mkdirSync(fileDir)
   }
-  const filePath = path.join(fileDir, fileName)
+  const filePath = nodePath.join(fileDir, fileName)
   if (fs.existsSync(filePath)) {
     throw new Error(`${fileDir}目录下已经含有${fileName}该文件（夹）`)
   }
-  if (type === 0) {
+  if (type === FILE_TYPES.FOLDER) {
     fs.mkdirSync(filePath)
   } else {
     fs.writeFileSync(filePath, content)
@@ -549,8 +505,32 @@ function fileCreate(fileDir, fileName, type, content = '') {
 }
 
 /**
- * 格式化文件大小
- * @param size
+ * 查看文件详情
+ *
+ * @param {string} filePath - 路径
+ */
+function fileInfo(filePath) {
+  const stat = fs.statSync(filePath)
+  const size = !stat.isDirectory() ? stat.size : getDirectorySize(filePath)
+  return {
+    type: stat.isDirectory() ? FILE_TYPES.FOLDER : FILE_TYPES.FILE,
+    name: nodePath.basename(filePath),
+    parent_path: nodePath.join(filePath, '../').slice(0, -1),
+    mode: (stat.mode & 0o777).toString(8),
+    size,
+    display_size: formatFileSize(size),
+    modified_time: stat.mtime,
+    accessed_time: stat.atime,
+    created_time: stat.birthtime,
+    changed_time: stat.ctime,
+  }
+}
+
+/**
+ * 格式化大小
+ *
+ * @param {number} size
+ * @returns {string}
  */
 function formatFileSize(size) {
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -563,42 +543,68 @@ function formatFileSize(size) {
 }
 
 /**
- * 查看文件详情
- * @param filePath
+ * 递归计算目录的总大小
+ *
+ * @param {string} dirPath - 目录路径
+ * @returns {number} - 目录的总大小（字节）
  */
-function fileInfo(filePath) {
-  const stat = fs.statSync(filePath)
-  return {
-    fileSize: formatFileSize(stat.size),
-    birthtime: stat.birthtime,
-    atime: stat.atime,
-    ctime: stat.ctime,
-    mtime: stat.mtime,
-    name: path.basename(filePath),
-    path: path.join(filePath, '../').slice(0, -1),
-    mode: (stat.mode & 0o777).toString(8),
-  }
+function getDirectorySize(dirPath) {
+  let totalSize = 0
+  // 读取目录内容
+  const files = fs.readdirSync(dirPath)
+  files.forEach((file) => {
+    const filePath = nodePath.join(dirPath, file)
+    const stats = fs.statSync(filePath)
+    if (stats.isDirectory()) {
+      // 如果是目录，递归计算其大小
+      totalSize += getDirectorySize(filePath)
+    } else {
+      // 如果是文件，累加其大小
+      totalSize += stats.size
+    }
+  })
+  return totalSize
 }
+
+// /**
+//  * 获取目录中最后修改的文件的路径
+//  *
+//  * @param {string} dirPath - 目录路径
+//  * @returns {string} 最新文件路径
+//  */
+// function getLastModifyFilePath(dirPath) {
+//   let filePath = ''
+//   if (fs.existsSync(dirPath)) {
+//     const lastmtime = 0
+//     const arr = fs.readdirSync(dirPath)
+//     arr.forEach((item) => {
+//       const fullpath = nodePath.join(dirPath, item)
+//       const stats = fs.statSync(fullpath)
+//       if (stats.isFile()) {
+//         if (stats.mtimeMs >= lastmtime) {
+//           filePath = fullpath
+//         }
+//       }
+//     })
+//   }
+//   return filePath
+// }
 
 module.exports = {
   pathCheck,
   rootPathCheck,
-  saveFileByPath,
-  getDirTree,
-  getDirectory,
-  getNeatContent,
+  getFileTree,
+  getFileList,
+  getFile,
+  getJsonFile,
+  saveFile,
   fileRename,
   fileDelete,
   fileDownload,
   fileMove,
   fileCreate,
   fileInfo,
-  saveFile,
   saveNewConf,
-  checkConfigSave,
   checkConfigFile,
-  getFileContentByName,
-  getLastModifyFilePath,
-  getFile,
-  getJsonFile,
+  getNeatContent,
 }

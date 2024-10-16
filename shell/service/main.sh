@@ -13,7 +13,7 @@ function service_manage() {
             -p 7685 \
             -i lo \
             --writable \
-            -t fontFamily='SF Mono, JetBrains Mono, Courier New, Consolas, monospace' \
+            -t fontFamily='SF-Mono, SF Mono, Monaspace Neno, JetBrains Mono, Consolas, Courier New, monospace' \
             -t fontSize=14 \
             -t lineHeight=1.5 \
             -t disableLeaveAlert=true \

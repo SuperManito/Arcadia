@@ -1,0 +1,1 @@
+var L=(a=>(a.ALL="all",a.ROOT="arcadia",a.SRC="src",a.CONFIG="config",a.SAMPLE="sample",a.SCRIPTS="scripts",a.SHELL="shell",a.LOG="log",a.REPO="repo",a.RAW="raw",a.CONFIG_BAK="bak",a))(L||{}),O=(a=>(a.FOLDER="folder",a.FILE="file",a))(O||{});export{O as F,L as a};

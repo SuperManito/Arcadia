@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-09-10
+## Modified: 2024-10-12
 
 ## 查找代码文件
 # 通过各种判断将得到的必要信息传给接下来运行的函数或命令
@@ -9,9 +9,24 @@
 #   "FileDir"      代码文件所在目录（绝对路径）
 # 不论何种匹配方式或查找方式，当未指定代码文件类型但存在同名代码文件时执行优先级为 Node.js > Python > TypeScript > Shell
 function find_script() {
-    local input_content=$1                                                                                          # 传入内容
-    local supported_file_types=("js" "mjs" "cjs" "py" "ts" "go" "c" "sh")                                           # 支持的代码文件类型
-    local supported_file_type_names=("JavaScript" "JavaScript" "JavaScript" "Python" "TypeScript" "Go" "C" "Shell") # 支持的代码文件类型名称
+    # 根据代码文件名后缀匹配语言类型
+    function match_script_type() {
+        local file_extension="$1"
+        for i in "${!supported_file_types[@]}"; do
+            if [[ "$file_extension" == "${supported_file_types[$i]}" ]]; then
+                FileType="${supported_file_type_names[$i]}"
+                return
+            fi
+        done
+        output_error "项目不支持运行 ${BLUE}.$1${PLAIN} 类型的代码文件！"
+    }
+
+    # 传入内容
+    local input_content=$1
+    # 支持的代码文件类型
+    local supported_file_types=("js" "mjs" "cjs" "py" "ts" "go" "lua" "rb" "rs" "pl" "c" "sh")
+    # 支持的代码文件类型名称
+    local supported_file_type_names=("JavaScript" "JavaScript" "JavaScript" "Python" "TypeScript" "Go" "Lua" "Ruby" "Rust" "Perl" "C" "Shell")
     FileName=""
     FileDir=""
     FileType=""
@@ -252,47 +267,64 @@ function find_script() {
     fi
 
     ## 检测代码文件运行环境
-    # Python
-    if [[ "${FileType}" == "Python" ]] && [[ -z "$(command -v python3)" ]]; then
-        output_error "当前未安装 ${BLUE}Python 3${PLAIN} 运行环境！"
-    fi
-    # TypeScript
-    if [[ "${FileType}" == "TypeScript" ]] && [[ -z "$(command -v ts-node)" ]]; then
-        output_error "当前未安装 ${BLUE}TypeScript${PLAIN} 运行环境！"
-    fi
-    # Go
-    if [[ "${FileType}" == "Go" ]] && [[ -z "$(command -v go)" ]]; then
-        output_error "当前未安装 ${BLUE}Go${PLAIN} 运行环境！"
-    fi
-    # C
-    if [[ "${FileType}" == "C" ]] && [[ -z "$(command -v gcc)" ]]; then
-        output_error "当前未安装 ${BLUE}C${PLAIN} 运行环境！"
-    fi
-}
-
-# 根据代码文件名后缀匹配语言类型
-function match_script_type() {
-    case "$1" in
-    js | mjs | cjs)
-        FileType="JavaScript"
+    case "${FileType}" in
+    "JavaScript")
+        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+            if [[ -z "$(command -v bun)" ]]; then
+                output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
+            fi
+        fi
         ;;
-    py)
-        FileType="Python"
+    "TypeScript")
+        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+            if [[ -z "$(command -v bun)" ]]; then
+                output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
+            fi
+        else
+            if [[ -z "$(command -v ts-node)" ]]; then
+                output_error "当前未安装 ${BLUE}TypeScript${PLAIN} 运行环境！"
+            fi
+        fi
         ;;
-    ts)
-        FileType="TypeScript"
+    "Python")
+        if [[ -z "$(command -v python3)" ]]; then
+            output_error "当前未安装 ${BLUE}Python 3${PLAIN} 运行环境！"
+        fi
         ;;
-    go)
-        FileType="Go"
+    "Python")
+        if [[ -z "$(command -v python3)" ]]; then
+            output_error "当前未安装 ${BLUE}Python 3${PLAIN} 运行环境！"
+        fi
         ;;
-    c)
-        FileType="C"
+    "Go")
+        if [[ -z "$(command -v go)" ]]; then
+            output_error "当前未安装 ${BLUE}Go${PLAIN} 运行环境！"
+        fi
         ;;
-    sh)
-        FileType="Shell"
+    "Lua")
+        if [[ -z "$(command -v lua)" ]]; then
+            output_error "当前未安装 ${BLUE}Lua${PLAIN} 运行环境！"
+        fi
         ;;
-    *)
-        output_error "项目不支持运行 ${BLUE}.$1${PLAIN} 类型的代码文件！"
+    "Ruby")
+        if [[ -z "$(command -v ruby)" ]]; then
+            output_error "当前未安装 ${BLUE}Ruby${PLAIN} 运行环境！"
+        fi
+        ;;
+    "Rust")
+        if [[ -z "$(command -v rustc)" || -z "$(command -v cargo)" ]]; then
+            output_error "当前未安装 ${BLUE}Rust${PLAIN} 运行环境！"
+        fi
+        ;;
+    "C")
+        if [[ -z "$(command -v gcc)" ]]; then
+            output_error "当前未安装 ${BLUE}C${PLAIN} 运行环境！"
+        fi
         ;;
     esac
+    # "Perl")
+    #     if [[ -z "$(command -v perl)" ]]; then
+    #         output_error "当前未安装 ${BLUE}Perl${PLAIN} 运行环境！"
+    #     fi
+    #     ;;
 }

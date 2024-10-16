@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-28
+## Modified: 2024-10-11
 
 ## 列出本地代码文件清单功能
 # list <path>
@@ -9,11 +9,23 @@ function command_list_main() {
     if [ "$(command -v python3)" ]; then
         ScriptType="${ScriptType}|\.py\$"
     fi
-    if [ "$(command -v ts-node)" ]; then
+    if [ "$(command -v ts-node)" || "$(command -v bun)" ]; then
         ScriptType="${ScriptType}|\.ts\$"
     fi
     if [ "$(command -v go)" ]; then
         ScriptType="${ScriptType}|\.go\$"
+    fi
+    if [ "$(command -v lua)" ]; then
+        ScriptType="${ScriptType}|\.lua\$"
+    fi
+    if [ "$(command -v ruby)" ]; then
+        ScriptType="${ScriptType}|\.rb\$"
+    fi
+    if [ "$(command -v rustc)" && "$(command -v cargo)" ]; then
+        ScriptType="${ScriptType}|\.rs\$"
+    fi
+    if [ "$(command -v perl)" ]; then
+        ScriptType="${ScriptType}|\.pl\$"
     fi
     if [ "$(command -v gcc)" ]; then
         ScriptType="${ScriptType}|\.c\$"

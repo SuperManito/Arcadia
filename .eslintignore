@@ -7,4 +7,4 @@ lib
 .vscode
 .idea
 .local
-/public
+public
