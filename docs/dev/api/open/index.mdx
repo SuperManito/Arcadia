@@ -6,7 +6,7 @@ import { GET, POST, DELETE } from '@site/src/components/RequestTag';
 import { Icon } from '@site/src/components/Icon';
 import { OpenAPICard } from '@site/src/components/OpenAPICard'
 
-本部分向你介绍项目所设计的开放接口，官网主文档注重维护接口数据的准确性，如果你需要在线调试可以前往查看 OpenAPI Specification 技术规范下的现代化专业 API 文档，目前提供如下俩种类型。
+本部分向你介绍项目应用程序开放接口。官网主文档注重维护接口数据的准确性，如果你需要在线调试，可以前往查看基于 OpenAPI Specification (OAS) 技术规范的现代化专业 API 文档，目前提供如下两种类型。
 
 <OpenAPICard />
 
@@ -68,7 +68,7 @@ arcadia service info
 
 :::info 编写规范
 将代码存放在 **config** 目录下的 `extra_server.js` 脚本中（自行创建），[重启服务](/docs/cli/server/service#开启重启服务)后生效，注意届时检查日志进行确认  
-脚本需要导出唯一函数名，已固定函数传参详见下方示例，接口框架使用 [Express v4](https://expressjs.com)，更多编写方法请查阅其文档
+脚本需要导出唯一函数名，已固定函数传参详见下方示例，接口服务框架采用 [Express v4](https://expressjs.com)，更多编写方法请查阅其文档
 :::
 
 请参考下方的简单示例
