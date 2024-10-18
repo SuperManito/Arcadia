@@ -15,22 +15,7 @@ import APITable from '@site/src/components/APITable';
 
 关于如何获取 `Token` 详见登录认证接口 [详见此处](/docs/dev/api/internal/user/auth)
 
-### 返回内容格式
-
-数据返回格式统一使用 JSON
-
-<APITable>
-
-| 参数 | 说明 |
-| :----: | :-----: |
-|  code  | 业务代码 |
-|  message | 消息 |
-|  type | 类型 |
-|  result | 返回结果（不一定有） |
-
-</APITable>
-
-### 返回状态说明
+### 响应状态码说明
 
 <APITable>
 
@@ -41,6 +26,21 @@ import APITable from '@site/src/components/APITable';
 |  `401`   |     UNAUTHORIZED      | 未提供授权信息                     |
 |  `403`   |       FORBIDDEN       | 认证失败                          |
 |  `500`   | INTERNAL SERVER ERROR | 内部错误                          |
+
+</APITable>
+
+### 返回内容格式
+
+数据返回格式统一使用 JSON
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| :-: | :-: | --- |
+| `code` | `number<0 \| 1>` | 业务代码，详见下方 |
+| `message` | `string` | 消息 |
+| `type` | `string` | 类型 |
+| `result` | `boolean \| object \| string` | 结果（不一定有） |
 
 </APITable>
 

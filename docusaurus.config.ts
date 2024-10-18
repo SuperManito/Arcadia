@@ -47,7 +47,6 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
             sidebarCollapsible: true,
             sidebarCollapsed: false,
             sidebarPath: 'sidebars.ts',
-            editUrl: 'https://github.com/SuperManito/Arcadia/tree/website',
             remarkPlugins: [npm2yarn],
             admonitions: {
               keywords: [
@@ -63,7 +62,6 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
           blog: {
             showReadingTime: true,
             path: 'blog',
-            editUrl: 'https://github.com/SuperManito/Arcadia/tree/website',
             blogSidebarTitle: '最近的帖子',
             blogSidebarCount: 'ALL',
             remarkPlugins: [npm2yarn],

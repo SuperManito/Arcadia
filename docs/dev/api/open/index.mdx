@@ -4,8 +4,11 @@ title: OpenAPI
 import APITable from '@site/src/components/APITable';
 import { GET, POST, DELETE } from '@site/src/components/RequestTag';
 import { Icon } from '@site/src/components/Icon';
+import { OpenAPICard } from '@site/src/components/OpenAPICard'
 
-本部分向你介绍项目所设计的开放接口
+本部分向你介绍项目所设计的开放接口，官网主文档注重维护接口数据的准确性，如果你需要在线调试可以前往查看 OpenAPI Specification 技术规范下的现代化专业 API 文档，目前提供如下俩种类型。
+
+<OpenAPICard />
 
 ## 接口基准地址
 
@@ -34,12 +37,12 @@ arcadia service info
 
 <APITable>
 
-| 参数 | 说明 |
-| :----: | :-----: |
-|  code  | 业务代码 |
-|  message | 消息 |
-|  type | 类型 |
-|  result | 返回结果（布尔值或具体内容） |
+| 名称 | 类型 | 描述 |
+| :-: | :-: | --- |
+| `code` | `number<0 \| 1 \| 4400 \| 4401 \| 4403>` | 业务代码，详见下方 |
+| `message` | `string` | 消息 |
+| `type` | `string` | 类型 |
+| `result` | `boolean \| object \| string` | 结果 |
 
 </APITable>
 

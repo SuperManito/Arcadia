@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang="zh-CN" translate="no">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="SwaggerUI" />
+    <title>Arcadia OpenAPI · SwaggerUI</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
+  </head>
+  <body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js" crossorigin></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-standalone-preset.js" crossorigin></script>
+  <script>
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        // prettier-ignore
+        spec: {
+          "openapi": "3.0.0",
+          "info": {
+            "title": "Arcadia 一站式代码运维平台 OpenAPI",
+            "description": "所有内容请以官网文档为准 https://arcadia.cool/docs/dev/api/open\n\n## 返回内容格式\n数据返回格式统一使用 JSON\n| 名称 | 类型 | 描述 |\n| :-: | :-: | --- |\n| `code` | `number` | 业务代码，详见下方 |\n| `message` | `string` | 消息 |\n| `type` | `string` | 类型 |\n| `result` | `any` | 结果 |\n\n## 业务代码说明\n|  状态码  |         含义           | 说明                             |\n| :-----: | :-------------------: | :-----------------------------: |\n|  `0`    |          OK           | 请求成功                          |\n|  `1`    |         FAIL          | 请求失败                          |\n|  `4400` |      BAD REQUEST      | 请求的地址不存在或者包含不支持的参数   |\n|  `4401` |     UNAUTHORIZED      | 未提供授权信息                     |\n|  `4403` |       FORBIDDEN       | 认证失败                          |\n",
+            "version": "1.0.0"
+          },
+          "servers": [
+            {
+              "url": "{url}{path}",
+              "description": "基准地址",
+              "variables": {
+                "url": {
+                  "default": "http://localhost:5678",
+                  "description": "地址"
+                },
+                "path": {
+                  "default": "/api/open",
+                  "description": "路径"
+                }
+              }
+            }
+          ],
+          "security": [
+            {
+              "OpenApiToken": []
+            }
+          ],
+          "tags": [
+            {
+              "name": "File 文件系统"
+            },
+            {
+              "name": "Env 环境变量"
+            },
+            {
+              "name": "Cron 定时任务"
+            }
+          ],
+          "components": {
+            "securitySchemes": {
+              "OpenApiToken": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "api-token",
+                "description": "32位令牌，可通过命令 `arcadia service info` 获取 `openApiToken` 字段的值"
+              }
+            },
+            "schemas": {
+              "EnvData": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number",
+                    "description": "唯一标识"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "变量名称"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "描述"
+                  },
+                  "tag_list": {
+                    "type": "string",
+                    "description": "标签，label名称 | color颜色(HEX)"
+                  },
+                  "enable": {
+                    "type": "number",
+                    "enum": [
+                      0,
+                      1
+                    ],
+                    "description": "状态 1 启用 | 0 禁用"
+                  },
+                  "group_id": {
+                    "type": "number",
+                    "description": "envs_group 表 id 字段关联记录，为0时表示普通变量"
+                  },
+                  "remark": {
+                    "type": "string",
+                    "description": "备注"
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "值"
+                  },
+                  "sort": {
+                    "type": "number",
+                    "description": "在分页中的位置序号（正整数），默认按照先后顺序递增"
+                  }
+                }
+              },
+              "EnvGroupData": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number",
+                    "description": "唯一标识"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "变量组名称"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "描述"
+                  },
+                  "tag_list": {
+                    "type": "string",
+                    "description": "标签，label名称 | color颜色(HEX)"
+                  },
+                  "separator": {
+                    "type": "string",
+                    "description": "分割字符"
+                  },
+                  "sort": {
+                    "type": "number",
+                    "description": "在分页中的位置序号（正整数），默认按照先后顺序递增"
+                  },
+                  "enable": {
+                    "type": "number",
+                    "enum": [
+                      0,
+                      1
+                    ],
+                    "description": "状态 1 启用 | 0 禁用"
+                  },
+                  "envs": {
+                    "oneOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/EnvData"
+                        }
+                      },
+                      {
+                        "type": "number",
+                        "description": "成员数量"
+                      }
+                    ]
+                  }
+                }
+              },
+              "CronData": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number",
+                    "description": "唯一标识"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "任务名称"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "任务类型，当前固定分为 user 和 system",
+                    "enum": [
+                      "user",
+                      "system"
+                    ]
+                  },
+                  "cron": {
+                    "type": "string",
+                    "description": "定时规则（5位或6位的定时表达式）"
+                  },
+                  "shell": {
+                    "type": "string",
+                    "description": "执行的命令"
+                  },
+                  "active": {
+                    "type": "number",
+                    "description": "状态 1 启用 | 0 禁用",
+                    "enum": [
+                      0,
+                      1
+                    ]
+                  },
+                  "config": {
+                    "type": "string",
+                    "description": "高级配置"
+                  },
+                  "tags": {
+                    "type": "string",
+                    "description": "任务标签"
+                  },
+                  "last_runtime": {
+                    "type": "string",
+                    "description": "最后一次运行的时间"
+                  },
+                  "last_run_use": {
+                    "type": "number",
+                    "description": "最后一次运行的时长（单位秒，精确到小数点后3位）"
+                  },
+                  "sort": {
+                    "type": "number",
+                    "description": "在分页中的位置序号（正整数），默认按照先后顺序递增"
+                  },
+                  "create_time": {
+                    "type": "string",
+                    "description": "任务创建时间"
+                  },
+                  "remark": {
+                    "type": "string",
+                    "description": "备注"
+                  },
+                  "bind": {
+                    "type": "string",
+                    "description": "后端用于关联底层内容的参数（仅系统任务使用）"
+                  },
+                  "is_running": {
+                    "type": "boolean",
+                    "description": "当前运行状态（任务是否正在运行）"
+                  }
+                }
+              }
+            }
+          },
+          "paths": {
+            "/file/v1/list": {
+              "get": {
+                "summary": "获取文件列表",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "File 文件系统"
+                ],
+                "parameters": [
+                  {
+                    "name": "path",
+                    "in": "query",
+                    "description": "绝对路径",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string",
+                              "description": "绝对路径"
+                            },
+                            "title": {
+                              "type": "string",
+                              "description": "目标路径所属目录的名称"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "folder",
+                                "file"
+                              ],
+                              "description": "文件类型"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "description": "最后修改时间"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "description": "创建时间"
+                            },
+                            "children": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "path": {
+                                    "type": "string",
+                                    "description": "绝对路径"
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "description": "文件或目录名称"
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "folder",
+                                      "file"
+                                    ],
+                                    "description": "文件类型"
+                                  },
+                                  "updated_at": {
+                                    "type": "string",
+                                    "description": "最后修改时间"
+                                  },
+                                  "created_at": {
+                                    "type": "string",
+                                    "description": "创建时间"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/file/v1/content": {
+              "get": {
+                "summary": "获取文件内容",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "File 文件系统"
+                ],
+                "parameters": [
+                  {
+                    "name": "path",
+                    "in": "query",
+                    "description": "绝对路径",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "text/plain": {
+                        "schema": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "post": {
+                "summary": "保存文件内容",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "File 文件系统"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "绝对路径"
+                          },
+                          "content": {
+                            "type": "string",
+                            "description": "文件内容"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "content"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/file/v1/delete": {
+              "post": {
+                "summary": "删除",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "File 文件系统"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "oneOf": [
+                              {
+                                "type": "string",
+                                "description": "绝对路径"
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "description": "绝对路径"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "path"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/file/v1/info": {
+              "get": {
+                "summary": "查询属性",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "File 文件系统"
+                ],
+                "parameters": [
+                  {
+                    "name": "path",
+                    "in": "query",
+                    "description": "绝对路径",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "folder",
+                                "file"
+                              ],
+                              "description": "文件类型"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "名称"
+                            },
+                            "parent_path": {
+                              "type": "string",
+                              "description": "存储位置路径"
+                            },
+                            "mode": {
+                              "type": "string",
+                              "description": "权限（3位数字）"
+                            },
+                            "size": {
+                              "type": "number",
+                              "description": "大小（单位字节）"
+                            },
+                            "display_size": {
+                              "type": "string",
+                              "description": "格式化大小（带单位）"
+                            },
+                            "modified_time": {
+                              "type": "string",
+                              "description": "内容最后一次被修改的时间"
+                            },
+                            "accessed_time": {
+                              "type": "string",
+                              "description": "最后一次被访问的时间"
+                            },
+                            "created_time": {
+                              "type": "string",
+                              "description": "创建时间"
+                            },
+                            "changed_time": {
+                              "type": "string",
+                              "description": "属性（如权限或链接）最后一次被更改的时间"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/file/v1/create": {
+              "post": {
+                "summary": "创建",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "File 文件系统"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "存储路径"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "名称"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "folder",
+                              "file"
+                            ],
+                            "description": "文件类型"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "name",
+                          "type"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/file/v1/move": {
+              "post": {
+                "summary": "移动",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "File 文件系统"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "绝对路径（原）"
+                          },
+                          "newPath": {
+                            "type": "string",
+                            "description": "绝对路径（新）"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "newPath"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/file/v1/rename": {
+              "post": {
+                "summary": "重命名",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "File 文件系统"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "绝对路径"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "新的名称"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "name"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/file/v1/download": {
+              "get": {
+                "summary": "下载",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "File 文件系统"
+                ],
+                "parameters": [
+                  {
+                    "name": "path",
+                    "in": "query",
+                    "description": "绝对路径",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/file/v1/upload": {
+              "post": {
+                "summary": "上传",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "File 文件系统"
+                ],
+                "parameters": [
+                  {
+                    "name": "path",
+                    "in": "query",
+                    "description": "绝对路径",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/env/v1/page": {
+              "get": {
+                "summary": "分页查询",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Env 环境变量"
+                ],
+                "parameters": [
+                  {
+                    "name": "category",
+                    "in": "query",
+                    "description": "变量类型，分别对应普通变量、复合变量(组)、复合变量的值",
+                    "required": true,
+                    "schema": {
+                      "type": "string",
+                      "enum": [
+                        "ordinary",
+                        "composite",
+                        "composite_value"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "compositeId",
+                    "in": "query",
+                    "description": "查看复合变量的值时需要指定此参数为复合变量(组)的唯一标识",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "enable",
+                    "in": "query",
+                    "description": "变量状态过滤，1 启用 | 0 禁用",
+                    "required": false,
+                    "schema": {
+                      "type": "string",
+                      "enum": [
+                        "0",
+                        "1"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "search",
+                    "in": "query",
+                    "description": "搜索内容过滤，涉及变量名称、用户标签",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "orderBy",
+                    "in": "query",
+                    "description": "指定排序字段，默认 sort",
+                    "required": false,
+                    "schema": {
+                      "type": "string",
+                      "enum": [
+                        "sort",
+                        "update_time"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "order",
+                    "in": "query",
+                    "description": "指定排序方式 0 升序 | 1 降序，默认降序",
+                    "required": false,
+                    "schema": {
+                      "type": "string",
+                      "enum": [
+                        "0",
+                        "1"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "page",
+                    "in": "query",
+                    "description": "指定页数，默认1",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "size",
+                    "in": "query",
+                    "description": "指定分页大小数量，默认20",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "oneOf": [
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "$ref": "#/components/schemas/EnvData"
+                                  }
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "$ref": "#/components/schemas/EnvGroupData"
+                                  }
+                                }
+                              ]
+                            },
+                            "page": {
+                              "type": "number",
+                              "description": "当前页码"
+                            },
+                            "size": {
+                              "type": "number",
+                              "description": "每页数据量"
+                            },
+                            "total": {
+                              "type": "number",
+                              "description": "数据总量"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/env/v1/query": {
+              "get": {
+                "summary": "全局查询",
+                "deprecated": false,
+                "description": "至少需要提供 `name`、`description` 的其中一个参数",
+                "tags": [
+                  "Env 环境变量"
+                ],
+                "parameters": [
+                  {
+                    "name": "name",
+                    "in": "query",
+                    "description": "名称关键字",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "description",
+                    "in": "query",
+                    "description": "描述关键字",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "category": {
+                                "type": "string",
+                                "enum": [
+                                  "ordinary",
+                                  "composite",
+                                  "composite_value"
+                                ]
+                              },
+                              "data": {
+                                "type": "array",
+                                "items": {
+                                  "oneOf": [
+                                    {
+                                      "$ref": "#/components/schemas/EnvData"
+                                    },
+                                    {
+                                      "$ref": "#/components/schemas/EnvGroupData"
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/env/v1/queryMember": {
+              "get": {
+                "summary": "查询复合变量（组）的成员",
+                "deprecated": false,
+                "description": "至少需要提供 `value`、`remark` 的其中一个参数",
+                "tags": [
+                  "Env 环境变量"
+                ],
+                "parameters": [
+                  {
+                    "name": "id",
+                    "in": "query",
+                    "description": "复合变量(组)的唯一标识",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "value",
+                    "in": "query",
+                    "description": "值关键字",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "remark",
+                    "in": "query",
+                    "description": "备注关键字",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/EnvData"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/env/v1/queryById": {
+              "get": {
+                "summary": "精准查询",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Env 环境变量"
+                ],
+                "parameters": [
+                  {
+                    "name": "category",
+                    "in": "query",
+                    "description": "变量类型，分别对应普通变量、复合变量(组)、复合变量的值",
+                    "required": true,
+                    "schema": {
+                      "type": "string",
+                      "enum": [
+                        "ordinary",
+                        "composite",
+                        "composite_value"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "id",
+                    "in": "query",
+                    "description": "目标变量的唯一标识（注意是 id 而不是 group_id）",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "$ref": "#/components/schemas/EnvData"
+                            },
+                            {
+                              "type": "object",
+                              "$ref": "#/components/schemas/EnvGroupData"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/env/v1/create": {
+              "post": {
+                "summary": "创建",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Env 环境变量"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "category": {
+                            "type": "string",
+                            "description": "变量类型",
+                            "enum": [
+                              "ordinary",
+                              "composite",
+                              "composite_value"
+                            ]
+                          },
+                          "compositeId": {
+                            "type": "string",
+                            "description": "创建复合变量的值时需要指定此参数为复合变量(组)的唯一标识"
+                          },
+                          "data": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "description": "变量名称"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "描述"
+                                  },
+                                  "tag_list": {
+                                    "type": "string",
+                                    "description": "标签，label名称 | color颜色(HEX)"
+                                  },
+                                  "group_id": {
+                                    "type": "number",
+                                    "description": "envs_group 表 id 字段关联记录，为0时表示普通变量"
+                                  },
+                                  "remark": {
+                                    "type": "string",
+                                    "description": "备注"
+                                  },
+                                  "value": {
+                                    "type": "string",
+                                    "description": "值"
+                                  },
+                                  "sort": {
+                                    "type": "number",
+                                    "description": "在分页中的位置序号（正整数），默认按照先后顺序递增"
+                                  },
+                                  "enable": {
+                                    "type": "number",
+                                    "enum": [
+                                      0,
+                                      1
+                                    ],
+                                    "description": "状态 1 启用 | 0 禁用"
+                                  }
+                                },
+                                "required": [
+                                  "type"
+                                ]
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "description": "变量名称"
+                                    },
+                                    "description": {
+                                      "type": "string",
+                                      "description": "描述"
+                                    },
+                                    "tag_list": {
+                                      "type": "string",
+                                      "description": "标签，label名称 | color颜色(HEX)"
+                                    },
+                                    "group_id": {
+                                      "type": "number",
+                                      "description": "envs_group 表 id 字段关联记录，为0时表示普通变量"
+                                    },
+                                    "remark": {
+                                      "type": "string",
+                                      "description": "备注"
+                                    },
+                                    "value": {
+                                      "type": "string",
+                                      "description": "值"
+                                    },
+                                    "sort": {
+                                      "type": "number",
+                                      "description": "在分页中的位置序号（正整数），默认按照先后顺序递增"
+                                    },
+                                    "enable": {
+                                      "type": "number",
+                                      "enum": [
+                                        0,
+                                        1
+                                      ],
+                                      "description": "状态 1 启用 | 0 禁用"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "$ref": "#/components/schemas/EnvData"
+                            },
+                            {
+                              "type": "object",
+                              "$ref": "#/components/schemas/EnvGroupData"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "count": {
+                                  "type": "number",
+                                  "description": "成功创建的数量"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/env/v1/update": {
+              "post": {
+                "summary": "更新",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Env 环境变量"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "category": {
+                            "type": "string",
+                            "description": "变量类型",
+                            "enum": [
+                              "ordinary",
+                              "composite",
+                              "composite_value"
+                            ]
+                          },
+                          "data": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "number",
+                                    "description": "唯一标识"
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "description": "变量名称"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "描述"
+                                  },
+                                  "tag_list": {
+                                    "type": "string",
+                                    "description": "标签，label名称 | color颜色(HEX)"
+                                  },
+                                  "group_id": {
+                                    "type": "number",
+                                    "description": "envs_group 表 id 字段关联记录，为0时表示普通变量"
+                                  },
+                                  "remark": {
+                                    "type": "string",
+                                    "description": "备注"
+                                  },
+                                  "value": {
+                                    "type": "string",
+                                    "description": "值"
+                                  },
+                                  "sort": {
+                                    "type": "number",
+                                    "description": "在分页中的位置序号（正整数），默认按照先后顺序递增"
+                                  },
+                                  "enable": {
+                                    "type": "number",
+                                    "enum": [
+                                      0,
+                                      1
+                                    ],
+                                    "description": "状态 1 启用 | 0 禁用"
+                                  }
+                                },
+                                "required": [
+                                  "id"
+                                ]
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "number",
+                                      "description": "唯一标识"
+                                    },
+                                    "type": {
+                                      "type": "string",
+                                      "description": "变量名称"
+                                    },
+                                    "description": {
+                                      "type": "string",
+                                      "description": "描述"
+                                    },
+                                    "tag_list": {
+                                      "type": "string",
+                                      "description": "标签，label名称 | color颜色(HEX)"
+                                    },
+                                    "group_id": {
+                                      "type": "number",
+                                      "description": "envs_group 表 id 字段关联记录，为0时表示普通变量"
+                                    },
+                                    "remark": {
+                                      "type": "string",
+                                      "description": "备注"
+                                    },
+                                    "value": {
+                                      "type": "string",
+                                      "description": "值"
+                                    },
+                                    "sort": {
+                                      "type": "number",
+                                      "description": "在分页中的位置序号（正整数），默认按照先后顺序递增"
+                                    },
+                                    "enable": {
+                                      "type": "number",
+                                      "enum": [
+                                        0,
+                                        1
+                                      ],
+                                      "description": "状态 1 启用 | 0 禁用"
+                                    }
+                                  },
+                                  "required": [
+                                    "id"
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "oneOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/EnvData"
+                              }
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/EnvGroupData"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "$ref": "#/components/schemas/EnvData"
+                            },
+                            {
+                              "type": "object",
+                              "$ref": "#/components/schemas/EnvGroupData"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/env/v1/changeStatus": {
+              "post": {
+                "summary": "更改状态",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Env 环境变量"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "oneOf": [
+                              {
+                                "type": "number",
+                                "description": "唯一标识"
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "number",
+                                  "description": "唯一标识"
+                                }
+                              }
+                            ]
+                          },
+                          "status": {
+                            "type": "number",
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "description": "状态 1 启用 | 0 禁用"
+                          },
+                          "isComposite": {
+                            "type": "boolean",
+                            "enum": [
+                              true,
+                              false
+                            ],
+                            "description": "是否为复合变量(组)，否则为普通变量和复合变量的值，默认否"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "status"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/env/v1/order": {
+              "post": {
+                "summary": "调整排序",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Env 环境变量"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "description": "至少需要提供 `order` 或 `moveToEnd` 其中一个，设置 `moveToEnd` 时 `order` 参数的值会被覆盖为所有记录 `sort` 字段中的最大值，与其相反的操作是将 `order` 参数的值设置为 `1`。关于置顶或置底操作应建立在可视角度上，后端分页数据默认均为倒序返回所以应注意区分使用场景。另外只有复合变量值的排序有实际意义，并且在前端设计中只有管理复合变量值的表格中加上了正向排序的功能。",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number",
+                            "description": "唯一标识"
+                          },
+                          "isComposite": {
+                            "type": "boolean",
+                            "enum": [
+                              true,
+                              false
+                            ],
+                            "description": "是否为复合变量(组)，否则为普通变量和复合变量的值，默认否"
+                          },
+                          "order": {
+                            "type": "number",
+                            "description": "目的修改位置"
+                          },
+                          "moveToEnd": {
+                            "type": "boolean",
+                            "enum": [
+                              true,
+                              false
+                            ],
+                            "description": "是否移动到最后"
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/env/v1/delete": {
+              "post": {
+                "summary": "删除",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Env 环境变量"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "oneOf": [
+                              {
+                                "type": "number",
+                                "description": "唯一标识"
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "number",
+                                  "description": "唯一标识"
+                                }
+                              }
+                            ]
+                          },
+                          "isComposite": {
+                            "type": "boolean",
+                            "enum": [
+                              true,
+                              false
+                            ],
+                            "description": "是否为复合变量(组)，否则为普通变量和复合变量的值，默认否"
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/cron/v1/page": {
+              "get": {
+                "summary": "分页查询",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Cron 定时任务"
+                ],
+                "parameters": [
+                  {
+                    "name": "type",
+                    "in": "query",
+                    "description": "任务类型过滤，当前固定分为 user 和 system",
+                    "required": false,
+                    "schema": {
+                      "type": "string",
+                      "enum": [
+                        "user",
+                        "system"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "active",
+                    "in": "query",
+                    "description": "启用/禁用状态过滤 1 启用 | 0 禁用，默认不过滤",
+                    "required": false,
+                    "schema": {
+                      "type": "string",
+                      "enum": [
+                        "0",
+                        "1"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "tags",
+                    "in": "query",
+                    "description": "任务标签过滤（仅限系统任务，具体通过下方 “获取标签列表” 获取，支持多个用英文逗号分隔）",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "search",
+                    "in": "query",
+                    "description": "搜索内容过滤，过滤字段：name、shell",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "orderBy",
+                    "in": "query",
+                    "description": "指定排序字段，默认 sort",
+                    "required": false,
+                    "schema": {
+                      "type": "string",
+                      "enum": [
+                        "sort",
+                        "last_runtime",
+                        "last_run_use"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "order",
+                    "in": "query",
+                    "description": "指定排序方式 0 升序 | 1 降序，默认降序",
+                    "required": false,
+                    "schema": {
+                      "type": "string",
+                      "enum": [
+                        "0",
+                        "1"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "page",
+                    "in": "query",
+                    "description": "指定页数，默认1",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "name": "size",
+                    "in": "query",
+                    "description": "指定分页大小数量，默认20",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/CronData"
+                              }
+                            },
+                            "page": {
+                              "type": "number",
+                              "description": "当前页码"
+                            },
+                            "size": {
+                              "type": "number",
+                              "description": "每页数据量"
+                            },
+                            "total": {
+                              "type": "number",
+                              "description": "数据总量"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/cron/v1/query": {
+              "get": {
+                "summary": "查询",
+                "deprecated": false,
+                "description": "查询定时任务",
+                "tags": [
+                  "Cron 定时任务"
+                ],
+                "parameters": [
+                  {
+                    "name": "id",
+                    "in": "query",
+                    "description": "",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/CronData"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/cron/v1/create": {
+              "post": {
+                "summary": "创建",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Cron 定时任务"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "任务名称"
+                          },
+                          "cron": {
+                            "type": "string",
+                            "description": "定时表达式"
+                          },
+                          "shell": {
+                            "type": "string",
+                            "description": "执行的命令"
+                          },
+                          "active": {
+                            "type": "number",
+                            "description": "状态 1启用 | 0禁用"
+                          },
+                          "remark": {
+                            "type": "string",
+                            "description": "任务备注"
+                          },
+                          "config": {
+                            "type": "string",
+                            "description": "高级配置",
+                            "examples": [
+                              "{\"before_task_shell\": \"任务运行前的执行命令\", \"after_task_shell\": \"任务运行后的执行命令\", \"log_directory\": \"日志目录路径（纯前端功能关联数据）\", \"source_file\": \"源码文件路径（纯前端功能关联数据）\", \"allow_concurrency\": \"是否允许并发\"}"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "cron",
+                          "shell"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/CronData"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/cron/v1/update": {
+              "post": {
+                "summary": "更新",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Cron 定时任务"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number",
+                            "description": "唯一标识"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "任务名称"
+                          },
+                          "cron": {
+                            "type": "string",
+                            "description": "定时表达式"
+                          },
+                          "shell": {
+                            "type": "string",
+                            "description": "执行的命令"
+                          },
+                          "active": {
+                            "type": "number",
+                            "description": "状态 1启用 | 0禁用"
+                          },
+                          "remark": {
+                            "type": "string",
+                            "description": "任务备注"
+                          },
+                          "config": {
+                            "type": "string",
+                            "description": "高级配置",
+                            "examples": [
+                              "{\"before_task_shell\": \"任务运行前的执行命令\", \"after_task_shell\": \"任务运行后的执行命令\", \"log_directory\": \"日志目录路径（纯前端功能关联数据）\", \"source_file\": \"源码文件路径（纯前端功能关联数据）\", \"allow_concurrency\": \"是否允许并发\"}"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/CronData"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/cron/v1/delete": {
+              "post": {
+                "summary": "删除",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Cron 定时任务"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "oneOf": [
+                              {
+                                "type": "number",
+                                "description": "唯一标识"
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "number",
+                                  "description": "唯一标识"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/cron/v1/order": {
+              "post": {
+                "summary": "调整排序",
+                "deprecated": false,
+                "description": "至少需要提供 `order` 或 `moveToEnd` 其中一个，设置 `moveToEnd` 时 `order` 参数的值会被覆盖为所有记录 `sort` 字段中的最大值，与其相反的操作是将 `order` 参数的值设置为 `1`。关于置顶或置底操作应建立在可视角度上，后端分页数据默认均为倒序返回所以应注意区分使用场景。",
+                "tags": [
+                  "Cron 定时任务"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number",
+                            "description": "唯一标识"
+                          },
+                          "order": {
+                            "type": "number",
+                            "description": "目的修改位置"
+                          },
+                          "moveToEnd": {
+                            "type": "boolean",
+                            "enum": [
+                              true,
+                              false
+                            ],
+                            "description": "是否移动到最后"
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/cron/v1/tagsList": {
+              "get": {
+                "summary": "获取标签列表",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Cron 定时任务"
+                ],
+                "parameters": [],
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "bind": {
+                                    "type": "string",
+                                    "description": "标签名称"
+                                  },
+                                  "count": {
+                                    "type": "string",
+                                    "description": "累计使用该标签的任务数量"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/cron/v1/runningTasks": {
+              "get": {
+                "summary": "查询运行中的任务",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Cron 定时任务"
+                ],
+                "parameters": [],
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/CronData"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/cron/v1/run": {
+              "post": {
+                "summary": "运行任务",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Cron 定时任务"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "oneOf": [
+                              {
+                                "type": "number",
+                                "description": "唯一标识"
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "number",
+                                  "description": "唯一标识"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/cron/v1/terminate": {
+              "post": {
+                "summary": "终止任务",
+                "deprecated": false,
+                "description": "",
+                "tags": [
+                  "Cron 定时任务"
+                ],
+                "parameters": [],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "oneOf": [
+                              {
+                                "type": "number",
+                                "description": "唯一标识"
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "number",
+                                  "description": "唯一标识"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "响应",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        dom_id: '#swagger-ui',
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+      });
+    };
+  </script>
+  </body>
+</html>

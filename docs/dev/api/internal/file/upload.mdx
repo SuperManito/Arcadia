@@ -5,3 +5,13 @@ import APITable from '@site/src/components/APITable';
 import { POST } from '@site/src/components/RequestTag';
 
 <POST>/file/upload</POST>
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `path` | `string` | 是 | 绝对路径 |
+
+</APITable>
+
+接口特殊，使用 query 即 `URLParams` 传参，暂不支持上传目录

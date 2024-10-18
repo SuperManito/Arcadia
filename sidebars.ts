@@ -357,17 +357,17 @@ const sidebars: SidebarsConfig = {
           ],
           collapsed: false,
         },
-        {
-          label: '消息中心',
-          type: 'category',
-          link: {
-            type: 'doc',
-            id: 'dev/message/index',
-          },
-          items: [],
-          collapsed: false,
-        },
       ],
+      collapsed: false,
+    },
+    {
+      label: '消息中心',
+      type: 'category',
+      link: {
+        type: 'doc',
+        id: 'dev/message/index',
+      },
+      items: [],
       collapsed: false,
     },
   ],
