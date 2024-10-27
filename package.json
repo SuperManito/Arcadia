@@ -12,7 +12,7 @@
     "lint": "eslint ./core"
   },
   "dependencies": {
-    "@prisma/client": "^5.20.0",
+    "@prisma/client": "^5.21.1",
     "archiver": "^7.0.1",
     "axios": "^1.7.7",
     "body-parser": "^1.20.3",
@@ -20,15 +20,15 @@
     "cors": "^2.8.5",
     "cron": "^3.1.7",
     "crypto-js": "^4.2.0",
-    "express": "^4.19.2",
+    "express": "^4.21.1",
     "express-jwt": "^8.4.1",
-    "http-proxy-middleware": "^3.0.2",
+    "http-proxy-middleware": "^3.0.3",
     "jsonwebtoken": "^9.0.2",
     "log4js": "^6.9.1",
     "multer": "^1.4.5-lts.1",
-    "prisma": "^5.20.0",
+    "prisma": "^5.21.1",
     "prisma-extension-pagination": "^0.7.4",
-    "socket.io": "^4.8.0",
+    "socket.io": "^4.8.1",
     "sqlite3": "^5.1.7",
     "string-random": "^0.1.3",
     "svg-captcha": "^1.4.0"
