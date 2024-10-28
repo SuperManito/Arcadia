@@ -1,1 +1,0 @@
-import{cu as e}from"./vendor-f4e37609.js";function n(r){const t=r.trim();if(![5,6].includes(t.split(" ").length)||/([?LW])/.test(t))return!1;try{return e.parseExpression(r),!0}catch{return!1}}export{n as v};
