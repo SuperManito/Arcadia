@@ -1,0 +1,24 @@
+---
+title: 统计数量
+---
+import APITable from '@site/src/components/APITable';
+import { GET } from '@site/src/components/RequestTag';
+
+<GET>/message/count</GET>
+
+## 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `limit` | `string` | 否 | 限制返回条数，默认10 |
+| `status` | `string<'read' \| 'unread'>` | 否 | 状态过滤，支持多选（逗号分隔） |
+| `source` | `string<'system' \| 'user'>` | 否 | 消息来源 |
+
+</APITable>
+
+## 响应
+
+```json title="示例"
+```

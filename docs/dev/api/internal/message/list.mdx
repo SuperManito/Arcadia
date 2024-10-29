@@ -1,0 +1,26 @@
+---
+title: 获取列表
+---
+import APITable from '@site/src/components/APITable';
+import { GET } from '@site/src/components/RequestTag';
+
+<GET>/message/list</GET>
+
+## 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `limit` | `string` | 否 | 限制返回条数，默认10 |
+| `status` | `string<'read' \| 'unread'>` | 否 | 状态过滤，支持多选（逗号分隔） |
+| `source` | `string<'system' \| 'user'>` | 否 | 消息来源过滤 |
+| `category` | `string<'info' \| 'warn' \| 'error' \| 'success'>` | 否 | 消息类型过滤 |
+| `search` | `string` | 否 | 搜索内容过滤，仅涉及消息标题和消息内容 |
+
+</APITable>
+
+## 响应
+
+```json title="示例"
+```

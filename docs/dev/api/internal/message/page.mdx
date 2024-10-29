@@ -1,0 +1,28 @@
+---
+title: 获取分页
+---
+import APITable from '@site/src/components/APITable';
+import { GET } from '@site/src/components/RequestTag';
+
+<GET>/message/page</GET>
+
+## 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `status` | `string<'read' \| 'unread'>` | 否 | 状态过滤，支持多选（逗号分隔） |
+| `source` | `string<'system' \| 'user'>` | 否 | 消息来源过滤 |
+| `category` | `string<'info' \| 'warn' \| 'error' \| 'success'>` | 否 | 消息类型过滤 |
+| `search` | `string` | 否 | 搜索内容过滤，仅涉及消息标题和消息内容 |
+| `page` | `string` | 否 | 指定页数，默认1 |
+| `size` | `string` | 否 | 指定分页大小数量，默认`20` |
+| `order` | `string<'0' \| '1'>` | 否 | 指定排序方式 `0 升序 \| 1 降序`，默认降序 |
+
+</APITable>
+
+## 响应
+
+```json title="示例"
+```

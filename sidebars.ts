@@ -291,6 +291,22 @@ const sidebars: SidebarsConfig = {
               collapsed: true,
             },
             {
+              label: 'Message 消息中心',
+              type: 'category',
+              link: {
+                type: 'generated-index',
+              },
+              items: [
+                'dev/api/internal/message/list',
+                'dev/api/internal/message/page',
+                'dev/api/internal/message/detail',
+                'dev/api/internal/message/count',
+                'dev/api/internal/message/status',
+                'dev/api/internal/message/delete',
+              ],
+              collapsed: true,
+            },
+            {
               label: '其它',
               type: 'category',
               link: {
@@ -302,32 +318,6 @@ const sidebars: SidebarsConfig = {
               ],
               collapsed: true,
             },
-            // {
-            //   type: 'category',
-            //   label: 'Config',
-            //   link: {
-            //     type: 'generated-index',
-            //   },
-            //   items: [
-            //     {
-            //       type: 'category',
-            //       label: 'type',
-            //       link: {
-            //         type: 'generated-index',
-            //       },
-            //       items: [
-            //         'dev/api/internal/config/type/by-type',
-            //         'dev/api/internal/config/type/by-type-single',
-            //         'dev/api/internal/config/type/create',
-            //         'dev/api/internal/config/type/delete',
-            //         'dev/api/internal/config/type/edit',
-            //         'dev/api/internal/config/type/page',
-            //       ],
-            //       collapsed: false,
-            //     },
-            //   ],
-            //   collapsed: true,
-            // },
           ],
           collapsed: false,
         },
@@ -354,6 +344,11 @@ const sidebars: SidebarsConfig = {
               type: 'doc',
               id: 'dev/api/open/cron',
             },
+            {
+              label: 'Message 消息中心',
+              type: 'doc',
+              id: 'dev/api/open/message',
+            },
           ],
           collapsed: false,
         },
@@ -361,7 +356,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
     },
     {
-      label: '消息中心',
+      label: '对接消息中心',
       type: 'category',
       link: {
         type: 'doc',

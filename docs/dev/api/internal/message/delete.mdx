@@ -1,10 +1,10 @@
 ---
-title: 分页删除
+title: 删除
 ---
 import APITable from '@site/src/components/APITable';
 import { DELETE } from '@site/src/components/RequestTag';
 
-<DELETE>/config/type</DELETE>
+<DELETE>/message/delete</DELETE>
 
 ## 请求
 
@@ -12,6 +12,11 @@ import { DELETE } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 必填 | 描述 |
 | :-: | :-: | :-: | --- |
-| `id` | `number` | 是 | 操作对象的id |
+| `id` | `number \| number[]` | 是 | 唯一标识 |
 
 </APITable>
+
+## 响应
+
+```json title="示例"
+```

@@ -1,0 +1,134 @@
+---
+title: Message 消息中心
+toc_max_heading_level: 2
+description: /api/open/file
+---
+import APITable from '@site/src/components/APITable';
+import { GET, POST } from '@site/src/components/RequestTag';
+
+## 获取列表
+
+<GET>/message/v1/list</GET>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `limit` | `string` | 否 | 限制返回条数，默认10 |
+| `status` | `string<'read' \| 'unread'>` | 否 | 状态过滤，支持多选（逗号分隔） |
+| `source` | `string<'system' \| 'user'>` | 否 | 消息来源过滤 |
+| `category` | `string<'info' \| 'warn' \| 'error' \| 'success'>` | 否 | 消息类型过滤 |
+| `search` | `string` | 否 | 搜索内容过滤，仅涉及消息标题和消息内容 |
+
+</APITable>
+
+### 响应
+
+```json title="示例"
+```
+
+## 获取分页
+
+<GET>/message/v1/page</GET>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `status` | `string<'read' \| 'unread'>` | 否 | 状态过滤，支持多选（逗号分隔） |
+| `source` | `string<'system' \| 'user'>` | 否 | 消息来源过滤 |
+| `category` | `string<'info' \| 'warn' \| 'error' \| 'success'>` | 否 | 消息类型过滤 |
+| `search` | `string` | 否 | 搜索内容过滤，仅涉及消息标题和消息内容 |
+| `page` | `string` | 否 | 指定页数，默认1 |
+| `size` | `string` | 否 | 指定分页大小数量，默认`20` |
+| `order` | `string<'0' \| '1'>` | 否 | 指定排序方式 `0 升序 \| 1 降序`，默认降序 |
+
+</APITable>
+
+### 响应
+
+```json title="示例"
+```
+
+## 获取详情
+
+<GET>/message/v1/detail</GET>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `id` | `string` | 是 | 唯一标识 |
+
+</APITable>
+
+### 响应
+
+```json title="示例"
+```
+
+## 统计数量
+
+<GET>/message/v1/count</GET>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `limit` | `string` | 否 | 限制返回条数，默认10 |
+| `status` | `string<'read' \| 'unread'>` | 否 | 状态过滤，支持多选（逗号分隔） |
+| `source` | `string<'system' \| 'user'>` | 否 | 消息来源 |
+
+</APITable>
+
+### 响应
+
+```json title="示例"
+```
+
+## 更新状态
+
+<POST>/message/v1/status</POST>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `id` | `number \| number[]` | 否 | 唯一标识，若不提供id则表示操作全部消息 |
+| `status` | `string<'read' \| 'unread'>` | 是 | 新的状态 |
+
+</APITable>
+
+### 响应
+
+```json title="示例"
+```
+
+## 删除
+
+<POST>/message/v1/delete</POST>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `id` | `number \| number[]` | 是 | 唯一标识 |
+
+</APITable>
+
+### 响应
+
+```json title="示例"
+```
