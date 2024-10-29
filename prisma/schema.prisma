@@ -48,88 +48,6 @@ model envs_group {
   @@index([type])
 }
 
-// model notify {
-//   id            Int             @id @default(autoincrement())
-//   // 0: info 1:success 2: warn 3: error
-//   level         Int             @default(0)
-//   title         String          @default("")
-//   content       String          @default("")
-//   // 消息tag,格式为tagName[=value],例: tag1,tag2=aaa,tag3
-//   tags          String          @default("")
-//   create_time   DateTime        @default(now())
-//   notify_result notify_result[]
-// }
-
-// model notify_result {
-//   id             Int      @id @default(autoincrement())
-//   notify_id      Int
-//   create_time    DateTime @default(now())
-//   // 0:未执行,1:成功,2:失败
-//   status         Int      @default(0)
-//   // 规则触发,手动触发,重试等
-//   create_type    String   @default("")
-//   create_message String   @default("")
-//   // 执行结果,成功不存储
-//   result         String   @default("")
-//   notify         notify?  @relation(fields: [notify_id], references: [id])
-
-//   @@index([notify_id])
-// }
-
-// model notify_rule {
-//   id                Int    @id @default(autoincrement())
-//   // 选择类型,tag:标签,context:内容,title:标题
-//   select_type       String
-//   // 备注
-//   remark            String @default("")
-//   // 通知渠道id
-//   notify_channel_id Int
-
-//   notify_rule_match  notify_rule_match[]
-//   notify_rule_action notify_rule_action[]
-// }
-
-// // 具体匹配规则,and 关系
-// model notify_rule_match {
-//   id          Int          @id @default(autoincrement())
-//   rule_id     Int
-//   // 选择类型,tag:标签,context:内容,title:标题
-//   select_type String
-//   // 匹配类型,regix:正则,contains:包含,equal:相等
-//   match_type  String
-//   match_value String
-//   notify_rule notify_rule? @relation(fields: [rule_id], references: [id])
-
-//   @@index([rule_id])
-// }
-
-// // 具体匹配规则,and 关系
-// model notify_rule_action {
-//   id           Int          @id @default(autoincrement())
-//   rule_id      Int
-//   // 操作生成值的名称
-//   action_name  String
-//   // 选择类型,tag:标签,context:内容,title:标题
-//   select_type  String
-//   // 操作类型,regix:正则取值,all:全部
-//   action_type  String
-//   // 操作值,正则等操作拼接结果
-//   action_value String
-//   notify_rule  notify_rule? @relation(fields: [rule_id], references: [id])
-
-//   @@index([rule_id])
-// }
-
-// model notify_channel {
-//   id     Int    @id @default(autoincrement())
-//   // 名称
-//   name   String
-//   // 类型,微信,钉钉,邮件,短信等
-//   type   String
-//   config String
-//   remark String @default("")
-// }
-
 model task_core {
   id       String @id
   cron     String
@@ -153,9 +71,16 @@ model tasks {
   bind         String    @default("")
 }
 
-// model info {
-//   name  String @default("")
-//   value String @default("")
+model message {
+  id          Int      @id @default(autoincrement())
+  title       String   @default("")
+  content     String   @default("")
+  tags        String   @default("")
+  source      String   @default("")
+  category    String   @default("")
+  status      String   @default("unread")
+  create_time DateTime @default(now())
 
-//   @@id([name])
-// }
+  @@index([source])
+  @@index([category])
+}
