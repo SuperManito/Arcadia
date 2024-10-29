@@ -10,6 +10,8 @@ import ComposeInstall from '@site/src/components/ComposeInstall';
 本项目依托容器技术需要安装相关容器服务才可以部署，由于运行环境复杂程度较高目前没有计划适配更多部署方式  
 如果你不了解该项技术或者没有安装相关服务那么请先阅读 [如何安装容器服务](/docs/start/install-container-service)
 
+关于部署 Arcadia 平台所需要的配置：预留硬盘存储空间 `2GB+`、最低 `256MB` 的内存
+
 ## 1. 启动容器
 
 <Tabs>
@@ -51,6 +53,7 @@ docker logs -f arcadia
 请认真查看容器启动后的初始化进度并**等待其运行完毕**，当输出**容器启动成功**字样后即可通过 `Ctrl + C` 退出查看  
 如果报错导致容器没有启动成功那么请先自查原因，绝大多数问题都是由网络环境导致，你可以在 [社区](/docs/about#%E7%A4%BE%E5%8C%BA) 内寻求帮助
 
+容器会在启动时自动更新 Arcadia 源代码，为了确保你能够使用最新的版本如果查看到日志显示更新失败请 [手动更新](/docs/start/update#更新源码)
 
 ## 3. 开始使用
 

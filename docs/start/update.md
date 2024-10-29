@@ -26,25 +26,50 @@ containrrr/watchtower -c \
 
 如果你想了解的是如何更新导入的脚本，那么请前往查看 [CLI 文档](/docs/cli/update)
 
-## 镜像容器
+## 更新源码
 
-根据通知要求而定，如果你想重新安装那么需要先删除运行中的容器和镜像
-
-```bash
-docker rm -f arcadia
-docker rmi arcadia
-```
-
-然后重新部署项目 [点此跳转](/docs/start/install)
-
-### 一键更新
+一般小版本升级直接更新源码即可
 
 ```bash
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower -c --run-once arcadia
+arcadia upgrade
 ```
 
-可以通过此命令一键更新，不过需要注意的是更新镜像容器会删除已安装的环境例如 npm 依赖包等，需要重新安装
+如果你的网络环境不能有效连通 GitHub，那么则需要使用代理，下面提供一个简单且免费的方法
 
-## 配置文件
+<details>
+<summary>使用免费代理进行更新</summary>
 
- 配置文件位于 config 目录下，最新的配置文件模板位于 sample 目录下，可通过管理面板的**对比工具**页面进行可视化对比操作，不建议使用命令手动进行替换
+```bash title="将项目官方远程仓库地址替换为开源代理地址"
+cd /arcadia/src
+git remote set-url origin https://ghp.ci/https://github.com/SuperManito/Arcadia.git
+cd /arcadia
+```
+
+之后就可以愉快的使用 `arcadia upgrade` 了
+
+</details>
+
+## 更新容器
+
+- #### 一键更新
+
+  ```bash
+  docker run --rm -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower -c --run-once arcadia
+  ```
+
+  可以通过此命令一键更新，不过需要注意的是更新镜像容器会删除已安装的环境例如 npm 依赖包等，需要重新安装
+
+- #### 重新部署 
+
+  根据通知要求而定，如果你想重新安装那么需要先删除运行中的容器和镜像
+
+  ```bash
+  docker rm -f arcadia
+  docker rmi arcadia
+  ```
+
+  前往安装文档 [点此跳转](/docs/start/install)
+
+## 更新配置文件
+
+配置文件位于 config 目录下，最新的配置文件模板位于 src/sample 目录下，可通过后台管理面板的**对比工具**页面进行可视化对比操作，不建议使用命令手动进行替换
