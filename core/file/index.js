@@ -9,7 +9,7 @@ const archiver = require('archiver')
 const { execSync } = require('child_process')
 const { APP_ROOT_DIR, APP_DIR_TYPE, APP_FILE_TYPE, APP_FILE_NAME, APP_DIR_PATH, APP_FILE_PATH } = require('../type')
 
-const canRunCodeFileExtList = ['js', 'mjs', 'cjs', 'py', 'ts', 'go', 'bun', 'lua', 'rb', 'pl', 'c', 'sh'] // 底层Shell已适配可执行代码文件类型的后缀
+const canRunCodeFileExtList = ['js', 'mjs', 'cjs', 'py', 'ts', 'go', 'lua', 'rb', 'rs', 'pl', 'c', 'sh'] // 底层Shell已适配可执行代码文件类型的后缀
 const excludeRegExp = /(user\.session)|(\.cache$)|(\.check$)|(\.git$)|(\.tmp$)|(__pycache__$)|(node_modules)/ // 全局过滤正则
 const FILE_TYPES = {
   FOLDER: 'folder',
