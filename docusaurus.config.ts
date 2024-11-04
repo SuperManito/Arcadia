@@ -190,5 +190,8 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
         },
       ],
     ],
+    future: {
+      experimental_faster: true,
+    },
   }
 }
