@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import clsx from 'clsx'
 import Heading from '@theme/Heading'
 import { ConfigProvider, Image } from 'antd'
@@ -24,29 +24,39 @@ import ImgLoginLight from './images/login-light.png'
 import ImgLoginDark from './images/login-dark.png'
 
 export default function Preview () {
+  const LightImgs = [
+    ImgCodeEditLight,
+    ImgCodeDebugLight,
+    ImgCronLight,
+    ImgLogLight,
+    ImgEnvLight,
+    ImgFileLight,
+    ImgTerminalLight,
+    ImgLoginLight,
+  ]
+  const DarkImgs = [
+    ImgCodeEditDark,
+    ImgCodeDebugDark,
+    ImgCronDark,
+    ImgLogDark,
+    ImgEnvDark,
+    ImgFileDark,
+    ImgTerminalDark,
+    ImgLoginDark,
+  ]
   const { colorMode } = useColorMode()
-  const previewImg = colorMode === 'dark' ? ImgCodeEditDark : ImgCodeEditLight
-  const previewImgs = colorMode === 'dark'
-    ? [
-        ImgCodeEditDark,
-        ImgCodeDebugDark,
-        ImgCronDark,
-        ImgLogDark,
-        ImgEnvDark,
-        ImgFileDark,
-        ImgTerminalDark,
-        ImgLoginDark,
-      ]
-    : [
-        ImgCodeEditLight,
-        ImgCodeDebugLight,
-        ImgCronLight,
-        ImgLogLight,
-        ImgEnvLight,
-        ImgFileLight,
-        ImgTerminalLight,
-        ImgLoginLight,
-      ]
+  const [previewImg, setPreviewImg] = useState(ImgCodeEditLight)
+  const [previewImgs, setPreviewImgs] = useState(LightImgs)
+
+  useEffect(() => {
+    if (colorMode === 'dark') {
+      setPreviewImg(ImgCodeEditDark)
+      setPreviewImgs(DarkImgs)
+    } else {
+      setPreviewImg(ImgCodeEditLight)
+      setPreviewImgs(LightImgs)
+    }
+  }, [colorMode]) // 依赖项数组，colorMode 变化时执行
   return (
     <section className={clsx('container', styles.features)}>
         <div className="row">

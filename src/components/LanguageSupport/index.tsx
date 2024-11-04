@@ -160,7 +160,7 @@ export default function LanguageSupport () {
         </div>
         <div>
           <Link href="https://www.rust-lang.org" title="Rust" target="_blank" rel="noreferrer">
-            <Icon icon="logos:rust" height={isMobile ? 18 : 48} className={isMobile ? 'mr-4' : 'mr-20'} />
+            <Icon icon="logos:rust" height={isMobile ? 22 : 56} className={isMobile ? 'mr-4' : 'mr-20'} />
           </Link>
         </div>
         <div>

@@ -5,18 +5,19 @@ import { Icon } from '@site/src/components/Icon';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-如果你对相关技术不是很熟悉那么请认真学习以下内容
+如果你对相关技术不是很熟悉那么请认真阅读以下内容
 
 ## 安装语言环境
 
 <Tabs>
-  <TabItem value="js&ts" label="JavaScript / TypeScript">
+  <TabItem value="js&ts" label="JavaScript 和 TypeScript">
 
     <Tabs>
       <TabItem value="nodejs" label="Node.js">
 
+      官方网站：https://nodejs.org
       ```bash
-      NODE_VERSION=20 # 指定安装版本（自行修改）
+      NODE_VERSION=20 # 指定安装版本（可自行修改）
       apt-get update && apt-get install -y ca-certificates curl gnupg
       curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
       echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_VERSION}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
@@ -25,21 +26,23 @@ import TabItem from '@theme/TabItem';
       :::warning
       已预装，底层功能依赖请勿卸载，否则会导致项目无法正常运行
       :::
-      > 默认安装的是 LTS 版本，需要安装指定版本时可借鉴该命令
+      > Node.js 是项目当前运行 `.js` `.mjs` `.cjs` 代码文件的默认引擎，默认安装的是 LTS 版本，需要安装指定版本时可借鉴该命令
 
       </TabItem>
 
       <TabItem value="ts-nopde" label="ts-node">
 
+      官方网站：https://typestrong.org/ts-node
       ```bash
       npm install -g typescript ts-node
       ```
-      > **ts-node** 是项目当前运行 `.ts` 代码文件的默认引擎，因为 Node.js 对于运行 TypeScript 文件的功能仍处在实验阶段，另外你也可以使用 **Bun**。
+      > **ts-node** 是项目当前运行 `.ts` 代码文件的默认引擎，因为 Node.js 对于运行 TypeScript 文件的功能仍处在试验阶段，另外你也可以使用 **Bun**。
 
       </TabItem>
 
       <TabItem value="bun" label="Bun">
 
+      官方网站：https://bun.sh
       ```bash
       # 建议分步执行以下命令
       apt-get update && apt-get install -y unzip
@@ -57,6 +60,7 @@ import TabItem from '@theme/TabItem';
 
   <TabItem value="python" label="Python">
 
+  官方网站：https://www.python.org"
   ```bash
   apt-get update && apt-get install -y python3 python3-pip
   ```
@@ -70,6 +74,7 @@ import TabItem from '@theme/TabItem';
 
   <TabItem value="go" label="Go">
 
+  官方网站：https://golang.org
   ```bash
   apt-get update && apt-get install -y go
   ```
@@ -78,6 +83,7 @@ import TabItem from '@theme/TabItem';
 
   <TabItem value="lua" label="Lua">
 
+  官方网站：https://www.lua.org
   ```bash
   apt-get update && apt-get install -y lua5.4 luarocks
   ```
@@ -86,6 +92,7 @@ import TabItem from '@theme/TabItem';
 
   <TabItem value="ruby" label="Ruby">
 
+  官方网站：https://www.ruby-lang.org
   ```bash
   apt-get update && apt-get install -y ruby
   ```
@@ -94,6 +101,7 @@ import TabItem from '@theme/TabItem';
 
   <TabItem value="rust" label="Rust">
 
+  官方网站：https://www.rust-lang.org
   ```bash
   # 建议分步执行以下命令
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh # 失败时请自行解决网络环境等问题
@@ -103,6 +111,18 @@ import TabItem from '@theme/TabItem';
   cargo install cargo-script # 失败时请自行解决网络环境等问题
   ```
   > 建议采用官方默认提供的安装方法，因为通过 `apt` 包管理工具安装的版本较低，另外如果你通过其它方法安装那么需要在处理 `PATH` 时设置 `/usr/local/bin` 的软链接
+
+  </TabItem>
+
+  <TabItem value="perl" label="Perl">
+
+  官方网站：https://www.perl.org
+  ```bash
+  apt-get update && apt-get install -y perl
+  ```
+  :::warning
+  已预装，底层功能依赖请勿卸载，否则会导致项目无法正常运行
+  :::
 
   </TabItem>
 
@@ -116,24 +136,13 @@ import TabItem from '@theme/TabItem';
   :::
 
   </TabItem>
-
-  <TabItem value="perl" label="Perl">
-
-  ```bash
-  apt-get update && apt-get install -y perl
-  ```
-  :::warning
-  已预装，底层功能依赖请勿卸载，否则会导致项目无法正常运行
-  :::
-
-  </TabItem>
 </Tabs>
 
 
 ## 解决依赖
 
 <Tabs>
-  <TabItem value="js&ts" label="JavaScript 和 TypeScript (Node.js / ts-node / Bun)" default>
+  <TabItem value="js&ts" label="JavaScript 和 TypeScript" default>
 
   适用文件类型 `.js` `.mjs` `.cjs` 和 `.ts`
 
