@@ -45,8 +45,8 @@ export default function Preview () {
     ImgLoginDark,
   ]
   const { colorMode } = useColorMode()
-  const [previewImg, setPreviewImg] = useState(ImgCodeEditLight)
-  const [previewImgs, setPreviewImgs] = useState(LightImgs)
+  const [previewImg, setPreviewImg] = useState(colorMode === 'dark' ? ImgCodeEditDark : ImgCodeEditLight)
+  const [previewImgs, setPreviewImgs] = useState(colorMode === 'dark' ? DarkImgs : LightImgs)
 
   useEffect(() => {
     if (colorMode === 'dark') {
@@ -56,7 +56,7 @@ export default function Preview () {
       setPreviewImg(ImgCodeEditLight)
       setPreviewImgs(LightImgs)
     }
-  }, [colorMode]) // 依赖项数组，colorMode 变化时执行
+  }, [colorMode])
   return (
     <section className={clsx('container', styles.features)}>
         <div className="row">

@@ -163,9 +163,7 @@ ${backupMirrortChecked ? 'registry.cn-hangzhou.aliyuncs.com/' : 'docker.io/'}sup
                 </Col>
               </Row>
             }>
-            <Button type="text" shape="circle" size="small" style={{ padding: '2px' }}>
-              <Icon size={20} style={{ verticalAlign: '-0.1rem' }}>line-md:cog-loop</Icon>
-            </Button>
+            <Button type="text" shape="circle" icon={<Icon size={20}>line-md:cog-loop</Icon>} size="small" style={{ padding: '2px' }} />
           </Popover>
         </Tooltip>
       </Space>
