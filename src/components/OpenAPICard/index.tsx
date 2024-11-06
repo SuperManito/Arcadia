@@ -1,16 +1,21 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Button, Space, ConfigProvider, theme } from 'antd'
 import Link from '@docusaurus/Link'
 import { useColorMode, useWindowSize } from '@docusaurus/theme-common'
 import { Icon } from '../Icon'
 
 export function OpenAPICard () {
+  const { colorMode } = useColorMode()
+  const algorithm = useMemo(() => {
+    return colorMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm
+  }, [colorMode])
   const windowSize = useWindowSize()
-  const isMobile = windowSize === 'mobile'
+  const isMobile = useMemo(() => {
+    return windowSize === 'mobile'
+  }, [windowSize])
+
   const ApifoxHerf = 'https://arcadia.apifox.cn'
   const SwaggerHerf = '/swagger.html'
-
-  const { colorMode } = useColorMode()
   const Default = (
     <Space>
         <Link href={ApifoxHerf} target="_blank" rel="noreferrer">
@@ -68,12 +73,8 @@ export function OpenAPICard () {
     </Space>
   )
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: colorMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
-      }}
-    >
-    {!isMobile ? Default : Mobile}
+    <ConfigProvider theme={{ algorithm }}>
+        {!isMobile ? Default : Mobile}
     </ConfigProvider>
   )
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useMemo } from 'react'
 import { useColorMode } from '@docusaurus/theme-common'
 import Heading from '@theme/Heading'
 import Link from '@docusaurus/Link'
@@ -7,13 +7,8 @@ export default function Footer () {
   const logoDark = '/img/logo/arcadia-dark-sub.png'
   const logoLight = '/img/logo/arcadia-light-sub.png'
   const { colorMode } = useColorMode()
-  const [logo, setLogo] = useState(colorMode === 'dark' ? logoDark : logoLight)
-  useEffect(() => {
-    if (colorMode === 'dark') {
-      setLogo(logoDark)
-    } else {
-      setLogo(logoLight)
-    }
+  const logo = useMemo(() => {
+    return colorMode === 'dark' ? logoDark : logoLight
   }, [colorMode])
   return (
     <footer className="footer">

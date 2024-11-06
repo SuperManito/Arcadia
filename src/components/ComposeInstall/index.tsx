@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import type { InputRef } from 'antd'
 import { Button, Col, Checkbox, Divider, Flex, Input, InputNumber, Popover, Row, Segmented, Space, Select, Switch, Tooltip, ConfigProvider, theme } from 'antd'
 import { DockerIcon, PodmanIcon, Icon } from '../Icon'
@@ -114,9 +114,14 @@ services:
   }
 
   const windowSize = useWindowSize()
-  const isMobile = windowSize === 'mobile'
+  const isMobile = useMemo(() => {
+    return windowSize === 'mobile'
+  }, [windowSize])
 
-  const { colorMode } = useColorMode() // ConfigProvider 主题
+  const { colorMode } = useColorMode()
+  const algorithm = useMemo(() => {
+    return colorMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm
+  }, [colorMode])
   const [type, setType] = useState('docker-compose-v2') // 类型
   const [backupMirrortChecked, setBackupMirrortChecked] = useState(false)
   const [selectedMounts, setSelectedMounts] = useState(['config', 'log', 'scripts', 'repo', 'raw', 'tgbot'])
@@ -150,11 +155,7 @@ services:
   const mountLines = selectedMounts.length > 0 ? '\n    volumes:\n' + selectedMounts.map(mount => `      - ${mountPrefix}/${mount}:/arcadia/${mount}`).join('\n') : ''
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: colorMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
-      }}
-    >
+    <ConfigProvider theme={{ algorithm }}>
       <Space wrap size="small" style={{ paddingBottom: '10px', lineHeight: '0' }}>
         <Segmented
           options={[

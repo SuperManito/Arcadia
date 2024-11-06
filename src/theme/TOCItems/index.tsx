@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import { ConfigProvider, Carousel } from 'antd'
 import TOCItems from '@theme-original/TOCItems'
 import Heading from '@theme/Heading'
@@ -23,7 +23,9 @@ function SidebarAd (): any {
     textAlign: 'center',
     marginBottom: '0',
   }
-  const background = colorMode === 'dark' ? '#161618' : '#f6f8fa'
+  const background = useMemo(() => {
+    return colorMode === 'dark' ? '#161618' : '#f6f8fa'
+  }, [colorMode])
 
   return (
     <ConfigProvider button={{ autoInsertSpace: false }}>
@@ -32,7 +34,7 @@ function SidebarAd (): any {
           <Heading as="h3" style={{ ...contentStyle, background }}>Arcadia</Heading>
         </Link>
         <Link to="/docs/about#%E7%A4%BE%E5%8C%BA" style={{ width: '200px', height: '75px', margin: '0' }}>
-          <Heading as="h3" style={{ ...contentStyle, background }}>赞助商广告</Heading>
+          <Heading as="h3" style={{ ...contentStyle, background }}>赞助商(虚位以待)</Heading>
         </Link>
       </Carousel>
     </ConfigProvider>

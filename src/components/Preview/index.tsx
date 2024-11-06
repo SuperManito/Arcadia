@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useMemo } from 'react'
 import clsx from 'clsx'
 import Heading from '@theme/Heading'
 import { ConfigProvider, Image } from 'antd'
@@ -45,17 +45,11 @@ export default function Preview () {
     ImgLoginDark,
   ]
   const { colorMode } = useColorMode()
-  const [previewImg, setPreviewImg] = useState(colorMode === 'dark' ? ImgCodeEditDark : ImgCodeEditLight)
-  const [previewImgs, setPreviewImgs] = useState(colorMode === 'dark' ? DarkImgs : LightImgs)
-
-  useEffect(() => {
-    if (colorMode === 'dark') {
-      setPreviewImg(ImgCodeEditDark)
-      setPreviewImgs(DarkImgs)
-    } else {
-      setPreviewImg(ImgCodeEditLight)
-      setPreviewImgs(LightImgs)
-    }
+  const previewImg = useMemo(() => {
+    return colorMode === 'dark' ? ImgCodeEditDark : ImgCodeEditLight
+  }, [colorMode])
+  const previewImgs = useMemo(() => {
+    return colorMode === 'dark' ? DarkImgs : LightImgs
   }, [colorMode])
   return (
     <section className={clsx('container', styles.features)}>

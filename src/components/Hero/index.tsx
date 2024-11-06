@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import clsx from 'clsx'
 import Heading from '@theme/Heading'
 import Link from '@docusaurus/Link'
@@ -6,7 +6,10 @@ import { useWindowSize } from '@docusaurus/theme-common'
 import styles from './index.module.css'
 
 export default function Hero () {
-  const isMobile = useWindowSize() === 'mobile'
+  const windowSize = useWindowSize()
+  const isMobile = useMemo(() => {
+    return windowSize === 'mobile'
+  }, [windowSize])
   return (
         <header className={clsx('container', styles.heroBanner)}>
             <div className="row padding-horiz--md">
