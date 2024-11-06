@@ -6,7 +6,7 @@
  */
 
 import React, { useMemo } from 'react'
-import { ConfigProvider, Carousel } from 'antd'
+import { ConfigProvider, Carousel, theme } from 'antd'
 import TOCItems from '@theme-original/TOCItems'
 import Heading from '@theme/Heading'
 import Link from '@docusaurus/Link'
@@ -26,9 +26,12 @@ function SidebarAd (): any {
   const background = useMemo(() => {
     return colorMode === 'dark' ? '#161618' : '#f6f8fa'
   }, [colorMode])
+  const algorithm = useMemo(() => {
+    return colorMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm
+  }, [colorMode])
 
   return (
-    <ConfigProvider button={{ autoInsertSpace: false }}>
+    <ConfigProvider theme={{ algorithm }} button={{ autoInsertSpace: false }}>
       <Carousel autoplay className={styles.ad} dotPosition="right">
         <Link to="/docs/about#%E7%A4%BE%E5%8C%BA" style={{ width: '200px', height: '75px', margin: '0' }}>
           <Heading as="h3" style={{ ...contentStyle, background }}>Arcadia</Heading>

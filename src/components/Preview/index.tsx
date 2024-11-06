@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import clsx from 'clsx'
 import Heading from '@theme/Heading'
-import { ConfigProvider, Image } from 'antd'
+import { ConfigProvider, Image, theme } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import { useColorMode } from '@docusaurus/theme-common'
 import { Icon } from '../Icon'
@@ -45,11 +45,15 @@ export default function Preview () {
     ImgLoginDark,
   ]
   const { colorMode } = useColorMode()
-  const previewImg = useMemo(() => {
-    return colorMode === 'dark' ? ImgCodeEditDark : ImgCodeEditLight
+  const [previewImg, setPreviewImg] = useState(colorMode === 'dark' ? ImgCodeEditDark : ImgCodeEditLight)
+  const [previewImgs, setPreviewImgs] = useState(colorMode === 'dark' ? DarkImgs : LightImgs)
+  const algorithm = useMemo(() => {
+    return colorMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm
   }, [colorMode])
-  const previewImgs = useMemo(() => {
-    return colorMode === 'dark' ? DarkImgs : LightImgs
+
+  useEffect(() => {
+    setPreviewImg(colorMode === 'dark' ? ImgCodeEditDark : ImgCodeEditLight)
+    setPreviewImgs(colorMode === 'dark' ? DarkImgs : LightImgs)
   }, [colorMode])
   return (
     <section className={clsx('container', styles.features)}>
@@ -106,7 +110,7 @@ export default function Preview () {
             </div>
             <div className="col col--6 pt-20 lg:pt-0">
                 <div className="video-container">
-                    <ConfigProvider locale={zhCN}>
+                    <ConfigProvider theme={{ algorithm }} locale={zhCN}>
                         <Image.PreviewGroup
                             items={previewImgs}
                         >
