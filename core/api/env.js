@@ -23,10 +23,12 @@ async function onChange(isItem) {
   if (typeof isItem === 'boolean') {
     if (isItem) {
       await fixItemOrder()
-    } else {
+    }
+    else {
       await fixOrder()
     }
-  } else {
+  }
+  else {
     await fixOrder()
     await fixItemOrder()
   }
@@ -93,7 +95,8 @@ api.get('/page', async (request, response) => {
       envs: item.envs.length,
     }))
     response.send(API_STATUS_CODE.okData(result))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
@@ -116,14 +119,16 @@ api.get('/pageItem', async (request, response) => {
     // 搜索过滤
     if (request.query.search) {
       where.AND = {
-        OR: request.query.group_id === '0' ? [
-          { type: { contains: request.query.search } },
-          { value: { contains: request.query.search } },
-          { description: { contains: request.query.search } },
-        ] : [
-          { value: { contains: request.query.search } },
-          { remark: { contains: request.query.search } },
-        ],
+        OR: request.query.group_id === '0'
+          ? [
+              { type: { contains: request.query.search } },
+              { value: { contains: request.query.search } },
+              { description: { contains: request.query.search } },
+            ]
+          : [
+              { value: { contains: request.query.search } },
+              { remark: { contains: request.query.search } },
+            ],
       }
     }
     if (or.length > 0) {
@@ -141,7 +146,8 @@ api.get('/pageItem', async (request, response) => {
       size: request.query.size,
       orderBy: { [orderBy]: (desc ? 'desc' : 'asc') },
     })))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
@@ -240,7 +246,8 @@ apiOpen.get('/v1/page', async (request, response) => {
         ...item,
         envs: item.envs.length,
       }))
-    } else {
+    }
+    else {
       result = await db.envs.$page({
         where,
         page: request.query.page,
@@ -250,7 +257,8 @@ apiOpen.get('/v1/page', async (request, response) => {
     }
     // 返回数据
     response.send(API_STATUS_CODE.okData(result))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -272,7 +280,8 @@ apiOpen.get('/v1/query', async (request, response) => {
     const queryConditions = []
     if (type) {
       queryConditions.push({ type: { contains: type } }) // 优先使用 type
-    } else if (name) {
+    }
+    else if (name) {
       queryConditions.push({ type: { contains: name } })
     }
     if (description) {
@@ -310,20 +319,23 @@ apiOpen.get('/v1/query', async (request, response) => {
     // 返回数据
     if (filteredData.length <= 0) {
       return response.send(API_STATUS_CODE.okData([]))
-    } else {
+    }
+    else {
       const datas = filteredData.map((data) => {
         const fields = Object.keys(data)
         let category
         if (fields.includes('group_id')) {
           category = data.group_id === 0 ? 'ordinary' : 'composite_value'
-        } else {
+        }
+        else {
           category = 'composite'
         }
         return { category, data }
       })
       response.send(API_STATUS_CODE.okData(datas))
     }
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -358,7 +370,8 @@ apiOpen.get('/v1/queryMember', async (request, response) => {
     }) || []
     // 返回数据
     response.send(API_STATUS_CODE.okData(result))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -384,7 +397,8 @@ apiOpen.get('/v1/queryById', async (request, response) => {
       record.envs = envs_result.length
     }
     response.send(API_STATUS_CODE.okData(record))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -412,7 +426,8 @@ api.post('/save', async (request, response) => {
         }
         if (env.group_id) {
           e.group_id = env.group_id
-        } else {
+        }
+        else {
           e.group_id = saveEnv.group_id
         }
         if (!e.sort) {
@@ -422,9 +437,11 @@ api.post('/save', async (request, response) => {
       }).forEach((e) => db.envs.$create(e))
     }
     response.send(API_STATUS_CODE.ok())
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
-  } finally {
+  }
+  finally {
     await onChange(false)
   }
 })
@@ -444,9 +461,11 @@ api.post('/saveItem', async (request, response) => {
     }
     await db.envs.$upsertById(env)
     response.send(API_STATUS_CODE.ok())
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
-  } finally {
+  }
+  finally {
     await onChange(true)
   }
 })
@@ -456,7 +475,8 @@ api.post('/create', async (request, response) => {
     let data
     if (Array.isArray(request.body)) {
       data = request.body.map((e) => Object.assign({}, e))
-    } else {
+    }
+    else {
       data = [Object.assign({}, request.body)]
     }
     const formatData = []
@@ -469,12 +489,14 @@ api.post('/create', async (request, response) => {
     let result
     if (data.length === 1) {
       result = await db.envs_group.$create(formatData[0])
-    } else {
+    }
+    else {
       result = await db.envs_group.$createMany(formatData)
     }
     response.send(API_STATUS_CODE.okData(result))
     await onChange(false)
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -484,7 +506,8 @@ api.post('/createItem', async (request, response) => {
     let data
     if (Array.isArray(request.body)) {
       data = request.body.map((e) => Object.assign({}, e))
-    } else {
+    }
+    else {
       data = [Object.assign({}, request.body)]
     }
     const formatData = []
@@ -499,12 +522,14 @@ api.post('/createItem', async (request, response) => {
     let result
     if (data.length === 1) {
       result = await db.envs.$create(formatData[0])
-    } else {
+    }
+    else {
       result = await db.envs.$createMany(formatData)
     }
     response.send(API_STATUS_CODE.okData(result))
     await onChange(true)
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -521,7 +546,8 @@ apiOpen.post('/v1/create', async (request, response) => {
     let data
     if (Array.isArray(request.body.data)) {
       data = request.body.data.map((e) => Object.assign({}, e))
-    } else {
+    }
+    else {
       data = [Object.assign({}, request.body.data)]
     }
     // 过滤数据
@@ -570,7 +596,8 @@ apiOpen.post('/v1/create', async (request, response) => {
       // 补齐参数
       if (category === 'ordinary') {
         obj.group_id = 0
-      } else if (category === 'composite_value') {
+      }
+      else if (category === 'composite_value') {
         obj.group_id = compositeId
         obj.type = '' // 复合变量值的 type 为空
       }
@@ -580,13 +607,15 @@ apiOpen.post('/v1/create', async (request, response) => {
     let result
     if (data.length === 1) {
       result = await db[category === 'composite' ? 'envs_group' : 'envs'].$create(formatData[0])
-    } else {
+    }
+    else {
       result = await db[category === 'composite' ? 'envs_group' : 'envs'].$createMany(formatData)
     }
     response.send(API_STATUS_CODE.okData(result))
     logger.info('[OpenAPI · Env]', '创建环境变量', JSON.stringify(data.length === 1 ? formatData[0] : formatData))
     await onChange(category !== 'composite')
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -602,7 +631,8 @@ apiOpen.post('/v1/update', async (request, response) => {
     let data
     if (Array.isArray(request.body.data)) {
       data = request.body.data.map((e) => Object.assign({}, e))
-    } else {
+    }
+    else {
       data = [Object.assign({}, request.body.data)]
     }
     // 过滤数据
@@ -663,13 +693,15 @@ apiOpen.post('/v1/update', async (request, response) => {
             id: obj.group_id,
           })) || []).length > 0) {
             exist_group_ids.push(obj.id)
-          } else {
+          }
+          else {
             throw new Error(`参数 group_id 无效，复合变量(组) ${obj.group_id} 不存在`)
           }
         }
         // 补齐参数
         obj.type = '' // 复合变量值的 type 为空
-      } else {
+      }
+      else {
         if (obj.id <= 0) {
           throw new Error('参数 id 无效（参数值类型错误）')
         }
@@ -681,7 +713,8 @@ apiOpen.post('/v1/update', async (request, response) => {
           }
           // 补齐参数
           obj.group_id = 0
-        } else if (category === 'composite') {
+        }
+        else if (category === 'composite') {
           // 检查变量是否存在
           const envsGroupItems = await db.envs_group.$list({ id: obj.id }) || []
           if (envsGroupItems.length <= 0) {
@@ -695,13 +728,15 @@ apiOpen.post('/v1/update', async (request, response) => {
     let result
     if (formatData.length === 1) {
       result = [await db[category === 'composite' ? 'envs_group' : 'envs'].$upsertById(formatData[0])]
-    } else {
+    }
+    else {
       result = []
       for (const item of formatData) {
         const r = await db[category === 'composite' ? 'envs_group' : 'envs'].$upsertById(item)
         if (typeof r === 'string') {
           result.push({ id: item.id, error: r })
-        } else {
+        }
+        else {
           result.push(r)
         }
       }
@@ -709,7 +744,8 @@ apiOpen.post('/v1/update', async (request, response) => {
     response.send(API_STATUS_CODE.okData(result))
     logger.info('[OpenAPI · Env]', '更新环境变量', JSON.stringify(data.length === 1 ? formatData[0] : formatData))
     await onChange(category !== 'composite')
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -734,7 +770,8 @@ api.put('/changeStatus', async (request, response) => {
     }
     response.send(API_STATUS_CODE.ok())
     await onChange(false)
-  } catch (e) {
+  }
+  catch (e) {
     return response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -759,7 +796,8 @@ api.put('/changeStatusItem', async (request, response) => {
     }
     response.send(API_STATUS_CODE.ok())
     await onChange(true)
-  } catch (e) {
+  }
+  catch (e) {
     return response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -792,7 +830,8 @@ apiOpen.post('/v1/changeStatus', async (request, response) => {
     }
     response.send(API_STATUS_CODE.ok())
     await onChange(!isComposite)
-  } catch (e) {
+  }
+  catch (e) {
     return response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -813,9 +852,11 @@ api.delete('/delete', async (request, response) => {
     await db.envs.$deleteById(ids, 'group_id')
     await db.envs_group.$deleteById(ids)
     response.send(API_STATUS_CODE.ok())
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
-  } finally {
+  }
+  finally {
     await onChange(false)
   }
 })
@@ -835,9 +876,11 @@ api.delete('/deleteItem', async (request, response) => {
     })
     await db.envs.$deleteById(ids)
     response.send(API_STATUS_CODE.ok())
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
-  } finally {
+  }
+  finally {
     await onChange(true)
   }
 })
@@ -860,13 +903,15 @@ apiOpen.post('/v1/delete', async (request, response) => {
     if (isComposite) {
       await db.envs.$deleteById(ids, 'group_id')
       await db.envs_group.$deleteById(ids)
-    } else {
+    }
+    else {
       await db.envs.$deleteById(ids)
     }
     response.send(API_STATUS_CODE.ok())
     logger.info('[OpenAPI · Env]', '删除环境变量', ids.join(','))
     await onChange(!isComposite)
-  } catch (e) {
+  }
+  catch (e) {
     return response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -894,9 +939,11 @@ api.put('/order', async (request, response) => {
       }
     }
     response.send(API_STATUS_CODE.okData(await updateSortById(id, order)))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
-  } finally {
+  }
+  finally {
     await onChange(false) // 注：无实际意义的操作，排序变动不需要重新生成批量声明脚本
   }
 })
@@ -921,9 +968,11 @@ api.put('/orderItem', async (request, response) => {
       }
     }
     response.send(API_STATUS_CODE.okData(await updateItemSortById(id, order)))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
-  } finally {
+  }
+  finally {
     await onChange(true)
   }
 })
@@ -960,7 +1009,8 @@ apiOpen.post('/v1/order', async (request, response) => {
         }
       }
       response.send(API_STATUS_CODE.okData(await updateSortById(id, order)))
-    } else {
+    }
+    else {
       const envsRecord = await db.envs.$getById(id)
       if (!envsRecord) {
         return response.send(API_STATUS_CODE.fail('变量不存在'))
@@ -976,7 +1026,8 @@ apiOpen.post('/v1/order', async (request, response) => {
       response.send(API_STATUS_CODE.okData(await updateItemSortById(id, order)))
     }
     await onChange(!isComposite)
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })

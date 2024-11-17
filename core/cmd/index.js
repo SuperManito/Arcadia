@@ -1,5 +1,5 @@
 const { APP_ROOT_DIR } = require('../type')
-const { exec } = require('child_process')
+const { exec } = require('node:child_process')
 
 /**
  * 执行 Shell 命令
@@ -29,10 +29,12 @@ function execShell(cmd, config) {
       process.stderr.on('data', (data) => onChange(data, 'stderr'))
     }
     return process
-  } catch (e) {
+  }
+  catch (e) {
     try {
       config.onException && config.onException(e)
-    } finally {
+    }
+    finally {
       config.onExit && config.onExit(1)
     }
   }

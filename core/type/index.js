@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('node:path')
 
 const APP_ROOT_DIR = path.resolve(__dirname, '../../../') // 根目录 /arcadia
 const APP_SOURCE_DIR = path.join(__dirname, '../../') // 源码目录 /arcadia/src

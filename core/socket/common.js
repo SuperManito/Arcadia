@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 const socketCommon = {
   getSocket() {
     return global.io

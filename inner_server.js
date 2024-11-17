@@ -2,7 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 
 const innerApp = express()
-const innerServer = require('http').createServer(innerApp)
+const innerServer = require('node:http').createServer(innerApp)
 
 innerApp.use(bodyParser.json({
   limit: '10mb',

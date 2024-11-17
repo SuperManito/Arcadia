@@ -8,7 +8,8 @@ const jwtSecret = authConfig.jwtSecret
 const getToken = function fromHeaderOrQuerystring(request) {
   if (request.headers.authorization && request.headers.authorization.split(' ')[0] === 'Bearer') {
     return request.headers.authorization.split(' ')[1]
-  } else if (request.query && request.query.token) {
+  }
+  else if (request.query && request.query.token) {
     return request.query.token
   }
   return null
@@ -32,12 +33,14 @@ module.exports = (server, sessionMiddleware) => {
       jwt.verify(token, jwtSecret, (err, decoded) => {
         if (err) {
           next(new Error('unauthorized'))
-        } else {
+        }
+        else {
           socket.request.user = decoded
           next()
         }
       })
-    } else {
+    }
+    else {
       next(new Error('unauthorized'))
     }
   })

@@ -3,7 +3,7 @@ const compression = require('compression')
 const { expressjwt } = require('express-jwt')
 const jwt = require('jsonwebtoken')
 const bodyParser = require('body-parser')
-const path = require('path')
+const path = require('node:path')
 const random = require('string-random')
 const { legacyCreateProxyMiddleware } = require('http-proxy-middleware')
 
@@ -21,7 +21,7 @@ const CronCore = require('./core/cron/core')
 CronCore.cronJobInit()
 
 const app = express()
-const server = require('http').createServer(app)
+const server = require('node:http').createServer(app)
 
 // gzip压缩
 app.use(
@@ -86,7 +86,8 @@ app.use((req, res, next) => {
   const bots = ['Googlebot', 'Bingbot', 'Slurp', 'DuckDuckBot', 'Baiduspider', 'YandexBot']
   if (bots.some((bot) => userAgent.includes(bot))) {
     res.status(403).send('Access denied')
-  } else {
+  }
+  else {
     next()
   }
 })
@@ -116,12 +117,14 @@ app.use(
             if (err) {
               // JWT 验证失败
               res.send(API_STATUS_CODE.fail(API_STATUS_CODE.API.AUTH_FAIL.message, API_STATUS_CODE.API.AUTH_FAIL.code))
-            } else {
+            }
+            else {
               // JWT 验证成功
               proxyReq.setHeader('Authorization', token) // 将 token 传递给目标服务器
             }
           })
-        } else {
+        }
+        else {
           res.send(API_STATUS_CODE.fail(API_STATUS_CODE.API.NO_AUTH.message, API_STATUS_CODE.API.NO_AUTH.code))
         }
       },
@@ -163,7 +166,8 @@ app.use(sessionMiddleware, (err, req, res, next) => {
         if (err.message === 'No authorization token was found') {
           type = 'NO_AUTH'
           statusCode = 401
-        } else {
+        }
+        else {
           type = 'AUTH_FAIL'
           statusCode = 200
         }
@@ -178,7 +182,8 @@ app.use(sessionMiddleware, (err, req, res, next) => {
         break
     }
     return res.status(statusCode).send(API_STATUS_CODE.fail(API_STATUS_CODE.API[type].message, API_STATUS_CODE.API[type].code))
-  } else {
+  }
+  else {
     next()
   }
 })

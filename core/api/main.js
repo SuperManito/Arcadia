@@ -5,7 +5,7 @@ const { API_STATUS_CODE } = require('../http')
 
 const random = require('string-random')
 const svgCaptcha = require('svg-captcha')
-const { exec } = require('child_process')
+const { exec } = require('node:child_process')
 const socketCommon = require('../socket/common')
 const { saveNewConf, getJsonFile, getNeatContent } = require('../file')
 const { APP_ROOT_DIR, APP_FILE_TYPE } = require('../type')
@@ -55,7 +55,9 @@ api.post('/runCmd', (request, response) => {
     result.stdout.on('data', (data) => {
       taskRunning[runId] = true
       socketCommon.emit(name, API_STATUS_CODE.okData({
-        runId, log: getNeatContent(data), over: false,
+        runId,
+        log: getNeatContent(data),
+        over: false,
       }))
     })
     result.stderr.on('data', (data) => {
@@ -63,7 +65,9 @@ api.post('/runCmd', (request, response) => {
         delete taskRunning[runId]
       }
       socketCommon.emit(name, API_STATUS_CODE.failData('run fail', {
-        runId, log: getNeatContent(data), over: false,
+        runId,
+        log: getNeatContent(data),
+        over: false,
       }))
     })
     result.on('exit', (_code) => {
@@ -72,10 +76,12 @@ api.post('/runCmd', (request, response) => {
       }
       // 结束
       socketCommon.emit(name, API_STATUS_CODE.ok('run over', {
-        runId, over: true,
+        runId,
+        over: true,
       }))
     })
-  } catch (err) {
+  }
+  catch (err) {
     logger.error(err)
   }
   response.send(API_STATUS_CODE.okData(runId))
@@ -89,10 +95,12 @@ api.get('/runCmdStatus', (request, response) => {
   try {
     if (taskRunning[id]) {
       response.send(API_STATUS_CODE.okData(true))
-    } else {
+    }
+    else {
       response.send(API_STATUS_CODE.okData(false))
     }
-  } catch (err) {
+  }
+  catch {
     response.send(API_STATUS_CODE.okData(false))
   }
 })

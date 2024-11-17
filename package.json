@@ -5,11 +5,12 @@
   "main": "server.js",
   "scripts": {
     "dev": "echo 'y' | prisma db push --accept-data-loss > ./prisma_push.log && node server",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "migrate:dev": "prisma migrate dev",
     "migrate:prod": "prisma migrate deploy",
     "db:push": "prisma db push",
-    "generate": "prisma generate",
-    "lint": "eslint ./core"
+    "generate": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -34,9 +35,7 @@
     "svg-captcha": "^1.4.0"
   },
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-node": "^11.1.0"
+    "@antfu/eslint-config": "~3.9.1",
+    "eslint": "~9.15.0"
   }
 }

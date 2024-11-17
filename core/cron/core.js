@@ -38,7 +38,8 @@ function cronJobInit() {
       }
       try {
         engine.validateCronExpression(cronExpression)
-      } catch (error) {
+      }
+      catch (error) {
         logger.error(`设置定时任务 ${tasksId} 失败 => ${cronExpression} (${error})`)
         continue
       }
@@ -46,7 +47,8 @@ function cronJobInit() {
       try {
         engine.setTask(taskCoreId, cronExpression, () => onCron(task))
         // logger.log(`设置定时任务 ${tasksId} 成功 => ${cronExpression}`)
-      } catch (e) {
+      }
+      catch (e) {
         logger.error(`设置定时任务 ${tasksId} 失败 => ${cronExpression} ${e.message || e}`)
       }
     }
@@ -113,7 +115,8 @@ async function onCronMain(taskId) {
       if (typeof config.allow_concurrency === 'boolean') {
         allow_concurrency = config.allow_concurrency
       }
-    } catch {}
+    }
+    catch {}
     // 跳过正在运行的任务（运行并发时除外）
     if (runningTasks[taskId] && !allow_concurrency) {
       // logger.log('触发定时任务', task.shell, '（PASS，原因：正在运行）')
@@ -126,7 +129,8 @@ async function onCronMain(taskId) {
     if (after_task_shell) {
       task.shell = `${task.shell} ; bash -c "cd ${APP_ROOT_DIR} ; ${after_task_shell}"`
     }
-  } else if (runningTasks[taskId]) {
+  }
+  else if (runningTasks[taskId]) {
     // 跳过正在运行的任务
     // logger.log('触发定时任务', task.shell, '（PASS，原因：正在运行）')
     return
@@ -162,7 +166,8 @@ function runCronTaskShell(task) {
           if (typeof config.allow_concurrency === 'boolean') {
             allow_concurrency = config.allow_concurrency
           }
-        } catch {}
+        }
+        catch {}
       }
       // 允许并发后存在任务重叠的情况，需要具体判断
       if (allow_concurrency) {
@@ -176,7 +181,8 @@ function runCronTaskShell(task) {
             dbTasks.update({ where: { id: task.id }, data }).catch((_e) => {})
           }
         }).catch((_e) => {})
-      } else {
+      }
+      else {
         // 从正在运行的任务中删除
         delete runningTasks[task.id]
         delete runningInstance[task.id]
@@ -215,7 +221,8 @@ async function runTask(taskId) {
       if (typeof config.after_task_shell === 'string') {
         after_task_shell = config.after_task_shell
       }
-    } catch {}
+    }
+    catch {}
     // 补齐命令
     if (before_task_shell) {
       task.shell = `bash -c "cd ${APP_ROOT_DIR} ; ${before_task_shell}" ; ${task.shell}`
@@ -252,7 +259,8 @@ function terminateTask(taskId) {
       elapsedTime += 1000
       if (isExited || elapsedTime >= 30000) {
         clearInterval(checkInterval) // 清除定时器（已终止或超时）
-      } else if (runningInstance[taskId]) {
+      }
+      else if (runningInstance[taskId]) {
         task.kill('SIGKILL') // 强制终止
         // logger.log(`定时任务 ${taskId} 已被强制终止`);
       }
@@ -270,7 +278,8 @@ async function applyCron(taskId) {
   let ids = []
   if (Array.isArray(taskId)) {
     ids = taskId
-  } else {
+  }
+  else {
     ids.push(taskId)
   }
   for (let id of ids) {
@@ -278,7 +287,8 @@ async function applyCron(taskId) {
     const task = await dbTasks.$getById(id)
     if (task) {
       await setTaskCore(`T_${task.id}`, task.cron.trim(), '')
-    } else {
+    }
+    else {
       const taskId = `T_${id}`
       await dbTaskCore.$deleteById(taskId)
       engine.removeTask(taskId)

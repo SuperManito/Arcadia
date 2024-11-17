@@ -70,14 +70,16 @@ api.post('/auth', async (request, response) => {
         username,
       }, con.jwtSecret, { expiresIn: 3600 * 24 * 3 })
       response.send(API_STATUS_CODE.okData(result))
-    } else {
+    }
+    else {
       authErrorCount++
       con.authErrorCount = authErrorCount
       con.authErrorTime = curTime.getTime()
       saveNewConf(APP_FILE_TYPE.AUTH, con, false)
       response.send(API_STATUS_CODE.fail('错误的用户名或密码，请重试'))
     }
-  } else {
+  }
+  else {
     response.send(API_STATUS_CODE.fail('请输入用户名密码！'))
   }
 })
@@ -111,7 +113,8 @@ api.post('/changePwd', (request, response) => {
     saveNewConf(APP_FILE_TYPE.AUTH, config, true)
     logger.info('用户更改了认证信息，令牌已重置')
     response.send(API_STATUS_CODE.ok('修改成功！'))
-  } else {
+  }
+  else {
     response.send(API_STATUS_CODE.fail('请输入用户名密码！'))
   }
 })

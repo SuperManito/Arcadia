@@ -3,7 +3,7 @@ const api = express()
 const { API_STATUS_CODE } = require('../http')
 const { logger } = require('../logger')
 
-const fs = require('fs')
+const fs = require('node:fs')
 const util = require('../utils')
 const { getJsonFile } = require('../file')
 const { APP_FILE_TYPE, APP_FILE_PATH } = require('../type')
@@ -16,10 +16,12 @@ if (fs.existsSync(APP_FILE_PATH.EXTRA_SERVER)) {
     if (typeof extraApi === 'function') {
       extraApi(api, API_STATUS_CODE, logger)
       logger.info('用户 OpenAPI 自定义模块初始化成功')
-    } else {
+    }
+    else {
       logger.error('用户 OpenAPI 自定义模块初始化失败（未导出函数）')
     }
-  } catch (e) {
+  }
+  catch (e) {
     logger.error(`用户 OpenAPI 自定义模块初始化失败（${JSON.stringify(e.message || e)}）`)
   }
 }
@@ -44,7 +46,8 @@ function tokenChecker(req) {
     if (token === openApiToken) {
       return null // 认证通过
     }
-  } catch {}
+  }
+  catch {}
   return API_STATUS_CODE.OPEN_API.AUTH_FAIL
 }
 

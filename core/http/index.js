@@ -1,5 +1,5 @@
 const axios = require('axios').default
-const querystring = require('querystring')
+const querystring = require('node:querystring')
 const { API_STATUS_CODE } = require('./apiCode')
 const { logger } = require('../logger')
 
@@ -47,10 +47,10 @@ const userAgentTools = {
  */
 function getClientIP(req) {
   let ip = req.headers['x-forwarded-for']
-        || req.ip
-        || req.connection.remoteAddress
-        || req.socket.remoteAddress
-        || req.connection.socket.remoteAddress || ''
+    || req.ip
+    || req.connection.remoteAddress
+    || req.socket.remoteAddress
+    || req.connection.socket.remoteAddress || ''
   if (ip.split(',').length > 0) {
     ip = ip.split(',')[0]
   }
@@ -81,7 +81,7 @@ async function ip2Address(ip) {
       headers: {
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/128.0.0.0',
         'Content-Type': 'application/x-www-form-urlencoded',
-        Referer: 'http://ip.360.cn/',
+        'Referer': 'http://ip.360.cn/',
       },
     })
     if (data) {
@@ -92,7 +92,8 @@ async function ip2Address(ip) {
         address,
       }
     }
-  } catch (e) {
+  }
+  catch (e) {
     logger.error('IP地理位置查询失败', e)
   }
   return {
@@ -149,14 +150,17 @@ async function request(config) {
         (data) => {
           try {
             return JSON.parse(data)
-          } catch {}
+          }
+          catch {}
           try {
+            // eslint-disable-next-line regexp/strict
             const jsonpRegex = /[\w$.]+\(\s*({[\s\S]*?})\s*\)\s*;?/
             if (jsonpRegex.test(data)) {
               const json = data.match(jsonpRegex)[1]
               return JSON.parse(json)
             }
-          } catch {}
+          }
+          catch {}
           return data
         },
       ],
@@ -220,7 +224,8 @@ async function request(config) {
             505: 'HTTP 版本不受支持 [505 HTTP Version Not Supported]',
           }
           errorMessage = errorMessages[statusCode] || `请求失败 [Response code ${statusCode}]`
-        } else {
+        }
+        else {
           if (error.request) {
             const errorMessages = {
               ECONNABORTED: '请求被中断',
@@ -275,14 +280,16 @@ async function request(config) {
               ERR_TUNNEL_CONNECTION_FAILED: '隧道连接失败',
             }
             errorMessage = `${errorMessages[error.code] ?? '未知网络错误'} [${error.code}]`
-          } else {
+          }
+          else {
             errorMessage = error.message || '未知错误状态'
           }
         }
         returnData.error = errorMessage
         returnData.status = error.response?.status || null
       })
-  } catch (error) {
+  }
+  catch (error) {
     returnData.error = error.message || error
   }
   return returnData

@@ -135,11 +135,13 @@ function throttle(func, delay) {
 
 function checkType(value, type) {
   if (type.endsWith('[]')) {
-    if (!Array.isArray(value)) return false
+    if (!Array.isArray(value))
+      return false
     const itemType = type.slice(0, -2)
     // eslint-disable-next-line valid-typeof
     return value.every((item) => typeof item === itemType)
-  } else {
+  }
+  else {
     // eslint-disable-next-line valid-typeof
     return typeof value === type
   }
@@ -166,7 +168,8 @@ function validateParams(req, params) {
         if ((['undefined', 'None', null].includes(value) || (!allowEmptyString && value === ''))) {
           throw new Error(`参数 ${paramName} 无效（参数值不能为空）`)
         }
-      } else if (paramType === 'body') {
+      }
+      else if (paramType === 'body') {
         const value = params[paramName]
         if ((['undefined', 'None', null].includes(value) || Number.isNaN(value)) || (Array.isArray(value) && value.length === 0) || (!allowEmptyString && typeof value === 'string' && value === '')) {
           throw new Error(`参数 ${paramName} 无效（参数值不能为空）`)
@@ -177,12 +180,14 @@ function validateParams(req, params) {
       if (!type.includes(paramValue)) {
         throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
       }
-    } else if (type.includes('|')) {
+    }
+    else if (type.includes('|')) {
       const types = type.replace(/\s/g, '').split('|')
       if (!types.some((t) => checkType(paramValue, t))) {
         throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
       }
-    } else if (!checkType(paramValue, type)) {
+    }
+    else if (!checkType(paramValue, type)) {
       throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
     }
   })
@@ -236,19 +241,22 @@ function validateObject(obj, params, objName = '') {
       if (!type.includes(paramValue)) {
         throw new Error(`源对象${objName}中的属性 ${paramName} 无效（属性值类型错误）`)
       }
-    } else if (type.includes('|')) {
+    }
+    else if (type.includes('|')) {
       const types = type.replace(/\s/g, '').split('|')
       if (!types.some((t) => checkType(paramValue, t))) {
         throw new Error(`源对象${objName}中的属性 ${paramName} 无效（属性值类型错误）`)
       }
-    } else if (!checkType(paramValue, type)) {
+    }
+    else if (!checkType(paramValue, type)) {
       throw new Error(`源对象${objName}中的属性 ${paramName} 无效（属性值类型错误）`)
     }
   })
 }
 
 function cleanProperties(obj, fields) {
-  if (!obj) return obj
+  if (!obj)
+    return obj
   const originalObject = obj
   obj = Object.keys(obj)
     .filter((key) => {

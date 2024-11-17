@@ -2,11 +2,11 @@ const { parseFileNameDate, dateToFileName, getDateStr } = require('../utils')
 const { API_STATUS_CODE } = require('../http/apiCode')
 const { logger } = require('../logger')
 
-const nodePath = require('path')
-const fs = require('fs')
-const os = require('os')
+const nodePath = require('node:path')
+const fs = require('node:fs')
+const os = require('node:os')
 const archiver = require('archiver')
-const { execSync } = require('child_process')
+const { execSync } = require('node:child_process')
 const { APP_ROOT_DIR, APP_DIR_TYPE, APP_FILE_TYPE, APP_FILE_NAME, APP_DIR_PATH, APP_FILE_PATH } = require('../type')
 
 const canRunCodeFileExtList = ['js', 'mjs', 'cjs', 'py', 'ts', 'go', 'lua', 'rb', 'rs', 'pl', 'c', 'sh'] // 底层Shell已适配可执行代码文件类型的后缀
@@ -148,7 +148,8 @@ function getFileTree(type, dirPath, params) {
   if (type === 'all' || type === APP_DIR_TYPE.ROOT) {
     filterPaths.push(APP_DIR_PATH.LOG)
     filesNameArr = readDirs(APP_ROOT_DIR).children
-  } else {
+  }
+  else {
     filesNameArr = readDirs(dirPath).children
   }
 
@@ -183,7 +184,8 @@ function fileNameTimeCompare(fileName, time) {
     const fileTime = parseFileNameDate(fileName)
     const dateTime = new Date(time)
     return fileTime.getTime() - dateTime.getTime()
-  } catch (e) {
+  }
+  catch {
     return 0
   }
 }
@@ -195,14 +197,17 @@ function fileNameTimeCompare(fileName, time) {
  * @returns {string}
  */
 function getNeatContent(content) {
-  if (!content) return content
+  if (!content)
+    return content
   const ansiRegex = ({ onlyFirst = false } = {}) => {
+    // eslint-disable-next-line regexp/no-trivially-nested-quantifier, regexp/no-useless-quantifier, regexp/prefer-w, regexp/no-useless-non-capturing-group, regexp/no-useless-escape
     const pattern = ['[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)', '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))'].join('|')
     return new RegExp(pattern, onlyFirst ? undefined : 'g')
   }
   try {
     return content.replace(ansiRegex(), '')
-  } catch (error) {
+  }
+  catch {
     return content
   }
 }
@@ -262,15 +267,21 @@ function checkConfigSave(oldContent) {
     // 判断格式是否正确
     try {
       execSync(`bash ${APP_FILE_PATH.CONFIG} >${APP_DIR_PATH.LOG}/.check`, { encoding: 'utf8' })
-    } catch (e) {
+    }
+    catch (e) {
       fs.writeFileSync(APP_FILE_PATH.CONFIG, oldContent)
       let errorMsg,
         line
       try {
-        errorMsg = /(?<=line\s[0-9]*:)([^"]+)/.exec(e.message)[0]
-        line = /(?<=line\s)[0-9]*/.exec(e.message)[0]
-      } catch (e) {}
-      throw new Error(errorMsg && line ? `第 ${line} 行:${errorMsg}` : e.message)
+        errorMsg = /(?<=line\s\d*:)([^"]+)/.exec(e.message)[0]
+        line = /(?<=line\s)\d*/.exec(e.message)[0]
+        if (errorMsg && line) {
+          throw new Error(`第 ${line} 行:${errorMsg}`)
+        }
+      }
+      catch (e) {
+        throw new Error(e.message)
+      }
     }
   }
 }
@@ -414,7 +425,8 @@ function clearDirectory(folderPath) {
     if (stats.isDirectory()) {
       clearDirectory(filePath)
       fs.rmdirSync(filePath)
-    } else {
+    }
+    else {
       fs.unlinkSync(filePath)
     }
   })
@@ -467,7 +479,8 @@ function fileDownload(fileOrFolderPath, response) {
     archive.pipe(response)
     archive.directory(fileOrFolderPath, fileName)
     archive.finalize()
-  } else {
+  }
+  else {
     response.writeHead(200, {
       'Content-Type': 'application/octet-stream', // 告诉浏览器这是一个二进制文件
       'Content-Disposition': `attachment; filename=${encodeURIComponent(fileName)}`, // 告诉浏览器这是一个需要下载的文件
@@ -498,7 +511,8 @@ function fileCreate(fileDir, fileName, type, content = '') {
   }
   if (type === FILE_TYPES.FOLDER) {
     fs.mkdirSync(filePath)
-  } else {
+  }
+  else {
     fs.writeFileSync(filePath, content)
   }
   return filePath
@@ -558,7 +572,8 @@ function getDirectorySize(dirPath) {
     if (stats.isDirectory()) {
       // 如果是目录，递归计算其大小
       totalSize += getDirectorySize(filePath)
-    } else {
+    }
+    else {
       // 如果是文件，累加其大小
       totalSize += stats.size
     }

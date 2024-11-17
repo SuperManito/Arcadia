@@ -1,4 +1,4 @@
-const events = require('events')
+const events = require('node:events')
 
 module.exports = {
   db: new events.EventEmitter(),

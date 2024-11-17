@@ -90,12 +90,14 @@ api.get('/', async (request, response) => {
           if (task.last_runtime) {
             try {
               task.log_path = `${APP_DIR_PATH.LOG}/${targetDir}/${targetFile.split('.')[0]}`
-            } catch {
+            }
+            catch {
               task.log_path = ''
             }
           }
           task.script_path = `${targetDir === APP_DIR_TYPE.RAW ? APP_DIR_PATH.RAW : `${APP_DIR_PATH.REPO}/${targetDir}`}/${targetFile}`
-        } catch {
+        }
+        catch {
           task.log_path = ''
           task.script_path = ''
         }
@@ -103,7 +105,8 @@ api.get('/', async (request, response) => {
     })
     // 返回数据
     response.send(API_STATUS_CODE.okData(tasks))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -183,7 +186,8 @@ apiOpen.get('/v1/page', async (request, response) => {
     })
     // 返回数据
     response.send(API_STATUS_CODE.okData(tasks))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -207,7 +211,8 @@ apiOpen.get('/v1/query', async (request, response) => {
     }
     // 返回数据
     response.send(API_STATUS_CODE.okData(record))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -226,7 +231,8 @@ api.post('/', async (request, response) => {
     logger.info('添加定时任务', JSON.stringify(task))
     await core.fixOrder()
     await core.applyCron(createResult.id)
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -271,7 +277,8 @@ apiOpen.post('/v1/create', async (request, response) => {
     logger.info('[OpenAPI · Cron]', '添加定时任务', JSON.stringify(task))
     await core.fixOrder()
     await core.applyCron(createResult.id)
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -284,7 +291,8 @@ api.put('/', async (request, response) => {
     let tasks
     if (Array.isArray(request.body)) {
       tasks = request.body.map((task) => Object.assign({}, task))
-    } else {
+    }
+    else {
       tasks = [Object.assign({}, request.body)]
     }
     for (const task of tasks) {
@@ -308,7 +316,8 @@ api.put('/', async (request, response) => {
           needFixCronIds.push(task.id)
         }
         results.push(true)
-      } catch (error) {
+      }
+      catch (error) {
         logger.error('修改定时任务失败', JSON.stringify(error.message || error))
         results.push(false)
       }
@@ -318,7 +327,8 @@ api.put('/', async (request, response) => {
     if (needFixCronIds.length > 0) {
       await core.applyCron(needFixCronIds)
     }
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -370,7 +380,8 @@ apiOpen.post('/v1/update', async (request, response) => {
     if (task && task.cron && record.cron !== task.cron) {
       await core.applyCron(task.id)
     }
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -384,7 +395,8 @@ api.delete('/', async (request, response) => {
     let ids
     if (Array.isArray(id)) {
       ids = id
-    } else {
+    }
+    else {
       ids = [id]
     }
     const res = await dbTasks.$deleteById(ids)
@@ -394,7 +406,8 @@ api.delete('/', async (request, response) => {
       await core.fixOrder()
       await core.applyCron(ids)
     }
-  } catch (e) {
+  }
+  catch (e) {
     logger.error(e)
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -410,7 +423,8 @@ apiOpen.post('/v1/delete', async (request, response) => {
     let ids
     if (Array.isArray(id)) {
       ids = id
-    } else {
+    }
+    else {
       ids = [id]
     }
     ids.forEach((id) => {
@@ -425,7 +439,8 @@ apiOpen.post('/v1/delete', async (request, response) => {
       await core.fixOrder()
       await core.applyCron(ids)
     }
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -450,7 +465,8 @@ api.put('/order', async (request, response) => {
     }
     response.send(API_STATUS_CODE.okData(await core.updateSortById(id, order)))
     await core.fixOrder()
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -481,7 +497,8 @@ apiOpen.post('/v1/order', async (request, response) => {
     }
     response.send(API_STATUS_CODE.okData(await core.updateSortById(id, order)))
     await core.fixOrder()
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -492,7 +509,8 @@ apiOpen.post('/v1/order', async (request, response) => {
 api.get('/bindGroup', async (request, response) => {
   try {
     response.send(API_STATUS_CODE.okData(await core.getBindGroup()))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -500,7 +518,8 @@ api.get('/bindGroup', async (request, response) => {
 apiOpen.get('/v1/tagsList', async (request, response) => {
   try {
     response.send(API_STATUS_CODE.okData(await core.getBindGroup()))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -511,7 +530,8 @@ apiOpen.get('/v1/tagsList', async (request, response) => {
 api.get('/runningTasks', async (request, response) => {
   try {
     response.send(API_STATUS_CODE.okData(Object.values(core.runningTasks)))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -519,7 +539,8 @@ api.get('/runningTasks', async (request, response) => {
 apiOpen.get('/v1/runningTasks', async (request, response) => {
   try {
     response.send(API_STATUS_CODE.okData(Object.values(core.runningTasks)))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -533,14 +554,16 @@ api.post('/run', async (request, response) => {
     let ids
     if (Array.isArray(id)) {
       ids = id
-    } else {
+    }
+    else {
       ids = [id]
     }
     for (const id of ids) {
       core.runTask(id)
     }
     response.send(API_STATUS_CODE.ok())
-  } catch (e) {
+  }
+  catch (e) {
     logger.error(e)
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -552,7 +575,8 @@ apiOpen.post('/v1/run', async (request, response) => {
     let ids
     if (Array.isArray(id)) {
       ids = id
-    } else {
+    }
+    else {
       ids = [id]
     }
     for (const id of ids) {
@@ -560,7 +584,8 @@ apiOpen.post('/v1/run', async (request, response) => {
     }
     response.send(API_STATUS_CODE.ok())
     logger.info('[OpenAPI · Cron]', '运行定时任务', ids.join(','))
-  } catch (e) {
+  }
+  catch (e) {
     logger.error(e)
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -575,14 +600,16 @@ api.post('/terminate', async (request, response) => {
     let ids
     if (Array.isArray(id)) {
       ids = id
-    } else {
+    }
+    else {
       ids = [id]
     }
     for (const id of ids) {
       core.terminateTask(id)
     }
     response.send(API_STATUS_CODE.ok())
-  } catch (e) {
+  }
+  catch (e) {
     logger.error(e)
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -594,7 +621,8 @@ apiOpen.post('/v1/terminate', async (request, response) => {
     let ids
     if (Array.isArray(id)) {
       ids = id
-    } else {
+    }
+    else {
       ids = [id]
     }
     for (const id of ids) {
@@ -602,7 +630,8 @@ apiOpen.post('/v1/terminate', async (request, response) => {
     }
     response.send(API_STATUS_CODE.ok())
     logger.info('[OpenAPI · Cron]', '终止定时任务', ids.join(','))
-  } catch (e) {
+  }
+  catch (e) {
     logger.error(e)
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
@@ -647,7 +676,8 @@ apiInner.post('/updateAll', async (request, response) => {
             remark: item.remark,
             message: 'success',
           })
-        } catch (e) {
+        }
+        catch (e) {
           infos.push({
             success: false,
             type: 1,
@@ -696,7 +726,8 @@ apiInner.post('/updateAll', async (request, response) => {
             name: task.name,
             message: 'success',
           })
-        } catch (e) {
+        }
+        catch (e) {
           const arr = item.path.split('/')
           const name = arr[arr.length - 1]
           infos.push({
@@ -715,7 +746,8 @@ apiInner.post('/updateAll', async (request, response) => {
       await core.applyCron(createdIds)
     }
     response.send(API_STATUS_CODE.okData(infos))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message || e))
     logger.error('批量更新定时任务失败', e)
   }

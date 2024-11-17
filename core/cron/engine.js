@@ -52,7 +52,8 @@ function validateCronExpression(cronExpression) {
   try {
     // eslint-disable-next-line no-new
     new CronTime(cronExpression)
-  } catch (e) {
+  }
+  catch (e) {
     throw new Error(`定时规则错误：${e.message || e}`)
   }
 }

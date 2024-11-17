@@ -190,7 +190,8 @@ const prisma1 = prisma
               return false
             }
             return await this.delete({ where: { [idName]: this.cleanId(id, idName) }, ...options })
-          } catch (e) {
+          }
+          catch (e) {
             if (e.code === 'P2025') {
               return false
             }

@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require('node:fs')
 const { APP_FILE_PATH } = require('../type')
 
 /**
@@ -18,7 +18,7 @@ function generateEnvSh(group, items) {
       // if (it.description) {
       //   lines.push(`# ${it.description.replace(/\n/g, ' ')}`)
       // }
-      lines.push(`export ${it.type}='${it.value.replace(/'/g, "'\"'\"'")}'`)
+      lines.push(`export ${it.type}='${it.value.replace(/'/g, '\'"\'"\'')}'`)
     })
   group.forEach((g) => {
     if (!g.enable) {
@@ -35,13 +35,15 @@ function generateEnvSh(group, items) {
       it.forEach((item, i) => {
         // lines.push(`# ${i + 1} ${g.remark ? item.remark.replace(/\n/g, ' ') : g.description.replace(/\n/g, ' ')}`)
         if (i === 0) {
-          lines.push(`export ${g.type}='${item.value.replace(/'/g, "'\"'\"'")}'`)
-        } else {
-          lines.push(`export ${g.type}=$\{${g.type}}'${separator}${item.value.replace(/'/g, "'\"'\"'")}'`)
+          lines.push(`export ${g.type}='${item.value.replace(/'/g, '\'"\'"\'')}'`)
+        }
+        else {
+          lines.push(`export ${g.type}=$\{${g.type}}'${separator}${item.value.replace(/'/g, '\'"\'"\'')}'`)
         }
       })
       lines.push('')
-    } else {
+    }
+    else {
       lines.push(`export ${g.type}=''`)
     }
   })

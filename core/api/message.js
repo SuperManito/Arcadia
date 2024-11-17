@@ -45,7 +45,8 @@ api.get('/list', async (request, response) => {
       },
     })
     response.send(API_STATUS_CODE.okData(messages))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
@@ -99,7 +100,8 @@ apiOpen.get('/v1/list', async (request, response) => {
       },
     })
     response.send(API_STATUS_CODE.okData(messages))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
@@ -155,7 +157,8 @@ api.get('/page', async (request, response) => {
       size: request.query.size,
     })
     response.send(API_STATUS_CODE.okData(result))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
@@ -215,7 +218,8 @@ apiOpen.get('/v1/page', async (request, response) => {
       size: request.query.size,
     })
     response.send(API_STATUS_CODE.okData(result))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
@@ -231,7 +235,8 @@ api.get('/detail', async (request, response) => {
       return response.send(API_STATUS_CODE.fail('消息不存在'))
     }
     response.send(API_STATUS_CODE.okData(message))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
@@ -246,7 +251,8 @@ apiOpen.get('/v1/detail', async (request, response) => {
       return response.send(API_STATUS_CODE.fail('消息不存在'))
     }
     response.send(API_STATUS_CODE.okData(message))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
@@ -277,7 +283,8 @@ api.get('/count', async (request, response) => {
 
     const messages = await db.findMany({ where })
     response.send(API_STATUS_CODE.okData(messages.length))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
@@ -310,7 +317,8 @@ apiOpen.get('/v1/count', async (request, response) => {
     }
     const messages = await db.findMany({ where })
     response.send(API_STATUS_CODE.okData(messages.length))
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
@@ -331,7 +339,8 @@ api.put('/status', async (request, response) => {
           status,
         },
       })
-    } else {
+    }
+    else {
       await db.updateMany({
         where: {
           status: { not: status },
@@ -342,7 +351,8 @@ api.put('/status', async (request, response) => {
       })
     }
     response.send(API_STATUS_CODE.ok())
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
@@ -365,7 +375,8 @@ apiOpen.post('/v1/status', async (request, response) => {
           status,
         },
       })
-    } else {
+    }
+    else {
       await db.updateMany({
         where: {
           status: { not: status },
@@ -376,7 +387,8 @@ apiOpen.post('/v1/status', async (request, response) => {
       })
     }
     response.send(API_STATUS_CODE.ok())
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
@@ -389,7 +401,8 @@ api.delete('/delete', async (request, response) => {
     const { ids } = request.body
     await db.$deleteById(ids)
     response.send(API_STATUS_CODE.ok())
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
@@ -402,7 +415,8 @@ apiOpen.post('/v1/delete', async (request, response) => {
     const ids = Array.isArray(id) ? id : [id]
     await db.$deleteById(ids)
     response.send(API_STATUS_CODE.ok())
-  } catch (e) {
+  }
+  catch (e) {
     response.send(API_STATUS_CODE.fail(e.message))
   }
 })
