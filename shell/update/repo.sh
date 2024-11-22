@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-18
+## Modified: 2024-11-22
 
 ## 更新所有仓库
 # update repo
@@ -82,39 +82,20 @@ function update_all_repo() {
 # update <path>
 function update_designated_repo() {
     ## 处理传入路径
-    local input_content format_path pwd_tmp
-    # 去掉最后一个/
-    echo $1 | grep "/$" -q
-    if [ $? -eq 0 ]; then
-        local input_content="${1%?}"
-    else
-        local input_content="$1"
-    fi
-    # 判定传入的是绝对路径还是相对路径
-    echo "${input_content}" | grep "^$RootDir" -q
-    if [ $? -eq 0 ]; then
-        format_path="${input_content}"
-    else
-        # 处理上级目录
-        echo "${input_content}" | grep "\.\./" -q
-        if [ $? -eq 0 ]; then
-            pwd_tmp=$(pwd | sed "s|/$(pwd | awk -F '/' '{printf$NF}')||g")
-            format_path=$(echo "${input_content}" | sed "s|\.\./|${pwd_tmp}/|g")
-        else
-            format_path=$(echo "${input_content}" | sed "s|\.\/||g; s|^*|$(pwd)/|g")
-        fi
-    fi
-
+    local repo_path pwd_tmp
+    local input_content="$1"
+    ## 转换为绝对路径
+    repo_path="$(get_absolute_path "${input_content}")"
     ## 判定是否存在仓库
-    if [ ! -d ${format_path}/.git ]; then
-        if [ -d ${format_path} ]; then
-            output_error "未检测到 ${BLUE}${format_path}${PLAIN} 路径下存在任何仓库，请重新确认！"
+    if [ ! -d ${repo_path}/.git ]; then
+        if [ -d ${repo_path} ]; then
+            output_error "未检测到 ${BLUE}${repo_path}${PLAIN} 路径下存在任何仓库，请重新确认！"
         else
-            output_error "未检测到 ${BLUE}${format_path}${PLAIN} 路径不存在，请重新确认！"
+            output_error "未检测到 ${BLUE}${repo_path}${PLAIN} 路径不存在，请重新确认！"
         fi
     fi
     ## 更新源代码
-    if [[ "${format_path}" = "$RootDir" ]]; then
+    if [[ "${repo_path}" = "$RootDir" ]]; then
         echo -e "\n$WARN 请使用 ${GREEN}${ArcadiaCmd} update${PLAIN} 命令更新项目"
         return
     fi
@@ -136,7 +117,7 @@ function update_designated_repo() {
     local updateTaskList scriptsPath scriptsType whiteList blackList autoDisable addNotify delNotify
     if [[ $RepoSum -ge 1 && ${#Array_Repo_url[*]} -ge 1 ]]; then
         for ((i = 0; i < ${#Array_Repo_url[*]}; i++)); do
-            echo "${Array_Repo_path[i]}" | grep "${format_path}" -q
+            echo "${Array_Repo_path[i]}" | grep "${repo_path}" -q
             if [ $? -eq 0 ]; then
                 is_configured_repo="true"
                 ## 定义配置
@@ -164,7 +145,7 @@ function update_designated_repo() {
     fi
     ## 非配置文件中的仓库
     if [ "${is_configured_repo}" != "true" ]; then
-        git_pull "${format_path}" $(grep "branch" ${format_path}/.git/config | awk -F '\"' '{print$2}')
+        git_pull "${repo_path}" $(grep "branch" ${repo_path}/.git/config | awk -F '\"' '{print$2}')
         if [[ $EXITSTATUS -eq 0 ]]; then
             echo -e "\n$COMPLETE 仓库更新完成"
         else

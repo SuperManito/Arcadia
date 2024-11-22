@@ -33,35 +33,15 @@ function find_script() {
 
     ## 匹配指定路径下的代码文件
     function match_path_file() {
-        local absolute_path tmp_pwd tmp_file_name tmp_file_dir
+        local absolute_path tmp_path tmp_file_name tmp_file_dir
         ## 判定路径格式
         echo $1 | grep "/$" -q
         if [ $? -eq 0 ]; then
             output_error "请输入正确的代码文件路径！"
         fi
-        ## 判定传入的是绝对路径还是相对路径
-        echo ${input_content} | grep "^$RootDir" -q
-        if [ $? -eq 0 ]; then
-            absolute_path=${input_content}
-        else
-            echo ${input_content} | grep "\.\./" -q
-            if [ $? -eq 0 ]; then
-                tmp_pwd=$(pwd | sed "s|/$(pwd | awk -F '/' '{printf$NF}')||g")
-                absolute_path=$(echo "${input_content}" | sed "s|\.\./|${tmp_pwd}/|g")
-            else
-                local tmp_dir_name=$(echo ${input_content} | awk -F '/' '{printf$1}')
-                if [ -d "$RepoDir/$tmp_dir_name" ]; then
-                    absolute_path=$(echo "${input_content}" | sed "s|^|$RepoDir/|g")
-                else
-                    if [[ $(pwd) == "/root" ]]; then
-                        absolute_path=$(echo "${input_content}" | sed "s|\.\/||g; s|^|$RootDir/|g")
-                    else
-                        absolute_path=$(echo "${input_content}" | sed "s|\.\/||g; s|^|$(pwd)/|g")
-                    fi
-                fi
-            fi
-            echo ${input_content} | grep "\.\./" -q
-        fi
+        ## 转换为绝对路径
+        tmp_path="$(get_absolute_path "${input_content}")"
+        absolute_path="${tmp_path:-"${input_content}"}"
         ## 判定传入是否含有后缀格式
         tmp_file_name=${absolute_path##*/}
         tmp_file_dir=${absolute_path%/*}
@@ -107,7 +87,7 @@ function find_script() {
             fi
             make_dir "${LogPath}"
         else
-            output_error "在 ${BLUE}${absolute_path%/*}${PLAIN} 目录未检测到 ${BLUE}${absolute_path##*/}${PLAIN} 代码文件的存在，请重新确认！"
+            output_error "在 ${BLUE}${absolute_path%/*}${PLAIN} 目录下未检测到 ${BLUE}${absolute_path##*/}${PLAIN} 代码文件的存在，请重新确认！"
         fi
     }
 
