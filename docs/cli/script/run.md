@@ -32,7 +32,8 @@ import APITable from '@site/src/components/APITable';
     -R, --recombine-env-group   分组运行，为每组变量单独运行，是变量重组的扩展，传参基本一致，其中重组表达式内用 "@" 来区分不同组
     -S, --split-env             拆分运行，将复合变量的值拆分后为每个值声明变量并单独运行代码文件，选项后需跟需要拆分的变量名称、分隔符
 
-    -B，--use-bun               使用 Bun 作为 JavaScript 和 TypeScript 的运行时环境，替代默认的 Node.js 和 ts-node
+    --deno，--use-deno          使用 Deno 作为 JavaScript 和 TypeScript 的默认运行时环境
+    --bun，--use-bun            使用 Bun 作为 JavaScript 和 TypeScript 的默认运行时环境
 
   命令帮助：
 
@@ -80,7 +81,7 @@ arcadia run <name/path/url> [--options]
 
 这部分内容与项目命令无关，用于解决代码文件运行时缺少第三方依赖库报错的问题，具体详见 [运行环境](/docs/start/environment) 文档
 
-## 命令选项（高级用法）
+## 命令选项
 
 使用方法：追加在命令的末尾，熟练后可以使用简写  
 一个高级的应用程序CLI指令往往有着复杂的命令选项设计，这可能是一个漫长的学习过程~
@@ -103,7 +104,8 @@ arcadia run <name/path/url> [--options]
 | `-r`, `--recombine-env`        | 变量重组 | 是 | 按照指定顺序重新组合复合变量的值，选项后需跟变量名称、分隔符、重组表达式。表达式语法：多个值用 `,` 隔开，值区间用 `-` 连接，可以用 `%` 表示值的总数 |
 | `-R`, `--recombine-env-group`  | 分组运行 | 是 | 基于变量重组功能上的扩展应用，为每组变量单独运行代码文件，传参与变量重组功能基本一致，其中重组表达式内用 `@` 来区分不同组 |
 | `-S`, `--split-env`            | 拆分运行 | 是 | 将复合变量的值拆分后为每个值声明变量并单独运行代码文件，选项后需跟需要拆分的变量名称、分隔符 |
-| `-B`, `--use-bun`            | [Bun](https://bun.sh) | 否 | 使用 Bun 作为 JavaScript 和 TypeScript 的运行时环境，替代默认的 Node.js 和 ts-node |
+| `--deno`, `--use-deno`            | [Deno](https://deno.com) | 否 | 使用 Deno 作为 JavaScript 和 TypeScript 的默认运行时环境，替代 Node.js 和 ts-node |
+| `--bun`, `--use-bun`            | [Bun](https://bun.sh) | 否 | 使用 Bun 作为 JavaScript 和 TypeScript 的默认运行时环境，替代 Node.js 和 ts-node |
 
 </APITable>
 

@@ -37,13 +37,40 @@ import Link from '@docusaurus/Link'
       ```bash
       npm install -g typescript ts-node
       ```
-      > **ts-node** 是项目当前运行 `.ts` 代码文件的默认引擎，因为 Node.js 对于运行 TypeScript 文件的功能仍处在试验阶段，另外你也可以使用 **Bun**。
+      > **ts-node** 是项目当前运行 `.ts` 代码文件的默认引擎，因为 Node.js 对于运行 TypeScript 文件的功能仍处在试验阶段，另外你也可以使用 **Deno** 或 **Bun**。
 
       <Link className="button button--secondary" href="https://typestrong.org/ts-node">ts-node 官网</Link>
 
       </TabItem>
 
+      <TabItem value="deno" label="Deno">
+
+      [Deno](https://deno.com) 是一个现代的 JavaScript 和 TypeScript 运行时环境，可以替代默认的 Node.js 和 ts-node，特点是安全性高、运行速度快。默认采用沙盒机制，禁止脚本程序访问文件系统、网络和环境变量等敏感操作，除非显式授予权限。
+
+      :::warning
+      Deno 不完全兼容 Node.js API，一般无法直接运行 Node.js 项目。  
+      由于沙盒下的默认权限不能满足项目基本需求，因此使用 Deno 时会默认赋予一些权限，具体如下：
+      - ##### 环境变量：允许全部
+      - ##### 文件系统：仅允许读/写代码文件所在目录和其下级目录。
+      - ##### 网络访问：允许联网，但禁止访问本机
+      :::
+
+      ```bash
+      # 建议分步执行以下命令
+      apt-get update && apt-get install -y unzip
+      curl -fsSL https://deno.land/install.sh | sh # 失败时请自行解决网络环境等问题
+      bash
+      ln -sf $(which deno) /usr/local/bin/deno
+      ```
+      > 建议采用官方默认提供的安装方法，另外如果你通过其它方法安装那么需要在处理 `PATH` 时设置 `/usr/local/bin` 的软链接（参考最后一行示例命令）
+
+      <Link className="button button--secondary" href="https://deno.com">Deno 官网</Link>
+
+      </TabItem>
+
       <TabItem value="bun" label="Bun">
+
+      [Bun](https://bun.sh) 是一个现代的 JavaScript 和 TypeScript 运行时环境，可以替代默认的 Node.js 和 ts-node，特点是速度快、与 Node.js 的API兼容性高。
 
       ```bash
       # 建议分步执行以下命令
@@ -52,8 +79,7 @@ import Link from '@docusaurus/Link'
       bash
       ln -sf $(which bun) /usr/local/bin/bun
       ```
-      > [Bun](https://bun.sh) 是一个 JavaScript 运行时环境，可以替代默认的 Node.js 和 ts-node，以速度快、性能高著称  
-      > 建议采用官方默认提供的安装方法，另外如果你通过其它方法安装那么需要在处理 `PATH` 时设置 `/usr/local/bin` 的软链接
+      > 建议采用官方默认提供的安装方法，另外如果你通过其它方法安装那么需要在处理 `PATH` 时设置 `/usr/local/bin` 的软链接（参考最后一行示例命令）
 
       <Link className="button button--secondary" href="https://bun.sh">Bun 官网</Link>
 
