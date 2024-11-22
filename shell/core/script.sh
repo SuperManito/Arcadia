@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-10-12
+## Modified: 2024-11-22
 
 ## 查找代码文件
 # 通过各种判断将得到的必要信息传给接下来运行的函数或命令
@@ -23,7 +23,7 @@ function find_script() {
 
     # 传入内容
     local input_content=$1
-    # 支持的代码文件类型
+    # 支持的代码文件类型后缀
     local supported_file_types=("js" "mjs" "cjs" "py" "ts" "go" "lua" "rb" "rs" "pl" "c" "sh")
     # 支持的代码文件类型名称
     local supported_file_type_names=("JavaScript" "JavaScript" "JavaScript" "Python" "TypeScript" "Go" "Lua" "Ruby" "Rust" "Perl" "C" "Shell")
@@ -161,7 +161,7 @@ function find_script() {
             ## 定义日志路径
             LogPath="$LogDir/${FileName}"
         else
-            output_error "在 ${BLUE}$ScriptsDir${PLAIN} 根目录以及 ${BLUE}./backUp${PLAIN} ${BLUE}./utils${PLAIN} 二个子目录下均未检测到 ${BLUE}${input_content}${PLAIN} 代码文件的存在，请重新确认！"
+            output_error "在 ${BLUE}$ScriptsDir${PLAIN} 目录下未检测到 ${BLUE}${input_content}${PLAIN} 代码文件的存在，请重新确认！"
         fi
     }
 
@@ -269,26 +269,35 @@ function find_script() {
     ## 检测代码文件运行环境
     case "${FileType}" in
     "JavaScript")
-        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-            if [[ -z "$(command -v bun)" ]]; then
-                output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
+        if [[ "${RUN_OPTION_USE_DENO}" == "true" || "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+            if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
+                if [[ -z "$(command -v deno)" ]]; then
+                    output_error "当前未安装 ${BLUE}Deno${PLAIN} 运行环境！"
+                fi
+            fi
+            if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+                if [[ -z "$(command -v bun)" ]]; then
+                    output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
+                fi
             fi
         fi
         ;;
     "TypeScript")
-        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-            if [[ -z "$(command -v bun)" ]]; then
-                output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
+        if [[ "${RUN_OPTION_USE_DENO}" == "true" || "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+            if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
+                if [[ -z "$(command -v deno)" ]]; then
+                    output_error "当前未安装 ${BLUE}Deno${PLAIN} 运行环境！"
+                fi
+            fi
+            if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+                if [[ -z "$(command -v bun)" ]]; then
+                    output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
+                fi
             fi
         else
             if [[ -z "$(command -v ts-node)" ]]; then
-                output_error "当前未安装 ${BLUE}TypeScript${PLAIN} 运行环境！"
+                output_error "当前未安装 ${BLUE}TypeScript（ts-node）${PLAIN} 运行环境！"
             fi
-        fi
-        ;;
-    "Python")
-        if [[ -z "$(command -v python3)" ]]; then
-            output_error "当前未安装 ${BLUE}Python 3${PLAIN} 运行环境！"
         fi
         ;;
     "Python")

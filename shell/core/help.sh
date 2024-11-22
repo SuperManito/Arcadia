@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-10-11
+## Modified: 2024-11-22
 
 function _print_help_title() {
   if [ "$1" ]; then
@@ -106,7 +106,8 @@ function _print_help_run() {
     ${BLUE}-R${PLAIN}, ${BLUE}--recombine-env-group${PLAIN}   分组运行，为每组变量单独运行，是变量重组的扩展，传参基本一致，其中重组表达式内用 \"@\" 来区分不同组
     ${BLUE}-S${PLAIN}, ${BLUE}--split-env${PLAIN}             拆分运行，将复合变量的值拆分后为每个值声明变量并单独运行代码文件，选项后需跟需要拆分的变量名称、分隔符
 
-    ${BLUE}-B${PLAIN}，${BLUE}--use-bun${PLAIN}               使用 Bun 作为 JavaScript 和 TypeScript 的运行时环境，替代默认的 Node.js 和 ts-node
+    ${BLUE}--deno${PLAIN}，${BLUE}--use-deno${PLAIN}          使用 Deno 作为 JavaScript 和 TypeScript 的默认运行时环境
+    ${BLUE}--bun${PLAIN}，${BLUE}--use-bun${PLAIN}            使用 Bun 作为 JavaScript 和 TypeScript 的默认运行时环境
 
   命令帮助：
 
