@@ -96,7 +96,7 @@ function _print_help_run() {
     ${BLUE}-D${PLAIN}, ${BLUE}--delay${PLAIN}                 延迟执行，随机倒数一定秒数后再执行代码文件
     ${BLUE}-d${PLAIN}, ${BLUE}--daemon${PLAIN}                守护进程，将代码文件设置为守护进程保持在后台运行，期间中断或结束会自动重新运行
     ${BLUE}-a${PLAIN}, ${BLUE}--agent${PLAIN}                 网络代理，使代码文件通过 HTTP/HTTPS 全局代理进行网络请求，仅支持 Node.js 和 TypeScript 脚本
-    ${BLUE}-T${PLAIN}, ${BLUE}--timeout${PLAIN}               运行超时，设置运行任务超时机制，选项后需跟 timeout 命令选项
+    ${BLUE}-T${PLAIN}, ${BLUE}--timeout${PLAIN}               运行超时，设置运行任务超时机制，选项后需跟 timeout 指令的参数作为选项值
     ${BLUE}-N${PLAIN}, ${BLUE}--no-log${PLAIN}                忽略日志，不存储代码运行日志到本地
     ${BLUE}-p${PLAIN}, ${BLUE}--proxy${PLAIN}                 下载代理，仅适用于执行位于 GitHub 仓库的代码文件，代理固定为 jsDelivr CDN
     ${BLUE}-c${PLAIN}, ${BLUE}--concurrent${PLAIN}            并发运行，默认运行1个任务，若想增加运行任务数量那么请传参任务数量

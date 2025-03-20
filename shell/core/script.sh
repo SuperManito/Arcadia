@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-11-22
+## Modified: 2025-03-20
 
 ## 查找代码文件
 # 通过各种判断将得到的必要信息传给接下来运行的函数或命令
@@ -251,12 +251,12 @@ function find_script() {
     "JavaScript")
         if [[ "${RUN_OPTION_USE_DENO}" == "true" || "${RUN_OPTION_USE_BUN}" == "true" ]]; then
             if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
-                if [[ -z "$(command -v deno)" ]]; then
+                if ! command -v deno &>/dev/null; then
                     output_error "当前未安装 ${BLUE}Deno${PLAIN} 运行环境！"
                 fi
             fi
             if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-                if [[ -z "$(command -v bun)" ]]; then
+                if ! command -v bun &>/dev/null; then
                     output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
                 fi
             fi
@@ -265,54 +265,54 @@ function find_script() {
     "TypeScript")
         if [[ "${RUN_OPTION_USE_DENO}" == "true" || "${RUN_OPTION_USE_BUN}" == "true" ]]; then
             if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
-                if [[ -z "$(command -v deno)" ]]; then
+                if ! command -v deno &>/dev/null; then
                     output_error "当前未安装 ${BLUE}Deno${PLAIN} 运行环境！"
                 fi
             fi
             if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-                if [[ -z "$(command -v bun)" ]]; then
+                if ! command -v bun &>/dev/null; then
                     output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
                 fi
             fi
         else
-            if [[ -z "$(command -v ts-node)" ]]; then
+            if ! command -v ts-node &>/dev/null; then
                 output_error "当前未安装 ${BLUE}TypeScript（ts-node）${PLAIN} 运行环境！"
             fi
         fi
         ;;
     "Python")
-        if [[ -z "$(command -v python3)" ]]; then
+        if ! command -v python3 &>/dev/null; then
             output_error "当前未安装 ${BLUE}Python 3${PLAIN} 运行环境！"
         fi
         ;;
     "Go")
-        if [[ -z "$(command -v go)" ]]; then
+        if ! command -v go &>/dev/null; then
             output_error "当前未安装 ${BLUE}Go${PLAIN} 运行环境！"
         fi
         ;;
     "Lua")
-        if [[ -z "$(command -v lua)" ]]; then
+        if ! command -v lua &>/dev/null; then
             output_error "当前未安装 ${BLUE}Lua${PLAIN} 运行环境！"
         fi
         ;;
     "Ruby")
-        if [[ -z "$(command -v ruby)" ]]; then
+        if ! command -v ruby &>/dev/null; then
             output_error "当前未安装 ${BLUE}Ruby${PLAIN} 运行环境！"
         fi
         ;;
     "Rust")
-        if [[ -z "$(command -v rustc)" || -z "$(command -v cargo)" ]]; then
+        if ! command -v rustc &>/dev/null || ! command -v cargo &>/dev/null; then
             output_error "当前未安装 ${BLUE}Rust${PLAIN} 运行环境！"
         fi
         ;;
     "C")
-        if [[ -z "$(command -v gcc)" ]]; then
+        if ! command -v gcc &>/dev/null; then
             output_error "当前未安装 ${BLUE}C${PLAIN} 运行环境！"
         fi
         ;;
     esac
     # "Perl")
-    #     if [[ -z "$(command -v perl)" ]]; then
+    #     if ! command -v perl &>/dev/null; then
     #         output_error "当前未安装 ${BLUE}Perl${PLAIN} 运行环境！"
     #     fi
     #     ;;
