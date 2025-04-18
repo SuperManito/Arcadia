@@ -118,9 +118,7 @@ api.get('/page', async (request, response) => {
 
 api.get('/pageItem', async (request, response) => {
   try {
-    const enable = typeof request.query.enable === 'string'
-      ? (request.query.enable as string).split(',')
-      : []
+    const enable = request.query.enable ? (request.query.enable as string).split(',') : []
     const where: WhereInput['envs'] = {}
     const or: WhereInput['envs']['OR'] = []
     // 启用/禁用状态过滤
