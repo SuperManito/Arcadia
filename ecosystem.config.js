@@ -2,11 +2,12 @@ module.exports = {
   apps: [
     {
       name: 'arcadia_server',
-      script: 'npm run dev',
+      cwd: 'backend',
+      script: 'npm',
+      args: 'run server',
       watch: true,
-      // Delay between restart
       watch_delay: 2000,
-      ignore_watch: ['node_modules', '.git', 'public', 'sessions', 'logs', 'prisma_push.log'],
+      ignore_watch: ['node_modules', 'logs', 'log', '*.log', '*.md', '*.txt', '.git', 'public', 'sessions', '.vscode'],
       log_date_format: 'YYYY-MM-DD HH:mm:ss',
       watch_options: {
         followSymlinks: false,
@@ -14,11 +15,12 @@ module.exports = {
     },
     {
       name: 'arcadia_inner',
-      script: './inner_server.js',
+      cwd: 'backend',
+      script: 'npm',
+      args: 'run inner_server',
       watch: true,
-      // Delay between restart
       watch_delay: 2000,
-      ignore_watch: ['node_modules', '.git', 'public', 'sessions', 'logs', 'prisma_push.log'],
+      ignore_watch: ['node_modules', 'logs', 'log', '*.log', '*.md', '*.txt', '.git', 'public', 'sessions', '.vscode'],
       log_date_format: 'YYYY-MM-DD HH:mm:ss',
       watch_options: {
         followSymlinks: false,

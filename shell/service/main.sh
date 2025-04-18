@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-27
+## Modified: 2025-04-18
 
 ## 后端服务控制
 # service start/restart/stop/info/respwd
@@ -21,6 +21,12 @@ function service_manage() {
             -t macOptionIsMeta=true \
             -t macOptionClickForcesSelection=true \
             bash
+    }
+
+    ## 安装后端依赖
+    function install_dependencies() {
+        cd $BackendDir
+        npm install --omit=dev
     }
 
     local ServiceStatus
@@ -53,8 +59,8 @@ function service_manage() {
                 echo -e "\n$WARN 检测到服务状态异常，开始尝试修复...\n"
                 pm2 delete arcadia_server
                 pm2 delete arcadia_inner >/dev/null 2>&1
+                install_dependencies
                 cd $SrcDir
-                npm install --omit=dev
                 pm2 start ecosystem.config.js && sleep 3
                 pm2_list_all_services
                 local ServiceNewStatus=$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')
@@ -66,8 +72,8 @@ function service_manage() {
                 ;;
             esac
         else
+            install_dependencies
             cd $SrcDir
-            npm install --omit=dev
             pm2 start ecosystem.config.js && sleep 1
             pm2_list_all_services
             local ServiceStatus=$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')

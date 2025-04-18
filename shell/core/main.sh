@@ -1,9 +1,10 @@
 #!/bin/bash
-## Modified: 2024-11-22
+## Modified: 2025-04-18
 
 ## 目录
 RootDir=${ARCADIA_DIR}
 SrcDir=$RootDir/src
+BackendDir=$SrcDir/backend
 ShellDir=$SrcDir/shell
 SampleDir=$SrcDir/sample
 UtilsDir=$SrcDir/utils
