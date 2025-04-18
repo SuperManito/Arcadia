@@ -113,12 +113,10 @@ const extension = Prisma.defineExtension((client) => {
               return obj
             }, {} as Record<string, any>)
         },
-
         clean1(o: any) {
           const self = this as unknown as ExtensionThis
           if (!o)
             return o
-
           const field = ['AND', 'OR', 'NOT', ...Object.keys(self.fields)]
           return Object.keys(o)
             .filter(key => field.includes(key))
@@ -129,7 +127,6 @@ const extension = Prisma.defineExtension((client) => {
               return obj
             }, {} as Record<string, any>)
         },
-
         cleanId(o: any, name: string) {
           const self = this as unknown as ExtensionThis
           if (!o) {
@@ -151,27 +148,27 @@ const extension = Prisma.defineExtension((client) => {
         async create<T extends Prisma.ModelName>(o: any) {
           const self = this as unknown as ExtensionThis
           o.data = self.clean(o.data)
-          return await self.create(o) as ReturnType<PrismaDelegate<T>['create']>
+          return await (client[self.name] as any).create(o) as ReturnType<PrismaDelegate<T>['create']>
         },
         async $create<T extends Prisma.ModelName>(o: any, options = {}) {
           const self = this as unknown as ExtensionThis
           o = self.clean(o)
-          return await self.create({ data: o, ...options }) as ReturnType<PrismaDelegate<T>['create']>
+          return await (client[self.name] as any).create({ data: o, ...options }) as ReturnType<PrismaDelegate<T>['create']>
         },
         async createMany<T extends Prisma.ModelName>(o: any) {
           const self = this as unknown as ExtensionThis
           o.data = o.data.map((record: any) => self.clean(record))
-          return await self.createMany(o) as ReturnType<PrismaDelegate<T>['createMany']>
+          return await (client[self.name] as any).createMany(o) as ReturnType<PrismaDelegate<T>['createMany']>
         },
         async $createMany<T extends Prisma.ModelName>(o: any, options = {}) {
           const self = this as unknown as ExtensionThis
           o = o.map((record: any) => self.clean(record))
-          return await self.createMany({ data: o, ...options }) as ReturnType<PrismaDelegate<T>['createMany']>
+          return await (client[self.name] as any).createMany({ data: o, ...options }) as ReturnType<PrismaDelegate<T>['createMany']>
         },
         async update<T extends Prisma.ModelName>(o: any) {
           const self = this as unknown as ExtensionThis
           o.data = self.clean(o.data)
-          return await self.update(o) as ReturnType<PrismaDelegate<T>['update']>
+          return await (client[self.name] as any).update(o) as ReturnType<PrismaDelegate<T>['update']>
         },
         async $updateById<T extends Prisma.ModelName>(o: any, idName = 'id', options = {}) {
           const self = this as unknown as ExtensionThis
@@ -180,7 +177,7 @@ const extension = Prisma.defineExtension((client) => {
             throw new Error('id不能为空')
           }
           o.data = self.clean(o.data)
-          return await self.update({
+          return await (client[self.name] as any).update({
             where: { [idName]: id },
             data: o.data,
             ...options,
@@ -189,7 +186,7 @@ const extension = Prisma.defineExtension((client) => {
         async updateMany<T extends Prisma.ModelName>(o: any) {
           const self = this as unknown as ExtensionThis
           o.data = o.data.map((record: any) => self.clean(record))
-          return await self.updateMany(o) as ReturnType<PrismaDelegate<T>['updateMany']>
+          return await (client[self.name] as any).updateMany(o) as ReturnType<PrismaDelegate<T>['updateMany']>
         },
         async $updateMany<T extends Prisma.ModelName>(
           o: any,
@@ -197,7 +194,7 @@ const extension = Prisma.defineExtension((client) => {
         ) {
           const self = this as unknown as ExtensionThis
           o.data = o.data.map((record: any) => self.clean(record))
-          return await self.updateMany({ o, ...options }) as ReturnType<PrismaDelegate<T>['updateMany']>
+          return await (client[self.name] as any).updateMany({ o, ...options }) as ReturnType<PrismaDelegate<T>['updateMany']>
         },
         async upsert<T extends Prisma.ModelName>(o: any) {
           const self = this as unknown as ExtensionThis
@@ -210,7 +207,7 @@ const extension = Prisma.defineExtension((client) => {
           o.create = self.clean(o.data)
           o.update = o.create
           delete o.data
-          return await self.upsert(o) as ReturnType<PrismaDelegate<T>['upsert']>
+          return await (client[self.name] as any).upsert(o) as ReturnType<PrismaDelegate<T>['upsert']>
         },
         async $upsertById<T extends Prisma.ModelName>(o: any, idName = 'id', options = {}) {
           const self = this as unknown as ExtensionThis
@@ -218,7 +215,7 @@ const extension = Prisma.defineExtension((client) => {
           if (id === undefined || id === null || id === '') {
             return await self.$create(o, options) as ReturnType<PrismaDelegate<T>['create']>
           }
-          return await self.upsert({
+          return await (client[self.name] as any).upsert({
             where: { [idName]: id },
             create: o,
             update: o,
