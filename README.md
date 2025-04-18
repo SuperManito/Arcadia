@@ -4,8 +4,10 @@
     </a>
 </p>
 
-<p align="center">
-    Arcadia 一站式代码运维平台
+<p align="center" style="font-size: 1.5em;">
+    <strong>
+        一站式代码运维平台
+    </strong>
 </p>
 
 <p align="center">

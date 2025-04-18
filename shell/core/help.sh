@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-11-22
+## Modified: 2025-04-19
 
 function _print_help_title() {
   if [ "$1" ]; then
@@ -48,7 +48,7 @@ function _print_help_service() {
   子命令：
 
     ${BLUE}start${PLAIN}    开启或重启
-    ${BLUE}stop${PLAIN}     停止（项目依赖后端长期运行，请不要长期关闭）
+    ${BLUE}stop${PLAIN}     停止（项目依赖后端持续运行，请不要长时间关闭）
     ${BLUE}status${PLAIN}   查看各服务状态
     ${BLUE}info${PLAIN}     查看登录信息
     ${BLUE}respwd${PLAIN}   重置密码
