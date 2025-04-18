@@ -6,13 +6,12 @@ import { expressjwt } from 'express-jwt'
 import type { VerifyCallback } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
 import bodyParser from 'body-parser'
-import path from 'node:path'
 import { legacyCreateProxyMiddleware } from 'http-proxy-middleware'
 
 import { isNotEmpty, randomString } from '../utils'
 import { API_STATUS_CODE } from '../http'
 import { getJsonFile, saveNewConf } from '../file'
-import { APP_FILE_TYPE } from '../type'
+import { APP_FILE_TYPE, APP_PUBLIC_DIR } from '../type'
 import { OpenAPIAuthentication, OpenAPIExtra } from '../api/open'
 import { API as ApiFile, OpenAPI as OpenApiFile } from '../api/file'
 import { API as ApiEnv, OpenAPI as OpenApiEnv } from '../api/env'
@@ -101,7 +100,7 @@ export function registerApp() {
   })
 
   // 设置静态文件目录（前端）
-  app.use(express.static(path.join(__dirname, 'public')))
+  app.use(express.static(APP_PUBLIC_DIR))
 
   /**
    * ttyd 服务映射（需要JWT认证）
