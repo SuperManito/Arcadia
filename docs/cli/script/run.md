@@ -96,7 +96,7 @@ arcadia run <name/path/url> [--options]
 | `-D`, `--delay`                | 延迟执行 | 否 | 随机倒数一定秒数后再运行代码文件，该秒数上限可以在配置文件中定义 |
 | `-d`, `--daemon`               | 守护进程 | 否 | 通过 [PM2](https://pm2.keymetrics.io) 将代码文件设置为守护进程保持在后台运行，期间中断或结束会自动重新运行 |
 | `-a`, `--agent`                | 网络代理 | 否 | 使代码文件通过 HTTP/HTTPS 全局代理进行网络请求，目前仅支持 Node.js 和 TypeScript 脚本，使用该功能需要自行在配置文件对应处定义代理地址变量 |
-| `-T`, `--timeout`              | 运行超时 | 是 | 设置运行任务超时机制，选项后需跟 [timeout](https://www.coonote.com/linux/linux-cmd-timeout.html) 命令选项作为选项值 |
+| `-T`, `--timeout`              | 运行超时 | 是 | 设置运行任务超时机制，选项后需跟 [timeout](https://www.coonote.com/linux/linux-cmd-timeout.html) 指令的参数作为选项值 |
 | `-N`, `--no-log`               | 忽略日志 | 否 | 不存储代码运行日志到本地 |
 | `-p`, `--proxy`                | 下载代理 | 否 | 仅适用于执行位于 GitHub 仓库的远程文件，该代理固定为 [jsDelivr](https://www.jsdelivr.com/?docs=gh) 公共 CDN 加速代理 |
 | `-c`, `--concurrent`           | 并发运行 | 否 | 默认运行1个任务，若想增加运行任务数量那么请传参 _任务数量(正整数)_ |
