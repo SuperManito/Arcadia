@@ -26,7 +26,8 @@ interface Props {
 function getRowName (node: ReactElement): string {
   let curNode: ReactNode = node
   while (isValidElement(curNode)) {
-    [curNode] = React.Children.toArray(curNode.props.children as ReactNode)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    [curNode] = React.Children.toArray((curNode as any).props.children)
   }
   if (typeof curNode !== 'string') {
     throw new Error(
@@ -58,9 +59,12 @@ function APITableRow (
       tabIndex={0}
       ref={history.location.hash === anchor ? ref : undefined}
       onClick={(e) => {
-        const isLinkClick =
-          (e.target as HTMLElement).tagName.toUpperCase() === 'A'
-        if (!isLinkClick) {
+        const isTDClick =
+          (e.target as HTMLElement).tagName.toUpperCase() === 'TD'
+        const hasSelectedText = !!window.getSelection()?.toString()
+
+        const shouldNavigate = isTDClick && !hasSelectedText
+        if (shouldNavigate) {
           history.push(anchor)
         }
       }}
@@ -81,7 +85,7 @@ const APITableRowComp = React.forwardRef(APITableRow)
  * assumptions about how the children looks; however, those assumptions
  * should be generally correct in the MDX context.
  */
-export default function APITable ({ children, name }: Props): JSX.Element {
+export default function APITable ({ children, name }: Props): ReactNode {
   if (children.type !== 'table') {
     throw new Error(
       'Bad usage of APITable component.\nIt is probably that your Markdown table is malformed.\nMake sure to double-check you have the appropriate number of columns for each table row.',
@@ -96,7 +100,8 @@ export default function APITable ({ children, name }: Props): JSX.Element {
     highlightedRow.current?.focus()
   }, [highlightedRow])
   const rows = React.Children.map(
-    tbody.props.children,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    (tbody as any).props.children,
     (row: ReactElement<ComponentProps<'tr'>>) => (
       <APITableRowComp name={name} ref={highlightedRow}>
         {row}

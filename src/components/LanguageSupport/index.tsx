@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { useWindowSize } from '@docusaurus/theme-common'
 import Link from '@docusaurus/Link'
-import cn from '../lib/utils'
-import { motion } from 'framer-motion'
+import { cn } from '../lib/utils'
+import { motion } from 'motion/react'
 import { Icon } from '@iconify/react'
 
 const TypewriterEffect = ({

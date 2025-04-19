@@ -63,8 +63,8 @@ export default function Footer () {
         <div className="text--center">
           <div className="margin-bottom--sm">
             <img
-              className="footer__logo h-10 mt-2 mb-10 lg:mt-10 lg:mb-10"
-              alt="Meta Open Source Logo"
+              className="footer__logo h-10 mt-2 mb-10 lg:mt-10 lg:mb-10 m-auto"
+              alt="Arcadia Logo"
               src={logo} />
           </div>
           Copyright © {new Date().getFullYear()} SuperManito

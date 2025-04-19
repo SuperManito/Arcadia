@@ -1,8 +1,8 @@
 import React from 'react'
 import Layout from '@theme/Layout'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
-import { useMotionValue, motion, useMotionTemplate } from 'framer-motion'
-import cn from '../components/lib/utils'
+import { useMotionValue, motion, useMotionTemplate } from 'motion/react'
+import { cn } from '../components/lib/utils'
 import Hero from '../components/Hero'
 import Preview from '../components/Preview'
 import Features from '../components/Features'
@@ -20,6 +20,15 @@ function HeroHighlightBackground ({
 }) {
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
+
+  const dotPatterns = {
+    light: {
+      hover: 'url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 32 32\' width=\'16\' height=\'16\' fill=\'none\'%3E%3Ccircle fill=\'%236366f1\' id=\'pattern-circle\' cx=\'10\' cy=\'10\' r=\'2.5\'%3E%3C/circle%3E%3C/svg%3E")',
+    },
+    dark: {
+      hover: 'url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 32 32\' width=\'16\' height=\'16\' fill=\'none\'%3E%3Ccircle fill=\'%238183f4\' id=\'pattern-circle\' cx=\'10\' cy=\'10\' r=\'2.5\'%3E%3C/circle%3E%3C/svg%3E")',
+    },
+  }
 
   function handleMouseMove ({
     currentTarget,
@@ -40,10 +49,36 @@ function HeroHighlightBackground ({
       )}
       onMouseMove={handleMouseMove}
     >
-      <div className="absolute inset-0 bg-dot-thick-neutral-100 dark:bg-dot-thick-neutral-900  pointer-events-none" />
+      <div
+        className="pointer-events-none absolute inset-0 dark:hidden"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 hidden dark:block"
+      />
       <motion.div
-        className="pointer-events-none bg-dot-thick-indigo-500 dark:bg-dot-thick-indigo-500   absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100"
+        className="pointer-events-none absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100 dark:hidden"
         style={{
+          backgroundImage: dotPatterns.light.hover,
+          WebkitMaskImage: useMotionTemplate`
+            radial-gradient(
+              200px circle at ${mouseX}px ${mouseY}px,
+              black 0%,
+              transparent 100%
+            )
+          `,
+          maskImage: useMotionTemplate`
+            radial-gradient(
+              200px circle at ${mouseX}px ${mouseY}px,
+              black 0%,
+              transparent 100%
+            )
+          `,
+        }}
+      />
+      <motion.div
+        className="pointer-events-none absolute inset-0 hidden opacity-0 transition duration-300 group-hover:opacity-100 dark:block"
+        style={{
+          backgroundImage: dotPatterns.dark.hover,
           WebkitMaskImage: useMotionTemplate`
             radial-gradient(
               200px circle at ${mouseX}px ${mouseY}px,
