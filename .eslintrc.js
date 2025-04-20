@@ -30,5 +30,6 @@ module.exports = {
     '@typescript-eslint/strict-boolean-expressions': 'off',
     '@docusaurus/no-untranslated-text': 'off',
     '@typescript-eslint/prefer-nullish-coalescing': 'off',
+    'import/no-absolute-path': 'off',
   },
 }

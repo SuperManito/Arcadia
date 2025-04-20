@@ -1,6 +1,6 @@
 import React, { type ComponentPropsWithoutRef, type CSSProperties, useEffect, useRef, useState } from 'react'
-import { cn } from '../lib/utils'
-import { IconCloud } from '../IconCloud'
+import cn from '../lib/utils'
+import IconCloud from '../IconCloud'
 import { motion } from 'motion/react'
 
 interface RippleProps extends ComponentPropsWithoutRef<'div'> {
@@ -59,7 +59,7 @@ export const Ripple = React.memo(function Ripple ({
 })
 
 Ripple.displayName = 'Ripple'
-export function FeaturesSub () {
+export default function FeaturesSub () {
   const containerRef = useRef(null)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [scrollY, setScrollY] = useState(0)
@@ -178,9 +178,12 @@ export function FeaturesSub () {
           right: 0;
           bottom: 0;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(255, 225, 60, 0.15) 0%, rgba(255, 215, 0, 0) 70%);
+          background: radial-gradient(circle, rgba(255, 65, 60, 0.15) 0%, rgba(255, 125, 0, 0) 70%);
           z-index: 1;
           animation: pulse 2s infinite;
+        }
+        [data-theme='dark'] .lightning::after {
+          background: radial-gradient(circle, rgba(255, 225, 60, 0.15) 0%, rgba(255, 215, 0, 0) 70%);
         }
         .lightning-svg {
           width: 80px;
@@ -190,8 +193,11 @@ export function FeaturesSub () {
           filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
         }
         .lightning-path {
-          color: #FFD700;
+          color: #FFAF00;
           animation: glow 2s infinite;
+        }
+        [data-theme='dark'] .lightning-path {
+          color: #FFD700;
         }
         @keyframes glow {
           0%, 100% {

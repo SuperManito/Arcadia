@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { useWindowSize } from '@docusaurus/theme-common'
 import Link from '@docusaurus/Link'
-import { cn } from '../lib/utils'
-import { BlurFade } from '../BlurFade'
+import cn from '../lib/utils'
+import BlurFade from '../BlurFade'
 import { motion, AnimatePresence } from 'motion/react'
 import { Icon } from '@iconify/react'
 

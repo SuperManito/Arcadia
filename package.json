@@ -13,7 +13,7 @@
     "serve": "docusaurus serve",
     "lint": "eslint ./src --ext .ts,tsx,js,jsx,mjs,mdx",
     "lint:fix": "eslint --fix ./src --ext .ts,tsx,js,jsx,mjs,mdx",
-    "clean:cache": "rimraf node_modules/.cache/ && rimraf node_modules/.vite",
+    "clean:cache": "rimraf .docusaurus && rimraf node_modules/.cache/ && rimraf node_modules/.vite",
     "clean:build": "rimraf build",
     "clean:lock": "rimraf yarn.lock && rimraf pnpm-lock.yaml && rimraf package.lock.json",
     "clean:lib": "rimraf node_modules",

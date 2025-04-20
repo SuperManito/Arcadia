@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from '@docusaurus/Link'
-import { cn } from '../lib/utils'
-import { Icon } from '../../../components/Icon'
+import cn from '../lib/utils'
+import { Icon } from '../Icon'
 
 function FeatureComponent ({
   title,
