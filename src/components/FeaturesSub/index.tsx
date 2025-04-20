@@ -1,6 +1,7 @@
 import React, { type ComponentPropsWithoutRef, type CSSProperties, useEffect, useRef, useState } from 'react'
 import cn from '../lib/utils'
 import IconCloud from '../IconCloud'
+import BlurFade from '../BlurFade'
 import { motion } from 'motion/react'
 
 interface RippleProps extends ComponentPropsWithoutRef<'div'> {
@@ -100,10 +101,14 @@ export default function FeaturesSub () {
                 <svg className="w-8 h-8 mr-2 text-[var(--ifm-color-primary)]" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                   <path d="M14 2H6C4.89 2 4 2.9 4 4V20C4 21.11 4.89 22 6 22H18C19.11 22 20 21.11 20 20V8L14 2M18 20H6V4H13V9H18V20M10 19L12 15H9V10L7 14H10V19Z" />
                 </svg>
-                在线编辑，轻松驾驭~
+                <BlurFade delay={0.25} inView>
+                  <span>在线编辑，轻松驾驭~</span>
+                </BlurFade>
               </span>
               <p className="text-base md:text-lg text-gray-600 dark:text-[var(--ifm-color-emphasis-700)] mb-6">
-                平台支持在线编辑丰富的文件格式，一站式处理各类文件。语法高亮让编辑体验更加流畅高效，无缝协作，随时随地编辑您的内容。
+                <BlurFade delay={0.25 * 2} inView>
+                  <span>平台支持在线编辑丰富的文件格式，一站式处理各类文件。语法高亮让编辑体验更加流畅高效，无缝协作，随时随地编辑您的内容。</span>
+                </BlurFade>
               </p>
             </div>
 
@@ -125,10 +130,14 @@ export default function FeaturesSub () {
               <svg className="w-8 h-8 mr-2 text-[var(--ifm-color-primary)]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M11 15H6L13 1V9H18L11 23V15Z" />
               </svg>
-              快，框不住！
+              <BlurFade delay={0.25} inView>
+                <span>快，框不住！</span>
+              </BlurFade>
             </span>
             <p className="text-base md:text-lg text-gray-600 dark:text-[var(--ifm-color-emphasis-700)] mb-6">
-                高性能、低占用是 Arcadia 的特色之一。运行代码延迟控制在了 0.2 秒以内，后端数据库由 Rust 驱动并采用 ORM 先进架构，查询响应飞快。
+              <BlurFade delay={0.25 * 2} inView>
+                <span>高性能、低占用是 Arcadia 的特色之一。运行代码延迟控制在了 0.2 秒以内，后端数据库由 Rust 驱动并采用 ORM 先进架构，查询响应飞快。</span>
+              </BlurFade>
             </p>
           </div>
 
