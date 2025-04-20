@@ -10,8 +10,9 @@ import { ConfigProvider, Carousel, theme } from 'antd'
 import TOCItems from '@theme-original/TOCItems'
 import Heading from '@theme/Heading'
 import Link from '@docusaurus/Link'
-import { useLocation } from '@docusaurus/router'
-import { useColorMode, useWindowSize } from '@docusaurus/theme-common'
+// import { useLocation } from '@docusaurus/router'
+// import { useColorMode, useWindowSize } from '@docusaurus/theme-common'
+import { useColorMode } from '@docusaurus/theme-common'
 import styles from './style.module.css'
 
 function SidebarAd (): any {
@@ -45,13 +46,14 @@ function SidebarAd (): any {
 }
 
 export default function TOCWrapper (props: any): any {
-  const { pathname } = useLocation()
-  const shouldShowSidebarAd = pathname.includes('/docs') && useWindowSize() !== 'mobile'
-  if (shouldShowSidebarAd) {
+  // const { pathname } = useLocation()
+  // const showSidebarAd = pathname.includes('/docs') && useWindowSize() !== 'mobile'
+  const showSidebarAd = false
+  if (showSidebarAd) {
     return (
       <>
           <TOCItems {...props} />
-          {shouldShowSidebarAd && <SidebarAd />}
+          {showSidebarAd && <SidebarAd />}
       </>
     )
   } else {

@@ -1,13 +1,12 @@
 import React, { useState, useRef } from 'react'
 import { Icon } from '../Icon'
+import audio from '@site/static/audio/arcadia.mp3'
 
 export default function Pronounce () {
-  const audioRef: any = useRef()
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   const play = () => {
-    audioRef.current.play()
+    (audioRef.current as any).play()
   }
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const audio = require('@site/static/audio/arcadia.mp3').default
 
   const [isHover, setIsHover] = useState(false)
 
@@ -30,7 +29,7 @@ export default function Pronounce () {
       onMouseLeave={handleMouseLeave}
       onClick={play}
     >
-      <Icon>
+      <Icon style={{ verticalAlign: '-0.15em' }}>
         line-md:volume-high
       </Icon>
       <audio src={audio} ref={audioRef} style={{ display: 'none' }}></audio>

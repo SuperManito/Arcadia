@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from '@docusaurus/Link'
 import { cn } from '../lib/utils'
-import { Icon } from '../Icon'
+import { Icon } from '../../../components/Icon'
 
 function FeatureComponent ({
   title,
@@ -50,7 +50,7 @@ export default function Feature () {
       title: '专业代码编辑器',
       description: (
         <>
-          采用 <b><Link href="https://code.visualstudio.com" target="_blank" rel="noreferrer">VS Code</Link></b> 核心组件之一的摩纳哥编辑器，并且经过了高度定制，提供众多语言解释器支持，代码高亮效果与桌面客户端一致，还支持标签页多开。
+          采用 <b><Link href="https://code.visualstudio.com" target="_blank" rel="noreferrer">VS Code</Link></b> 核心组件之一的摩纳哥编辑器，并且经过了高度定制，提供众多语言解释器支持，代码高亮效果与桌面客户端一致，支持标签页多开。
         </>
       ),
       icon: <Icon icon="mdi:microsoft-visual-studio-code" size={24} />,
@@ -59,7 +59,7 @@ export default function Feature () {
       title: '定时任务调度',
       description: (
         <>
-          面板支持卡片和数据表格两种布局，增删改查一应俱全，支持秒级任务，可直接查看任务关联的历史运行日志和源码，还支持调试、过滤、排序等功能。
+          支持秒级任务与并发任务，设有卡片和数据表格两种布局，增删改查一应俱全，可直接查看任务关联的历史运行日志和源码，支持调试、过滤、排序等功能。
         </>
       ),
       icon: <Icon icon="tabler:clock-play" size={24} />,
@@ -86,7 +86,7 @@ export default function Feature () {
       title: '文件可视化管理',
       description: (
         <>
-          仿桌面系统的文件管理页面，支持栅格与列表两种预览模式，支持创建、删除、重命名、上传、下载、删除、预览、编辑等操作。
+          仿桌面系统的文件管理页面，设有平铺和列表两种视图，支持创建、删除、重命名、上传、下载、删除、预览、编辑等操作。
         </>
       ),
       icon: <Icon icon="mdi:folder-open-outline" size={24} />,
@@ -104,7 +104,7 @@ export default function Feature () {
       title: '代码在线调试',
       description: (
         <>
-          专业的调试工具，实施反馈运行日志，支持配置调试环境。
+          专业的调试工具，通过 WebSocket 实施反馈运行日志，支持配置调试环境。
         </>
       ),
       icon: <Icon icon="mdi:script-text-play-outline" size={24} />,
@@ -113,7 +113,7 @@ export default function Feature () {
       title: '内置终端命令行',
       description: (
         <>
-          项目集成了基于 <b><Link href="https://xtermjs.org/" target="_blank" rel="noreferrer">Xterm.js</Link></b> 的 WEB 终端工具，实时、流畅且支持标签页多开，日常使用无需手动连接至服务器。
+          集成了基于 <b><Link href="https://xtermjs.org/" target="_blank" rel="noreferrer">Xterm.js</Link></b> 的 WEB 终端工具，实时、流畅且支持标签页多开，日常使用无需手动连接至服务端。
         </>
       ),
       icon: <Icon icon="heroicons-outline:terminal" size={24} />,

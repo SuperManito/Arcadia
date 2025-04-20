@@ -2,7 +2,7 @@
     <a href="https://arcadia.cool">
         <picture>
           <source media="(prefers-color-scheme: dark)" srcset="brand/arcadia-dark.png" width="320">
-          <img alt="文本" src="brand/arcadia-light.png" width="320">
+          <img src="brand/arcadia-light.png" alt="Arcadia" width="320">
         </picture>
     </a>
 </p>

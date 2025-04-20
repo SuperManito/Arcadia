@@ -6,15 +6,31 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import Link from '@docusaurus/Link'
 
-如果你对相关技术不是很熟悉那么请认真阅读以下内容
+本部分文档用于指导代码文件运行环境配置，如果你对相关技术不是很熟悉那么请认真阅读以下内容
 
 ## 安装语言环境
 
 <Tabs>
-  <TabItem value="js&ts" label="JavaScript 和 TypeScript">
+  <TabItem value="js&ts" label={(
+    <>
+      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>skill-icons:javascript</Icon>
+      &nbsp;
+      JavaScript
+      &nbsp;
+      /
+      &nbsp;
+      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>skill-icons:typescript</Icon>
+      &nbsp;
+      TypeScript
+    </>
+  )} default>
 
     <Tabs>
-      <TabItem value="nodejs" label="Node.js">
+      <TabItem value="nodejs" label={(
+        <>
+          <Icon size={22} style={{ verticalAlign: 'baseline' }}>logos:nodejs</Icon>
+        </>
+      )} default>
 
       ```bash
       NODE_VERSION=22 # 指定安装版本（可自行修改）
@@ -26,24 +42,34 @@ import Link from '@docusaurus/Link'
       :::warning
       已预装，底层功能依赖请勿卸载，否则会导致项目无法正常运行
       :::
-      > Node.js 是项目当前运行 `.js` `.mjs` `.cjs` 代码文件的默认引擎，默认安装的是 LTS 版本，需要安装指定版本时可借鉴该命令
+      Node.js 是项目当前运行 `.js` `.mjs` `.cjs` 代码文件的默认引擎，默认安装的是 LTS 版本，需要安装指定版本时可借鉴该命令
 
       <Link className="button button--secondary" href="https://nodejs.org">Node.js 官网</Link>
 
       </TabItem>
 
-      <TabItem value="ts-nopde" label="ts-node">
+      <TabItem value="ts-nopde" label={(
+        <>
+          <Icon size={20} style={{ verticalAlign: 'baseline' }}>logos:tsnode</Icon>
+        </>
+      )}>
 
       ```bash
       npm install -g typescript ts-node
       ```
-      > **ts-node** 是项目当前运行 `.ts` 代码文件的默认引擎，因为 Node.js 对于运行 TypeScript 文件的功能仍处在试验阶段，另外你也可以使用 **Deno** 或 **Bun**。
+      ts-node 是项目当前运行 `.ts` 代码文件的默认引擎，也可以使用 Deno 或 Bun 代替。另外如果注重运行速度建议使用 Bun，因为 ts-node 的性能较差且占用较高。
 
       <Link className="button button--secondary" href="https://typestrong.org/ts-node">ts-node 官网</Link>
 
       </TabItem>
 
-      <TabItem value="deno" label="Deno">
+      <TabItem value="deno" label={(
+        <>
+          <Icon size={24} style={{ verticalAlign: '0.2rem' }}>vscode-icons:file-type-deno</Icon>
+          &nbsp;
+          Deno
+        </>
+      )}>
 
       [Deno](https://deno.com) 是一个现代的 JavaScript 和 TypeScript 运行时环境，可以替代默认的 Node.js 和 ts-node，特点是安全性高、运行速度快。默认采用沙盒机制，禁止脚本程序访问文件系统、网络和环境变量等敏感操作，除非显式授予权限。
 
@@ -68,7 +94,13 @@ import Link from '@docusaurus/Link'
 
       </TabItem>
 
-      <TabItem value="bun" label="Bun">
+      <TabItem value="bun" label={(
+        <>
+          <Icon size={24} style={{ verticalAlign: '0.2rem' }}>vscode-icons:file-type-bun</Icon>
+          &nbsp;
+          Bun
+        </>
+      )}>
 
       [Bun](https://bun.sh) 是一个现代的 JavaScript 和 TypeScript 运行时环境，可以替代默认的 Node.js 和 ts-node，特点是速度快、与 Node.js 的API兼容性高。
 
@@ -88,7 +120,13 @@ import Link from '@docusaurus/Link'
 
   </TabItem>
 
-  <TabItem value="python" label="Python">
+  <TabItem value="python" label={(
+    <>
+      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>logos:python</Icon>
+      &nbsp;
+      Python
+    </>
+  )}>
 
   ```bash
   apt-get update && apt-get install -y python3 python3-pip
@@ -103,7 +141,13 @@ import Link from '@docusaurus/Link'
 
   </TabItem>
 
-  <TabItem value="go" label="Go">
+  <TabItem value="go" label={(
+    <>
+      <Icon size={14} style={{ verticalAlign: '-0.3rem' }}>logos:go</Icon>
+      &nbsp;
+      Go
+    </>
+  )}>
 
   ```bash
   apt-get update && apt-get install -y go
@@ -113,7 +157,13 @@ import Link from '@docusaurus/Link'
 
   </TabItem>
 
-  <TabItem value="lua" label="Lua">
+  <TabItem value="lua" label={(
+    <>
+    <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>logos:lua</Icon>
+    &nbsp;
+    Lua
+    </>
+  )}>
 
   ```bash
   apt-get update && apt-get install -y lua5.4 luarocks
@@ -123,7 +173,13 @@ import Link from '@docusaurus/Link'
 
   </TabItem>
 
-  <TabItem value="ruby" label="Ruby">
+  <TabItem value="ruby" label={(
+    <>
+      <Icon size={16} style={{ verticalAlign: '-0.15rem' }}>logos:ruby</Icon>
+      &nbsp;
+      Ruby
+    </>
+  )}>
 
   ```bash
   apt-get update && apt-get install -y ruby
@@ -133,7 +189,13 @@ import Link from '@docusaurus/Link'
 
   </TabItem>
 
-  <TabItem value="rust" label="Rust">
+  <TabItem value="rust" label={(
+    <>
+      <Icon size={16} style={{ verticalAlign: '-0.15rem' }}>logos:rust</Icon>
+      &nbsp;
+      Rust
+    </>
+  )}>
 
   ```bash
   # 建议分步执行以下命令
@@ -149,7 +211,13 @@ import Link from '@docusaurus/Link'
 
   </TabItem>
 
-  <TabItem value="perl" label="Perl">
+  <TabItem value="perl" label={(
+    <>
+      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>vscode-icons:file-type-perl</Icon>
+      &nbsp;
+      Perl
+    </>
+  )}>
 
   ```bash
   apt-get update && apt-get install -y perl
@@ -162,7 +230,13 @@ import Link from '@docusaurus/Link'
 
   </TabItem>
 
-  <TabItem value="c" label="C">
+  <TabItem value="c" label={(
+    <>
+      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>vscode-icons:file-type-c</Icon>
+      &nbsp;
+      C
+    </>
+  )}>
 
   ```bash
   apt-get update && apt-get install -y gcc
@@ -178,7 +252,19 @@ import Link from '@docusaurus/Link'
 ## 解决依赖
 
 <Tabs>
-  <TabItem value="js&ts" label="JavaScript 和 TypeScript" default>
+  <TabItem value="js&ts" label={(
+    <>
+      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>skill-icons:javascript</Icon>
+      &nbsp;
+      JavaScript
+      &nbsp;
+      /
+      &nbsp;
+      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>skill-icons:typescript</Icon>
+      &nbsp;
+      TypeScript
+    </>
+  )} default>
 
   适用文件类型 `.js` `.mjs` `.cjs` 和 `.ts`
 
@@ -197,7 +283,13 @@ import Link from '@docusaurus/Link'
 
   </TabItem>
 
-  <TabItem value="py" label="Python">
+  <TabItem value="py" label={(
+    <>
+      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>logos:python</Icon>
+      &nbsp;
+      Python
+    </>
+  )}>
 
   适用文件类型 `.py`
 
@@ -207,7 +299,13 @@ import Link from '@docusaurus/Link'
 
   </TabItem>
 
-  <TabItem value="go" label="Go">
+  <TabItem value="go" label={(
+    <>
+      <Icon size={14} style={{ verticalAlign: '-0.3rem' }}>logos:go</Icon>
+      &nbsp;
+      Go
+    </>
+  )}>
 
   适用文件类型 `.go`
 
@@ -217,7 +315,13 @@ import Link from '@docusaurus/Link'
 
   </TabItem>
 
-  <TabItem value="lua" label="Lua">
+  <TabItem value="lua" label={(
+    <>
+    <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>logos:lua</Icon>
+    &nbsp;
+    Lua
+    </>
+  )}>
 
   适用文件类型 `.lua`
 
@@ -227,7 +331,13 @@ import Link from '@docusaurus/Link'
 
   </TabItem>
 
-  <TabItem value="rb" label="Ruby">
+  <TabItem value="rb" label={(
+    <>
+      <Icon size={16} style={{ verticalAlign: '-0.15rem' }}>logos:ruby</Icon>
+      &nbsp;
+      Ruby
+    </>
+  )}>
 
   适用文件类型 `.rb`
 
@@ -237,7 +347,13 @@ import Link from '@docusaurus/Link'
 
   </TabItem>
 
-  <TabItem value="rs" label="Rust">
+  <TabItem value="rs" label={(
+    <>
+      <Icon size={16} style={{ verticalAlign: '-0.15rem' }}>logos:rust</Icon>
+      &nbsp;
+      Rust
+    </>
+  )}>
 
   适用文件类型 `.rs`
 
@@ -262,7 +378,13 @@ import Link from '@docusaurus/Link'
 
   </TabItem>
 
-  <TabItem value="pl" label="Perl">
+  <TabItem value="pl" label={(
+    <>
+      <Icon size={18} style={{ verticalAlign: '-0.15rem' }}>vscode-icons:file-type-perl</Icon>
+      &nbsp;
+      Perl
+    </>
+  )}>
 
   适用文件类型 `.pl` `.pm`，建议使用 `cpanm`，安装命令 `cpan App::cpanminus`
 

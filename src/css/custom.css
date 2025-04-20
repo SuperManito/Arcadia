@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-@config "../../tailwind.config.js";
+@config "../../tailwind.config.mjs";
 
 /*
   The default border color has changed to `currentcolor` in Tailwind CSS v4,
@@ -51,6 +51,7 @@
   --ifm-color-primary-light: #398ff2;
   --ifm-color-primary-lighter: #4696f3;
   --ifm-color-primary-lightest: #6cacf5;
+  --ifm-color-primary-sub: #2080f01a;
   --ifm-navbar-background-color: #ffffff;
   --ifm-custom-navbar-background-color: #ffffff;
   --docusaurus-highlighted-code-line-bg: #00000019;
@@ -65,6 +66,7 @@
   --ifm-color-primary-light: #75c5f7;
   --ifm-color-primary-lighter: #85ccf8;
   --ifm-color-primary-lightest: #b4dffb;
+  --ifm-color-primary-sub: #56b8f51a;
   --ifm-background-color: #1e1e20;
   --ifm-custom-background-color: #1e1e20;
   --ifm-navbar-background-color: #1e1e20;
@@ -202,12 +204,8 @@
   transition: .2s;
 }
 .pagination-nav__link:hover {
-  background: rgba(44,19,56,.02);
-  border-color: rgba(44,19,56,.24);
-}
-[data-theme='dark'] .pagination-nav__link:hover {
-  background: rgb(78 78 78 / 20%);
-  border-color: rgb(78 78 78 / 80%);
+  background: var(--ifm-color-primary-sub);
+  border-color: var(--ifm-color-primary);
 }
 
 /* 侧边栏 */
@@ -240,6 +238,9 @@
 }
 .menu__link--active {
   background: rgba(145, 33, 194, 0.05);
+}
+.menu__link--active:not(.menu__link--sublist) {
+  background-color: var(--ifm-color-primary-sub);
 }
 .menu__caret {
   padding: var(--ifm-menu-link-padding-vertical) 0.4em;

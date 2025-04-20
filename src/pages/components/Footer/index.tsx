@@ -12,7 +12,7 @@ export default function Footer () {
     setLogo(colorMode === 'dark' ? logoDark : logoLight)
   }, [colorMode])
   return (
-    <footer className="footer">
+    <footer className="footer mt-16 lg:mt-44">
       <div className="container container--fluid">
         <div className="row footer__links">
           <div className="col footer__col">

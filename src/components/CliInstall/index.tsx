@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react'
 import type { InputRef } from 'antd'
-import { Button, Col, Checkbox, Divider, Flex, Input, InputNumber, Popover, Row, Segmented, Space, Select, Switch, Tooltip, ConfigProvider, theme } from 'antd'
+import { Button, Col, Checkbox, Divider, Flex, Input, InputNumber, Popover, Row, Segmented, Space, Select, Switch, ConfigProvider, theme } from 'antd'
 import { DockerIcon, PodmanIcon, Icon } from '../Icon'
 import CodeBlock from '@theme/CodeBlock'
 import { useColorMode, useWindowSize } from '@docusaurus/theme-common'
@@ -77,7 +77,7 @@ ${backupMirrortChecked ? 'registry.cn-hangzhou.aliyuncs.com/' : 'docker.io/'}sup
 
   return (
     <ConfigProvider theme={{ algorithm }}>
-      <Space wrap size="small" style={{ paddingBottom: '10px', lineHeight: '0' }}>
+      <Space wrap size="small" style={{ paddingBottom: '10px', lineHeight: '0', justifyContent: 'space-between', width: '100%' }}>
         <Segmented
           style={{ userSelect: 'none' }}
           options={[
@@ -95,78 +95,78 @@ ${backupMirrortChecked ? 'registry.cn-hangzhou.aliyuncs.com/' : 'docker.io/'}sup
           value={type}
           onChange={(value) => { setType(value) }}
         />
-        <Tooltip title={!isMobile ? '高级配置' : ''}>
-          <Popover
-            trigger={!isMobile ? 'click' : 'hover'}
-            placement={!isMobile ? 'rightTop' : undefined}
-            content={
-              <Row>
-                <Col span={16}>
-                <Flex vertical wrap="wrap" gap="small">
-                  <span style={{ fontWeight: 600 }}>基础配置</span>
-                  <Flex gap="small" justify="space-between" style={{ userSelect: 'none', width: '200px' }}>
-                    使用国内镜像
-                    <Switch checked={backupMirrortChecked} onChange={setBackupMirrortChecked} />
-                  </Flex>
-                  <Flex gap="small" justify="space-between" style={{ userSelect: 'none', width: '200px' }}>
-                    挂载至当前目录
-                    <Switch checked={useCurrentDir} onChange={setUseCurrentDir} />
-                  </Flex>
-                  <Flex gap="small">
-                    容器名称
-                    <Input size="small" style={{ width: 'calc(100% - 80px)' }} placeholder="请输入" value={containerName} onChange={e => { setContainerName(e.target.value ?? 'arcadia') }} />
-                  </Flex>
-                  <Flex gap="small">
-                    主机名称
-                    <Input size="small" style={{ width: 'calc(100% - 80px)' }} placeholder="请输入" value={hostname} onChange={e => { setHostname(e.target.value ?? 'arcadia') }} />
-                  </Flex>
-                  <Flex gap="small">
-                    网络模式
-                    <Select
-                      size="small"
-                      style={{ width: 'calc(100% - 80px)' }}
-                      placeholder="请选择"
-                      dropdownRender={(menu) => (
-                        <>
-                          {menu}
-                          <Divider style={{ margin: '4px 0' }} />
-                          <Flex gap="small">
-                            <Input
-                              size="small"
-                              placeholder="请输入"
-                              ref={networkInputRef}
-                              value={selectInput}
-                              onChange={e => { setSelectInput(e.target.value) }}
-                              onKeyDown={(e) => { e.stopPropagation() }}
-                            />
-                            <Button size="small" type="text" style={{ padding: '0 4px' }} onClick={addNetworkItem}>
-                              <Icon>mdi:plus</Icon>
-                            </Button>
-                          </Flex>
-                        </>
-                      )}
-                      options={networkItems.map((item) => ({ label: item, value: item }))}
-                      defaultValue={network}
-                      onChange={(value: string) => { setNetwork(value ?? 'bridge') }}
-                    />
-                  </Flex>
-                  <Flex gap="small">
-                    端口映射
-                    <InputNumber size="small" style={{ width: 'calc(100% - 80px)' }} placeholder="请输入" value={port} onChange={(value) => { setPort(value ?? 5678) }} />
-                  </Flex>
+        <Popover
+          trigger={!isMobile ? 'click' : 'hover'}
+          placement={!isMobile ? 'leftTop' : undefined}
+          content={
+            <Row>
+              <Col span={16}>
+              <Flex vertical wrap="wrap" gap="small">
+                <span style={{ fontWeight: 600 }}>基础配置</span>
+                <Flex gap="small" justify="space-between" style={{ userSelect: 'none', width: '200px' }}>
+                  使用国内镜像
+                  <Switch checked={backupMirrortChecked} onChange={setBackupMirrortChecked} />
                 </Flex>
-                </Col>
-                <Col span={8}>
-                  <Flex vertical wrap="wrap" gap="small">
-                    <span style={{ fontWeight: 600 }}>挂载目录配置</span>
-                    <Checkbox.Group style={{ userSelect: 'none', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '8px' }} options={mountOptions} value={selectedMounts} onChange={setSelectedMounts} />
-                  </Flex>
-                </Col>
-              </Row>
-            }>
-            <Button type="text" shape="circle" icon={<Icon size={20}>line-md:cog-loop</Icon>} size="small" style={{ padding: '2px' }} />
-          </Popover>
-        </Tooltip>
+                <Flex gap="small" justify="space-between" style={{ userSelect: 'none', width: '200px' }}>
+                  挂载至当前目录
+                  <Switch checked={useCurrentDir} onChange={setUseCurrentDir} />
+                </Flex>
+                <Flex gap="small">
+                  容器名称
+                  <Input size="small" style={{ width: 'calc(100% - 80px)' }} placeholder="请输入" value={containerName} onChange={e => { setContainerName(e.target.value ?? 'arcadia') }} />
+                </Flex>
+                <Flex gap="small">
+                  主机名称
+                  <Input size="small" style={{ width: 'calc(100% - 80px)' }} placeholder="请输入" value={hostname} onChange={e => { setHostname(e.target.value ?? 'arcadia') }} />
+                </Flex>
+                <Flex gap="small">
+                  网络模式
+                  <Select
+                    size="small"
+                    style={{ width: 'calc(100% - 80px)' }}
+                    placeholder="请选择"
+                    dropdownRender={(menu) => (
+                      <>
+                        {menu}
+                        <Divider style={{ margin: '4px 0' }} />
+                        <Flex gap="small">
+                          <Input
+                            size="small"
+                            placeholder="请输入"
+                            ref={networkInputRef}
+                            value={selectInput}
+                            onChange={e => { setSelectInput(e.target.value) }}
+                            onKeyDown={(e) => { e.stopPropagation() }}
+                          />
+                          <Button size="small" type="text" style={{ padding: '0 4px' }} onClick={addNetworkItem}>
+                            <Icon>mdi:plus</Icon>
+                          </Button>
+                        </Flex>
+                      </>
+                    )}
+                    options={networkItems.map((item) => ({ label: item, value: item }))}
+                    defaultValue={network}
+                    onChange={(value: string) => { setNetwork(value ?? 'bridge') }}
+                  />
+                </Flex>
+                <Flex gap="small">
+                  端口映射
+                  <InputNumber size="small" style={{ width: 'calc(100% - 80px)' }} placeholder="请输入" value={port} onChange={(value) => { setPort(value ?? 5678) }} />
+                </Flex>
+              </Flex>
+              </Col>
+              <Col span={8}>
+                <Flex vertical wrap="wrap" gap="small">
+                  <span style={{ fontWeight: 600 }}>挂载目录配置</span>
+                  <Checkbox.Group style={{ userSelect: 'none', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '8px' }} options={mountOptions} value={selectedMounts} onChange={setSelectedMounts} />
+                </Flex>
+              </Col>
+            </Row>
+          }>
+          <Button type="text" color="default" variant="filled" icon={<Icon size={20}>line-md:cog-loop</Icon>} style={{ padding: '0 4px' }}>
+            { !isMobile ? '高级配置' : undefined }
+          </Button>
+        </Popover>
       </Space>
       {type === 'docker' && <Docker />}
       {type === 'podman' && <Podman />}

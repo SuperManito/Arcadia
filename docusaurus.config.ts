@@ -118,6 +118,7 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
       colorMode: {
         defaultMode: 'light',
         disableSwitch: false,
+        respectPrefersColorScheme: true,
       },
       navbar: {
         hideOnScroll: false,
