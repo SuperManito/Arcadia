@@ -197,7 +197,6 @@ export function registerApp() {
     }
   }
   const apiRouter: Router = express.Router()
-  apiRouter.use(handleAuthenticationError)
   apiRouter.use('/', ApiMain)
   apiRouter.use('/user', ApiUser)
   apiRouter.use('/file', ApiFile)
@@ -205,7 +204,7 @@ export function registerApp() {
   apiRouter.use('/cron', ApiCron)
   apiRouter.use('/message', ApiMessage)
   apiRouter.use('/common', ApiCommon)
-  app.use('/api', apiAuthentication, apiRouter)
+  app.use('/api', apiAuthentication, handleAuthenticationError, apiRouter)
 
   /**
    * 未匹配的路由
