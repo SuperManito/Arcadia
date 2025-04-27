@@ -1,7 +1,7 @@
 ---
 title: 运行环境
 ---
-import { Icon } from '@site/src/components/Icon';
+import { Icon, NodejsIcon, DenoIcon, BunIcon } from '@site/src/components/Icon';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import Link from '@docusaurus/Link'
@@ -12,69 +12,54 @@ import Link from '@docusaurus/Link'
 
 <Tabs>
   <TabItem value="js&ts" label={(
-    <>
-      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>skill-icons:javascript</Icon>
-      &nbsp;
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={18} style={{ marginRight: '8px' }}>skill-icons:javascript</Icon>
       JavaScript
       &nbsp;
       /
       &nbsp;
-      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>skill-icons:typescript</Icon>
-      &nbsp;
+      <Icon size={18} style={{ marginRight: '8px' }}>skill-icons:typescript</Icon>
       TypeScript
-    </>
+    </div>
   )} default>
 
     <Tabs>
-      <TabItem value="nodejs" label={(
-        <>
-          <Icon size={22} style={{ verticalAlign: 'baseline' }}>logos:nodejs</Icon>
-        </>
+      <TabItem value="tsx" label={(
+        <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <svg width={62} xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 319 135">
+            <path fill="#B6B6B6" d="M158.026 24.8182v13.5227h-42.645V24.8182h42.645ZM125.909 7.04545h17.483V76.6875c0 2.3504.354 4.1534 1.063 5.4091.74 1.2235 1.706 2.0606 2.897 2.5114 1.192.4507 2.512.6761 3.96.6761 1.095 0 2.093-.0805 2.995-.2415.934-.161 1.642-.3059 2.125-.4346l2.946 13.6676c-.934.3219-2.27.6761-4.009 1.0625-1.706.3863-3.799.6117-6.278.6759-4.379.129-8.323-.531-11.832-1.9799-3.51-1.4811-6.295-3.7671-8.356-6.858-2.028-3.0909-3.026-6.9545-2.994-11.5909V7.04545Zm97.506 37.38065-15.937 1.7387c-.451-1.6099-1.24-3.1231-2.367-4.5398-1.094-1.4167-2.576-2.5597-4.443-3.429-1.867-.8693-4.153-1.304-6.858-1.304-3.638 0-6.697.7889-9.176 2.3665-2.447 1.5777-3.654 3.6222-3.622 6.1335-.032 2.1572.756 3.912 2.366 5.2642 1.642 1.3523 4.347 2.4631 8.114 3.3324l12.653 2.7046c7.019 1.5132 12.235 3.9119 15.648 7.196 3.445 3.2841 5.184 7.5824 5.216 12.8949-.032 4.6686-1.401 8.7898-4.105 12.3636-2.673 3.5417-6.391 6.3106-11.156 8.3068-4.766 1.9963-10.239 2.9945-16.421 2.9945-9.079 0-16.388-1.8998-21.926-5.699-5.538-3.8314-8.838-9.16-9.901-15.9858l17.049-1.642c.772 3.3484 2.414 5.8759 4.926 7.5823 2.511 1.7065 5.779 2.5597 9.804 2.5597 4.153 0 7.486-.8532 9.997-2.5597 2.544-1.7064 3.815-3.8153 3.815-6.3267 0-2.125-.821-3.8797-2.463-5.2642-1.61-1.3844-4.121-2.4469-7.534-3.1875l-12.653-2.6562c-7.116-1.4811-12.38-3.9763-15.793-7.4858-3.413-3.5417-5.103-8.0171-5.071-13.4261-.032-4.572 1.208-8.5322 3.719-11.8807 2.543-3.3807 6.069-5.9887 10.577-7.8239 4.539-1.8674 9.771-2.8011 15.696-2.8011 8.693 0 15.535 1.8513 20.525 5.5539 5.023 3.7027 8.13 8.7093 9.321 15.0199Zm23.506-19.6079 14.971 27.3835 15.213-27.3835h18.497l-22.36 37.0909L295.989 99h-18.401l-15.696-26.7074L246.341 99h-18.545l22.602-37.0909-22.023-37.0909h18.546Z"/>
+            <g strokeLinecap="round" strokeWidth="24" clipPath="url(#a)">
+              <path stroke="#3178C6" d="M12 122.672h80"/>
+              <path stroke="#4CAE3D" d="m31.0667 11.9702 40.6061 39.0939-40.6061 39.0938"/>
+            </g>
+            <defs>
+              <clipPath id="a">
+                <path fill="#fff" d="M0 0h104v134.5H0z"/>
+              </clipPath>
+            </defs>
+          </svg>
+        </div>
       )} default>
 
       ```bash
-      NODE_VERSION=22 # 指定安装版本（可自行修改）
-      apt-get update && apt-get install -y ca-certificates curl gnupg
-      curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-      echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_VERSION}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-      apt-get update && apt-get install nodejs -y
+      npm install -g tsx
       ```
-      :::warning
-      已预装，底层功能依赖请勿卸载，否则会导致项目无法正常运行
-      :::
-      Node.js 是项目当前运行 `.js` `.mjs` `.cjs` 代码文件的默认引擎，默认安装的是 LTS 版本，需要安装指定版本时可借鉴该命令
+      TSX 是 Arcadia 平台运行 TypeScript 代码文件的默认执行器（引擎），它基于 esbuild 驱动，运行速度非常快。
 
-      <Link className="button button--secondary" href="https://nodejs.org">Node.js 官网</Link>
-
-      </TabItem>
-
-      <TabItem value="ts-nopde" label={(
-        <>
-          <Icon size={20} style={{ verticalAlign: 'baseline' }}>logos:tsnode</Icon>
-        </>
-      )}>
-
-      ```bash
-      npm install -g typescript ts-node
-      ```
-      ts-node 是项目当前运行 `.ts` 代码文件的默认引擎，也可以使用 Deno 或 Bun 代替。另外如果注重运行速度建议使用 Bun，因为 ts-node 的性能较差且占用较高。
-
-      <Link className="button button--secondary" href="https://typestrong.org/ts-node">ts-node 官网</Link>
+      <Link className="button button--secondary" href="https://tsx.is">官方网站</Link>
 
       </TabItem>
 
       <TabItem value="deno" label={(
-        <>
-          <Icon size={24} style={{ verticalAlign: '0.2rem' }}>vscode-icons:file-type-deno</Icon>
-          &nbsp;
-          Deno
-        </>
+        <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <DenoIcon />
+        </div>
       )}>
 
-      [Deno](https://deno.com) 是一个现代的 JavaScript 和 TypeScript 运行时环境，可以替代默认的 Node.js 和 ts-node，特点是安全性高、运行速度快。默认采用沙盒机制，禁止脚本程序访问文件系统、网络和环境变量等敏感操作，除非显式授予权限。
+      [Deno](https://deno.com) 是一个现代的 JavaScript 和 TypeScript 运行时环境，具有安全性高、高性能网络、运行速度快等特点。默认采用沙盒机制，禁止脚本程序访问文件系统、网络和环境变量等敏感操作，除非显式授予权限。
 
       :::warning
-      Deno 不完全兼容 Node.js API，一般无法直接运行 Node.js 项目。  
+      Deno 一般无法直接运行 Node.js 原生项目，因为它导入包（库）的语法与 Node.js 不兼容。
       由于沙盒下的默认权限不能满足项目基本需求，因此使用 Deno 时会默认赋予一些权限，具体如下：
       - ##### 环境变量：允许全部
       - ##### 文件系统：仅允许读/写代码文件所在目录和其下级目录。
@@ -90,19 +75,17 @@ import Link from '@docusaurus/Link'
       ```
       > 建议采用官方默认提供的安装方法，另外如果你通过其它方法安装那么需要在处理 `PATH` 时设置 `/usr/local/bin` 的软链接（参考最后一行示例命令）
 
-      <Link className="button button--secondary" href="https://deno.com">Deno 官网</Link>
+      <Link className="button button--secondary" href="https://deno.com">官方网站</Link>
 
       </TabItem>
 
       <TabItem value="bun" label={(
-        <>
-          <Icon size={24} style={{ verticalAlign: '0.2rem' }}>vscode-icons:file-type-bun</Icon>
-          &nbsp;
-          Bun
-        </>
+        <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <BunIcon style={{ width: '20%' }} />
+        </div>
       )}>
 
-      [Bun](https://bun.sh) 是一个现代的 JavaScript 和 TypeScript 运行时环境，可以替代默认的 Node.js 和 ts-node，特点是速度快、与 Node.js 的API兼容性高。
+      [Bun](https://bun.sh) 是一个现代的 JavaScript 和 TypeScript 运行时环境，专为速度而设计，运行速度极快、几乎完全兼容 Node.js API，可直接运行 Node.js 项目。
 
       ```bash
       # 建议分步执行以下命令
@@ -113,7 +96,46 @@ import Link from '@docusaurus/Link'
       ```
       > 建议采用官方默认提供的安装方法，另外如果你通过其它方法安装那么需要在处理 `PATH` 时设置 `/usr/local/bin` 的软链接（参考最后一行示例命令）
 
-      <Link className="button button--secondary" href="https://bun.sh">Bun 官网</Link>
+      <Link className="button button--secondary" href="https://bun.sh">官方网站</Link>
+
+      </TabItem>
+
+      <TabItem value="ts-node" label={(
+        <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <Icon size={22}>logos:tsnode</Icon>
+        </div>
+      )}>
+
+      ```bash
+      npm install -g typescript ts-node
+      ```
+      ts-node 是一个运行 TypeScript 代码文件的执行器（引擎），诞生较早，相比 tsx 它的兼容性会更高，不过性能会差很多。
+
+      <Link className="button button--secondary" href="https://typestrong.org/ts-node">官方网站</Link>
+
+      </TabItem>
+
+      <TabItem value="nodejs" label={(
+        <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <NodejsIcon style={{ height: '32px' }} />
+        </div>
+      )}>
+
+      :::warning
+      已预装，底层功能依赖请勿卸载，否则会导致项目无法正常运行
+      :::
+
+      ```bash
+      NODE_VERSION=22 # 指定安装版本（可自行修改）
+      apt-get update && apt-get install -y ca-certificates curl gnupg
+      curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+      echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_VERSION}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+      apt-get update && apt-get install nodejs -y
+      ```
+
+      Node.js 是 Arcadia 平台默认的 JavaScript 运行时环境，同时也是驱动 Arcadia 后端运行的核心依赖，默认安装的是最新的 LTS 版本，需要安装指定版本时可借鉴该命令
+
+      <Link className="button button--secondary" href="https://nodejs.org">官方网站</Link>
 
       </TabItem>
     </Tabs>
@@ -121,80 +143,76 @@ import Link from '@docusaurus/Link'
   </TabItem>
 
   <TabItem value="python" label={(
-    <>
-      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>logos:python</Icon>
-      &nbsp;
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={18} style={{ marginRight: '8px' }}>logos:python</Icon>
       Python
-    </>
+    </div>
   )}>
 
-  ```bash
-  apt-get update && apt-get install -y python3 python3-pip
-  ```
   :::warning
   已预装，底层功能依赖请勿卸载，否则会导致项目无法正常运行
   :::
 
+  ```bash
+  apt-get update && apt-get install -y python3 python3-pip
+  ```
+
   若想安装指定版本请自行搜索相关教程，重装后需要执行 `pip3 install yq --no-cache-dir --break-system-packages` 安装 `yq` 依赖库（底层功能需要）
 
-  <Link className="button button--secondary" href="https://www.python.org">Python 官网</Link>
+  <Link className="button button--secondary" href="https://www.python.org">官方网站</Link>
 
   </TabItem>
 
   <TabItem value="go" label={(
-    <>
-      <Icon size={14} style={{ verticalAlign: '-0.3rem' }}>logos:go</Icon>
-      &nbsp;
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={14} style={{ marginRight: '8px' }}>logos:go</Icon>
       Go
-    </>
+    </div>
   )}>
 
   ```bash
   apt-get update && apt-get install -y go
   ```
 
-  <Link className="button button--secondary" href="https://golang.org">Go 官网</Link>
+  <Link className="button button--secondary" href="https://golang.org">官方网站</Link>
 
   </TabItem>
 
   <TabItem value="lua" label={(
-    <>
-    <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>logos:lua</Icon>
-    &nbsp;
-    Lua
-    </>
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={20} style={{ marginRight: '8px' }}>logos:lua</Icon>
+      Lua
+    </div>
   )}>
 
   ```bash
   apt-get update && apt-get install -y lua5.4 luarocks
   ```
 
-  <Link className="button button--secondary" href="https://www.lua.org">Lua 官网</Link>
+  <Link className="button button--secondary" href="https://www.lua.org">官方网站</Link>
 
   </TabItem>
 
   <TabItem value="ruby" label={(
-    <>
-      <Icon size={16} style={{ verticalAlign: '-0.15rem' }}>logos:ruby</Icon>
-      &nbsp;
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={16} style={{ marginRight: '8px' }}>logos:ruby</Icon>
       Ruby
-    </>
+    </div>
   )}>
 
   ```bash
   apt-get update && apt-get install -y ruby
   ```
 
-  <Link className="button button--secondary" href="https://www.ruby-lang.org">Ruby 官网</Link>
+  <Link className="button button--secondary" href="https://www.ruby-lang.org">官方网站</Link>
 
   </TabItem>
 
   <TabItem value="rust" label={(
-    <>
-      <Icon size={16} style={{ verticalAlign: '-0.15rem' }}>logos:rust</Icon>
-      &nbsp;
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={18} style={{ marginRight: '8px' }}>vscode-icons:file-type-rust</Icon>
       Rust
-    </>
+    </div>
   )}>
 
   ```bash
@@ -207,43 +225,43 @@ import Link from '@docusaurus/Link'
   ```
   > 建议采用官方默认提供的安装方法，因为通过 `apt` 包管理工具安装的版本较低，另外如果你通过其它方法安装那么需要在处理 `PATH` 时设置 `/usr/local/bin` 的软链接
 
-  <Link className="button button--secondary" href="https://www.rust-lang.org">Rust 官网</Link>
+  <Link className="button button--secondary" href="https://www.rust-lang.org">官方网站</Link>
 
   </TabItem>
 
   <TabItem value="perl" label={(
-    <>
-      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>vscode-icons:file-type-perl</Icon>
-      &nbsp;
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={18} style={{ marginRight: '8px' }}>vscode-icons:file-type-perl</Icon>
       Perl
-    </>
+    </div>
   )}>
+
+  :::warning
+  已预装，底层功能依赖请勿卸载，否则会导致项目无法正常运行
+  :::
 
   ```bash
   apt-get update && apt-get install -y perl
   ```
-  :::warning
-  已预装，底层功能依赖请勿卸载，否则会导致项目无法正常运行
-  :::
 
-  <Link className="button button--secondary" href="https://www.perl.org">Perl 官网</Link>
+  <Link className="button button--secondary" href="https://www.perl.org">官方网站</Link>
 
   </TabItem>
 
   <TabItem value="c" label={(
-    <>
-      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>vscode-icons:file-type-c</Icon>
-      &nbsp;
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={18} style={{ marginRight: '8px' }}>skill-icons:c</Icon>
       C
-    </>
+    </div>
   )}>
+
+  :::warning
+  已预装，底层功能依赖请勿卸载，否则会导致项目无法正常运行
+  :::
 
   ```bash
   apt-get update && apt-get install -y gcc
   ```
-  :::warning
-  已预装，底层功能依赖请勿卸载，否则会导致项目无法正常运行
-  :::
 
   </TabItem>
 </Tabs>
@@ -253,17 +271,15 @@ import Link from '@docusaurus/Link'
 
 <Tabs>
   <TabItem value="js&ts" label={(
-    <>
-      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>skill-icons:javascript</Icon>
-      &nbsp;
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={18} style={{ marginRight: '8px' }}>skill-icons:javascript</Icon>
       JavaScript
       &nbsp;
       /
       &nbsp;
-      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>skill-icons:typescript</Icon>
-      &nbsp;
+      <Icon size={18} style={{ marginRight: '8px' }}>skill-icons:typescript</Icon>
       TypeScript
-    </>
+    </div>
   )} default>
 
   适用文件类型 `.js` `.mjs` `.cjs` 和 `.ts`
@@ -276,19 +292,18 @@ import Link from '@docusaurus/Link'
   如果依赖名称中开头为 `/` 则表示本地模块文件，否则一般为 <Icon size="18">logos\:npm-icon</Icon> [NPM](https://www.npmjs.com) 上的第三方库
   :::
 
-  默认命令 `npm install <xxx>` 安装的依赖库是相对位置的，可以解决代码使用不同版本依赖库的问题  
-  使用 `-g` 命令选项代表全局安装即不需要解决目录关系，因为一般来说这样安装更省事
+  默认命令 `npm install <xxx>` 安装的依赖库的位置是相对，可以解决代码使用不同版本依赖库的问题  
+  使用 `-g` 命令选项代表全局安装即不需要解决目录关系，因为一般来说这样安装更省事，例如 `npm install -g axios`
 
-  当然，你也可以使用 `pnpm` 或 `yarn` 等包管理工具，使用 `Bun` 时建议使用官方的 `bun install` 命令
+  当然，你也可以使用 `pnpm` 或 `yarn` 等包管理工具，使用 `Bun` 时建议使用官方的 `bun add` 命令
 
   </TabItem>
 
   <TabItem value="py" label={(
-    <>
-      <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>logos:python</Icon>
-      &nbsp;
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={18} style={{ marginRight: '8px' }}>logos:python</Icon>
       Python
-    </>
+    </div>
   )}>
 
   适用文件类型 `.py`
@@ -300,11 +315,10 @@ import Link from '@docusaurus/Link'
   </TabItem>
 
   <TabItem value="go" label={(
-    <>
-      <Icon size={14} style={{ verticalAlign: '-0.3rem' }}>logos:go</Icon>
-      &nbsp;
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={14} style={{ marginRight: '8px' }}>logos:go</Icon>
       Go
-    </>
+    </div>
   )}>
 
   适用文件类型 `.go`
@@ -316,11 +330,10 @@ import Link from '@docusaurus/Link'
   </TabItem>
 
   <TabItem value="lua" label={(
-    <>
-    <Icon size={18} style={{ verticalAlign: '-0.1rem' }}>logos:lua</Icon>
-    &nbsp;
-    Lua
-    </>
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={20} style={{ marginRight: '8px' }}>logos:lua</Icon>
+      Lua
+    </div>
   )}>
 
   适用文件类型 `.lua`
@@ -332,11 +345,10 @@ import Link from '@docusaurus/Link'
   </TabItem>
 
   <TabItem value="rb" label={(
-    <>
-      <Icon size={16} style={{ verticalAlign: '-0.15rem' }}>logos:ruby</Icon>
-      &nbsp;
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={16} style={{ marginRight: '8px' }}>logos:ruby</Icon>
       Ruby
-    </>
+    </div>
   )}>
 
   适用文件类型 `.rb`
@@ -348,11 +360,10 @@ import Link from '@docusaurus/Link'
   </TabItem>
 
   <TabItem value="rs" label={(
-    <>
-      <Icon size={16} style={{ verticalAlign: '-0.15rem' }}>logos:rust</Icon>
-      &nbsp;
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={18} style={{ marginRight: '8px' }}>vscode-icons:file-type-rust</Icon>
       Rust
-    </>
+    </div>
   )}>
 
   适用文件类型 `.rs`
@@ -379,11 +390,10 @@ import Link from '@docusaurus/Link'
   </TabItem>
 
   <TabItem value="pl" label={(
-    <>
-      <Icon size={18} style={{ verticalAlign: '-0.15rem' }}>vscode-icons:file-type-perl</Icon>
-      &nbsp;
+    <div style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Icon size={18} style={{ marginRight: '8px' }}>vscode-icons:file-type-perl</Icon>
       Perl
-    </>
+    </div>
   )}>
 
   适用文件类型 `.pl` `.pm`，建议使用 `cpanm`，安装命令 `cpan App::cpanminus`

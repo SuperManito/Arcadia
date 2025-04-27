@@ -9,17 +9,18 @@ __Arcadia__ <Pronounce/> 源自希腊语 _Αρκαδία_，中文译名为 _阿
 
 ## Arcadia 平台能做些什么？
 
-目前主要面向于脚本语言编程，适用于中小型团队与个人的开发与运维环境。  
-除了代码运维外 Arcadia 还是一个强大的定时任务运维平台，并且有着完善的文件系统和底层CLI命令设计。
+Arcadia 平台主要面向于脚本语言编程与运维，支持定时任务调度，有着完善的文件系统和底层CLI命令设计，适用于中小型团队与个人的开发与运维环境。
+
+项目基于 TypeScript 全栈开发，采用了众多前沿技术，前端使用 Vue + Vite，后端使用 Node.js + Express + Prisma ORM。
 
 ## 支持哪些编程语言？
 
 已适配可直接运行代码文件的语言环境如下
 
-| 类型 | 涉及文件格式 |
+| 类型 | 文件格式 |
 | :-: | :-: |
 | JavaScript | `.js` `.mjs` `.cjs` |
-| TypeScript | `.ts` |
+| TypeScript | `.ts` `.mts` `.cts` |
 | Python | `.py` |
 | Go | `.go` |
 | Lua | `.lua` |
@@ -28,6 +29,8 @@ __Arcadia__ <Pronounce/> 源自希腊语 _Αρκαδία_，中文译名为 _阿
 | Perl | `.pl` |
 | C | `.c` |
 | Shell | `.sh` |
+
+`Node.js` `tsx` `ts-node` `Deno` `Bun` `Python` `Go` `Rust` `Lua` `Ruby` `Perl` `C` `Shell`
 
 项目仅预装了 `Node.js` 和 `Python` 环境，其中 `Shell` 和 `C` 语言是底层运行环境直接支持的  
 其它需要用户自行安装，具体方法请前往查看 [**开始使用 - 运行环境**](/docs/start/environment)

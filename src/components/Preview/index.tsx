@@ -180,7 +180,7 @@ function PreviewContentDefault () {
         <span className='text-neutral-600 dark:text-[var(--ifm-color-emphasis-500)]' style={{ fontSize: 'var(--ifm-h2-font-size)', paddingTop: '1rem', width: '100%', textAlign: 'center' }}>
           <BlurFade delay={0.25} inView>
             <span className="font-bold tracking-tighter">
-              现代化且高颜值的后台管理面板
+              高颜值且现代化的后台管理面板
             </span>
           </BlurFade>
         </span>
@@ -219,7 +219,7 @@ function PreviewContentMobile () {
         </div>
       </div>
       <span className='text-neutral-600 dark:text-[var(--ifm-color-emphasis-500)]' style={{ fontSize: 'var(--ifm-h5-font-size)', paddingTop: '1rem', width: '100%', textAlign: 'center', color: 'var(--ifm-color-emphasis-500)' }}>
-        现代化且高颜值的后台管理面板
+        高颜值且现代化的后台管理面板
       </span>
     </div>
 

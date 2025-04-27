@@ -25,10 +25,10 @@ function HomePageContent () {
       </HeroBackground>
       <Preview />
       <div className="mt-44">
-        <FeaturesSub />
+        <LanguageSupport />
       </div>
       <div className="mt-44">
-        <LanguageSupport />
+        <FeaturesSub />
       </div>
     </>
       )
@@ -39,10 +39,10 @@ function HomePageContent () {
         <Preview />
       </HeroBackground>
       <div className="mt-8">
-        <FeaturesSub />
+        <LanguageSupport />
       </div>
       <div className="mt-8">
-        <LanguageSupport />
+        <FeaturesSub />
       </div>
       <div className="mt-8">
         <Features />

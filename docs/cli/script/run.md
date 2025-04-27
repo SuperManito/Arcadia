@@ -32,8 +32,9 @@ import APITable from '@site/src/components/APITable';
     -R, --recombine-env-group   分组运行，为每组变量单独运行，是变量重组的扩展，传参基本一致，其中重组表达式内用 "@" 来区分不同组
     -S, --split-env             拆分运行，将复合变量的值拆分后为每个值声明变量并单独运行代码文件，选项后需跟需要拆分的变量名称、分隔符
 
-    --deno，--use-deno          使用 Deno 作为 JavaScript 和 TypeScript 的默认运行时环境
-    --bun，--use-bun            使用 Bun 作为 JavaScript 和 TypeScript 的默认运行时环境
+    --deno，--use-deno          使用 Deno 作为 JavaScript 和 TypeScript 的运行时环境
+    --bun，--use-bun            使用 Bun 作为 JavaScript 和 TypeScript 的运行时环境
+    --ts-node，--use-ts-node    使用 ts-node 作为 TypeScript 的执行器
 
   命令帮助：
 
@@ -46,25 +47,25 @@ import APITable from '@site/src/components/APITable';
 arcadia run <name/path/url> [--options]
 ```
 
-- name `文件名称`
+### 文件名称 `name`
 
-  仅限 `scripts` 个人目录下的代码文件，并且仅涵盖 `根目录`，你可以把你常用的脚本存放在这里
+仅限 `scripts` 个人目录下的代码文件，并且仅涵盖 `根目录`，你可以把你常用的脚本存放在这里
 
-- 路径 `path`
+### 路径 `path`
 
-  相对路径或绝对路径，支持使用 `.` 或 `./` 作为当前目录和用 `../` 作为上级目录，如果执行本地的个人代码文件则可以省略路径  
-  如果执行的是已配置的代码仓库中的代码文件可以使用相对路径，例如 `/arcadia/repo/<仓库目录名称>/example.js` 可以使用 `repo/example.js` 替代
+相对路径或绝对路径，支持使用 `.` 或 `./` 作为当前目录和用 `../` 作为上级目录，如果执行本地的个人代码文件则可以省略路径  
+如果执行的是已配置的代码仓库中的代码文件可以使用相对路径，例如 `/arcadia/repo/<仓库目录名称>/example.js` 可以使用 `repo/example.js` 替代
 
-- 链接地址 `<url>`
+### 链接地址 `<url>`
 
-  执行后代码文件默认保存在 `scripts` 个人目录，支持链接自动纠正功能  
-  链接自动纠正功能是当拉取位于远程托管仓库的代码文件时可自动将 _blob_ 链接转换为 _raw_ 原始文件链接，此功能已应用到整个项目
+执行后代码文件默认保存在 `scripts` 个人目录，支持链接自动纠正功能  
+链接自动纠正功能是当拉取位于远程托管仓库的代码文件时可自动将 _blob_ 链接转换为 _raw_ 原始文件链接，此功能已应用到整个项目
 
-- 命令选项 `[--options]`
+### 命令选项 `[--options]`
 
-  用于实现一些扩展功能，具体请查看下方的文档内容
+用于实现一些扩展功能，具体请查看下方的文档内容
 
-## 你需要掌握的一些基础概念
+## 基础概念
 
 ### 关于日志存储
 
@@ -73,9 +74,9 @@ arcadia run <name/path/url> [--options]
 
 ### 支持直接运行的代码文件类型
 
-目前支持的代码文件类型有 `js` `mjs` `cjs` `py` `ts` `go` `lua` `ruby` `pl` `c` `sh`，项目已默认预装了 `JavaScript`、`Python`、`Perl` 的运行环境，后续会适配更多语言类型
+目前支持的代码文件类型有 `js` `mjs` `cjs` `py` `ts` `go` `lua` `rb` `rs` `pl` `c` `sh`，项目已默认预装了 `JavaScript`、`Python`、`Perl` 的运行环境，后续会适配更多语言类型
 
-当执行本地代码文件时，文件名的后缀格式（代码文件类型）可以省略，届时将启用模糊查找，优先级为 `JavaScript` > `Python` > `TypeScript` > `Go` > `Lua` > `Ruby` > `Perl` > `C` > `Shell`，当存在同名代码文件时仍适用此规则
+当执行本地代码文件时，文件名的后缀格式（代码文件类型）可以省略，届时将启用模糊查找，优先级为 `JavaScript` > `Python` > `TypeScript` > `Go` > `Lua` > `Ruby` > `Rust` > `Perl` > `C` > `Shell`，当存在同名代码文件时仍适用此规则
 
 ### 关于运行代码文件所需的依赖
 
@@ -84,7 +85,7 @@ arcadia run <name/path/url> [--options]
 ## 命令选项
 
 使用方法：追加在命令的末尾，熟练后可以使用简写  
-一个高级的应用程序CLI指令往往有着复杂的命令选项设计，这可能是一个漫长的学习过程~
+> 一个高级的应用程序CLI指令往往有着复杂的命令选项设计，这可能是一个漫长的学习过程~
 
 <APITable>
 
@@ -104,8 +105,9 @@ arcadia run <name/path/url> [--options]
 | `-r`, `--recombine-env`        | 变量重组 | 是 | 按照指定顺序重新组合复合变量的值，选项后需跟变量名称、分隔符、重组表达式。表达式语法：多个值用 `,` 隔开，值区间用 `-` 连接，可以用 `%` 表示值的总数 |
 | `-R`, `--recombine-env-group`  | 分组运行 | 是 | 基于变量重组功能上的扩展应用，为每组变量单独运行代码文件，传参与变量重组功能基本一致，其中重组表达式内用 `@` 来区分不同组 |
 | `-S`, `--split-env`            | 拆分运行 | 是 | 将复合变量的值拆分后为每个值声明变量并单独运行代码文件，选项后需跟需要拆分的变量名称、分隔符 |
-| `--deno`, `--use-deno`            | [Deno](https://deno.com) | 否 | 使用 Deno 作为 JavaScript 和 TypeScript 的默认运行时环境，替代 Node.js 和 ts-node |
-| `--bun`, `--use-bun`            | [Bun](https://bun.sh) | 否 | 使用 Bun 作为 JavaScript 和 TypeScript 的默认运行时环境，替代 Node.js 和 ts-node |
+| `--deno`, `--use-deno`         | [Deno](https://deno.com) | 否 | 使用 Deno 作为 JavaScript 和 TypeScript 的运行时环境，替代 Node.js 和 tsx |
+| `--bun`, `--use-bun`           | [Bun](https://bun.sh) | 否 | 使用 Bun 作为 JavaScript 和 TypeScript 的运行时环境，替代 Node.js 和 tsx |
+| `--ts-node`, `--use-ts-node`   | [ts-node](https://typestrong.org/ts-node) | 否 | 使用 ts-node 作为 TypeScript 的执行器，替代 tsx |
 
 </APITable>
 
@@ -123,7 +125,7 @@ arcadia run <name/path/url> [--options]
 
 - `g<index>` 代表分组运行时的标记、`e<index>` 代表拆分运行时的标记、`t<index>` 表示并发任务数
 
-:::tip 目前并发运行的底层实现逻辑较为原生，暂时没有控制并发线程数的概念即全量并发，所以请合理使用以减少对系统造成的压力
+:::tip 目前并发运行的底层逻辑较为原生，暂时没有并发线程的概念即全量并发，所以请合理使用避免对系统造成的压力过大
 :::
 
 
@@ -154,7 +156,7 @@ arcadia run example.js -R TEST_CONFIG @ 1,2@3-5
 
 守护进程是可以周期运行的特殊进程，在这里指的是将代码文件设置为后台进程循环运行  
 当代码文件运行结束或中断时会自动重新运行，适用于需要长期连续运行的代码文件  
-针对同一个代码文件只可存在一个守护进程，这就意味着当被运行代码文件存在多个任务时是不允许设置守护进程的
+针对同一个代码文件只可存在一个守护进程，这就意味着当即将被运行的代码文件存在多个任务时是不允许设置守护进程的
 
 - #### 如何管理？
 

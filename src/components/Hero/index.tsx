@@ -32,7 +32,7 @@ export const AuroraText = memo(
         <span className={`relative inline-block ${className}`}>
           <span className="sr-only">{children}</span>
           <span
-            className="relative animate-aurora bg-[length:200%_auto] bg-clip-text text-transparent"
+            className="text-[0.6rem] sm:text-[1rem] relative animate-aurora bg-[length:200%_auto] bg-clip-text text-transparent"
             style={gradientStyle}
             aria-hidden="true"
           >
@@ -52,14 +52,14 @@ function HeroContentDefault () {
                 <div className="col" style={{ userSelect: 'none' }}>
                     <Heading as="h1" className={styles.tagline}>
                         <span>
-                            Arcadia <span style={{ fontSize: '1rem' }}><AuroraText>阿卡迪亚</AuroraText></span>
+                            Arcadia <span><AuroraText>阿卡迪亚</AuroraText></span>
                             <br className="block" />
                         </span>{' '}
                         一站式代码运维平台
                     </Heading>
                     <Heading as="h1" className={styles.tagline}>
                         <span>
-                            Arcadia <span style={{ fontSize: '1rem' }}><AuroraText>阿卡迪亚</AuroraText></span>
+                            Arcadia <span><AuroraText>阿卡迪亚</AuroraText></span>
                             <br className="block" />
                         </span>{' '}
                         一站式代码运维平台
@@ -79,7 +79,7 @@ function HeroContentDefault () {
                 </Link>
             </div>
         </div>
-        <div className={clsx(styles.relative, 'col', 'col--5', '')}>
+        <div className={clsx(styles.relative, 'col', 'col--5')}>
             <div className={styles.logoBlur}>
                 <svg className="mt-12 ml-2" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 800 800" opacity="1">
                     <defs>
@@ -170,7 +170,7 @@ export default function Hero () {
     return windowSize === 'mobile'
   }, [windowSize])
   return (
-    <header className={clsx('container', styles.heroBanner, 'max-[1921px]:pt-4 min-[1921px]:pt-[100px]')}>
+    <header className={clsx('container', styles.heroBanner, 'min-[1920px]:pt-0 min-[1920px]:pb-0')}>
         <div className="row padding-horiz--md">
             { !isMobile ? <HeroContentDefault /> : <HeroContentMobile /> }
         </div>

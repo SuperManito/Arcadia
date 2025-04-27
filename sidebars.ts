@@ -16,7 +16,8 @@ const sidebars: SidebarsConfig = {
       label: '开始使用',
       type: 'category',
       link: {
-        type: 'generated-index',
+        type: 'doc',
+        id: 'start/index',
       },
       items: [
         'start/install',
