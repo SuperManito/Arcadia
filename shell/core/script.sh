@@ -249,8 +249,8 @@ function find_script() {
     function _check_interpreter_exist {
         local interpreter_type="$1"
         local interpreter_name="$2"
-        if ! command -v "$interpreter" &>/dev/null; then
-            output_error "当前未安装 ${BLUE}${interpreter}${PLAIN} 运行环境！"
+        if ! command -v "${interpreter_type}" &>/dev/null; then
+            output_error "当前未安装 ${BLUE}${interpreter_name}${PLAIN} 运行环境！"
         fi
     }
 
