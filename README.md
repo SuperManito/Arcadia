@@ -1,6 +1,6 @@
 <p align="center">
     <a href="https://arcadia.cool">
-        <img src="./public/app-logo.jpg" width="180">
+        <img src="./public/app-logo.jpg" alt="Arcadia" width="180">
     </a>
 </p>
 
@@ -20,9 +20,9 @@
 
 Arcadia 源自希腊语 Αρκαδία，中文译名为 阿卡迪亚，它是希腊的一个二级行政区（州），位于伯罗奔尼撒半岛的中部山区，现被西方广泛引申为乌托邦，是传说中世界的中心位置，相当于中华文化中的世外桃源。
 
-Arcadia 平台目前主要面向于脚本语言编程，适用于中小型团队与个人的开发与运维环境。
+Arcadia 平台主要面向于脚本语言编程与运维，支持定时任务调度，有着完善的文件系统和底层CLI命令设计，适用于中小型团队与个人的开发与运维环境。
 
-除了代码运维外 Arcadia 还是一个强大的定时任务运维平台，并且有着完善的文件系统和底层CLI命令设计。
+项目基于 TypeScript 全栈开发，采用了众多前沿技术，前端使用 Vue + Vite，后端使用 Node.js + Express + Prisma ORM。
 
 ## 支持的编程语言
 
@@ -31,7 +31,7 @@ Arcadia 平台目前主要面向于脚本语言编程，适用于中小型团队
 | 类型 | 涉及文件格式 |
 | :-: | :-: |
 | JavaScript | `.js` `.mjs` `.cjs` |
-| TypeScript | `.ts` |
+| TypeScript | `.ts` `.mts` `.cts` |
 | Python | `.py` |
 | Go | `.go` |
 | Lua | `.lua` |
@@ -41,7 +41,7 @@ Arcadia 平台目前主要面向于脚本语言编程，适用于中小型团队
 | C | `.c` |
 | Shell | `.sh` |
 
-`Node.js` `ts-node` `Deno` `Bun` `Python` `Go` `Rust` `Lua` `Ruby` `Perl` `C` `Shell`
+`Node.js` `tsx` `ts-node` `Deno` `Bun` `Python` `Go` `Rust` `Lua` `Ruby` `Perl` `C` `Shell`
 
 ## 安装方法
 

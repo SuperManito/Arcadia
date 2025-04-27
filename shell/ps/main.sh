@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-11-22
+## Modified: 2024-04-27
 
 ## 进程状态功能
 # ps
@@ -36,6 +36,6 @@ function command_ps() {
 
     ## 列出进程
     echo -e "\n${BLUE}[运行时长]  [CPU]    [内存]    [脚本名称]${PLAIN}"
-    ps -axo user,time,pcpu,user,pmem,user,command --sort -pmem | egrep "\.(js|mjs|cjs|py|ts|go|lua|rb|rs|pl|c)$" | egrep -v "${SrcDir}/server\.js|${SrcDir}/inner_server\.js|pm2 |egrep |perl |sed |bash |wget |\<defunct\>|node_modules/" | perl -pe '{s! root     !% !g; s!/usr/bin/(ts-node|ts-node-transpile-only|python3|python|node|go|deno|bun|lua|ruby|perl) !!g; s!/root/\.deno/bin/deno !!g; s!/root/\.bun/bin/bun !!g; s!/root/\.cargo/bin/\(rustc|cargo\) !!g; s!python3 -u !!g; s!(ts-node|ts-node-transpile-only|node) -r global-agent/bootstrap !(代理)!g; s!node !!g; s!root     !#!g; s!#[0-9][0-9]:!#!g; s!  ! !g; s! !     !g; s!#!•  !g; s!\./utils/!!g}'
+    ps -axo user,time,pcpu,user,pmem,user,command --sort -pmem | egrep "\.(js|mjs|cjs|py|ts|go|lua|rb|rs|pl|c)$" | egrep -v "${SrcDir}/server\.js|${SrcDir}/inner_server\.js|pm2 |egrep |perl |sed |bash |wget |\<defunct\>|node_modules/" | perl -pe '{s! root     !% !g; s!/usr/bin/(tsx|ts-node|ts-node-transpile-only|python3|python|node|go|deno|bun|lua|ruby|perl) !!g; s!/root/\.deno/bin/deno !!g; s!/root/\.bun/bin/bun !!g; s!/root/\.cargo/bin/\(rustc|cargo\) !!g; s!python3 -u !!g; s!(tsx|ts-node|ts-node-transpile-only|node) -r global-agent/bootstrap !(代理)!g; s!node !!g; s!root     !#!g; s!#[0-9][0-9]:!#!g; s!  ! !g; s! !     !g; s!#!•  !g; s!\./utils/!!g}'
     echo ''
 }

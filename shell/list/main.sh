@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-11-22
+## Modified: 2025-04-27
 
 ## 列出本地代码文件清单功能
 # list <path>
@@ -9,8 +9,8 @@ function command_list_main() {
     if [ "$(command -v python3)" ]; then
         ScriptType="${ScriptType}|\.py\$"
     fi
-    if [[ "$(command -v ts-node)" || "$(command -v deno)" || "$(command -v bun)" ]]; then
-        ScriptType="${ScriptType}|\.ts\$"
+    if [[ "$(command -v tsx)" || "$(command -v ts-node)" || "$(command -v deno)" || "$(command -v bun)" ]]; then
+        ScriptType="${ScriptType}|\.ts\$|\.mts\$|\.cts\$"
     fi
     if [ "$(command -v go)" ]; then
         ScriptType="${ScriptType}|\.go\$"
@@ -30,9 +30,6 @@ function command_list_main() {
     if [ "$(command -v gcc)" ]; then
         ScriptType="${ScriptType}|\.c\$"
     fi
-    # 内置过滤规则
-    MaskingScripts="index\.js"
-    MaskingKeywords="sendNotify\.|\.bak\b|${MaskingScripts}"
 
     list_designated "$1"
     echo ''
@@ -42,6 +39,8 @@ function command_list_main() {
 function list_designated() {
     local work_dir tmp_num tmp_length1 tmp_length2 tmp_spaces_nums1 tmp_script_modify_times
     local input_content="$1"
+    # 内置过滤规则
+    local MaskingKeywords="sendNotify\.|\.bak\b"
     ## 转换为绝对路径
     work_dir="$(get_absolute_path "${input_content}")"
     ## 判断路径是否存在

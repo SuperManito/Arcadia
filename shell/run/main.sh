@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-11-22
+## Modified: 2025-04-27
 
 ## 随机延迟
 function random_delay() {
@@ -79,8 +79,9 @@ function _record_log_end_title() {
 
 ## 定义基准命令
 function define_base_command() {
-    # 脚本 global-agent 代理（命令选项）
     local pm2_base_cmd="pm2 start --name \"${FileName}\" --log <LogFilePath> --restart-delay 0 --max-restarts 9999999999"
+    local run_target="${FileName}.${FileSuffix}"
+    # 脚本 global-agent 代理（命令选项）
     local global_proxy_option_cmd=""
     [[ "${RUN_OPTION_AGENT}" == "true" || "${EnableGlobalProxy}" == "true" ]] && global_proxy_option_cmd=" -r 'global-agent/bootstrap'"
 
@@ -89,46 +90,53 @@ function define_base_command() {
         case "${FileType}" in
         JavaScript | TypeScript)
             if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
-                base_cmd="${pm2_base_cmd} \"${FileName}.${FileSuffix}\" --interpreter $(which deno) --interpreter-args=\"run --no-code-cache --no-prompt --allow-env --allow-read=$(pwd) --allow-write=$(pwd) --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I)\""
+                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which deno) --interpreter-args=\"run --no-code-cache --no-prompt --allow-env --allow-read=$(pwd) --allow-write=$(pwd) --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I)\""
             elif [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-                base_cmd="${pm2_base_cmd} \"${FileName}.${FileSuffix}\" --interpreter $(which bun)"
+                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which bun)"
             else
                 case "${FileType}" in
                 JavaScript)
                     if [[ "${global_proxy_option_cmd}" ]]; then
                         global_proxy_option_cmd=" --interpreter-args=\"${global_proxy_option_cmd}\""
                     fi
-                    base_cmd="${pm2_base_cmd} \"${FileName}.${FileSuffix}\"  --interpreter-args=\"${global_proxy_option_cmd}\""
+                    base_cmd="${pm2_base_cmd} \"${run_target}\"${global_proxy_option_cmd}"
                     ;;
                 TypeScript)
-                    base_cmd="${pm2_base_cmd} \"${FileName}.${FileSuffix}\" --interpreter $(which ts-node) --interpreter-args=\"-T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd}\""
+                    if [[ "${RUN_OPTION_USE_TS_NODE}" == "true" ]]; then
+                        base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which ts-node) --interpreter-args=\"-T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd}\""
+                    else
+                        if [[ "${global_proxy_option_cmd}" ]]; then
+                            global_proxy_option_cmd=" --interpreter-args=\"${global_proxy_option_cmd}\""
+                        fi
+                        base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which tsx)${global_proxy_option_cmd}"
+                    fi
                     ;;
                 esac
             fi
             ;;
         Python)
-            base_cmd="${pm2_base_cmd} \"${FileName}.${FileSuffix}\" --interpreter $(which python3) --interpreter-args=\"-u\""
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which python3) --interpreter-args=\"-u\""
             ;;
         Go)
-            base_cmd="${pm2_base_cmd} \"${FileName}.${FileSuffix}\" --interpreter $(which go)"
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which go)"
             ;;
         Lua)
-            base_cmd="${pm2_base_cmd} \"${FileName}.${FileSuffix}\" --interpreter $(which lua)"
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which lua)"
             ;;
         Ruby)
-            base_cmd="${pm2_base_cmd} \"${FileName}.${FileSuffix}\" --interpreter $(which ruby)"
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which ruby)"
             ;;
         Rust)
-            base_cmd="${pm2_base_cmd} \"${FileName}.${FileSuffix}\" --interpreter $(which cargo) --interpreter-args=\"script\""
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which cargo) --interpreter-args=\"script\""
             ;;
         Perl)
-            base_cmd="${pm2_base_cmd} \"${FileName}.${FileSuffix}\" --interpreter $(which perl)"
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which perl)"
             ;;
         C)
-            base_cmd="gcc -o ${FileName} ${FileName}.${FileSuffix} ; ${pm2_base_cmd} \"${FileName}\""
+            base_cmd="gcc -o ${FileName} ${run_target} ; ${pm2_base_cmd} \"${FileName}\""
             ;;
         Shell)
-            base_cmd="${pm2_base_cmd} \"${FileName}.${FileSuffix}\" --interpreter bash"
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter bash"
             ;;
         esac
 
@@ -136,49 +144,47 @@ function define_base_command() {
         case "${FileType}" in
         JavaScript | TypeScript)
             if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
-                base_cmd="deno run --no-code-cache --no-prompt --allow-env --allow-read=./ --allow-write=./ --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I) ${FileName}.${FileSuffix} 2>&1"
+                base_cmd="deno run --no-code-cache --no-prompt --allow-env --allow-read=./ --allow-write=./ --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I) ${run_target} 2>&1"
             elif [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-                base_cmd="bun ${FileName}.${FileSuffix} 2>&1"
+                base_cmd="bun ${run_target} 2>&1"
             else
                 case "${FileType}" in
                 JavaScript)
-                    base_cmd="node${global_proxy_option_cmd} ${FileName}.${FileSuffix} 2>&1"
+                    base_cmd="node${global_proxy_option_cmd} ${run_target} 2>&1"
                     ;;
                 TypeScript)
-                    base_cmd="ts-node -T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd} ${FileName}.${FileSuffix} 2>&1"
+                    if [[ "${RUN_OPTION_USE_TS_NODE}" == "true" ]]; then
+                        base_cmd="ts-node -T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd} ${run_target} 2>&1"
+                    else
+                        base_cmd="tsx${global_proxy_option_cmd} ${run_target} 2>&1"
+                    fi
                     ;;
                 esac
             fi
             ;;
-        JavaScript)
-            base_cmd="node${global_proxy_option_cmd} ${FileName}.${FileSuffix} 2>&1"
-            ;;
         Python)
-            base_cmd="python3 -u ${FileName}.${FileSuffix} 2>&1"
-            ;;
-        TypeScript)
-            base_cmd="ts-node -T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd} ${FileName}.${FileSuffix} 2>&1"
+            base_cmd="python3 -u ${run_target} 2>&1"
             ;;
         Go)
-            base_cmd="go run ${FileName}.${FileSuffix} 2>&1"
+            base_cmd="go run ${run_target} 2>&1"
             ;;
         Lua)
-            base_cmd="lua ${FileName}.${FileSuffix} 2>&1"
+            base_cmd="lua ${run_target} 2>&1"
             ;;
         Ruby)
-            base_cmd="ruby ${FileName}.${FileSuffix} 2>&1"
+            base_cmd="ruby ${run_target} 2>&1"
             ;;
         Rust)
-            base_cmd="cargo script ${FileName}.${FileSuffix} 2>&1"
+            base_cmd="cargo script ${run_target} 2>&1"
             ;;
         Perl)
-            base_cmd="perl ${FileName}.${FileSuffix} 2>&1"
+            base_cmd="perl ${run_target} 2>&1"
             ;;
         C)
-            base_cmd="gcc -o ${FileName} ${FileName}.${FileSuffix} && ./${FileName} 2>&1"
+            base_cmd="gcc -o ${FileName} ${run_target} && ./${FileName} 2>&1"
             ;;
         Shell)
-            base_cmd="bash ${FileName}.${FileSuffix} 2>&1"
+            base_cmd="bash ${run_target} 2>&1"
             ;;
         esac
     fi
@@ -424,7 +430,7 @@ function command_run_main() {
 ## 检查命令选项兼容性和使用合法性
 function command_run_check_options() {
     ## 不可同时使用
-    check_usability() {
+    function check_usability() {
         local var1=$1
         local var2=$2
         local option1=$3
@@ -463,6 +469,10 @@ function command_run_check_options() {
     fi
     # 使用 Deno & 使用 Bun（功能冲突）
     check_usability "RUN_OPTION_USE_DENO" "RUN_OPTION_USE_BUN" "--deno" "--bun"
+    # 使用 ts-node & 使用 Deno（功能冲突）
+    check_usability "RUN_OPTION_USE_TS_NODE" "RUN_OPTION_USE_DENO" "--ts-node" "--deno"
+    # 使用 ts-node & 使用 Bun（功能冲突）
+    check_usability "RUN_OPTION_USE_TS_NODE" "RUN_OPTION_USE_BUN" "--ts-node" "--bun"
 }
 
 function command_run() {
@@ -599,6 +609,9 @@ function command_run() {
                 ;;
             --bun | --use-bun)
                 RUN_OPTION_USE_BUN="true"
+                ;;
+            --ts-node | --use-ts-node)
+                RUN_OPTION_USE_TS_NODE="true"
                 ;;
             *)
                 output_error "命令选项 ${BLUE}$1${PLAIN} 错误，字段名称不存在！"

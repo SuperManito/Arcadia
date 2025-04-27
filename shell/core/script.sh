@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-03-20
+## Modified: 2025-04-27
 
 ## 查找代码文件
 # 通过各种判断将得到的必要信息传给接下来运行的函数或命令
@@ -24,9 +24,9 @@ function find_script() {
     # 传入内容
     local input_content=$1
     # 支持的代码文件类型后缀
-    local supported_file_types=("js" "mjs" "cjs" "py" "ts" "go" "lua" "rb" "rs" "pl" "c" "sh")
+    local supported_file_types=("js" "mjs" "cjs" "py" "ts" "mts" "cts" "go" "lua" "rb" "rs" "pl" "c" "sh")
     # 支持的代码文件类型名称
-    local supported_file_type_names=("JavaScript" "JavaScript" "JavaScript" "Python" "TypeScript" "Go" "Lua" "Ruby" "Rust" "Perl" "C" "Shell")
+    local supported_file_type_names=("JavaScript" "JavaScript" "JavaScript" "Python" "TypeScript" "TypeScript" "TypeScript" "Go" "Lua" "Ruby" "Rust" "Perl" "C" "Shell")
     FileName=""
     FileDir=""
     FileType=""
@@ -246,74 +246,55 @@ function find_script() {
         match_scripts_file
     fi
 
+    function _check_interpreter_exist {
+        local interpreter_type="$1"
+        local interpreter_name="$2"
+        if ! command -v "$interpreter" &>/dev/null; then
+            output_error "当前未安装 ${BLUE}${interpreter}${PLAIN} 运行环境！"
+        fi
+    }
+
     ## 检测代码文件运行环境
     case "${FileType}" in
     "JavaScript")
         if [[ "${RUN_OPTION_USE_DENO}" == "true" || "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-            if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
-                if ! command -v deno &>/dev/null; then
-                    output_error "当前未安装 ${BLUE}Deno${PLAIN} 运行环境！"
-                fi
-            fi
-            if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-                if ! command -v bun &>/dev/null; then
-                    output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
-                fi
-            fi
+            [[ "${RUN_OPTION_USE_DENO}" == "true" ]] && _check_interpreter_exist "deno" "Deno"
+            [[ "${RUN_OPTION_USE_BUN}" == "true" ]] && _check_interpreter_exist "bun" "Bun"
         fi
         ;;
     "TypeScript")
-        if [[ "${RUN_OPTION_USE_DENO}" == "true" || "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-            if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
-                if ! command -v deno &>/dev/null; then
-                    output_error "当前未安装 ${BLUE}Deno${PLAIN} 运行环境！"
-                fi
-            fi
-            if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-                if ! command -v bun &>/dev/null; then
-                    output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
-                fi
-            fi
+        if [[ "${RUN_OPTION_USE_DENO}" == "true" || "${RUN_OPTION_USE_BUN}" == "true" || "${RUN_OPTION_USE_TS_NODE}" == "true" ]]; then
+            [[ "${RUN_OPTION_USE_DENO}" == "true" ]] && _check_interpreter_exist "deno" "Deno"
+            [[ "${RUN_OPTION_USE_BUN}" == "true" ]] && _check_interpreter_exist "bun" "Bun"
+            [[ "${RUN_OPTION_USE_TS_NODE}" == "true" ]] && _check_interpreter_exist "ts-node" "TypeScript（ts-node）"
         else
-            if ! command -v ts-node &>/dev/null; then
-                output_error "当前未安装 ${BLUE}TypeScript（ts-node）${PLAIN} 运行环境！"
-            fi
+            _check_interpreter_exist "tsx" "TypeScript（tsx）"
         fi
         ;;
     "Python")
-        if ! command -v python3 &>/dev/null; then
-            output_error "当前未安装 ${BLUE}Python 3${PLAIN} 运行环境！"
-        fi
+        _check_interpreter_exist "python3" "Python 3"
         ;;
     "Go")
-        if ! command -v go &>/dev/null; then
-            output_error "当前未安装 ${BLUE}Go${PLAIN} 运行环境！"
-        fi
+        _check_interpreter_exist "go" "Go"
         ;;
     "Lua")
-        if ! command -v lua &>/dev/null; then
-            output_error "当前未安装 ${BLUE}Lua${PLAIN} 运行环境！"
-        fi
+        _check_interpreter_exist "lua" "Lua"
         ;;
     "Ruby")
-        if ! command -v ruby &>/dev/null; then
-            output_error "当前未安装 ${BLUE}Ruby${PLAIN} 运行环境！"
-        fi
+        _check_interpreter_exist "ruby" "Ruby"
         ;;
     "Rust")
         if ! command -v rustc &>/dev/null || ! command -v cargo &>/dev/null; then
             output_error "当前未安装 ${BLUE}Rust${PLAIN} 运行环境！"
         fi
+        _check_interpreter_exist "rustc" "Rust"
+        _check_interpreter_exist "cargo" "Rust"
         ;;
     "C")
-        if ! command -v gcc &>/dev/null; then
-            output_error "当前未安装 ${BLUE}C${PLAIN} 运行环境！"
-        fi
+        _check_interpreter_exist "gcc" "C"
         ;;
     esac
     # "Perl")
-    #     if ! command -v perl &>/dev/null; then
-    #         output_error "当前未安装 ${BLUE}Perl${PLAIN} 运行环境！"
-    #     fi
-    #     ;;
+    #   _check_interpreter_exist "perl" "Perl"
+    #   ;;
 }

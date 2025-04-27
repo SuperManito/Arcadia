@@ -16,6 +16,8 @@ const canRunCodeFileExtList = [
   'cjs',
   'py',
   'ts',
+  'mts',
+  'cts',
   'go',
   'lua',
   'rb',
@@ -24,7 +26,7 @@ const canRunCodeFileExtList = [
   'c',
   'sh',
 ]
-const excludeRegExp = /(user\.session)|(\.cache$)|(\.check$)|(\.git$)|(\.tmp$)|(__pycache__$)|(node_modules)/ // 全局过滤正则
+const excludeRegExp = /(user\.session)|(\.cache$)|(\.check$)|(\.git$)|(\.tmp$)|(__pycache__$)|(node_modules)|(Cargo\.lock$)|(go\.sum$)|(\.gem$)|(\.bundle\/)|(\.cargo\/)|(__MACOSX\/)|(\.rbc$)|(\.so$)|(\.luac$)|(\.o$)|(\.a$)|(\.dll$)|(\.exe$)|(\.out$)|(\.pyc$)|(\.class$)|(\.elc$)|(\.beam$)|(\.hi$)|(\.dSYM\/)|(\.ipynb_checkpoints\/)|(\.rustup\/)|(\.cargo-cache\/)|(\.luarocks\/)|(\.rbenv\/)|(\.rvm\/)|(\.cabal\/)|(\.stack-work\/)|(\.perl\/)/ // 全局过滤正则
 
 interface FileList {
   title: string // 目录名

@@ -66,7 +66,7 @@ export function arrayObjectSort(field: string, array: any[] = [], isAsc: boolean
 }
 
 /**
- * 是否为空
+ * 是否非空
  *
  * @param str
  * @returns {boolean}
