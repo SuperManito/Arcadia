@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-04-27
+## Modified: 2025-04-28
 
 function _print_help_title() {
   if [ "$1" ]; then
@@ -108,7 +108,7 @@ function _print_help_run() {
 
     ${BLUE}--deno${PLAIN}，${BLUE}--use-deno${PLAIN}          使用 Deno 作为 JavaScript 和 TypeScript 的运行时环境
     ${BLUE}--bun${PLAIN}，${BLUE}--use-bun${PLAIN}            使用 Bun 作为 JavaScript 和 TypeScript 的运行时环境
-    ${BLUE}--ts-node${PLAIN}，${BLUE}--use-ts-node${PLAIN}    使用 ts-node 作为 TypeScript 的运行时环境
+    ${BLUE}--ts-node${PLAIN}，${BLUE}--use-ts-node${PLAIN}    使用 ts-node 作为 TypeScript 的执行器
 
   命令帮助：
 
