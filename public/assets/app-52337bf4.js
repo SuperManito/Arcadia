@@ -1,0 +1,1 @@
+import{ad as c,aw as i}from"./vendor-ca0e89fa.js";function a(s,r={}){if(typeof s=="string"){const n=`i-${s.replace(":","-")}`;return()=>c("i",{class:[n,r.class],style:r.style,onClick:r.onClick})}return n=>{const e={...r,...n};return c(i,e,{default:()=>c(s)})}}export{a as r};

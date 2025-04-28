@@ -1,1 +1,0 @@
-import{cv as e}from"./vendor-c495fdf6.js";function n(r){const t=r.trim();if(![5,6].includes(t.split(" ").length)||/([?LW])/.test(t))return!1;try{return e.parseExpression(r),!0}catch{return!1}}export{n as v};

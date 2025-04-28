@@ -1,1 +1,0 @@
-import{cQ as y,aC as b,cx as m}from"./vendor-c495fdf6.js";const D=Symbol();function k(F,c=!0){const{on:t,off:i,reset:r,emit:s}=b(D);let e,f;function a(o,{wait:n=150,immediate:l=!1,isPassPars:p=!0}={}){e=m(o,n),f=()=>{e()},t(p?e:()=>{e()}),l&&s()}function u(o){const n=o||e||f;n&&i(n)}return y(()=>{c&&u()}),{on:a,off:u,reset:r,emit:s}}export{k as u};
