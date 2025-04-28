@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-27
+## Modified: 2024-04-28
 
 ## 更新项目
 function command_upgrade() {
@@ -11,7 +11,7 @@ function command_upgrade() {
 
     local project_depend_old project_depend_new
     ## 更新前先存储 package.json
-    [ -f $SrcDir/package.json ] && project_depend_old=$(cat $SrcDir/package.json)
+    [ -f "${BackendDir}/package.json" ] && project_depend_old="$(cat "${BackendDir}/package.json")"
     ## 确认分支名称
     cd $SrcDir
     local src_branch_name="$(git status | head -n 1 | awk -F ' ' '{print$NF}')"
@@ -24,7 +24,7 @@ function command_upgrade() {
         echo -e "\n$FAIL 更新失败，请检查原因...\n"
     fi
     ## 检测依赖变动
-    [ -f $SrcDir/package.json ] && project_depend_new=$(cat $SrcDir/package.json)
+    [ -f "${BackendDir}/package.json" ] && project_depend_new=$(cat "${BackendDir}/package.json")
     if [[ "${project_depend_old}" != "${project_depend_new}" ]]; then
         pm2 delete arcadia_server >/dev/null 2>&1
         pm2 delete arcadia_inner >/dev/null 2>&1
