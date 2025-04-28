@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-10-11
+## Modified: 2025-04-27
 
 ## 随机延迟
 function random_delay() {
@@ -79,92 +79,114 @@ function _record_log_end_title() {
 
 ## 定义基准命令
 function define_base_command() {
+    local pm2_base_cmd="pm2 start --name \"${FileName}\" --log <LogFilePath> --restart-delay 0 --max-restarts 9999999999"
+    local run_target="${FileName}.${FileSuffix}"
     # 脚本 global-agent 代理（命令选项）
     local global_proxy_option_cmd=""
     [[ "${RUN_OPTION_AGENT}" == "true" || "${EnableGlobalProxy}" == "true" ]] && global_proxy_option_cmd=" -r 'global-agent/bootstrap'"
 
     # 后台挂起（守护进程）
     if [[ "${RUN_OPTION_DAEMON}" == "true" ]]; then
-        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-            if [[ "${global_proxy_option_cmd}" ]]; then
-                global_proxy_option_cmd=" --${global_proxy_option_cmd}"
+        case "${FileType}" in
+        JavaScript | TypeScript)
+            if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
+                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which deno) --interpreter-args=\"run --no-code-cache --no-prompt --allow-env --allow-read=$(pwd) --allow-write=$(pwd) --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I)\""
+            elif [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which bun)"
+            else
+                case "${FileType}" in
+                JavaScript)
+                    if [[ "${global_proxy_option_cmd}" ]]; then
+                        global_proxy_option_cmd=" --interpreter-args=\"${global_proxy_option_cmd}\""
+                    fi
+                    base_cmd="${pm2_base_cmd} \"${run_target}\"${global_proxy_option_cmd}"
+                    ;;
+                TypeScript)
+                    if [[ "${RUN_OPTION_USE_TS_NODE}" == "true" ]]; then
+                        base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which ts-node) --interpreter-args=\"-T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd}\""
+                    else
+                        if [[ "${global_proxy_option_cmd}" ]]; then
+                            global_proxy_option_cmd=" --interpreter-args=\"${global_proxy_option_cmd}\""
+                        fi
+                        base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which tsx)${global_proxy_option_cmd}"
+                    fi
+                    ;;
+                esac
             fi
-            base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter $(which bun) --name \"${FileName}\" --log <LogFilePath>${global_proxy_option_cmd}"
-        else
-            case "${FileType}" in
-            JavaScript)
-                if [[ "${global_proxy_option_cmd}" ]]; then
-                    global_proxy_option_cmd=" --${global_proxy_option_cmd}"
-                fi
-                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --name \"${FileName}\" --watch --log <LogFilePath>${global_proxy_option_cmd}"
-                ;;
-            Python)
-                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/python3 --log <LogFilePath> -- -u"
-                ;;
-            TypeScript)
-                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/ts-node --name \"${FileName}\" --log <LogFilePath> -- -T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd}"
-                ;;
-            Go)
-                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/go --name \"${FileName}\" --log <LogFilePath>"
-                ;;
-            Lua)
-                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/lua --name \"${FileName}\" --log <LogFilePath>"
-                ;;
-            Ruby)
-                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/ruby --name \"${FileName}\" --log <LogFilePath>"
-                ;;
-            Rust)
-                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter $(which cargo) --name \"${FileName}\" --log <LogFilePath> -- script"
-                ;;
-            Perl)
-                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter /usr/bin/perl --name \"${FileName}\" --log <LogFilePath>"
-                ;;
-            C)
-                base_cmd="gcc -o ${FileName} ${FileName}.${FileSuffix} ; pm2 start \"${FileName}\" --name \"${FileName}\" --log <LogFilePath>"
-                ;;
-            Shell)
-                base_cmd="pm2 start \"${FileName}.${FileSuffix}\" --interpreter bash --name \"${FileName}\" --log <LogFilePath>"
-                ;;
-            esac
-        fi
+            ;;
+        Python)
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which python3) --interpreter-args=\"-u\""
+            ;;
+        Go)
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which go)"
+            ;;
+        Lua)
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which lua)"
+            ;;
+        Ruby)
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which ruby)"
+            ;;
+        Rust)
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which cargo) --interpreter-args=\"script\""
+            ;;
+        Perl)
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which perl)"
+            ;;
+        C)
+            base_cmd="gcc -o ${FileName} ${run_target} ; ${pm2_base_cmd} \"${FileName}\""
+            ;;
+        Shell)
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter bash"
+            ;;
+        esac
 
     else
-        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-            base_cmd="bun run${global_proxy_option_cmd} ${FileName}.${FileSuffix} 2>&1"
-        else
-            case "${FileType}" in
-            JavaScript)
-                base_cmd="node${global_proxy_option_cmd} ${FileName}.${FileSuffix} 2>&1"
-                ;;
-            Python)
-                base_cmd="python3 -u ${FileName}.${FileSuffix} 2>&1"
-                ;;
-            TypeScript)
-                base_cmd="ts-node -T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd} ${FileName}.${FileSuffix} 2>&1"
-                ;;
-            Go)
-                base_cmd="go run ${FileName}.${FileSuffix} 2>&1"
-                ;;
-            Lua)
-                base_cmd="lua ${FileName}.${FileSuffix} 2>&1"
-                ;;
-            Ruby)
-                base_cmd="ruby ${FileName}.${FileSuffix} 2>&1"
-                ;;
-            Rust)
-                base_cmd="cargo script ${FileName}.${FileSuffix} 2>&1"
-                ;;
-            Perl)
-                base_cmd="perl ${FileName}.${FileSuffix} 2>&1"
-                ;;
-            C)
-                base_cmd="gcc -o ${FileName} ${FileName}.${FileSuffix} && ./${FileName} 2>&1"
-                ;;
-            Shell)
-                base_cmd="bash ${FileName}.${FileSuffix} 2>&1"
-                ;;
-            esac
-        fi
+        case "${FileType}" in
+        JavaScript | TypeScript)
+            if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
+                base_cmd="deno run --no-code-cache --no-prompt --allow-env --allow-read=./ --allow-write=./ --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I) ${run_target} 2>&1"
+            elif [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+                base_cmd="bun ${run_target} 2>&1"
+            else
+                case "${FileType}" in
+                JavaScript)
+                    base_cmd="node${global_proxy_option_cmd} ${run_target} 2>&1"
+                    ;;
+                TypeScript)
+                    if [[ "${RUN_OPTION_USE_TS_NODE}" == "true" ]]; then
+                        base_cmd="ts-node -T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd} ${run_target} 2>&1"
+                    else
+                        base_cmd="tsx${global_proxy_option_cmd} ${run_target} 2>&1"
+                    fi
+                    ;;
+                esac
+            fi
+            ;;
+        Python)
+            base_cmd="python3 -u ${run_target} 2>&1"
+            ;;
+        Go)
+            base_cmd="go run ${run_target} 2>&1"
+            ;;
+        Lua)
+            base_cmd="lua ${run_target} 2>&1"
+            ;;
+        Ruby)
+            base_cmd="ruby ${run_target} 2>&1"
+            ;;
+        Rust)
+            base_cmd="cargo script ${run_target} 2>&1"
+            ;;
+        Perl)
+            base_cmd="perl ${run_target} 2>&1"
+            ;;
+        C)
+            base_cmd="gcc -o ${FileName} ${run_target} && ./${FileName} 2>&1"
+            ;;
+        Shell)
+            base_cmd="bash ${run_target} 2>&1"
+            ;;
+        esac
     fi
 }
 
@@ -185,7 +207,9 @@ function run_script_core() {
         # 记录执行开始时间
         _record_log_start_title "守护进程启动"
         # 启动（此处特殊，需要替换命令中的日志标记）
-        bash -c "$(echo "${run_cmd}" | sed 's/\<LogFilePath\>/'${LogFilePath}'/g')"
+        run_cmd="${run_cmd//<LogFilePath>/${LogFilePath}}"
+        # echo "${run_cmd}"
+        bash -c "${run_cmd}"
 
     # 后台运行（命令选项）
     elif [[ "${RUN_OPTION_BACKGROUND}" == "true" ]]; then
@@ -338,7 +362,7 @@ function run_script_main() {
     ## 打印
     # 守护进程（命令选项）
     if [[ "${RUN_OPTION_DAEMON}" == "true" ]]; then
-        echo -e "\n$COMPLETE 已${operation_title} ${BLUE}$FileName${PLAIN} 守护进程，日志位于 ${BLUE}${LogFilePath}${PLAIN}\n"
+        echo -e "\n暂停任务 ${BLUE}pm2 stop ${FileName}${PLAIN}\n移除任务 ${BLUE}pm2 delete ${FileName}${PLAIN}\n\n$COMPLETE 已${operation_title} ${BLUE}$FileName${PLAIN} 守护进程，日志位于 ${BLUE}${LogFilePath}${PLAIN}\n"
     # 后台运行 & 并发运行
     elif [[ "${RUN_OPTION_BACKGROUND}" == "true" ]] || [[ "${RUN_OPTION_CONCURRENT}" == "true" ]]; then
         echo -e "\n$COMPLETE 已部署所有任务于后台运行，如需查询代码运行记录请前往 ${BLUE}$(echo "${LogPath}" | awk -F "${RootDir}/" '{print$2}')${PLAIN} 目录查看最新日志\n"
@@ -358,11 +382,15 @@ function command_run_main() {
     if [[ "${FileType}" != "JavaScript" && "${FileType}" != "TypeScript" ]]; then
         # 判断脚本代理
         if [[ "${RUN_OPTION_AGENT}" == "true" ]]; then
-            output_error "检测到无效参数 ${BLUE}--agent${PLAIN} ，仅支持运行 JavaScript 和 TypeScript 代码文件！"
+            output_error "检测到无效参数 ${BLUE}--agent${PLAIN} ，仅支持运行 ${BLUE}JavaScript${PLAIN} 和 ${BLUE}TypeScript${PLAIN} 代码文件！"
+        fi
+        # 判断 Deno 运行环境
+        if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
+            output_error "检测到无效参数 ${BLUE}--use-deno${PLAIN} ，${BLUE}Deno${PLAIN} 仅支持运行 ${BLUE}JavaScript${PLAIN} 和 ${BLUE}TypeScript${PLAIN} 代码文件！"
         fi
         # 判断 Bun 运行环境
         if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-            output_error "检测到无效参数 ${BLUE}--use-bun${PLAIN} ，仅支持运行 JavaScript 和 TypeScript 代码文件！"
+            output_error "检测到无效参数 ${BLUE}--use-bun${PLAIN} ，${BLUE}Bun${PLAIN} 仅支持运行 ${BLUE}JavaScript${PLAIN} 和 ${BLUE}TypeScript${PLAIN} 代码文件！"
         fi
     fi
 
@@ -402,7 +430,7 @@ function command_run_main() {
 ## 检查命令选项兼容性和使用合法性
 function command_run_check_options() {
     ## 不可同时使用
-    check_usability() {
+    function check_usability() {
         local var1=$1
         local var2=$2
         local option1=$3
@@ -439,6 +467,12 @@ function command_run_check_options() {
             output_error "无意义的并发，请使用后台运行命令选项或指定并发任务数量！"
         fi
     fi
+    # 使用 Deno & 使用 Bun（功能冲突）
+    check_usability "RUN_OPTION_USE_DENO" "RUN_OPTION_USE_BUN" "--deno" "--bun"
+    # 使用 ts-node & 使用 Deno（功能冲突）
+    check_usability "RUN_OPTION_USE_TS_NODE" "RUN_OPTION_USE_DENO" "--ts-node" "--deno"
+    # 使用 ts-node & 使用 Bun（功能冲突）
+    check_usability "RUN_OPTION_USE_TS_NODE" "RUN_OPTION_USE_BUN" "--ts-node" "--bun"
 }
 
 function command_run() {
@@ -508,9 +542,6 @@ function command_run() {
             -d | --daemon)
                 RUN_OPTION_DAEMON="true"
                 ;;
-            -B | --use-bun)
-                RUN_OPTION_USE_BUN="true"
-                ;;
             -b | --background)
                 RUN_OPTION_BACKGROUND="true"
                 ;;
@@ -572,6 +603,15 @@ function command_run() {
                 RUN_OPTION_SPLIT_ENV_SEPARATOR="$3"
                 shift
                 shift
+                ;;
+            --deno | --use-deno)
+                RUN_OPTION_USE_DENO="true"
+                ;;
+            --bun | --use-bun)
+                RUN_OPTION_USE_BUN="true"
+                ;;
+            --ts-node | --use-ts-node)
+                RUN_OPTION_USE_TS_NODE="true"
                 ;;
             *)
                 output_error "命令选项 ${BLUE}$1${PLAIN} 错误，字段名称不存在！"

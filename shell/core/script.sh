@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-10-12
+## Modified: 2025-04-27
 
 ## 查找代码文件
 # 通过各种判断将得到的必要信息传给接下来运行的函数或命令
@@ -23,45 +23,25 @@ function find_script() {
 
     # 传入内容
     local input_content=$1
-    # 支持的代码文件类型
-    local supported_file_types=("js" "mjs" "cjs" "py" "ts" "go" "lua" "rb" "rs" "pl" "c" "sh")
+    # 支持的代码文件类型后缀
+    local supported_file_types=("js" "mjs" "cjs" "py" "ts" "mts" "cts" "go" "lua" "rb" "rs" "pl" "c" "sh")
     # 支持的代码文件类型名称
-    local supported_file_type_names=("JavaScript" "JavaScript" "JavaScript" "Python" "TypeScript" "Go" "Lua" "Ruby" "Rust" "Perl" "C" "Shell")
+    local supported_file_type_names=("JavaScript" "JavaScript" "JavaScript" "Python" "TypeScript" "TypeScript" "TypeScript" "Go" "Lua" "Ruby" "Rust" "Perl" "C" "Shell")
     FileName=""
     FileDir=""
     FileType=""
 
     ## 匹配指定路径下的代码文件
     function match_path_file() {
-        local absolute_path tmp_pwd tmp_file_name tmp_file_dir
+        local absolute_path tmp_path tmp_file_name tmp_file_dir
         ## 判定路径格式
         echo $1 | grep "/$" -q
         if [ $? -eq 0 ]; then
             output_error "请输入正确的代码文件路径！"
         fi
-        ## 判定传入的是绝对路径还是相对路径
-        echo ${input_content} | grep "^$RootDir" -q
-        if [ $? -eq 0 ]; then
-            absolute_path=${input_content}
-        else
-            echo ${input_content} | grep "\.\./" -q
-            if [ $? -eq 0 ]; then
-                tmp_pwd=$(pwd | sed "s|/$(pwd | awk -F '/' '{printf$NF}')||g")
-                absolute_path=$(echo "${input_content}" | sed "s|\.\./|${tmp_pwd}/|g")
-            else
-                local tmp_dir_name=$(echo ${input_content} | awk -F '/' '{printf$1}')
-                if [ -d "$RepoDir/$tmp_dir_name" ]; then
-                    absolute_path=$(echo "${input_content}" | sed "s|^|$RepoDir/|g")
-                else
-                    if [[ $(pwd) == "/root" ]]; then
-                        absolute_path=$(echo "${input_content}" | sed "s|\.\/||g; s|^|$RootDir/|g")
-                    else
-                        absolute_path=$(echo "${input_content}" | sed "s|\.\/||g; s|^|$(pwd)/|g")
-                    fi
-                fi
-            fi
-            echo ${input_content} | grep "\.\./" -q
-        fi
+        ## 转换为绝对路径
+        tmp_path="$(get_absolute_path "${input_content}")"
+        absolute_path="${tmp_path:-"${input_content}"}"
         ## 判定传入是否含有后缀格式
         tmp_file_name=${absolute_path##*/}
         tmp_file_dir=${absolute_path%/*}
@@ -107,7 +87,7 @@ function find_script() {
             fi
             make_dir "${LogPath}"
         else
-            output_error "在 ${BLUE}${absolute_path%/*}${PLAIN} 目录未检测到 ${BLUE}${absolute_path##*/}${PLAIN} 代码文件的存在，请重新确认！"
+            output_error "在 ${BLUE}${absolute_path%/*}${PLAIN} 目录下未检测到 ${BLUE}${absolute_path##*/}${PLAIN} 代码文件的存在，请重新确认！"
         fi
     }
 
@@ -161,7 +141,7 @@ function find_script() {
             ## 定义日志路径
             LogPath="$LogDir/${FileName}"
         else
-            output_error "在 ${BLUE}$ScriptsDir${PLAIN} 根目录以及 ${BLUE}./backUp${PLAIN} ${BLUE}./utils${PLAIN} 二个子目录下均未检测到 ${BLUE}${input_content}${PLAIN} 代码文件的存在，请重新确认！"
+            output_error "在 ${BLUE}$ScriptsDir${PLAIN} 目录下未检测到 ${BLUE}${input_content}${PLAIN} 代码文件的存在，请重新确认！"
         fi
     }
 
@@ -266,65 +246,55 @@ function find_script() {
         match_scripts_file
     fi
 
+    function _check_interpreter_exist {
+        local interpreter_type="$1"
+        local interpreter_name="$2"
+        if ! command -v "${interpreter_type}" &>/dev/null; then
+            output_error "当前未安装 ${BLUE}${interpreter_name}${PLAIN} 运行环境！"
+        fi
+    }
+
     ## 检测代码文件运行环境
     case "${FileType}" in
     "JavaScript")
-        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-            if [[ -z "$(command -v bun)" ]]; then
-                output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
-            fi
+        if [[ "${RUN_OPTION_USE_DENO}" == "true" || "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+            [[ "${RUN_OPTION_USE_DENO}" == "true" ]] && _check_interpreter_exist "deno" "Deno"
+            [[ "${RUN_OPTION_USE_BUN}" == "true" ]] && _check_interpreter_exist "bun" "Bun"
         fi
         ;;
     "TypeScript")
-        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-            if [[ -z "$(command -v bun)" ]]; then
-                output_error "当前未安装 ${BLUE}Bun${PLAIN} 运行环境！"
-            fi
+        if [[ "${RUN_OPTION_USE_DENO}" == "true" || "${RUN_OPTION_USE_BUN}" == "true" || "${RUN_OPTION_USE_TS_NODE}" == "true" ]]; then
+            [[ "${RUN_OPTION_USE_DENO}" == "true" ]] && _check_interpreter_exist "deno" "Deno"
+            [[ "${RUN_OPTION_USE_BUN}" == "true" ]] && _check_interpreter_exist "bun" "Bun"
+            [[ "${RUN_OPTION_USE_TS_NODE}" == "true" ]] && _check_interpreter_exist "ts-node" "TypeScript（ts-node）"
         else
-            if [[ -z "$(command -v ts-node)" ]]; then
-                output_error "当前未安装 ${BLUE}TypeScript${PLAIN} 运行环境！"
-            fi
+            _check_interpreter_exist "tsx" "TypeScript（tsx）"
         fi
         ;;
     "Python")
-        if [[ -z "$(command -v python3)" ]]; then
-            output_error "当前未安装 ${BLUE}Python 3${PLAIN} 运行环境！"
-        fi
-        ;;
-    "Python")
-        if [[ -z "$(command -v python3)" ]]; then
-            output_error "当前未安装 ${BLUE}Python 3${PLAIN} 运行环境！"
-        fi
+        _check_interpreter_exist "python3" "Python 3"
         ;;
     "Go")
-        if [[ -z "$(command -v go)" ]]; then
-            output_error "当前未安装 ${BLUE}Go${PLAIN} 运行环境！"
-        fi
+        _check_interpreter_exist "go" "Go"
         ;;
     "Lua")
-        if [[ -z "$(command -v lua)" ]]; then
-            output_error "当前未安装 ${BLUE}Lua${PLAIN} 运行环境！"
-        fi
+        _check_interpreter_exist "lua" "Lua"
         ;;
     "Ruby")
-        if [[ -z "$(command -v ruby)" ]]; then
-            output_error "当前未安装 ${BLUE}Ruby${PLAIN} 运行环境！"
-        fi
+        _check_interpreter_exist "ruby" "Ruby"
         ;;
     "Rust")
-        if [[ -z "$(command -v rustc)" || -z "$(command -v cargo)" ]]; then
+        if ! command -v rustc &>/dev/null || ! command -v cargo &>/dev/null; then
             output_error "当前未安装 ${BLUE}Rust${PLAIN} 运行环境！"
         fi
+        _check_interpreter_exist "rustc" "Rust"
+        _check_interpreter_exist "cargo" "Rust"
         ;;
     "C")
-        if [[ -z "$(command -v gcc)" ]]; then
-            output_error "当前未安装 ${BLUE}C${PLAIN} 运行环境！"
-        fi
+        _check_interpreter_exist "gcc" "C"
         ;;
     esac
     # "Perl")
-    #     if [[ -z "$(command -v perl)" ]]; then
-    #         output_error "当前未安装 ${BLUE}Perl${PLAIN} 运行环境！"
-    #     fi
-    #     ;;
+    #   _check_interpreter_exist "perl" "Perl"
+    #   ;;
 }

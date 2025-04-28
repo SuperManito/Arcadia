@@ -1,0 +1,53 @@
+{
+  "name": "arcadia",
+  "version": "1.0.0",
+  "description": "arcadia",
+  "engines": {
+    "node": ">=18.0"
+  },
+  "scripts": {
+    "server": "echo 'y' | prisma db push --accept-data-loss > ./prisma_push.log && tsx index",
+    "inner_server": "tsx inner",
+    "build": "tsc",
+    "tsc": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:prod": "prisma migrate deploy",
+    "db:push": "prisma db push",
+    "generate": "prisma generate",
+    "clean": "rimraf dist && rimraf package-lock.json && rimraf node_modules"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "archiver": "^7.0.1",
+    "axios": "^1.9.0",
+    "body-parser": "^2.2.0",
+    "compression": "^1.8.0",
+    "cors": "^2.8.5",
+    "cron": "^4.3.0",
+    "crypto-js": "^4.2.0",
+    "express": "^5.1.0",
+    "express-jwt": "^8.5.1",
+    "http-proxy-middleware": "^3.0.5",
+    "jsonwebtoken": "^9.0.2",
+    "log4js": "^6.9.1",
+    "multer": "^1.4.5-lts.2",
+    "prisma-extension-pagination": "^0.7.5",
+    "socket.io": "^4.8.1",
+    "svg-captcha": "^1.4.0",
+    "tsx": "^4.19.3"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^4.12.0",
+    "@types/archiver": "^6.0.3",
+    "@types/compression": "^1.7.5",
+    "@types/express": "^5.0.1",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.15.2",
+    "eslint": "^9.25.1",
+    "prisma": "^6.6.0",
+    "rimraf": "^6.0.1",
+    "typescript": "~5.8.3"
+  }
+}

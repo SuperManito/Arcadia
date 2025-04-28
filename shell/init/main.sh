@@ -1,12 +1,13 @@
 #!/bin/bash
-## Modified: 2024-04-27
+## Modified: 2025-04-18
 
 function arcadia_init() {
   # ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ 第 二 区 域 ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ #
   echo -e "\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- ➁ 启动核心服务开始 -----\n"
-  cd $SrcDir
+  cd $BackendDir
   [ ! -x /usr/bin/npm ] && apt-get install -y --no-install-recommends nodejs npm >/dev/null 2>&1
   npm install --omit=dev
+  cd $SrcDir
   pm2 start ecosystem.config.js
   cd $RootDir
   [ ! -x /usr/bin/ttyd ] && wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.$(arch) -q -O /usr/local/bin/ttyd && chmod 777 /usr/local/bin/ttyd

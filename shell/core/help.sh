@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-10-11
+## Modified: 2025-04-28
 
 function _print_help_title() {
   if [ "$1" ]; then
@@ -48,7 +48,7 @@ function _print_help_service() {
   子命令：
 
     ${BLUE}start${PLAIN}    开启或重启
-    ${BLUE}stop${PLAIN}     停止（项目依赖后端长期运行，请不要长期关闭）
+    ${BLUE}stop${PLAIN}     停止（项目依赖后端持续运行，请不要长时间关闭）
     ${BLUE}status${PLAIN}   查看各服务状态
     ${BLUE}info${PLAIN}     查看登录信息
     ${BLUE}respwd${PLAIN}   重置密码
@@ -96,7 +96,7 @@ function _print_help_run() {
     ${BLUE}-D${PLAIN}, ${BLUE}--delay${PLAIN}                 延迟执行，随机倒数一定秒数后再执行代码文件
     ${BLUE}-d${PLAIN}, ${BLUE}--daemon${PLAIN}                守护进程，将代码文件设置为守护进程保持在后台运行，期间中断或结束会自动重新运行
     ${BLUE}-a${PLAIN}, ${BLUE}--agent${PLAIN}                 网络代理，使代码文件通过 HTTP/HTTPS 全局代理进行网络请求，仅支持 Node.js 和 TypeScript 脚本
-    ${BLUE}-T${PLAIN}, ${BLUE}--timeout${PLAIN}               运行超时，设置运行任务超时机制，选项后需跟 timeout 命令选项
+    ${BLUE}-T${PLAIN}, ${BLUE}--timeout${PLAIN}               运行超时，设置运行任务超时机制，选项后需跟 timeout 指令的参数作为选项值
     ${BLUE}-N${PLAIN}, ${BLUE}--no-log${PLAIN}                忽略日志，不存储代码运行日志到本地
     ${BLUE}-p${PLAIN}, ${BLUE}--proxy${PLAIN}                 下载代理，仅适用于执行位于 GitHub 仓库的代码文件，代理固定为 jsDelivr CDN
     ${BLUE}-c${PLAIN}, ${BLUE}--concurrent${PLAIN}            并发运行，默认运行1个任务，若想增加运行任务数量那么请传参任务数量
@@ -106,7 +106,9 @@ function _print_help_run() {
     ${BLUE}-R${PLAIN}, ${BLUE}--recombine-env-group${PLAIN}   分组运行，为每组变量单独运行，是变量重组的扩展，传参基本一致，其中重组表达式内用 \"@\" 来区分不同组
     ${BLUE}-S${PLAIN}, ${BLUE}--split-env${PLAIN}             拆分运行，将复合变量的值拆分后为每个值声明变量并单独运行代码文件，选项后需跟需要拆分的变量名称、分隔符
 
-    ${BLUE}-B${PLAIN}，${BLUE}--use-bun${PLAIN}               使用 Bun 作为 JavaScript 和 TypeScript 的运行时环境，替代默认的 Node.js 和 ts-node
+    ${BLUE}--deno${PLAIN}，${BLUE}--use-deno${PLAIN}          使用 Deno 作为 JavaScript 和 TypeScript 的运行时环境
+    ${BLUE}--bun${PLAIN}，${BLUE}--use-bun${PLAIN}            使用 Bun 作为 JavaScript 和 TypeScript 的运行时环境
+    ${BLUE}--ts-node${PLAIN}，${BLUE}--use-ts-node${PLAIN}    使用 ts-node 作为 TypeScript 的执行器
 
   命令帮助：
 

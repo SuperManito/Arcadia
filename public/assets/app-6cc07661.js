@@ -1,0 +1,1 @@
+import{cB as p,am as y,ci as b}from"./vendor-ca0e89fa.js";const D=Symbol();function k(F,c=!0){const{on:t,off:i,reset:r,emit:s}=y(D);let e,f;function a(o,{wait:n=150,immediate:l=!1,isPassPars:m=!0}={}){e=b(o,n),f=()=>{e()},t(m?e:()=>{e()}),l&&s()}function u(o){const n=o||e||f;n&&i(n)}return p(()=>{c&&u()}),{on:a,off:u,reset:r,emit:s}}export{k as u};

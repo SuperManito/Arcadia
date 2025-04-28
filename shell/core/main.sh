@@ -1,9 +1,10 @@
 #!/bin/bash
-## Modified: 2024-04-26
+## Modified: 2025-04-18
 
 ## 目录
 RootDir=${ARCADIA_DIR}
 SrcDir=$RootDir/src
+BackendDir=$SrcDir/backend
 ShellDir=$SrcDir/shell
 SampleDir=$SrcDir/sample
 UtilsDir=$SrcDir/utils
@@ -149,6 +150,66 @@ function make_dir() {
         [ ! -d "$1" ] && mkdir -p "$1"
         shift
     done
+}
+
+## 获取绝对路径
+function get_absolute_path() {
+    local path
+    local input="$1"
+    echo "${input}" | grep "^$RootDir" -q
+    if [ $? -eq 0 ]; then
+        path="${input}"
+    else
+        ## 处理是 . 的路径
+        echo "${input}" | grep -E "^\.$" -q
+        if [ $? -eq 0 ]; then
+            input="$(pwd)"
+        fi
+        ## 处理开头是 ./ 的路径
+        echo "${input}" | grep -E "^\./" -q
+        if [ $? -eq 0 ]; then
+            input="$(echo "${input}" | sed "s|^\./|$(pwd)/|g")"
+        fi
+        ## 处理开头是 ../ 或是 .. 的路径
+        echo "${input}" | grep -E "^\.\./|^\.\.$" -q
+        if [ $? -eq 0 ]; then
+            local tmp_pwd="$(pwd | sed "s|/$(pwd | awk -F '/' '{printf$NF}')||g")"
+            input="$(echo "${input}" | sed "s|^\.\./|${tmp_pwd}/|g; s|^\.\.$|${tmp_pwd}/|g")"
+        fi
+        ## 处理结尾是 /.. 的路径
+        echo "${input}" | grep -E "/\.\.$" -q
+        if [ $? -eq 0 ]; then
+            local tmp_dir="$(dirname "${input}")"
+            echo "${tmp_dir}" | grep "^/" -q
+            if [ $? -eq 0 ]; then
+                input="${tmp_dir}"
+            fi
+        fi
+        ## 判断是否存在同名仓库目录
+        local tmp_dir_name=$(echo "${input}" | awk -F '/' '{printf$1}')
+        if [[ "${tmp_dir_name}" && -d "$RepoDir/$tmp_dir_name" ]]; then
+            path="$(echo "${input}" | sed "s|^|$RepoDir/|g")"
+        else
+            echo "${input}" | grep "^/" -q
+            if [ $? -eq 0 ]; then
+                path="${input}"
+            else
+                if [[ "$(pwd)" == "/root" ]]; then
+                    path="$(echo "${input}" | sed "s|^|$RootDir/|g")"
+                else
+                    path="$(echo "${input}" | sed "s|^|$(pwd)/|g")"
+                fi
+            fi
+        fi
+    fi
+    if [[ "${path}" ]]; then
+        ## 去除路径末尾的斜杠
+        echo "${path}" | grep "/$" -q
+        if [ $? -eq 0 ]; then
+            path="${path%?}"
+        fi
+        echo "${path}"
+    fi
 }
 
 ## 打印命令帮助

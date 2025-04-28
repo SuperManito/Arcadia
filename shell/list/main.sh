@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-10-11
+## Modified: 2025-04-27
 
 ## 列出本地代码文件清单功能
 # list <path>
@@ -9,8 +9,8 @@ function command_list_main() {
     if [ "$(command -v python3)" ]; then
         ScriptType="${ScriptType}|\.py\$"
     fi
-    if [ "$(command -v ts-node)" || "$(command -v bun)" ]; then
-        ScriptType="${ScriptType}|\.ts\$"
+    if [[ "$(command -v tsx)" || "$(command -v ts-node)" || "$(command -v deno)" || "$(command -v bun)" ]]; then
+        ScriptType="${ScriptType}|\.ts\$|\.mts\$|\.cts\$"
     fi
     if [ "$(command -v go)" ]; then
         ScriptType="${ScriptType}|\.go\$"
@@ -21,7 +21,7 @@ function command_list_main() {
     if [ "$(command -v ruby)" ]; then
         ScriptType="${ScriptType}|\.rb\$"
     fi
-    if [ "$(command -v rustc)" && "$(command -v cargo)" ]; then
+    if [[ "$(command -v rustc)" && "$(command -v cargo)" ]]; then
         ScriptType="${ScriptType}|\.rs\$"
     fi
     if [ "$(command -v perl)" ]; then
@@ -30,9 +30,6 @@ function command_list_main() {
     if [ "$(command -v gcc)" ]; then
         ScriptType="${ScriptType}|\.c\$"
     fi
-    # 内置过滤规则
-    MaskingScripts="index\.js"
-    MaskingKeywords="sendNotify\.|\.bak\b|${MaskingScripts}"
 
     list_designated "$1"
     echo ''
@@ -40,40 +37,12 @@ function command_list_main() {
 
 ## 列出指定目录下的代码文件
 function list_designated() {
-    local input_content work_dir tmp_pwd tmp_num tmp_length1 tmp_length2 tmp_spaces_nums1 tmp_script_modify_times
-    ## 去掉传入参数中的最后一个/
-    echo $1 | grep "/$" -q
-    if [ $? -eq 0 ]; then
-        input_content=${1%?}
-    else
-        input_content=$1
-    fi
-    ## 判断传入参数
-    echo ${input_content} | grep "\/" -q
-    if [ $? -eq 0 ]; then
-        ## 判定传入的是绝对路径还是相对路径
-        echo ${input_content} | grep "^$RootDir" -q
-        if [ $? -eq 0 ]; then
-            work_dir=${input_content}
-        else
-            ## 处理上级目录
-            echo ${input_content} | grep "\.\./" -q
-            if [ $? -eq 0 ]; then
-                tmp_pwd=$(pwd | sed "s|/$(pwd | awk -F '/' '{printf$NF}')||g")
-                work_dir=$(echo "${input_content}" | sed "s|\.\./|${tmp_pwd}/|g")
-            else
-                work_dir=$(echo "${input_content}" | sed "s|\.\/||g; s|^*|$(pwd)/|g")
-            fi
-        fi
-    else
-        if [[ "${input_content}" = "." ]]; then
-            work_dir="$(pwd)"
-        elif [[ "${input_content}" = "./" ]]; then
-            work_dir="$(pwd)"
-        else
-            work_dir="$(pwd)/${input_content}"
-        fi
-    fi
+    local work_dir tmp_num tmp_length1 tmp_length2 tmp_spaces_nums1 tmp_script_modify_times
+    local input_content="$1"
+    # 内置过滤规则
+    local MaskingKeywords="sendNotify\.|\.bak\b"
+    ## 转换为绝对路径
+    work_dir="$(get_absolute_path "${input_content}")"
     ## 判断路径是否存在
     if [ -d $work_dir ]; then
         if [ "$(ls -A $work_dir | grep -E "${ScriptType}")" = "" ]; then
@@ -110,7 +79,7 @@ function list_designated() {
     else
         tmp_num="1"
     fi
-    printf "\n${BLUE}%$((28 + ${tmp_num}))s${PLAIN} ${BLUE}%26s${PLAIN} ${BLUE}%6s${PLAIN} ${BLUE}%s${PLAIN}\n" "[文件名称]" "[修改时间]" " [大小]" "[代码文件名称]"
+    printf "\n${BLUE}%$((28 + ${tmp_num}))s${PLAIN}  ${BLUE}%34s${PLAIN} ${BLUE}%7s${PLAIN}  ${BLUE}%s${PLAIN}\n" "[文件名称]" "[修改时间]" "  [大小]" "[代码文件名称]"
     echo ''
 
     for ((i = 0; i < ${#files_list[*]}; i++)); do
@@ -127,7 +96,7 @@ function list_designated() {
         # for ((a = 1; a <= ${tmp_spaces_nums2}; a++)); do
         #     ScriptName=" ${ScriptName}"
         # done
-        printf "%${tmp_num}s  %-$((30 + ${tmp_length1}))s %14s %6s  %-$((34 + ${tmp_length2}))s\n" "$(($i + 1))" "${files_list[i]}" "${tmp_script_modify_times}" "${ScriptSize}" "${ScriptName}"
+        printf "%${tmp_num}s   %-$((38 + ${tmp_length1}))s %14s %8s  %-$((35 + ${tmp_length2}))s\n" "$(($i + 1))" "${files_list[i]}" "${tmp_script_modify_times}" "${ScriptSize}" "${ScriptName}"
     done
 }
 
@@ -164,19 +133,24 @@ function query_script_name() {
 function query_script_size() {
     local file_name=$1
     ScriptSize=$(ls -lth | grep "\b$file_name\b" | awk -F ' ' '{print$5}')
+    if [[ "${ScriptSize}" =~ [KMGTP]$ ]]; then
+        ScriptSize="${ScriptSize%?}${ScriptSize: -1}B"
+    else
+        ScriptSize="${ScriptSize}B"
+    fi
 }
 
 ## 查询代码文件修改时间，$1 为代码文件名
 function query_script_modify_times() {
     local file_name=$1
-    local tmp_data=$(ls -lth | grep "\b$file_name\b" | awk -F 'root' '{print$NF}')
-    local tmp_month=$(echo $tmp_data | awk -F ' ' '{print$2}')
-    local month="$(echo '{"Jan": "1", "Feb": "2", "Mar": "3", "Apr": "4", "May": "5", "Jun": "6", "Jul": "7", "Aug": "8", "Sept": "9", "Oct": "10", "Nov": "11", "Dec": "12"}' | jq -r ".${tmp_month}")"
-    local day=$(echo $tmp_data | awk -F ' ' '{print$3}')
+    local tmp_data="$(ls -lth | grep "\b$file_name\b" | awk -F 'root' '{print$NF}')"
+    local tmp_month="$(echo $tmp_data | awk -F ' ' '{print$2}')"
+    local month="$(echo '{"Jan": "1", "Feb": "2", "Mar": "3", "Apr": "4", "May": "5", "Jun": "6", "Jul": "7", "Aug": "8", "Sep": "9", "Oct": "10", "Nov": "11", "Dec": "12"}' | jq -r ".${tmp_month}")"
+    local day="$(echo $tmp_data | awk -F ' ' '{print$3}')"
     if [[ $day -lt "10" ]]; then
         day="0$day"
     fi
-    local time=$(echo $tmp_data | awk -F ' ' '{print$4}')
+    local time="$(echo $tmp_data | awk -F ' ' '{print$4}')"
     echo -e "$month-$day $time"
 }
 

@@ -1,0 +1,1 @@
+import{cc as e}from"./vendor-ca0e89fa.js";function n(r){const t=r.trim();if(![5,6].includes(t.split(" ").length)||/([?LW])/.test(t))return!1;try{return e.CronExpressionParser.parse(r),!0}catch{return!1}}export{n as v};
