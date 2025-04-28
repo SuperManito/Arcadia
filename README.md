@@ -41,7 +41,7 @@ pnpm dev
 pnpm build
 ```
 
-### 部署
+<!-- ### 部署
 
 > 会提交到 `gh-pages` 分支
 
@@ -55,4 +55,4 @@ pnpm build
 
   ```bash
   export GIT_USER=<用户名> && pnpm run deploy
-  ```
+  ``` -->

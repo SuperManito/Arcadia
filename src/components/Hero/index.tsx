@@ -29,8 +29,7 @@ export const AuroraText = memo(
     }
 
     return (
-        <span className={`relative inline-block ${className}`}>
-          <span className="sr-only">{children}</span>
+        <div className={`relative inline-block ${className}`}>
           <span
             className="text-[0.6rem] sm:text-[1rem] relative animate-aurora bg-[length:200%_auto] bg-clip-text text-transparent"
             style={gradientStyle}
@@ -38,7 +37,7 @@ export const AuroraText = memo(
           >
             {children}
           </span>
-        </span>
+        </div>
     )
   },
 )
@@ -52,14 +51,14 @@ function HeroContentDefault () {
                 <div className="col" style={{ userSelect: 'none' }}>
                     <Heading as="h1" className={styles.tagline}>
                         <span>
-                            Arcadia <span><AuroraText>阿卡迪亚</AuroraText></span>
+                            Arcadia <AuroraText>阿卡迪亚</AuroraText>
                             <br className="block" />
                         </span>{' '}
                         一站式代码运维平台
                     </Heading>
                     <Heading as="h1" className={styles.tagline}>
                         <span>
-                            Arcadia <span><AuroraText>阿卡迪亚</AuroraText></span>
+                            Arcadia <AuroraText>阿卡迪亚</AuroraText>
                             <br className="block" />
                         </span>{' '}
                         一站式代码运维平台
