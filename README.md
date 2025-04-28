@@ -48,11 +48,11 @@ pnpm build
 - PowerShell
 
   ```bash
-  cmd /C 'set "GIT_USER=<用户名>" && pnpm deploy'
+  cmd /C 'set "GIT_USER=<用户名>" && pnpm run deploy'
   ```
 
 - bash
 
   ```bash
-  export GIT_USER=<用户名> && pnpm deploy
+  export GIT_USER=<用户名> && pnpm run deploy
   ```
