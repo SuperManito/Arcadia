@@ -24,7 +24,7 @@ function HomePageContent () {
         <Features />
       </HeroBackground>
       <Preview />
-      <div className="mt-44">
+      <div className="mt-28">
         <LanguageSupport />
       </div>
       <div className="mt-44">
@@ -38,13 +38,13 @@ function HomePageContent () {
         <Hero />
         <Preview />
       </HeroBackground>
-      <div className="mt-8">
+      <div className="mt-8 mb-8">
         <LanguageSupport />
       </div>
-      <div className="mt-8">
+      <div className="mt-16">
         <FeaturesSub />
       </div>
-      <div className="mt-8">
+      <div className="mt-16">
         <Features />
       </div>
     </>

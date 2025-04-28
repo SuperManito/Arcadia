@@ -105,11 +105,11 @@ export default function FeaturesSub () {
                   <span>在线编辑，轻松驾驭~</span>
                 </BlurFade>
               </span>
-              <p className="text-base md:text-lg text-gray-600 dark:text-[var(--ifm-color-emphasis-700)] mb-6">
+              <span className="text-base md:text-lg text-gray-600 dark:text-[var(--ifm-color-emphasis-700)] mb-6">
                 <BlurFade delay={0.25 * 2} inView>
                   <span>平台支持在线编辑丰富的文件格式，一站式处理各类文件。语法高亮让编辑体验更加流畅高效，无缝协作，随时随地编辑您的内容。</span>
                 </BlurFade>
-              </p>
+              </span>
             </div>
 
             <div className="flex justify-center items-center h-[326px] md:h-[448px] p-6 bg-[var(--ifm-color-emphasis-100)] dark:bg-[var(--ifm-color-emphasis-100)]">
@@ -134,11 +134,11 @@ export default function FeaturesSub () {
                 <span>快，框不住！</span>
               </BlurFade>
             </span>
-            <p className="text-base md:text-lg text-gray-600 dark:text-[var(--ifm-color-emphasis-700)] mb-6">
+            <span className="text-base md:text-lg text-gray-600 dark:text-[var(--ifm-color-emphasis-700)] mb-6">
               <BlurFade delay={0.25 * 2} inView>
                 <span>高性能、低占用是 Arcadia 的特色之一。运行代码延迟控制在了 0.2 秒以内，后端数据库由 Rust 驱动并采用 ORM 先进架构，查询响应飞快。</span>
               </BlurFade>
-            </p>
+            </span>
           </div>
 
           <div
