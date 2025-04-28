@@ -1,10 +1,13 @@
 <p align="center">
-    <a href="https://arcadia.cool">
-        <img src="./public/app-logo.jpg" alt="Arcadia" width="180">
+    <a href="https://arcadia.cool" target="_blank">
+        <picture>
+            <source media="(prefers-color-scheme: dark)" srcset="./public/images/logo-dark-sub.png" width="320">
+            <img src="./public/images/logo-light-sub.png" alt="Arcadia" width="320">
+        </picture>
     </a>
 </p>
 
-<p align="center" style="font-size: 1.5em;">
+<p align="center">
     <strong>
         一站式代码运维平台
     </strong>
