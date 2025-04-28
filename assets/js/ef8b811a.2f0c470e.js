@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkarcadia_website=self.webpackChunkarcadia_website||[]).push([["2134"],{6007:function(e){e.exports=JSON.parse('{"authors":[{"name":"SuperManito","title":"\u9879\u76EE\u521B\u59CB\u4EBA","url":"https://github.com/SuperManito","imageURL":"https://github.com/SuperManito.png","key":"supermanito","page":null,"count":1}]}')}}]);

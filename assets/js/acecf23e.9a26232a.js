@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkarcadia_website=self.webpackChunkarcadia_website||[]).push([["7627"],{7548:function(a){a.exports=JSON.parse('{"blogBasePath":"/blog","blogTitle":"Blog","authorsListPath":"/blog/authors"}')}}]);
