@@ -117,3 +117,12 @@ server {
 ## 忘记了用户名或密码？
 
 详见 CLI 文档教程 [查看信息](/docs/cli/server/service#查看信息)
+
+## 面板支持用户本地部署
+
+最新编译后的前端代码在仓库 `public` 目录下，你可以自行本地部署 WEB 服务
+
+通过修改 `app.config.js` 文件中的 VITE_GLOB_API_URL 和 VITE_GLOB_WS_URL 来指定后端服务地址：
+
+`"VITE_GLOB_API_URL":"http://localhost:5678/api"`  
+`"VITE_GLOB_WS_URL":"ws://localhost:5678"`
