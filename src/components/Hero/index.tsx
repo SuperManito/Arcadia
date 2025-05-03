@@ -1,47 +1,9 @@
-import React, { memo, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import clsx from 'clsx'
 import Heading from '@theme/Heading'
 import Link from '@docusaurus/Link'
 import { useWindowSize } from '@docusaurus/theme-common'
 import styles from './index.module.css'
-
-interface AuroraTextProps {
-  children: React.ReactNode
-  className?: string
-  colors?: string[]
-  speed?: number
-}
-
-export const AuroraText = memo(
-  ({
-    children,
-    className = '',
-    colors = ['#7928CA', '#0070F3', '#38bdf8'],
-    speed = 1,
-  }: AuroraTextProps) => {
-    const gradientStyle = {
-      backgroundImage: `linear-gradient(90deg, ${colors.join(', ')}, ${
-          colors[0]
-        })`,
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-      animationDuration: `${10 / speed}s`,
-    }
-
-    return (
-        <div className={`relative inline-block ${className}`}>
-          <span
-            className="text-[0.6rem] sm:text-[1rem] relative animate-aurora bg-[length:200%_auto] bg-clip-text text-transparent"
-            style={gradientStyle}
-            aria-hidden="true"
-          >
-            {children}
-          </span>
-        </div>
-    )
-  },
-)
-AuroraText.displayName = 'AuroraText'
 
 function HeroContentDefault () {
   return (
@@ -51,14 +13,14 @@ function HeroContentDefault () {
                 <div className="col" style={{ userSelect: 'none' }}>
                     <Heading as="h1" className={styles.tagline}>
                         <span>
-                            Arcadia <AuroraText>阿卡迪亚</AuroraText>
+                            Arcadia <span className='text-[0.6rem] sm:text-[1rem]'>阿卡迪亚</span>
                             <br className="block" />
                         </span>{' '}
                         一站式代码运维平台
                     </Heading>
                     <Heading as="h1" className={styles.tagline}>
                         <span>
-                            Arcadia <AuroraText>阿卡迪亚</AuroraText>
+                            Arcadia <span className='text-[0.6rem] sm:text-[1rem]'>阿卡迪亚</span>
                             <br className="block" />
                         </span>{' '}
                         一站式代码运维平台
@@ -67,7 +29,7 @@ function HeroContentDefault () {
             </div>
             <div className="row">
                 <div className="col" style={{ userSelect: 'none' }}>
-                    <Heading as={'h2'}>
+                    <Heading as="h2">
                         高效 易用 简约 漂亮 稳定 安全
                     </Heading>
                 </div>
@@ -132,14 +94,14 @@ function HeroContentMobile () {
                 <div className="col" style={{ userSelect: 'none', padding: '0' }}>
                     <Heading as="h1" className={styles.tagline}>
                         <span>
-                            Arcadia <span style={{ fontSize: '.8rem' }}><AuroraText>阿卡迪亚</AuroraText></span>
+                            Arcadia <span className='text-[0.8rem]'>阿卡迪亚</span>
                             <br className="block" />
                         </span>{' '}
                         一站式代码运维平台
                     </Heading>
                     <Heading as="h1" className={styles.tagline}>
                         <span>
-                            Arcadia <span style={{ fontSize: '.8rem' }}><AuroraText>阿卡迪亚</AuroraText></span>
+                            Arcadia <span className='text-[0.8rem]'>阿卡迪亚</span>
                             <br className="block" />
                         </span>{' '}
                         一站式代码运维平台
@@ -148,7 +110,7 @@ function HeroContentMobile () {
             </div>
             <div className="row">
                 <div className="col" style={{ userSelect: 'none', paddingBottom: '1em' }}>
-                    <Heading as={'h2'} style={{ fontSize: 'var(--ifm-h4-font-size)', margin: '0 0 0 0' }}>
+                    <Heading as="h2" style={{ fontSize: 'var(--ifm-h4-font-size)', margin: '0 0 0 0' }}>
                         高效 易用 简约 漂亮 稳定 安全
                     </Heading>
                 </div>
