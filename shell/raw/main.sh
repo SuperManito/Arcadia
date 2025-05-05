@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-28
+## Modified: 2025-05-05
 
 ## 一键添加远程文件配置
 # repo <name> <url> [--options]
@@ -60,7 +60,7 @@ function command_raw() {
 
     # 生成配置文件模板
     function create_template() {
-        echo '{ "name": "", "url": "", "cronSettings": { "updateTaskList": false } }' | jq | yq -y >$tmp_file
+        echo '{ "name": "", "url": "", "enable": true, "cronSettings": { "updateTaskList": false } }' | jq | yq -y >$tmp_file
         # 插入缩进空格
         local LineSum="$(cat $tmp_file | grep "" -c)"
         for ((i = 1; i <= $LineSum; i++)); do
@@ -72,6 +72,7 @@ function command_raw() {
     function replace_user_conf() {
         sed -i "s|name: ''|name: \"${name}\"|g" $tmp_file
         sed -i "s|url: ''|url: \"${url}\"|g" $tmp_file
+        [ "${enable}" ] && sed -i "s|enable: true|enable: ${enable}|g" $tmp_file
         [ "${updateTaskList}" ] && sed -i "s|updateTaskList: false|updateTaskList: ${updateTaskList}|g" $tmp_file
         echo -e "\n$TIP 自动生成的配置内容如下：\n"
         cat $tmp_file | sed "s/^  //g"

@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-13
+## Modified: 2025-05-05
 
 ## 更新所有 Raw 代码文件
 # update raw
@@ -16,8 +16,8 @@ function update_raw() {
     }
 
     local RemoveMark
-    ## 统计远程代码文件数量并生成配置
-    count_rawsum
+    ## 统计远程文件数量并生成配置
+    count_rawconf_sum
     gen_rawconf_array
 
     if [[ $RawSum -ge 1 && ${#Array_Raw_url[*]} -ge 1 ]]; then
@@ -27,9 +27,11 @@ function update_raw() {
         else
             local filter="node_modules"
         fi
-        ## 遍历远程代码文件配置数组，更新并生成新的定时文件清单
+        ## 遍历远程文件配置数组，更新并生成新的定时文件清单
         for ((i = 0; i < ${#Array_Raw_url[*]}; i++)); do
+            ## 判断文件是否启用
             [[ -z "${Array_Raw_url[i]}" ]] && continue
+            [[ ${Array_Raw_enable[i]} == "false" ]] && continue
 
             if [[ ${Array_Raw_cronSettings_updateTaskList[i]} == "true" ]]; then
                 [ -f "${Array_Raw_path[i]}" ] && echo "${Array_Raw_path[i]}" >>$ListOldScripts
@@ -78,6 +80,6 @@ function update_raw() {
             done
         fi
     else
-        echo -e "\n$TIP 未检测到任何有效的远程文件配置，跳过更新远程代码文件..."
+        echo -e "\n$TIP 未检测到任何有效的远程文件配置，跳过更新远程文件..."
     fi
 }

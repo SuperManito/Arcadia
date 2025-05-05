@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-23
+## Modified: 2025-05-05
 
 ## 清空定时任务关联代码文件清单内容
 function clean_list_scripts() {
@@ -10,7 +10,7 @@ function clean_list_scripts() {
     echo "{}" >$ListConfScripts
 }
 
-## 更新 Repo 代码仓库和 RawFile 远程代码文件
+## 更新 Repo 代码仓库和 RawFile 远程文件
 function update_sync() {
     import core/sync
     ## 创建目录
