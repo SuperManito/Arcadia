@@ -36,7 +36,7 @@ function update_raw() {
             if [[ ${Array_Raw_cronSettings_updateTaskList[i]} == "true" ]]; then
                 [ -f "${Array_Raw_path[i]}" ] && echo "${Array_Raw_path[i]}" >>$ListOldScripts
             fi
-            echo "${Array_Raw_url[i]}" | grep -Eq "github|gitee|gitlab"
+            echo "${Array_Raw_url[i]}" | grep -Eq "github|gitee|gitlab|gitcode"
             if [ $? -eq 0 ]; then
                 echo ${Array_Raw_url[i]} | grep -E "git.*\.io/" -q
                 if [ $? -eq 0 ]; then
