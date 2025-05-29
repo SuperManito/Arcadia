@@ -17,7 +17,8 @@ arcadia repo <name> <url> <branch> [--options]
 
 | 名称 | 描述 |
 | :-: | --- |
-| `--updateTaskList` | 是否为该配置启用定时任务 |
+| `--enable` | 是否启用该配置 |
+| `--updateTaskList` | 是否为该配置涉及到的代码文件启用定时任务 |
 | `--scriptsPath` | 定时文件路径 |
 | `--scriptsType` | 定时文件格式 |
 | `--whiteList` | 定时文件匹配白名单 |

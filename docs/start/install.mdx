@@ -28,7 +28,7 @@ import ComposeInstall from '@site/src/components/ComposeInstall';
 :::info 命令帮助
 1. 点击右侧的齿轮图标可以自定义命令参数配置
 2. 提示 `-bash: docker：Command not found/未找到命令` ? 请先阅读 [__如何安装容器服务__](/docs/start/install-container-service)  
-3. 如果你正在使用旁路由则可能需要将网卡工作切换为 **host** 类型（桥接），找到 `network` 字样更改右边的值即可  
+3. 如果你正在使用旁路由则可能需要将网络模式切换为 **host** 类型，找到 `network` 字样更改右边的值即可  
 4. 不可以更改参数中 `:` 右边的内容，否则会导致后端服务无法正常访问
 
 <details>
@@ -41,7 +41,7 @@ import ComposeInstall from '@site/src/components/ComposeInstall';
 :::
 
 :::tip 关于 Arcadia 平台的占用空间
-目前底层镜像基于 `GNU/Linux Debian` 构建，这导致 Arcadia 平台镜像的占用空间大小达到了 **1.01GB**，在不更换底层构建镜像的前提下已经最大化压缩了镜像大小，考虑到实际使用环境的生态多样性因此这是取舍利弊后的决策选择，实际上在使用期间会安装很多依赖内容，届时镜像大小的差异与容器总体占用空间的差异相比就显得不再那么重要了，你应该预留出 `2GB` 的空间以供使用。
+目前底层镜像基于 `GNU/Linux Debian` 构建，这导致 Arcadia 平台镜像的占用空间大小达到了 **1.1GB**，在不更换底层构建镜像的前提下已经最大化压缩了镜像大小，考虑到实际使用环境的生态多样性因此这是取舍利弊后的决策选择，实际上在使用期间会安装很多依赖内容，届时镜像大小的差异与容器总体占用空间的差异相比就显得不再那么重要了，你应该预留出 `2GB` 的空间以供使用。
 :::
 
 ## 2. 检查启动状态
@@ -74,13 +74,13 @@ docker logs -f arcadia
 ├── config        配置文件目录（用户）
 ├── log           日志存放目录（用户）
 ├── repo          代码仓库存放目录（用户）
-├── raw           代码仓库目录（用户）
+├── raw           远程文件存放目录（用户）
 ├── scripts       个人文件存放目录（用户）
 ├── tgbot         TG机器人组件存放目录（用户）
 └── src           项目源代码目录
-    ├── backend       后端源代码目录
-    ├── public        静态文件目录
-    ├── sample        配置文件模板目录
-    ├── shell         底层CLI源代码目录
-    └── utils         其它工具源代码目录
+    ├── backend      后端源代码目录
+    ├── public       静态文件目录
+    ├── sample       配置文件模板目录
+    ├── shell        底层CLI源代码目录
+    └── utils        其它工具源代码目录
 ```

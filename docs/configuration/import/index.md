@@ -2,7 +2,9 @@
 title: 导入代码
 ---
 
-本部分配置教程为导入来自互联网的代码，如果你想导入本地代码文件那么直接上传至 `scripts` （个人）目录下即可
+:::tip
+本部分配置教程为导入来自互联网的代码，如果你想导入本地代码文件那么直接上传至 `scripts` 目录下即可
+:::
 
 import DocCardList from '@theme/DocCardList';
 

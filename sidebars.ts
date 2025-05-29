@@ -79,7 +79,7 @@ const sidebars: SidebarsConfig = {
         'configuration/TelegramBot/index',
         // 'configuration/wskey',
       ],
-      collapsed: false,
+      collapsed: true,
     },
     {
       label: '命令（CLI）',
@@ -195,7 +195,7 @@ const sidebars: SidebarsConfig = {
           id: 'cli/sundry',
         },
       ],
-      collapsed: false,
+      collapsed: true,
     },
     {
       label: '关于我们',

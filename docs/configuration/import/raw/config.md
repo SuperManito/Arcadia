@@ -13,14 +13,22 @@ import APITable from '@site/src/components/APITable';
 
 | 名称 | 必填 | 类型 | 默认值 | 描述 |
 | :-: | :-: | :-: | :-: | --- |
-| `name` | 是 | `string` | 无 | 仓库名称 |
-| `url` | 是 | `string` | 无 | 仓库远程地址 |
+| `name` | 是 | `string` | 无 | 远程文件名称 |
+| `url` | 是 | `string` | 无 | 远程文件地址 |
+| `enable` | 否 | `boolean` | `true` | 是否启用该配置 |
 | `cronSettings` | 否 | `object` | 无 | 定时任务设置 |
-| `updateTaskList` | 否 | `boolean` | `false` | 是否为该配置启用定时任务（默认不启用） |
 
 </APITable>
 
-### 填法示例
+- ### cronSettings
+
+  <APITable>
+  | 名称 | 必填 | 类型 | 默认值 | 描述 |
+  | :-: | :-: | :-: | :-: | --- |
+  | `updateTaskList` | 否 | `boolean` | `false` | 是否为该配置涉及到的代码文件启用定时任务（默认不启用） |
+  </APITable>
+
+## 填法示例
 
 ```yaml
 raw:

@@ -15,10 +15,10 @@ import APITable from '@site/src/components/APITable';
 <APITable>
 | 名称 | 必填 | 类型 | 默认值 | 描述 |
 | :-: | :-: | :-: | :-: | --- |
-| `name` | 是 | `string` | 无 | 仓库名称 |
-| `url` | 是 | `string` | 无 | 仓库远程地址 |
+| `name` | 是 | `string` | 无 | 代码仓库名称 |
+| `url` | 是 | `string` | 无 | 代码仓库远程地址 |
 | `branch` | 是 | `string` | 无 | 分支名称 |
-| `enable` | 否 | `boolean` | `true` | 是否启用该仓库配置 |
+| `enable` | 否 | `boolean` | `true` | 是否启用该配置 |
 | `isPrivate` | 否 | `boolean` | `true` | 是否为私有仓库 |
 | `authSettings` | 否 | `object` | 无 | 私有仓库访问凭据配置 |
 | `cronSettings` | 否 | `object` | 无 | 定时任务配置 |
@@ -29,7 +29,7 @@ import APITable from '@site/src/components/APITable';
   <APITable>
   | 名称 | 必填 | 类型 | 默认值 | 描述 |
   | :-: | :-: | :-: | :-: | --- |
-  | `updateTaskList` | 否 | `boolean` | `false` | 是否为该配置启用定时任务（默认不启用） |
+  | `updateTaskList` | 否 | `boolean` | `false` | 是否为该配置涉及到的代码文件启用定时任务（默认不启用） |
   | `scriptsPath` | 否 | `string` | 无 | 定时文件路径（默认为仓库根目录） |
   | `scriptsType` | 否 | `array` | `["js", "py", "ts"]` | 定时文件格式（默认为三种类型的代码文件） |
   | `whiteList` | 否 | `string` | 无 | 定时文件匹配白名单（默认为空，即所有文件） |
