@@ -25,8 +25,8 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
     projectName: 'Arcadia', // Usually your repo name.
     deploymentBranch: 'gh-pages', // Branch that contains the docs.
     i18n: {
-      defaultLocale: 'zh-Hans',
-      locales: ['zh-Hans'],
+      defaultLocale: 'zh-CN',
+      locales: ['zh-CN'],
       path: '/',
       localeConfigs: {
         zh: {
@@ -166,6 +166,7 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
         additionalLanguages: [
           'bash',
           'json',
+          'nginx',
         ],
         magicComments: [
           {
@@ -192,7 +193,16 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
       ],
     ],
     future: {
-      experimental_faster: true,
+      experimental_faster: {
+        swcJsLoader: false,
+        swcJsMinimizer: false,
+        swcHtmlMinimizer: false,
+        lightningCssMinimizer: false,
+        mdxCrossCompilerCache: false,
+        rspackBundler: true,
+        rspackPersistentCache: true,
+        ssgWorkerThreads: false,
+      },
     },
   }
 }

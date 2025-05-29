@@ -1,5 +1,6 @@
 onlyBuiltDependencies:
   - '@swc/core'
+  - '@tailwindcss/oxide'
   - core-js
   - core-js-pure
   - sharp
