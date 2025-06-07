@@ -27,15 +27,6 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
     i18n: {
       defaultLocale: 'zh-CN',
       locales: ['zh-CN'],
-      path: '/',
-      localeConfigs: {
-        zh: {
-          label: '简体中文',
-          direction: 'ltr',
-          htmlLang: 'zh-CN',
-          calendar: 'gregory',
-        },
-      },
     },
     // 经典预设包
     presets: [
@@ -200,7 +191,7 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
         lightningCssMinimizer: false,
         mdxCrossCompilerCache: false,
         rspackBundler: true,
-        rspackPersistentCache: true,
+        rspackPersistentCache: false,
         ssgWorkerThreads: false,
       },
     },
