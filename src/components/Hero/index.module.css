@@ -112,7 +112,3 @@ html[data-theme='dark'] .heroBanner h2 {
         display: none;
     }
 }
-
-.tagline span {
-    color: var(--ifm-color-primary);
-}
