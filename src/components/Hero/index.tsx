@@ -41,14 +41,14 @@ function HeroContentDefault () {
                                 Arcadia <AuroraText />
                                 <br className="block" />
                             </span>{' '}
-                            <span className='text-[var(--ifm-color-primary)]'>一站式代码运维平台</span>
+                            <span className='text-[var(--ifm-color-content)]'>一站式代码运维平台</span>
                         </Heading>
                         <Heading as="h1" className={styles.tagline}>
                             <span>
                                 Arcadia <AuroraText />
                                 <br className="block" />
                             </span>{' '}
-                            <span className='text-[var(--ifm-color-primary)]'>一站式代码运维平台</span>
+                            <span className='text-[var(--ifm-color-content)]'>一站式代码运维平台</span>
                         </Heading>
                     </div>
                 </div>
@@ -123,7 +123,7 @@ function HeroContentMobile () {
                                 </span>
                                 <br className="block" />
                             </span>{' '}
-                            <span className='text-[var(--ifm-color-primary)]'>一站式代码运维平台</span>
+                            <span className='text-[var(--ifm-color-content)]'>一站式代码运维平台</span>
                         </Heading>
                         <Heading as="h1" className={styles.tagline}>
                             <span>
@@ -133,7 +133,7 @@ function HeroContentMobile () {
                                 </span>
                                 <br className="block" />
                             </span>{' '}
-                            <span className='text-[var(--ifm-color-primary)]'>一站式代码运维平台</span>
+                            <span className='text-[var(--ifm-color-content)]'>一站式代码运维平台</span>
                         </Heading>
                     </div>
                 </div>
