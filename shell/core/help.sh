@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-04-28
+## Modified: 2025-06-29
 
 function _print_help_title() {
   if [ "$1" ]; then
@@ -95,7 +95,7 @@ function _print_help_run() {
     ${BLUE}-w${PLAIN}, ${BLUE}--wait${PLAIN}                  推迟执行，等待指定时间后再运行任务，选项后需跟时间值
     ${BLUE}-D${PLAIN}, ${BLUE}--delay${PLAIN}                 延迟执行，随机倒数一定秒数后再执行代码文件
     ${BLUE}-d${PLAIN}, ${BLUE}--daemon${PLAIN}                守护进程，将代码文件设置为守护进程保持在后台运行，期间中断或结束会自动重新运行
-    ${BLUE}-a${PLAIN}, ${BLUE}--agent${PLAIN}                 网络代理，使代码文件通过 HTTP/HTTPS 全局代理进行网络请求，仅支持 Node.js 和 TypeScript 脚本
+    ${BLUE}-a${PLAIN}, ${BLUE}--agent${PLAIN}                 网络代理，使代码文件的 HTTP/HTTPS 网络请求通过全局代理进行，仅支持 Node.js 和 ts-node
     ${BLUE}-T${PLAIN}, ${BLUE}--timeout${PLAIN}               运行超时，设置运行任务超时机制，选项后需跟 timeout 指令的参数作为选项值
     ${BLUE}-N${PLAIN}, ${BLUE}--no-log${PLAIN}                忽略日志，不存储代码运行日志到本地
     ${BLUE}-p${PLAIN}, ${BLUE}--proxy${PLAIN}                 下载代理，仅适用于执行位于 GitHub 仓库的代码文件，代理固定为 jsDelivr CDN
@@ -105,6 +105,9 @@ function _print_help_run() {
                                           表达式语法：多个值用 \",\" 隔开，值区间用 \"-\" 连接，可以用 \"%\" 表示值的总数
     ${BLUE}-R${PLAIN}, ${BLUE}--recombine-env-group${PLAIN}   分组运行，为每组变量单独运行，是变量重组的扩展，传参基本一致，其中重组表达式内用 \"@\" 来区分不同组
     ${BLUE}-S${PLAIN}, ${BLUE}--split-env${PLAIN}             拆分运行，将复合变量的值拆分后为每个值声明变量并单独运行代码文件，选项后需跟需要拆分的变量名称、分隔符
+
+    ${BLUE}-E${PLAIN}, ${BLUE}--exec-args${PLAIN}             执行参数，将该选项后面的内容作为参数传递给代码执行器
+    ${BLUE}--${PLAIN}                          传递选项，将该选项后面的所有内容都作为选项参数传递给代码文件
 
     ${BLUE}--deno${PLAIN}，${BLUE}--use-deno${PLAIN}          使用 Deno 作为 JavaScript 和 TypeScript 的运行时环境
     ${BLUE}--bun${PLAIN}，${BLUE}--use-bun${PLAIN}            使用 Bun 作为 JavaScript 和 TypeScript 的运行时环境

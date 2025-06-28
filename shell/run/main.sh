@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-04-27
+## Modified: 2025-06-29
 
 ## 随机延迟
 function random_delay() {
@@ -83,39 +83,54 @@ function define_base_command() {
     local run_target="${FileName}.${FileSuffix}"
     # 脚本 global-agent 代理（命令选项）
     local global_proxy_option_cmd=""
-    [[ "${RUN_OPTION_AGENT}" == "true" || "${EnableGlobalProxy}" == "true" ]] && global_proxy_option_cmd=" -r 'global-agent/bootstrap'"
+    [[ "${RUN_OPTION_AGENT}" == "true" || "${EnableGlobalProxy}" == "true" ]] && global_proxy_option_cmd="-r 'global-agent/bootstrap'"
+    # 传递给代码文件执行器的参数
+    local interpreter_args=""
+    if [[ "${RUN_OPTION_EXECUTOR_ARGS}" ]]; then
+        interpreter_args=" ${RUN_OPTION_EXECUTOR_ARGS}"
+    fi
+    # 传递给代码文件的参数
+    local script_args=""
+    if [[ "${RUN_OPTION_PASS_THROUGH_ARGS}" ]]; then
+        script_args="${RUN_OPTION_PASS_THROUGH_ARGS}"
+    fi
 
     # 后台挂起（守护进程）
     if [[ "${RUN_OPTION_DAEMON}" == "true" ]]; then
         case "${FileType}" in
         JavaScript | TypeScript)
             if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
-                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which deno) --interpreter-args=\"run --no-code-cache --no-prompt --allow-env --allow-read=$(pwd) --allow-write=$(pwd) --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I)\""
+                interpreter_args="run --no-code-cache --no-prompt --allow-env --allow-read=$(pwd) --allow-write=$(pwd) --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I)${interpreter_args}"
+                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which deno)"
             elif [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
                 base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which bun)"
             else
                 case "${FileType}" in
                 JavaScript)
                     if [[ "${global_proxy_option_cmd}" ]]; then
-                        global_proxy_option_cmd=" --interpreter-args=\"${global_proxy_option_cmd}\""
+                        interpreter_args="${global_proxy_option_cmd}${interpreter_args}"
                     fi
-                    base_cmd="${pm2_base_cmd} \"${run_target}\"${global_proxy_option_cmd}"
+                    base_cmd="${pm2_base_cmd} \"${run_target}\""
                     ;;
                 TypeScript)
                     if [[ "${RUN_OPTION_USE_TS_NODE}" == "true" ]]; then
-                        base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which ts-node) --interpreter-args=\"-T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd}\""
+                        if [[ "${global_proxy_option_cmd}" ]]; then
+                            interpreter_args="-T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd}${interpreter_args}"
+                        fi
+                        base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which ts-node)"
                     else
                         if [[ "${global_proxy_option_cmd}" ]]; then
-                            global_proxy_option_cmd=" --interpreter-args=\"${global_proxy_option_cmd}\""
+                            interpreter_args="${global_proxy_option_cmd}${interpreter_args}"
                         fi
-                        base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which tsx)${global_proxy_option_cmd}"
+                        base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which tsx)"
                     fi
                     ;;
                 esac
             fi
             ;;
         Python)
-            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which python3) --interpreter-args=\"-u\""
+            interpreter_args="-u${interpreter_args}"
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which python3)"
             ;;
         Go)
             base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which go)"
@@ -127,7 +142,8 @@ function define_base_command() {
             base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which ruby)"
             ;;
         Rust)
-            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which cargo) --interpreter-args=\"script\""
+            interpreter_args="script${interpreter_args}"
+            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which cargo)"
             ;;
         Perl)
             base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which perl)"
@@ -139,54 +155,77 @@ function define_base_command() {
             base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter bash"
             ;;
         esac
+        if [[ "${interpreter_args}" ]]; then
+            base_cmd="${base_cmd} --interpreter-args=\"${interpreter_args}\""
+        fi
+        if [[ "${script_args}" ]]; then
+            base_cmd="${base_cmd} -- ${script_args}"
+        fi
 
     else
         case "${FileType}" in
         JavaScript | TypeScript)
             if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
-                base_cmd="deno run --no-code-cache --no-prompt --allow-env --allow-read=./ --allow-write=./ --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I) ${run_target} 2>&1"
+                interpreter_args=" --no-code-cache --no-prompt --allow-env --allow-read=./ --allow-write=./ --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I)${interpreter_args}"
+                base_cmd="deno run${interpreter_args} ${run_target}"
             elif [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-                base_cmd="bun ${run_target} 2>&1"
+                base_cmd="bun${interpreter_args} ${run_target}"
             else
                 case "${FileType}" in
                 JavaScript)
-                    base_cmd="node${global_proxy_option_cmd} ${run_target} 2>&1"
+                    if [[ "${global_proxy_option_cmd}" ]]; then
+                        interpreter_args=" ${global_proxy_option_cmd}${interpreter_args}"
+                    fi
+                    base_cmd="node${interpreter_args} ${run_target}"
                     ;;
                 TypeScript)
                     if [[ "${RUN_OPTION_USE_TS_NODE}" == "true" ]]; then
-                        base_cmd="ts-node -T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd} ${run_target} 2>&1"
+                        if [[ "${global_proxy_option_cmd}" ]]; then
+                            interpreter_args=" -T -O '{\"target\":\"esnext\"}' ${global_proxy_option_cmd}${interpreter_args}"
+                        else
+                            interpreter_args=" -T -O '{\"target\":\"esnext\"}'${interpreter_args}"
+                        fi
+                        base_cmd="ts-node${interpreter_args} ${run_target}"
                     else
-                        base_cmd="tsx${global_proxy_option_cmd} ${run_target} 2>&1"
+                        if [[ "${global_proxy_option_cmd}" ]]; then
+                            interpreter_args=" ${global_proxy_option_cmd}${interpreter_args}"
+                        fi
+                        base_cmd="tsx${interpreter_args} ${run_target}"
                     fi
                     ;;
                 esac
             fi
             ;;
         Python)
-            base_cmd="python3 -u ${run_target} 2>&1"
+            interpreter_args=" -u${interpreter_args}"
+            base_cmd="python3${interpreter_args} ${run_target}"
             ;;
         Go)
-            base_cmd="go run ${run_target} 2>&1"
+            base_cmd="go run${interpreter_args} ${run_target}"
             ;;
         Lua)
-            base_cmd="lua ${run_target} 2>&1"
+            base_cmd="lua${interpreter_args} ${run_target}"
             ;;
         Ruby)
-            base_cmd="ruby ${run_target} 2>&1"
+            base_cmd="ruby${interpreter_args} ${run_target}"
             ;;
         Rust)
-            base_cmd="cargo script ${run_target} 2>&1"
+            base_cmd="cargo script${interpreter_args} ${run_target}"
             ;;
         Perl)
-            base_cmd="perl ${run_target} 2>&1"
+            base_cmd="perl${interpreter_args} ${run_target}"
             ;;
         C)
-            base_cmd="gcc -o ${FileName} ${run_target} && ./${FileName} 2>&1"
+            base_cmd="gcc -o ${FileName}${interpreter_args} ${run_target} && ./${FileName}"
             ;;
         Shell)
-            base_cmd="bash ${run_target} 2>&1"
+            base_cmd="bash${interpreter_args} ${run_target}"
             ;;
         esac
+        if [[ "${script_args}" ]]; then
+            base_cmd="${base_cmd} ${script_args}"
+        fi
+        base_cmd="${base_cmd} 2>&1" # 重定向错误输出
     fi
 }
 
@@ -488,6 +527,16 @@ function command_run() {
         shift
         # 判断命令选项
         while [ $# -gt 0 ]; do
+            # 检查是否为分隔符
+            if [[ "$1" == "--" ]]; then
+                if [ $# -gt 0 ]; then
+                    shift
+                    RUN_OPTION_PASS_THROUGH_ARGS="$@"
+                else
+                    output_error "命令选项 ${BLUE}$1${PLAIN} 无效，请在该命令选项后指定要传递给代码执行器的命令选项！"
+                fi
+                break
+            fi
             case "$1" in
             -l | --loop)
                 if [[ -z "$2" ]] || [[ "$2" == -* ]]; then
@@ -533,7 +582,7 @@ function command_run() {
                 RUN_OPTION_NO_LOG="true"
                 ;;
             -p | --proxy)
-                echo ${run_target} | grep -Eq "https?://.*github"
+                echo "${run_target}" | grep -Eq "https?://.*github"
                 if [ $? -ne 0 ]; then
                     output_error "命令选项 ${BLUE}$1${PLAIN} 无效，该命令选项仅适用于执行位于 GitHub 仓库的代码文件，请确认后重新输入！"
                 fi
@@ -602,6 +651,13 @@ function command_run() {
                 RUN_OPTION_SPLIT_ENV_NAME="$2"
                 RUN_OPTION_SPLIT_ENV_SEPARATOR="$3"
                 shift
+                shift
+                ;;
+            -E | --exec-args)
+                if [[ -z "$2" ]]; then
+                    output_error "命令选项 ${BLUE}$1${PLAIN} 无效，请在该命令选项后指定执行器参数内容！"
+                fi
+                RUN_OPTION_EXECUTOR_ARGS="$2"
                 shift
                 ;;
             --deno | --use-deno)
