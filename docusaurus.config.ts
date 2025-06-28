@@ -20,13 +20,13 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
     onBrokenLinks: 'ignore',
     onBrokenMarkdownLinks: 'ignore',
     favicon: 'img/favicon.ico',
-    trailingSlash: false,
+    trailingSlash: true,
     organizationName: 'SuperManito', // Usually your GitHub org/user name.
     projectName: 'Arcadia', // Usually your repo name.
     deploymentBranch: 'gh-pages', // Branch that contains the docs.
     i18n: {
-      defaultLocale: 'zh-Hans',
-      locales: ['zh-Hans'],
+      defaultLocale: 'zh-CN',
+      locales: ['zh-CN'],
     },
     // 经典预设包
     presets: [
