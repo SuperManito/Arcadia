@@ -4,8 +4,8 @@ import Heading from '@theme/Heading'
 import Link from '@docusaurus/Link'
 
 export default function Footer () {
-  const logoDark = '/img/logo/arcadia-dark-sub.png'
-  const logoLight = '/img/logo/arcadia-light-sub.png'
+  const logoDark = '/images/logo/arcadia-dark-sub.png'
+  const logoLight = '/images/logo/arcadia-light-sub.png'
   const { colorMode } = useColorMode()
   const [logo, setLogo] = useState(colorMode === 'dark' ? logoDark : logoLight)
   useEffect(() => {

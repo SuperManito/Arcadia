@@ -19,7 +19,7 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
     tagline: '一站式代码运维平台（公测）', // 网站标语
     onBrokenLinks: 'ignore',
     onBrokenMarkdownLinks: 'ignore',
-    favicon: 'img/favicon.ico',
+    favicon: 'favicon.ico',
     trailingSlash: true,
     organizationName: 'SuperManito', // Usually your GitHub org/user name.
     projectName: 'Arcadia', // Usually your repo name.
@@ -115,8 +115,8 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
         hideOnScroll: false,
         logo: {
           className: 'navbar-logo',
-          src: 'img/logo/arcadia-light-sub.png',
-          srcDark: 'img/logo/arcadia-dark-sub.png',
+          src: 'images/logo/arcadia-light-sub.png',
+          srcDark: 'images/logo/arcadia-dark-sub.png',
         },
         items: [
           {

@@ -81,7 +81,7 @@ function HeroContentDefault () {
                     </svg>
                 </div>
                 <div className={styles.logo} style={{ userSelect: 'none' }}>
-                    <img src="/img/logo/arcadia-pure-logo.png" className={clsx(styles.hideSmall)} draggable={false} />
+                    <img src="/images/logo/arcadia-pure-logo.png" className={clsx(styles.hideSmall)} draggable={false} />
                 </div>
             </div>
         </>
@@ -110,7 +110,7 @@ function HeroContentMobile () {
                         </svg>
                     </div>
                     <div style={{ userSelect: 'none', margin: '0 auto', paddingTop: 'calc(calc(100% - 20px - 130px) / 2)', width: '130px', height: '334px' }}>
-                        <img src="/img/logo/arcadia-pure-logo.png" draggable={false} />
+                        <img src="/images/logo/arcadia-pure-logo.png" draggable={false} />
                     </div>
                 </div>
                 <div style={{ position: 'relative', marginTop: '-130px' }}>

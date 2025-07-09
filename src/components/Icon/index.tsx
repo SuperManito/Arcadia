@@ -17,8 +17,8 @@ export function Icon ({ icon, size, width, height, color, style, children }: Ico
     return null
   }
 
-  const fontSize = size ? (typeof size === 'number' ? `${size}px` : size) : undefined
-  const verticalAlign = fontSize === '18px' ? '-0.15rem' : fontSize === '20px' ? '-0.2rem' : fontSize === '22px' ? '-0.3rem' : fontSize === '24px' ? '-0.3rem' : '-0.15rem'
+  const fontSize = size ? (typeof size === 'number' ? `${size}px` : size) : '1.125em'
+  const verticalAlign = style?.verticalAlign ? style?.verticalAlign : '-0.15em'
 
   return (
     <span style={{ fontSize }}>

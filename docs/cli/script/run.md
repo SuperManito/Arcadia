@@ -21,7 +21,7 @@ import APITable from '@site/src/components/APITable';
     -w, --wait                  推迟执行，等待指定时间后再运行任务，选项后需跟时间值
     -D, --delay                 延迟执行，随机倒数一定秒数后再执行代码文件
     -d, --daemon                守护进程，将代码文件设置为守护进程保持在后台运行，期间中断或结束会自动重新运行
-    -a, --agent                 网络代理，使代码文件通过 HTTP/HTTPS 全局代理进行网络请求，仅支持 Node.js 和 TypeScript 脚本
+    -a, --agent                 网络代理，使代码文件的 HTTP/HTTPS 网络请求通过全局代理进行，仅支持 Node.js 和 ts-node
     -T, --timeout               运行超时，设置运行任务超时机制，选项后需跟 timeout 命令选项
     -N, --no-log                忽略日志，不存储代码运行日志到本地
     -p, --proxy                 下载代理，仅适用于执行位于 GitHub 仓库的代码文件，代理固定为 jsDelivr CDN
@@ -31,6 +31,9 @@ import APITable from '@site/src/components/APITable';
                                         表达式语法：多个值用 "," 隔开，值区间用 "-" 连接，可以用 "%" 表示值的总数
     -R, --recombine-env-group   分组运行，为每组变量单独运行，是变量重组的扩展，传参基本一致，其中重组表达式内用 "@" 来区分不同组
     -S, --split-env             拆分运行，将复合变量的值拆分后为每个值声明变量并单独运行代码文件，选项后需跟需要拆分的变量名称、分隔符
+
+    -E, --exec-args             执行参数，将该选项后面的内容作为参数传递给代码执行器
+    --                          传递选项，将该选项后面的所有内容都作为选项参数传递给代码文件
 
     --deno，--use-deno          使用 Deno 作为 JavaScript 和 TypeScript 的运行时环境
     --bun，--use-bun            使用 Bun 作为 JavaScript 和 TypeScript 的运行时环境
@@ -96,7 +99,7 @@ arcadia run <name/path/url> [--options]
 | `-w`, `--wait`                 | 推迟执行 | 是 | 等待指定时间后再运行代码文件，选项后需跟 _等待时间单位_ 作为参数值，具体参照 [sleep](https://www.runoob.com/linux/linux-comm-sleep.html) 命令的用法 |
 | `-D`, `--delay`                | 延迟执行 | 否 | 随机倒数一定秒数后再运行代码文件，该秒数上限可以在配置文件中定义 |
 | `-d`, `--daemon`               | 守护进程 | 否 | 通过 [PM2](https://pm2.keymetrics.io) 将代码文件设置为守护进程保持在后台运行，期间中断或结束会自动重新运行 |
-| `-a`, `--agent`                | 网络代理 | 否 | 使代码文件通过 HTTP/HTTPS 全局代理进行网络请求，目前仅支持 Node.js 和 TypeScript 脚本，使用该功能需要自行在配置文件对应处定义代理地址变量 |
+| `-a`, `--agent`                | 网络代理 | 否 | 使代码文件的 HTTP/HTTPS 网络请求通过全局代理进行，仅支持 Node.js 和 ts-node，使用该功能需要自行在配置文件对应处定义代理地址变量 |
 | `-T`, `--timeout`              | 运行超时 | 是 | 设置运行任务超时机制，选项后需跟 [timeout](https://www.coonote.com/linux/linux-cmd-timeout.html) 指令的参数作为选项值 |
 | `-N`, `--no-log`               | 忽略日志 | 否 | 不存储代码运行日志到本地 |
 | `-p`, `--proxy`                | 下载代理 | 否 | 仅适用于执行位于 GitHub 仓库的远程文件，该代理固定为 [jsDelivr](https://www.jsdelivr.com/?docs=gh) 公共 CDN 加速代理 |
@@ -105,6 +108,8 @@ arcadia run <name/path/url> [--options]
 | `-r`, `--recombine-env`        | 变量重组 | 是 | 按照指定顺序重新组合复合变量的值，选项后需跟变量名称、分隔符、重组表达式。表达式语法：多个值用 `,` 隔开，值区间用 `-` 连接，可以用 `%` 表示值的总数 |
 | `-R`, `--recombine-env-group`  | 分组运行 | 是 | 基于变量重组功能上的扩展应用，为每组变量单独运行代码文件，传参与变量重组功能基本一致，其中重组表达式内用 `@` 来区分不同组 |
 | `-S`, `--split-env`            | 拆分运行 | 是 | 将复合变量的值拆分后为每个值声明变量并单独运行代码文件，选项后需跟需要拆分的变量名称、分隔符 |
+| `-E`, `--exec-args`            | 执行参数 | 是 | 将该选项后面的内容作为参数传递给代码执行器 |
+| `--`                           | 传递选项 | 是 | 将该选项后面的所有内容都作为选项参数传递给代码文件 |
 | `--deno`, `--use-deno`         | [Deno](https://deno.com) | 否 | 使用 Deno 作为 JavaScript 和 TypeScript 的运行时环境，替代 Node.js 和 tsx |
 | `--bun`, `--use-bun`           | [Bun](https://bun.sh) | 否 | 使用 Bun 作为 JavaScript 和 TypeScript 的运行时环境，替代 Node.js 和 tsx |
 | `--ts-node`, `--use-ts-node`   | [ts-node](https://typestrong.org/ts-node) | 否 | 使用 ts-node 作为 TypeScript 的执行器，替代 tsx |
@@ -152,6 +157,13 @@ arcadia run example.js -r TEST_CONFIG @ %-1
 arcadia run example.js -R TEST_CONFIG @ 1,2@3-5
 ```
 
+### 关于执行参数和传递选项的区别
+
+可以简单理解为 `<执行器指令> <执行参数> <目的代码文件> <传递选项>`，例如 `node <执行参数> example.js <传递选项>`
+
+另外需要注意的是 `执行参数` 选项后跟的是一个选项值，例如 `ad run example.js --exec-args "-T --verbose"`，  
+而传递选项会将该选项后的全部内容解析为要传递的参数内容，可以是多个选项，例如 `ad run example.js -- args1 args2`...
+
 ### 什么是守护进程？
 
 守护进程是可以周期运行的特殊进程，在这里指的是将代码文件设置为后台进程循环运行  
@@ -163,7 +175,8 @@ arcadia run example.js -R TEST_CONFIG @ 1,2@3-5
   ```bash title="查看有哪些守护进程正在运行"
   pm2 list
   ```
-  默认有四个项目内置的服务 `arcadia_server` `arcadia_ttyd` `arcadia_inner` `tgbot`，请不要删除它们其中的任何一个
+
+  默认存在四个项目内置的服务 `arcadia_server` `arcadia_inner` `arcadia_ttyd` `tgbot`，请不要删除它们其中的任何一个
 
   ```bash title="停止运行"
   pm2 delete <任务名>
