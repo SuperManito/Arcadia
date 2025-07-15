@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-05-05
+## Modified: 2025-07-15
 
 ## 统计代码仓库数量
 function count_reposum() {
@@ -56,6 +56,14 @@ function gen_repoconf_array() {
     function get_config_wrapper() {
         get_conf "${json_data}" ".[${arr_index}] | .$1 // \"\""
     }
+    function get_config_wrapper_bool() {
+        local value="$(get_conf "${json_data}" ".[${arr_index}] | .$1")"
+        if [[ "${value}" == "true" || "${value}" == "false" ]]; then
+            echo "${value}"
+        else
+            echo "${2:-false}"
+        fi
+    }
 
     ## 遍历 repo 配置
     local conf_index=0 # 注：有效的仓库配置数组索引
@@ -99,7 +107,7 @@ function gen_repoconf_array() {
         Array_Repo_dir[$conf_index]="$(echo "${Array_Repo_url[conf_index]}" | sed "s|\.git||g" | awk -F "/|:" '{print $((NF - 1)) "_" $NF}')"
         Array_Repo_path[$conf_index]="$RepoDir/${Array_Repo_dir[conf_index]}"
         ## 代码仓库启用状态（默认启用）
-        if [[ "$(get_config_wrapper "enable")" == "false" ]]; then
+        if [[ "$(get_config_wrapper_bool "enable" "true")" == "false" ]]; then
             Array_Repo_enable[$conf_index]="false"
         else
             Array_Repo_enable[$conf_index]="true"
@@ -112,7 +120,7 @@ function gen_repoconf_array() {
         Array_Repo_authSettings_privateKeyPath[$conf_index]=""
         Array_Repo_authSettings_username[$conf_index]=""
         Array_Repo_authSettings_password[$conf_index]=""
-        if [[ "$(get_config_wrapper "isPrivate")" == "true" ]] && [[ "$(get_config_wrapper "authSettings.method")" != "null" ]]; then
+        if [[ "$(get_config_wrapper_bool "isPrivate")" == "true" ]] && [[ "$(get_config_wrapper "authSettings.method")" != "null" ]]; then
             tmp_authSettings_method="$(get_config_wrapper "authSettings.method")"
             if [[ "${tmp_authSettings_method}" == "ssh" ]] && [[ "$(get_config_wrapper "authSettings.sshConfig")" ]]; then
                 tmp_sshConfig_alias="$(get_config_wrapper "authSettings.sshConfig.alias")"
@@ -148,7 +156,7 @@ function gen_repoconf_array() {
 
         ## 定时任务设置
         # 定时启用状态（默认禁用）
-        if [[ "$(get_config_wrapper "cronSettings.updateTaskList")" == "true" ]]; then
+        if [[ "$(get_config_wrapper_bool "cronSettings.updateTaskList")" == "true" ]]; then
             Array_Repo_cronSettings_updateTaskList[$conf_index]="true"
         else
             Array_Repo_cronSettings_updateTaskList[$conf_index]="false"
@@ -178,19 +186,19 @@ function gen_repoconf_array() {
             Array_Repo_cronSettings_blackList[$conf_index]="$(get_config_wrapper "cronSettings.blackList")"
         fi
         # 自动禁用新的定时任务（默认禁用）
-        if [[ "$(get_config_wrapper "cronSettings.autoDisable")" == "true" ]]; then
+        if [[ "$(get_config_wrapper_bool "cronSettings.autoDisable")" == "true" ]]; then
             Array_Repo_cronSettings_autoDisable[$conf_index]="true"
         else
             Array_Repo_cronSettings_autoDisable[$conf_index]="false"
         fi
         # 新增定时任务推送通知提醒（默认启用）
-        if [[ "$(get_config_wrapper "cronSettings.addNotify")" == "false" ]]; then
+        if [[ "$(get_config_wrapper_bool "cronSettings.addNotify" "true")" == "false" ]]; then
             Array_Repo_cronSettings_addNotify[$conf_index]="false"
         else
             Array_Repo_cronSettings_addNotify[$conf_index]="true"
         fi
         # 过期定时任务推送通知提醒（默认启用）
-        if [[ "$(get_config_wrapper "cronSettings.delNotify")" == "false" ]]; then
+        if [[ "$(get_config_wrapper_bool "cronSettings.delNotify" "true")" == "false" ]]; then
             Array_Repo_cronSettings_delNotify[$conf_index]="false"
         else
             Array_Repo_cronSettings_delNotify[$conf_index]="true"
@@ -234,6 +242,14 @@ function gen_rawconf_array() {
     function get_config_wrapper() {
         get_conf "${json_data}" ".[${arr_index}] | .$1 // \"\""
     }
+    function get_config_wrapper_bool() {
+        local value="$(get_conf "${json_data}" ".[${arr_index}] | .$1")"
+        if [[ "${value}" == "true" || "${value}" == "false" ]]; then
+            echo "${value}"
+        else
+            echo "${2:-false}"
+        fi
+    }
 
     import utils/request
 
@@ -251,7 +267,7 @@ function gen_rawconf_array() {
         Array_Raw_url[$conf_index]="${tmp_url}"
         Array_Raw_path[$conf_index]="${RawDir}/${Array_Raw_url[conf_index]##*/}"
         ## 远程文件启用状态（默认启用）
-        if [[ "$(get_config_wrapper "enable")" == "false" ]]; then
+        if [[ "$(get_config_wrapper_bool "enable" "true")" == "false" ]]; then
             Array_Raw_enable[$conf_index]="false"
         else
             Array_Raw_enable[$conf_index]="true"
@@ -268,7 +284,7 @@ function gen_rawconf_array() {
             Array_Raw_name[$conf_index]="$(get_config_wrapper "name")"
         fi
         # 定时启用状态（默认禁用）
-        if [[ "$(get_config_wrapper "cronSettings.updateTaskList")" == "true" ]]; then
+        if [[ "$(get_config_wrapper_bool "cronSettings.updateTaskList")" == "true" ]]; then
             Array_Raw_cronSettings_updateTaskList[$conf_index]="true"
         else
             Array_Raw_cronSettings_updateTaskList[$conf_index]="false"
@@ -278,6 +294,7 @@ function gen_rawconf_array() {
         # 第$(($conf_index + 1))个远程文件的配置：
         # name: ${Array_Raw_name[conf_index]:-"无"}
         # url: ${Array_Raw_url[conf_index]:-"无"}
+        # enable: ${Array_Raw_enable[conf_index]:-"无"}
         # path: ${Array_Raw_path[conf_index]:-"无"}
         # fileName: ${Array_Raw_fileName[conf_index]:-"无"}
         # updateTaskList: ${Array_Raw_cronSettings_updateTaskList[conf_index]:-"无"}
