@@ -1,11 +1,4 @@
-import type { Prisma, PrismaClient } from '@prisma/client'
-import type {
-  envs as Envs,
-  envs_group as EnvsGroup,
-  message as Message,
-  task_core as TaskCore,
-  tasks as Tasks,
-} from '@prisma/client'
+import type { envs as Envs, envs_group as EnvsGroup, message as Message, Prisma, PrismaClient, task_core as TaskCore, tasks as Tasks } from '@prisma/client'
 
 declare global {
   interface BigInt {

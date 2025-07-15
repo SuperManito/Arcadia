@@ -80,9 +80,9 @@ interface ExtendedModel {
   idField?: string
 }
 
-type ExtensionThis = ExtendedModel &
-  PrismaModelMethods &
-  PrismaClient[Prisma.ModelName]
+type ExtensionThis = ExtendedModel
+  & PrismaModelMethods
+  & PrismaClient[Prisma.ModelName]
 
 const debug = process.env.ARCADIA_SQL_DEBUG === 'true'
 const extension = Prisma.defineExtension((client) => {
