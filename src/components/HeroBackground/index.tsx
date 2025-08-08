@@ -1,6 +1,8 @@
 import React from 'react'
 import { useMotionValue, motion, useMotionTemplate } from 'motion/react'
 import cn from '../lib/utils'
+import DarkVeil from '../DarkVeil'
+import { useColorMode } from '@docusaurus/theme-common'
 
 export default function HeroBackground ({
   children,
@@ -11,6 +13,8 @@ export default function HeroBackground ({
   className?: string
   containerClassName?: string
 }) {
+  const { colorMode } = useColorMode()
+  const hueShift = colorMode === 'dark' ? 32 : 40
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
 
@@ -37,17 +41,21 @@ export default function HeroBackground ({
   return (
       <div
         className={cn(
-          'relative min-h-[calc(100vh-60px)] lg:min-h-[calc(100vh-44px)] w-full h-full flex items-center bg-transparent justify-center group',
+          'relative min-h-[calc(100vh-60px)] lg:min-h-[calc(100vh-44px)] w-full h-full flex items-center bg-transparent justify-center group overflow-hidden',
           containerClassName,
         )}
         onMouseMove={handleMouseMove}
       >
         <div
-          className="pointer-events-none absolute inset-0 dark:hidden"
-        />
-        <div
-          className="pointer-events-none absolute inset-0 hidden dark:block"
-        />
+          className="absolute inset-0"
+        >
+          <DarkVeil
+            hueShift={hueShift}
+            speed={0.5}
+            warpAmount={0}
+          />
+        </div>
+
         <motion.div
           className="pointer-events-none absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100 dark:hidden"
           style={{
