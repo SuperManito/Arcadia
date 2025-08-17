@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-06-29
+## Modified: 2025-08-18
 
 function _print_help_title() {
   if [ "$1" ]; then
@@ -20,7 +20,7 @@ function _print_help_main() {
   ${BLUE}cleanup${PLAIN}         终止阻塞的代码进程，释放内存
 
   更新与升级
-  ${BLUE}update <args>${PLAIN}   同步用户配置，更新导入的代码文件
+  ${BLUE}update <args>${PLAIN}   更新代码同步配置
   ${BLUE}upgrade${PLAIN}         更新项目源码，升级版本
 
   用户配置管理
@@ -163,7 +163,7 @@ function _print_help_raw() {
 
 }
 function _print_help_update() {
-  _print_help_title "更新导入的代码文件"
+  _print_help_title "代码同步更新"
   echo -e "
   使用方法：
 
@@ -171,11 +171,11 @@ function _print_help_update() {
 
   子命令：
 
-    ${BLUE}repo${PLAIN}      更新代码仓库
-    ${BLUE}raw${PLAIN}       更新远程文件
-    ${BLUE}extra${PLAIN}     执行自定义更新脚本
-    ${BLUE}all${PLAIN}       更新除指定仓库以外的所有内容
-    ${BLUE}<path>${PLAIN}    更新指定路径下的代码仓库
+    ${BLUE}sync${PLAIN} / ${BLUE}all${PLAIN}      更新所有代码同步配置
+    ${BLUE}repo${PLAIN}            更新全部代码仓库
+    ${BLUE}raw${PLAIN}             更新远程文件
+    ${BLUE}extra${PLAIN}           运行额外更新脚本
+    ${BLUE}<path>${PLAIN}          更新指定路径下的代码仓库
 
   命令帮助：
 

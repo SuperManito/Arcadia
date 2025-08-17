@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-05-05
+## Modified: 2025-08-18
 
 ## 清空定时任务关联代码文件清单内容
 function clean_list_scripts() {
@@ -19,7 +19,7 @@ function update_sync() {
     clean_list_scripts
     ## 根据模式进行选择
     case $1 in
-    all)
+    sync | all)
         import update/repo
         update_all_repo
         import update/raw
@@ -43,34 +43,38 @@ function update_sync() {
 function print_title_start() {
     local update_mod
     case "$1" in
-    all)
-        update_mod="全部内容"
+    sync | all)
+        update_mod=""
         ;;
     repo)
-        update_mod="所有仓库"
+        update_mod="全部代码仓库"
         ;;
     raw)
         update_mod="远程文件"
         ;;
-    extra)
-        update_mod="额外脚本"
-        ;;
     designated)
-        update_mod="指定仓库"
+        update_mod="指定代码仓库"
+        ;;
+    extra)
+        update_mod="运行额外更新脚本"
         ;;
     esac
-    echo -e "\n[\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN}] 执行更新程序开始 - ${update_mod}"
+    if [[ "${update_mod}" ]]; then
+        echo -e "\n[\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN}] 更新代码同步开始 - ${update_mod}"
+    else
+        echo -e "\n[\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN}] 更新代码同步开始"
+    fi
 }
 
 function print_title_end() {
-    echo -e "\n[\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN}] 执行更新程序结束\n"
+    echo -e "\n[\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN}] 更新代码同步结束\n"
 }
 
 function command_update_main() {
     case $1 in
-    all)
-        print_title_start "all"
-        update_sync "all"
+    sync | all)
+        print_title_start "sync"
+        update_sync "sync"
         import update/extra
         update_extra
         ;;
