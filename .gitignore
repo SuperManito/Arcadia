@@ -3,9 +3,6 @@ package-lock.json
 yarn.lock
 dist/
 
-scripts/
-repo/
-raw/
 log/
 logs/
 config/

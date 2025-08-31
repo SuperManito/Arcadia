@@ -1,10 +1,10 @@
 #!/bin/bash
-## Modified: 2024-04-28
+## Modified: 2025-08-31
 
 ## 一键添加代码仓库配置
 # repo <name> <url> <branch> [--options]
 function command_repo() {
-    local name url branch enable updateTaskList scriptsPath scriptsType whiteList blackList autoDisable addNotify delNotify
+    local name url branch enable isPrivate authMethod sshAlias sshHostName sshPrivateKeyPath httpUsername httpPassword updateTaskList scriptsPath scriptsType whiteList blackList autoDisable addNotify delNotify
     # 定义临时文件
     local tmp_file="${RootDir}/.repo.yml"
 
@@ -39,122 +39,119 @@ function command_repo() {
 
             ## 判断命令选项
             while [ $# -gt 0 ]; do
+                # 通用判断
+                if [ "$2" ]; then
+                    echo "$2" | grep -Eq "^--"
+                    if [ $? -eq 0 ]; then
+                        output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定选项值！"
+                    fi
+                else
+                    output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定选项值！"
+                fi
+
                 case "$1" in
                 --enable)
-                    if [ "$2" ]; then
-                        echo "$2" | grep -Eqw "true|false"
-                        if [ $? -eq 0 ]; then
-                            enable="$2"
-                            shift
-                        else
-                            output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
-                        fi
+                    echo "$2" | grep -Eqw "true|false"
+                    if [ $? -eq 0 ]; then
+                        enable="$2"
+                        shift
                     else
-                        output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定布尔值！"
+                        output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
                     fi
                     ;;
-                --updateTaskList)
-                    if [ "$2" ]; then
-                        echo "$2" | grep -Eqw "true|false"
-                        if [ $? -eq 0 ]; then
-                            updateTaskList="$2"
-                            shift
-                        else
-                            output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
-                        fi
+                --isPrivate)
+                    echo "$2" | grep -Eqw "true|false"
+                    if [ $? -eq 0 ]; then
+                        isPrivate="$2"
+                        shift
                     else
-                        output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定布尔值！"
+                        output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
+                    fi
+                    ;;
+                --authMethod)
+                    echo "$2" | grep -Eqw "ssh|http"
+                    if [ $? -eq 0 ]; then
+                        authMethod="$2"
+                        shift
+                    else
+                        output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入 ssh 或 http！"
+                    fi
+                    ;;
+                --sshAlias)
+                    echo "$2" | grep -Eq "^[[:alnum:]_-]+$"
+                    if [ $? -eq 0 ]; then
+                        output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入字符串！"
+                    else
+                        sshAlias="$2"
+                        shift
+                    fi
+                    ;;
+                --sshHostName)
+                    sshHostName="$2"
+                    shift
+                    ;;
+                --sshPrivateKeyPath)
+                    sshPrivateKeyPath="$2"
+                    shift
+                    ;;
+                --httpUsername)
+                    httpUsername="$2"
+                    shift
+                    ;;
+                --httpPassword)
+                    httpPassword="$2"
+                    shift
+                    ;;
+                --updateTaskList)
+                    echo "$2" | grep -Eqw "true|false"
+                    if [ $? -eq 0 ]; then
+                        updateTaskList="$2"
+                        shift
+                    else
+                        output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
                     fi
                     ;;
                 --scriptsPath)
-                    if [ "$2" ]; then
-                        echo "$2" | grep -Eqw "^--"
-                        if [ $? -eq 0 ]; then
-                            output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入字符串！"
-                        else
-                            scriptsPath="$2"
-                            shift
-                        fi
-                    else
-                        output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定字符串！"
-                    fi
+                    scriptsPath="$2"
+                    shift
                     ;;
                 --scriptsType)
-                    if [ "$2" ]; then
-                        echo "$2" | grep -Eqw "^--"
-                        if [ $? -eq 0 ]; then
-                            output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入字符串！"
-                        else
-                            scriptsType="$2"
-                            shift
-                        fi
-                    else
-                        output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定字符串！"
-                    fi
+                    scriptsType="$2"
+                    shift
                     ;;
                 --whiteList)
-                    if [ "$2" ]; then
-                        echo "$2" | grep -Eqw "^--"
-                        if [ $? -eq 0 ]; then
-                            output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入字符串！"
-                        else
-                            whiteList="$2"
-                            shift
-                        fi
-                    else
-                        output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定字符串！"
-                    fi
+                    whiteList="$2"
+                    shift
                     ;;
                 --blackList)
-                    if [ "$2" ]; then
-                        echo "$2" | grep -Eqw "^--"
-                        if [ $? -eq 0 ]; then
-                            output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入字符串！"
-                        else
-                            blackList="$2"
-                            shift
-                        fi
-                    else
-                        output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定字符串！"
-                    fi
+                    blackList="$2"
+                    shift
                     ;;
                 --autoDisable)
-                    if [ "$2" ]; then
-                        echo "$2" | grep -Eqw "true|false"
-                        if [ $? -eq 0 ]; then
-                            autoDisable="$2"
-                            shift
-                        else
-                            output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
-                        fi
+                    echo "$2" | grep -Eqw "true|false"
+                    if [ $? -eq 0 ]; then
+                        autoDisable="$2"
+                        shift
                     else
-                        output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定布尔值！"
+                        output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
                     fi
                     ;;
                 --addNotify)
-                    if [ "$2" ]; then
-                        echo "$2" | grep -Eqw "true|false"
-                        if [ $? -eq 0 ]; then
-                            addNotify="$2"
-                            shift
-                        else
-                            output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
-                        fi
+                    echo "$2" | grep -Eqw "true|false"
+                    if [ $? -eq 0 ]; then
+                        addNotify="$2"
+                        shift
                     else
-                        output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定布尔值！"
+                        output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
                     fi
                     ;;
                 --delNotify)
-                    if [ "$2" ]; then
-                        echo "$2" | grep -Eqw "true|false"
-                        if [ $? -eq 0 ]; then
-                            delNotify="$2"
-                            shift
-                        else
-                            output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
-                        fi
+                    echo "$2" | grep -Eqw "true|false"
+                    if [ $? -eq 0 ]; then
+                        delNotify="$2"
+                        shift
                     else
-                        output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定布尔值！"
+                        output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
                     fi
                     ;;
                 *)
@@ -165,24 +162,50 @@ function command_repo() {
             done
             ;;
         esac
+
+        ## 处理认证凭据
+        if [[ "${authMethod}" ]]; then
+            case "${authMethod}" in
+            ssh)
+                if [ -z "${sshAlias}" ] || [ -z "${sshHostName}" ] || [ -z "${sshPrivateKeyPath}" ]; then
+                    output_error "设置私有仓库 SSH 访问凭据时需提供配置别名、主机地址和私钥文件路径！"
+                fi
+                ;;
+            http)
+                if [ -z "${httpUsername}" ] || [ -z "${httpPassword}" ]; then
+                    output_error "设置私有仓库 HTTP 访问凭据时需提供用户名和密码！"
+                fi
+                ;;
+            esac
+        fi
     }
 
     # 生成配置文件模板
     function create_template() {
-        echo '{ "name": "", "url": "", "branch": "", "enable": true, "cronSettings": { "updateTaskList": false, "scriptsPath": "", "scriptsType": ["js"], "whiteList": "", "blackList": "", "autoDisable": false, "addNotify": true, "delNotify": true } }' | jq | yq -y >$tmp_file
+        local auth_content=''
+        if [[ "${authMethod}" ]]; then
+            local auth_config=''
+            case "${authMethod}" in
+            ssh)
+                auth_config='"sshConfig": { "alias": "'"${sshAlias}"'", "host": "'"${sshHostName}"'", "privateKeyPath": "'"${sshPrivateKeyPath}"'" }'
+                ;;
+            http)
+                auth_config='"httpAuth": { "username": "'"${httpUsername}"'", "password": "'"${httpPassword}"'" }'
+                ;;
+            esac
+            auth_content=' "authSettings": { "method": "'"${authMethod}"'", '"${auth_config}"' },'
+        fi
+
+        echo '{ "name": "'"${name}"'", "url": "'"${url}"'", "branch": "'"${branch}"'", "enable": true, "isPrivate": false,'"${auth_content}"' "cronSettings": { "updateTaskList": false, "scriptsPath": "", "scriptsType": ["js"], "whiteList": "", "blackList": "", "autoDisable": false, "addNotify": true, "delNotify": true } }' | jq | yq -y >$tmp_file
         # 插入缩进空格
-        local LineSum="$(cat $tmp_file | grep "" -c)"
-        for ((i = 1; i <= $LineSum; i++)); do
+        local line_sum="$(cat $tmp_file | grep "" -c)"
+        for ((i = 1; i <= $line_sum; i++)); do
             [ $i -eq 1 ] && sed -i "1s/^/  - /g" $tmp_file || sed -i "${i}s/^/    /g" $tmp_file
         done
-    }
 
-    # 替换用户配置
-    function replace_user_conf() {
-        sed -i "s|name: ''|name: \"${name}\"|g" $tmp_file
-        sed -i "s|url: ''|url: \"${url}\"|g" $tmp_file
-        sed -i "s|branch: ''|branch: \"${branch}\"|g" $tmp_file
+        # 替换用户配置
         [ "${enable}" ] && sed -i "s|enable: true|enable: ${enable}|g" $tmp_file
+        [ "${isPrivate}" ] && sed -i "s|isPrivate: false|isPrivate: ${isPrivate}|g" $tmp_file
         [ "${updateTaskList}" ] && sed -i "s|updateTaskList: false|updateTaskList: ${updateTaskList}|g" $tmp_file
         [ "${scriptsPath}" ] && sed -i "s|scriptsPath: ''|scriptsPath: \"${scriptsPath}\"|g" $tmp_file
         [ "${whiteList}" ] && sed -i "s@whiteList: ''@whiteList: \'$(echo "${whiteList}" | sed -e 's/[]\/$*.^[]/\\&/g; s/@/\@/g')\'@g" $tmp_file
@@ -243,8 +266,6 @@ function command_repo() {
     [ $? -eq 0 ] && output_error "检测到该配置已存在，请勿重复添加！"
     # 生成配置文件模板
     create_template
-    # 替换用户配置
-    replace_user_conf
     # 保存配置
     save_conf
     # 删除临时文件

@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-08-18
+## Modified: 2025-08-31
 
 function _print_help_title() {
   if [ "$1" ]; then
@@ -128,7 +128,14 @@ function _print_help_repo() {
 
   命令选项：
 
-    ${BLUE}--enable${PLAIN}             是否启用仓库
+    ${BLUE}--enable${PLAIN}             是否启用该配置
+    ${BLUE}--isPrivate${PLAIN}          是否为私有仓库
+    ${BLUE}--authMethod${PLAIN}         私有仓库认证方式，\"ssh\" 或 \"http\"
+    ${BLUE}--sshAlias${PLAIN}           私有仓库 SSH 访问凭据配置 - 配置别名
+    ${BLUE}--sshHostName${PLAIN}        私有仓库 SSH 访问凭据配置 - 主机地址
+    ${BLUE}--sshPrivateKeyPath${PLAIN}  私有仓库 SSH 访问凭据配置 - 私钥文件路径
+    ${BLUE}--httpUsername${PLAIN}       私有仓库 HTTP 访问凭据配置 - 用户名
+    ${BLUE}--httpPassword${PLAIN}       私有仓库 HTTP 访问凭据配置 - 密码或令牌
     ${BLUE}--updateTaskList${PLAIN}     是否更新定时任务
     ${BLUE}--scriptsPath${PLAIN}        定时文件路径
     ${BLUE}--scriptsType${PLAIN}        定时文件格式，多个用 \"|\" 分开
@@ -153,6 +160,7 @@ function _print_help_raw() {
 
   命令选项：
 
+    ${BLUE}--enable${PLAIN}             是否启用该配置
     ${BLUE}--updateTaskList${PLAIN}     是否更新定时任务
     ${BLUE}--help${PLAIN}               查看此命令帮助
 
