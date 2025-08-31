@@ -21,7 +21,7 @@ import DocCardList from '@theme/DocCardList';
   cleanup         终止阻塞的代码进程，释放内存
 
   更新与升级
-  update <args>   同步用户配置，更新导入的代码文件
+  update <args>   更新代码同步配置
   upgrade         更新项目源码，升级版本
 
   用户配置管理

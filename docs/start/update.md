@@ -24,7 +24,7 @@ containrrr/watchtower -c \
 
 </details>
 
-如果你想了解的是如何更新导入的脚本，那么请前往查看 [CLI 文档](/docs/cli/update)
+如果你想了解的是如何更新导入的代码文件，那么请前往查看 [CLI 文档](/docs/cli/update)
 
 ## 更新源码
 

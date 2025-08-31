@@ -40,13 +40,11 @@ description: 管理环境变量数据
 arcadia envm add
 ```
 
-- ### 快捷命令
+```bash title="快捷命令"
+arcadia envm add <变量名称> <变量的值> <备注>
+```
 
-  ```bash
-  arcadia envm add <变量名称> <变量的值> <备注>
-  ```
-
-  可以省略 `<备注>` 参数，那么目标变量的备注内容将自动设置为登记时间以用于备忘记录
+可以省略 `<备注>` 参数，那么目标变量的备注内容将自动设置为登记时间以用于备忘记录
 
 ## 修改变量
 
@@ -54,13 +52,11 @@ arcadia envm add
 arcadia envm edit
 ```
 
-  - ### 快捷命令
+```bash title="快捷命令"
+arcadia envm edit <变量名称> <变量新的值> <备注>
+```
 
-  ```bash
-  arcadia envm edit <变量名称> <变量新的值> <备注>
-  ```
-
-  可以省略 `<备注>` 参数即不修改备注内容，如果检测到未添加目标变量则将自动添加
+可以省略 `<备注>` 参数即不修改备注内容，如果检测到未添加目标变量则将自动添加
 
 ## 删除变量
 
@@ -68,11 +64,9 @@ arcadia envm edit
 arcadia envm del
 ```
 
-  - ### 快捷命令
-
-  ```bash
-  arcadia envm del <变量名称>
-  ```
+```bash title="快捷命令"
+arcadia envm del <变量名称>
+```
 
 ## 查询变量
 
@@ -80,11 +74,9 @@ arcadia envm del
 arcadia envm search
 ```
 
-- ### 快捷命令
-
-  ```bash
-  arcadia envm search <查询关键词>
-  ```
+```bash title="快捷命令"
+arcadia envm search <查询关键词>
+```
 
 ## 启用/禁用变量
 

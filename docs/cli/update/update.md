@@ -1,9 +1,9 @@
 ---
-description: 同步用户配置，更新导入的脚本
+description: 更新代码同步配置，更新导入的代码文件
 ---
 import APITable from '@site/src/components/APITable';
 
-# 更新代码文件
+# 更新代码同步配置
 
 ```bash
 arcadia update <args>
@@ -13,16 +13,16 @@ arcadia update <args>
 
 | 子命令 | 含义 | 描述 |
 | :-: | :-: | -- |
-| ` repo` | 更新代码仓库 | 更新所有位于 `repo` 目录下的代码仓库 |
+| `repo` | 更新全部代码仓库 | 更新所有位于 `repo` 目录下的代码仓库 |
 | `raw` | 更新远程文件 | 更新所有位于 `raw` 目录下的远程文件 |
-| `extra` | 执行自定义更新脚本 | 运行用户自定义的更新脚本 |
+| `extra` | 运行额外更新脚本 | 运行用户自定义的更新脚本 |
 
 </APITable>
 
-### 更新全部
+### 更新全部代码同步配置
 
 ```bash
-arcadia update all
+arcadia update sync
 ```
 更新除指定仓库以外的所有内容
 

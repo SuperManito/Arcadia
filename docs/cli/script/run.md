@@ -5,7 +5,9 @@ description: 运行代码
 import { CHECK, CLOSE } from '@site/src/components/Icon';
 import APITable from '@site/src/components/APITable';
 
-✍在本篇内容中你将学习到如何运行脚本这一基础功能。看上去内容很多？实际上一点也不难
+✍在本篇内容中你将学习到如何运行代码文件这一基础功能。看上去内容很多？其实非常简单。
+
+需要特别说明的是，代码文件是各编程语言程序文件的统称，并非所有代码文件都属于脚本类型。
 
 ```txt title="$ arcadia run"
 ❖ Arcadia CLI - 执行代码文件
@@ -136,7 +138,7 @@ arcadia run <name/path/url> [--options]
 
 ### 关于重组表达式的应用示例
 
-:::info 在 Linux 系统命令行中有一些特殊的字符例如 `;` `&`，届时你应该用引号包裹以避免传递错误
+:::info 在 Linux 系统命令行中有一些特殊的字符，例如 `;` `&` 等，届时你应该用英文引号包裹以避免传递错误
 :::
 
 接下来是一些示例用法，以 `example.js` 脚本和 `TEST_CONFIG` 配置变量为例，其中 `TEST_CONFIG` 为复合变量且分隔符为 `@`

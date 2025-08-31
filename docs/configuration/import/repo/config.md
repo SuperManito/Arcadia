@@ -34,7 +34,7 @@ import APITable from '@site/src/components/APITable';
   | `scriptsType` | 否 | `array` | `["js", "py", "ts"]` | 定时文件格式（默认为三种类型的代码文件） |
   | `whiteList` | 否 | `string` | 无 | 定时文件匹配白名单（默认为空，即所有文件） |
   | `blackList` | 否 | `string` | 无 | 定时文件匹配黑名单（默认为空） |
-  | `autoDisable` | 否 | `boolean` | `false` | 是否自动禁用新的定时任务（默认不禁用） |
+  | `autoDisable` | 否 | `boolean` | `false` | 是否自动禁用新增定时任务（默认不禁用） |
   | `addNotify` | 否 | `boolean` | `true` | 是否为新增定时任务推送通知提醒 |
   | `delNotify` | 否 | `boolean` | `true` | 是否为过期定时任务推送通知提醒 |
   </APITable>
