@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-18
+## Modified: 2025-09-01
 
 ## 添加
 function add_environment_variable() {
@@ -404,16 +404,18 @@ function handle_environment_variable() {
         grep ".*export.*=" $FileConfUser | grep "${Keys}" -q
         local EXITSTATUS=$?
         if [[ $EXITSTATUS -eq 0 ]]; then
-            echo -e "\n${BLUE}检测到的环境变量：${PLAIN}"
-            grep -n ".*export.*=" $FileConfUser | grep "${Keys}" | sed "s|^|第|g; s|:|行：|g; s|${Keys}|${RED}${Keys}${PLAIN}|g"
-            echo -e "\n$COMPLETE 查询完毕\n"
+            echo ''
+            grep -n ".*export.*=" $FileConfUser | grep "${Keys}" | sed -e "s|^|第|g; s|:\([# ]*export\)|行：\1|g"
+            echo ''
         else
-            echo -e "\n$COMPLETE 未查询到包含 ${BLUE}${Keys}${PLAIN} 内容的相关环境变量！\n"
+            echo -e "\n$TIP 未查询到包含 ${BLUE}${Keys}${PLAIN} 内容的相关环境变量！\n"
         fi
         ;;
     esac
 }
 
+## 用户环境变量管理功能
+# envm <args> [...]
 function command_envm() {
     case $# in
     0)
