@@ -18,7 +18,11 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
 
     tagline: '一站式代码运维平台（公测）', // 网站标语
     onBrokenLinks: 'ignore',
-    onBrokenMarkdownLinks: 'ignore',
+    markdown: {
+      hooks: {
+        onBrokenMarkdownLinks: 'ignore',
+      },
+    },
     favicon: 'favicon.ico',
     trailingSlash: true,
     organizationName: 'SuperManito', // Usually your GitHub org/user name.
