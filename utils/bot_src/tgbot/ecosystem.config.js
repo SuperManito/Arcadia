@@ -4,7 +4,7 @@ module.exports = {
         version: "1.0.0",
         cwd: "..",
         script: "python3",
-        args: "-m tgbot",
+        args: "",
         autorestart: true,
         watch: ["tgbot"],
         ignore_watch: [
@@ -17,6 +17,7 @@ module.exports = {
             "tgbot/ecosystem.config.js"
         ],
         watch_delay: 15000,
-        interpreter: ""
+        interpreter: "/usr/bin/python3",
+        interpreter_args: "-m tgbot",
     }]
 }
