@@ -19,13 +19,13 @@
     "clean": "rimraf dist && rimraf package-lock.json && rimraf node_modules"
   },
   "dependencies": {
-    "@prisma/client": "^6.16.2",
+    "@prisma/client": "^6.19.0",
     "archiver": "^7.0.1",
-    "axios": "^1.12.2",
+    "axios": "^1.13.2",
     "body-parser": "^2.2.0",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
-    "cron": "^4.3.3",
+    "cron": "^4.3.4",
     "crypto-js": "^4.2.0",
     "express": "^5.1.0",
     "express-jwt": "^8.5.1",
@@ -39,15 +39,15 @@
     "tsx": "^4.20.6"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^5.4.1",
-    "@types/archiver": "^6.0.3",
+    "@antfu/eslint-config": "^6.2.0",
+    "@types/archiver": "^7.0.0",
     "@types/compression": "^1.8.1",
-    "@types/express": "^5.0.3",
+    "@types/express": "^5.0.5",
     "@types/multer": "^2.0.0",
-    "@types/node": "^24.5.2",
-    "eslint": "^9.36.0",
-    "prisma": "^6.16.2",
-    "rimraf": "^6.0.1",
-    "typescript": "~5.9.2"
+    "@types/node": "^24.10.0",
+    "eslint": "^9.36.1",
+    "prisma": "^6.19.0",
+    "rimraf": "^6.1.0",
+    "typescript": "~5.9.3"
   }
 }

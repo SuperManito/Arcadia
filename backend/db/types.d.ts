@@ -59,50 +59,50 @@ interface ExtendedMethods<T extends Prisma.ModelName, TData> {
   $getById: (
     id: number | string,
     idName?: string,
-    options?: Omit<Prisma.Args<T, 'findFirst'>, 'where' | 'orderBy'>
+    options?: Omit<Prisma.Args<T, 'findFirst'>, 'where' | 'orderBy'>,
   ) => Promise<TData | null>
 
   $list: (
     where?: Prisma.Args<T, 'findMany'>['where'],
     orderBy?: Prisma.Args<T, 'findMany'>['orderBy'],
-    options?: Omit<Prisma.Args<T, 'findMany'>, 'where' | 'orderBy'>
+    options?: Omit<Prisma.Args<T, 'findMany'>, 'where' | 'orderBy'>,
   ) => Promise<TData[]>
 
   $create: (
     data: any,
-    options?: Omit<Prisma.Args<T, 'create'>, 'data'>
+    options?: Omit<Prisma.Args<T, 'create'>, 'data'>,
   ) => Promise<TData>
 
   $createMany: (
     data: any[],
-    options?: Omit<Prisma.Args<T, 'createMany'>, 'data'>
+    options?: Omit<Prisma.Args<T, 'createMany'>, 'data'>,
   ) => Promise<Prisma.BatchPayload>
 
   $updateById: (
     data: any,
     idName?: string,
-    options?: any
+    options?: any,
   ) => Promise<TData>
 
   $updateMany: (
     data: any,
-    options?: Omit<Prisma.Args<T, 'updateMany'>, 'where'>
+    options?: Omit<Prisma.Args<T, 'updateMany'>, 'where'>,
   ) => Promise<Prisma.BatchPayload>
 
   $upsert: (
-    data: any
+    data: any,
   ) => Promise<TData>
 
   $upsertById: (
     data: any,
     idName?: string,
-    options?: any
+    options?: any,
   ) => Promise<TData>
 
   $deleteById: (
     id: number | string | (string | number)[],
     idName?: string,
-    options?: Omit<Prisma.Args<T, 'delete'>, 'where'> | Omit<Prisma.Args<T, 'deleteMany'>, 'where'>
+    options?: Omit<Prisma.Args<T, 'delete'>, 'where'> | Omit<Prisma.Args<T, 'deleteMany'>, 'where'>,
   ) => Promise<boolean | TData>
 
   // 工具方法

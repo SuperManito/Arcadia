@@ -34,16 +34,16 @@ BigInt.prototype.toJSON = function () {
 
 interface PrismaModelMethods {
   findMany: <T extends Prisma.ModelName>(
-    args: Prisma.Args<T, 'findMany'>
+    args: Prisma.Args<T, 'findMany'>,
   ) => ReturnType<PrismaDelegate<T>['findMany']>
   findFirst: <T extends Prisma.ModelName>(
-    args: Prisma.Args<T, 'findFirst'>
+    args: Prisma.Args<T, 'findFirst'>,
   ) => ReturnType<PrismaDelegate<T>['findFirst']>
   delete: <T extends Prisma.ModelName>(
-    args: Prisma.Args<T, 'delete'>
+    args: Prisma.Args<T, 'delete'>,
   ) => ReturnType<PrismaDelegate<T>['delete']>
   deleteMany: <T extends Prisma.ModelName>(
-    args: Prisma.Args<T, 'deleteMany'>
+    args: Prisma.Args<T, 'deleteMany'>,
   ) => ReturnType<PrismaDelegate<T>['deleteMany']>
 
   clean: (o: any) => any
@@ -51,26 +51,26 @@ interface PrismaModelMethods {
   cleanId: (o: any, name: string) => any
 
   create: <T extends Prisma.ModelName>(
-    o: Prisma.Args<T, 'create'>
+    o: Prisma.Args<T, 'create'>,
   ) => ReturnType<PrismaDelegate<T>['create']>
   $create: <T extends Prisma.ModelName>(
     o: Prisma.Result<T, null, 'create'>,
-    options?: Omit<Prisma.Args<T, 'create'>, 'data'>
+    options?: Omit<Prisma.Args<T, 'create'>, 'data'>,
   ) => ReturnType<PrismaDelegate<T>['create']>
   createMany: <T extends Prisma.ModelName>(
-    o: Prisma.Args<T, 'createMany'>
+    o: Prisma.Args<T, 'createMany'>,
   ) => ReturnType<PrismaDelegate<T>['createMany']>
   update: <T extends Prisma.ModelName>(
-    o: Prisma.Args<T, 'update'>
+    o: Prisma.Args<T, 'update'>,
   ) => ReturnType<PrismaDelegate<T>['update']>
   updateMany: <T extends Prisma.ModelName>(
-    o: Prisma.Args<T, 'updateMany'>
+    o: Prisma.Args<T, 'updateMany'>,
   ) => ReturnType<PrismaDelegate<T>['updateMany']>
   upsert: <T extends Prisma.ModelName>(
-    o: Prisma.Args<T, 'upsert'>
+    o: Prisma.Args<T, 'upsert'>,
   ) => ReturnType<PrismaDelegate<T>['upsert']>
   paginate: <T extends Prisma.ModelName>(
-    args: Prisma.Args<T, 'findMany'>
+    args: Prisma.Args<T, 'findMany'>,
   ) => PaginateResult<Prisma.Result<T, null, 'findMany'>>
 }
 
