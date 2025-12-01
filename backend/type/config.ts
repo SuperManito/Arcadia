@@ -30,22 +30,22 @@ export const DEFAULT_CONFIGS = {
     username: {
       key: 'username',
       value: 'useradmin',
-      name: '用户名',
-      description: '用户名',
+      name: '登录用户名',
+      description: '登录用户名',
     },
     password: {
       key: 'password',
       value: 'passwd',
-      name: '密码',
-      description: '密码',
+      name: '登录密码',
+      description: '登录密码',
     },
   },
   SYSTEM: {
     openApiToken: {
       key: 'openApiToken',
       value: null,
-      name: '开放API token',
-      description: '开放API token',
+      name: 'OpenApiToken',
+      description: 'OpenApiToken',
     },
     jwtSecret: {
       key: 'jwtSecret',
