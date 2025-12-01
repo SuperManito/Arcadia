@@ -27,7 +27,7 @@ async function startServer() {
     await configService.initializeUserConfigs()
 
     const apiAuthentication = expressjwt({
-      secret: () => sysConfig.jwtSecret || '',
+      secret: sysConfig.jwtSecret,
       algorithms: ['HS256'],
       credentialsRequired: true,
       getToken,
