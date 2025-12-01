@@ -2,16 +2,13 @@ import type { ErrorRequestHandler, Express, Request, RequestHandler, Response, R
 import express from 'express'
 import cors from 'cors'
 import compression from 'compression'
-import { expressjwt } from 'express-jwt'
 import type { VerifyCallback } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
 import bodyParser from 'body-parser'
 import { legacyCreateProxyMiddleware } from 'http-proxy-middleware'
 
-import { isNotEmpty, randomString } from '../utils'
 import { API_STATUS_CODE } from '../http'
-import { getJsonFile, saveNewConf } from '../file'
-import { APP_FILE_TYPE, APP_PUBLIC_DIR } from '../type'
+import { APP_PUBLIC_DIR } from '../type'
 import { OpenAPIAuthentication, OpenAPIExtra } from '../api/open'
 import { API as ApiFile, OpenAPI as OpenApiFile } from '../api/file'
 import { API as ApiEnv, OpenAPI as OpenApiEnv } from '../api/env'
@@ -20,32 +17,9 @@ import { API as ApiMessage, OpenAPI as OpenApiMessage } from '../api/message'
 import { API as ApiMain } from '../api/main'
 import { API as ApiUser } from '../api/user'
 import { API as ApiCommon } from '../api/common'
+import type { SysConfig } from '../type/config'
 
-// 初始化 JWT 密钥
-const authConfig = getJsonFile(APP_FILE_TYPE.AUTH)
-let jwtSecret = authConfig.jwtSecret
-if (!isNotEmpty(jwtSecret)) {
-  jwtSecret = randomString(32)
-  authConfig.jwtSecret = jwtSecret
-  saveNewConf(APP_FILE_TYPE.AUTH, authConfig)
-}
-function getToken(req: Request) {
-  if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
-    return req.headers.authorization.split(' ')[1] as string
-  }
-  return undefined
-}
-
-export const apiAuthentication = expressjwt({
-  secret: jwtSecret,
-  algorithms: ['HS256'],
-  credentialsRequired: true,
-  getToken,
-}).unless({
-  path: ['/', '/index.html', '/favicon.ico', '/_app.config.js', /^\/resource\/*/, /^\/assets\/*/, '/api/common/health', '/api/user/auth', '/api/captcha', /^\/api\/captcha\/.*/], // 指定路径不经过 Token 解析
-})
-
-export function registerApp() {
+export function registerApp(apiAuthentication: RequestHandler, sysConfig: SysConfig) {
   const app: Express = express()
 
   // gzip压缩
@@ -118,7 +92,7 @@ export function registerApp() {
         proxyReq: (proxyReq, req: Request, res: Response) => {
           const token = req.query && req.query.token ? (req.query.token as string) : null
           if (token) {
-            jwt.verify(token, jwtSecret, ((err, _decoded) => {
+            jwt.verify(token, sysConfig.jwtSecret, ((err, _decoded) => {
               if (err) {
                 // JWT 认证失败
                 const { message, code } = API_STATUS_CODE.API.AUTH_FAIL

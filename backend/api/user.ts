@@ -6,6 +6,8 @@ import jwt from 'jsonwebtoken'
 import { getJsonFile, saveNewConf } from '../file'
 import { APP_FILE_TYPE } from '../type'
 import { dateToString, randomString } from '../utils'
+import configService from '../service/config'
+import { DEFAULT_CONFIGS, ModuleEnum, UserConfig } from '../type/config'
 const api: Express = express()
 const errorCount = 1
 
@@ -15,11 +17,11 @@ const errorCount = 1
 api.post('/auth', async (request, response) => {
   const { username, password, captcha = '' } = request.body
   logger.info(`检测到用户登录行为，尝试登录用户名 ${username}`)
-  const con = getJsonFile(APP_FILE_TYPE.AUTH)
+  const authLog = getJsonFile(APP_FILE_TYPE.AUTH)
   const curTime = new Date()
-  let authErrorCount = con.authErrorCount || 0
-  if (authErrorCount >= 3 && con.authErrorTime) {
-    const authErrorTime = con.authErrorTime
+  let authErrorCount = authLog.authErrorCount || 0
+  if (authErrorCount >= 3 && authLog.authErrorTime) {
+    const authErrorTime = authLog.authErrorTime
     // 判断登录是否间隔一分钟
     const limitTime = 60 - (curTime.getTime() - authErrorTime) / 1000
     if (limitTime > 0) {
@@ -37,25 +39,29 @@ api.post('/auth', async (request, response) => {
     response.send(API_STATUS_CODE.failData('请输入验证码！', { showCaptcha: true }))
     return
   }
-  const authCaptcha = con.captcha
+  const authCaptcha = authLog.captcha
   if (showCaptcha && captcha.toLowerCase() !== authCaptcha) {
     response.send(API_STATUS_CODE.failData('验证码不正确！', { showCaptcha }))
     return
   }
+
   if (username && password) {
-    if (username === con.user && password === con.password) {
+    const userConfig = await configService.getConfigsByModuleAsClass(ModuleEnum.USER, UserConfig)
+
+    if (username === userConfig.username && password === userConfig.password) {
       const result = { token: '', newPwd: '' }
       if (username === 'useradmin' && password === 'passwd') {
         // 如果是默认密码
-        con.password = randomString(16)
-        logger.info(`系统检测到为首次登录，已随机设置一个新的密码：${con.password}`)
-        result.newPwd = con.password
+        userConfig.password = randomString(16)
+        logger.info(`系统检测到为首次登录，已随机设置一个新的密码：${userConfig.password}`)
+        result.newPwd = userConfig.password
+        await configService.updateConfig(DEFAULT_CONFIGS.USER.password.key, userConfig.password)
       }
-      con.authErrorCount = 0
+      authLog.authErrorCount = 0
       // 记录本次登录信息
       await ip2Address(getClientIP(request)).then(({ ip, address }) => {
-        con.lastLoginInfo = Object.assign(con.curLoginInfo || {}, {})
-        con.curLoginInfo = {
+        authLog.lastLoginInfo = Object.assign(authLog.curLoginInfo || {}, {})
+        authLog.curLoginInfo = {
           loginIp: ip,
           loginAddress: address,
           loginTime: dateToString(curTime),
@@ -63,18 +69,21 @@ api.post('/auth', async (request, response) => {
         if (ip !== '127.0.0.1' && ip !== 'localhost') {
           logger.info(`用户 ${username} 已登录，登录地址：${ip} ${address}`)
         }
-        saveNewConf(APP_FILE_TYPE.AUTH, con, false)
+        saveNewConf(APP_FILE_TYPE.AUTH, authLog, false)
       })
+      const jwtSecret = await configService.getConfigValueByKeyAndModule(DEFAULT_CONFIGS.SYSTEM.jwtSecret.key, ModuleEnum.SYSTEM)
       result.token = jwt.sign({
         username,
-      }, con.jwtSecret, { expiresIn: 3600 * 24 * 3 })
+      }, jwtSecret, { expiresIn: 3600 * 24 * 3 })
+      // 更新配置
+
       response.send(API_STATUS_CODE.okData(result))
     }
     else {
       authErrorCount++
-      con.authErrorCount = authErrorCount
-      con.authErrorTime = curTime.getTime()
-      saveNewConf(APP_FILE_TYPE.AUTH, con, false)
+      authLog.authErrorCount = authErrorCount
+      authLog.authErrorTime = curTime.getTime()
+      saveNewConf(APP_FILE_TYPE.AUTH, authLog, false)
       response.send(API_STATUS_CODE.fail('错误的用户名或密码，请重试'))
     }
   }
@@ -86,30 +95,26 @@ api.post('/auth', async (request, response) => {
 /**
  * 获取用户信息
  */
-api.get('/info', (_request, response) => {
-  const con = getJsonFile(APP_FILE_TYPE.AUTH)
-  response.send(API_STATUS_CODE.okData({ username: con.user, lastLoginInfo: con.lastLoginInfo || {} }))
+api.get('/info', async (_request, response) => {
+  const userConfig = await configService.getConfigsByModuleAsClass(ModuleEnum.USER, UserConfig)
+  const auth = getJsonFile(APP_FILE_TYPE.AUTH)
+  response.send(API_STATUS_CODE.okData({ username: userConfig.username, lastLoginInfo: auth.lastLoginInfo || {} }))
 })
 
 /**
  * change pwd
  */
-api.post('/changePwd', (request, response) => {
+api.post('/changePwd', async (request, response) => {
   const username = request.body.username
   const password = request.body.password
   if (username && password) {
-    const config = getJsonFile(APP_FILE_TYPE.AUTH)
-    // 如果不是默认用户和密码，重置令牌
-    // const originUser = config.user
-    // const originPwd = config.password
-    // if (originUser !== 'useradmin' && originPwd !== 'passwd') {
-    //   config.jwtSecret = random(32)
-    // }
-    // 重置开放接口令牌
-    config.openApiToken = randomString(32)
-    config.password = password
-    config.user = username
-    saveNewConf(APP_FILE_TYPE.AUTH, config, true)
+    const userConfig = await configService.getConfigsByModuleAsClass(ModuleEnum.USER, UserConfig)
+
+    userConfig.password = password
+    userConfig.username = username
+    await configService.saveConfigObject(userConfig, ModuleEnum.USER)
+    await configService.updateConfig(DEFAULT_CONFIGS.SYSTEM.openApiToken.key, randomString(32))
+
     logger.info('用户更改了认证信息，令牌已重置')
     response.send(API_STATUS_CODE.ok('修改成功！'))
   }

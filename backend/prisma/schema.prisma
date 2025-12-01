@@ -18,6 +18,18 @@ datasource db {
 //   @@index([type])
 // }
 
+model config {
+  id          Int         @id @default(autoincrement())
+  key         String      @unique
+  module      String      @default("system")
+  name        String
+  description String      @default("")
+  value       String      @default("")
+  create_time DateTime    @default(now())
+  update_time DateTime    @default(now()) @updatedAt
+  @@index([key])
+}
+
 model envs {
   id          Int         @id @default(autoincrement())
   group_id    Int

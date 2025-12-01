@@ -1,4 +1,4 @@
-import type { envs as Envs, envs_group as EnvsGroup, message as Message, Prisma, PrismaClient, task_core as TaskCore, tasks as Tasks } from '@prisma/client'
+import type { config as Config, envs as Envs, envs_group as EnvsGroup, message as Message, Prisma, PrismaClient, task_core as TaskCore, tasks as Tasks } from '@prisma/client'
 
 declare global {
   interface BigInt {
@@ -111,6 +111,7 @@ interface ExtendedMethods<T extends Prisma.ModelName, TData> {
   cleanId: (o: any, name: string) => any
 }
 
+export type ConfigModel = PrismaClient['config'] & ExtendedMethods<'config', Config>
 export type TasksModel = PrismaClient['tasks'] & ExtendedMethods<'tasks', Tasks>
 export type EnvsModel = PrismaClient['envs'] & ExtendedMethods<'envs', Envs>
 export type EnvsGroupModel = PrismaClient['envs_group'] & ExtendedMethods<'envs_group', EnvsGroup>

@@ -2,6 +2,7 @@ import { logger } from '../logger'
 import { Prisma, PrismaClient } from '@prisma/client'
 import { pagination } from 'prisma-extension-pagination'
 import type {
+  config as Config,
   envs as Envs,
   envs_group as EnvsGroup,
   message as Message,
@@ -9,6 +10,7 @@ import type {
   tasks as Tasks,
 } from '@prisma/client'
 import type {
+  ConfigModel,
   EnvsGroupModel,
   EnvsGroupResult,
   EnvsGroupSimpleResult,
@@ -308,6 +310,7 @@ const customPrisma = prisma
 customPrisma.$RAW = prisma
 
 export type {
+  Config,
   Envs,
   EnvsGroup,
   EnvsGroupResult,
@@ -320,6 +323,7 @@ export type {
 }
 
 export interface WhereInput {
+  config: Prisma.configWhereInput
   envs: Prisma.envsWhereInput
   envs_group: Prisma.envs_groupWhereInput
   message: Prisma.messageWhereInput
@@ -329,6 +333,7 @@ export interface WhereInput {
 
 export default customPrisma
 
+export const config = customPrisma.config as unknown as ConfigModel
 export const tasks = customPrisma.tasks as unknown as TasksModel
 export const envs = customPrisma.envs as unknown as EnvsModel
 export const envs_group = customPrisma.envs_group as unknown as EnvsGroupModel

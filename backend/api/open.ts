@@ -4,8 +4,9 @@ import { API_STATUS_CODE } from '../http'
 import { logger } from '../logger'
 import fs from 'node:fs'
 import { isNotEmpty } from '../utils'
-import { getJsonFile } from '../file'
-import { APP_FILE_PATH, APP_FILE_TYPE } from '../type'
+import configService from '../service/config'
+import { APP_FILE_PATH } from '../type'
+import { DEFAULT_CONFIGS, ModuleEnum } from '../type/config'
 const api: Express = express()
 
 // 加载用户自定义接口
@@ -33,7 +34,7 @@ if (fs.existsSync(extraServer)) {
 /**
  * 鉴权
  */
-function tokenChecker(req: Request) {
+async function tokenChecker(req: Request) {
   try {
     // 从 Header 和 URL 参数中提取 Token
     let token = req.headers['api-token']
@@ -43,7 +44,8 @@ function tokenChecker(req: Request) {
     if (!token) {
       return API_STATUS_CODE.OPEN_API.NO_AUTH
     }
-    const openApiToken = (getJsonFile(APP_FILE_TYPE.AUTH) || {})?.openApiToken
+    // 后面得引入缓存
+    const openApiToken = await configService.getConfigValueByKeyAndModule(DEFAULT_CONFIGS.SYSTEM.openApiToken.key, ModuleEnum.SYSTEM)
     if (!isNotEmpty(openApiToken)) {
       return API_STATUS_CODE.OPEN_API.AUTH_FAIL
     }
@@ -55,8 +57,8 @@ function tokenChecker(req: Request) {
   return API_STATUS_CODE.OPEN_API.AUTH_FAIL
 }
 
-const OpenAPIAuthentication: RequestHandler = (req, res, next) => {
-  const failResult = tokenChecker(req)
+const OpenAPIAuthentication: RequestHandler = async (req, res, next) => {
+  const failResult = await tokenChecker(req)
   if (failResult) {
     res.send(API_STATUS_CODE.fail(failResult.message, failResult.code))
   }

@@ -6,17 +6,14 @@ import { Server } from 'socket.io'
 import type { JwtPayload, VerifyCallback } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
 import { logger } from '../logger'
-import { getJsonFile } from '../file'
-import { APP_FILE_TYPE } from '../type'
+import type { SysConfig } from '../type/config'
 
 declare module 'http' {
   interface IncomingMessage {
-    user?: JwtPayload | string
+    username?: JwtPayload | string
   }
 }
 
-const authConfig = getJsonFile(APP_FILE_TYPE.AUTH)
-const jwtSecret = authConfig.jwtSecret
 function getToken(req: Request) {
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
     return req.headers.authorization.split(' ')[1] as string
@@ -27,7 +24,7 @@ function getToken(req: Request) {
   return undefined
 }
 
-export function initSocketServer(server: HttpServer, authMiddleware: RequestHandler) {
+export function initSocketServer(server: HttpServer, authMiddleware: RequestHandler, sysConfig: SysConfig) {
   const io = new Server(server, {
     cors: {
       origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
@@ -49,12 +46,12 @@ export function initSocketServer(server: HttpServer, authMiddleware: RequestHand
   io.use((socket, next) => {
     const token = getToken(socket.request as Request)
     if (token) {
-      jwt.verify(token, jwtSecret, ((err, decoded) => {
+      jwt.verify(token, sysConfig.jwtSecret, ((err, decoded) => {
         if (err) {
           next(new Error('unauthorized'))
         }
         else {
-          socket.request.user = decoded
+          socket.request.username = decoded
           next()
         }
       }) as VerifyCallback)

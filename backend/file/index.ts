@@ -1,5 +1,5 @@
 import type { Response } from 'express'
-import { dateToFileName, getDateStr, isNotEmpty, parseFileNameDate, randomString } from '../utils'
+import { dateToFileName, getDateStr, parseFileNameDate } from '../utils'
 import { API_STATUS_CODE } from '../http'
 import { logger } from '../logger'
 import nodePath from 'node:path'
@@ -301,15 +301,6 @@ export function initAppConfig() {
   if (!fs.existsSync(APP_DIR_PATH.RAW)) {
     fs.mkdirSync(APP_DIR_PATH.RAW)
   }
-  // 初始化认证密钥
-  const authFileJson = getJsonFile(APP_FILE_TYPE.AUTH)
-  if (!isNotEmpty(authFileJson.openApiToken)) {
-    authFileJson.openApiToken = randomString(32)
-  }
-  if (!isNotEmpty(authFileJson.jwtSecret)) {
-    authFileJson.jwtSecret = randomString(16)
-  }
-  saveNewConf(APP_FILE_TYPE.AUTH, authFileJson, true)
 }
 
 /**
