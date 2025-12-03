@@ -22,12 +22,12 @@
     "@prisma/client": "^6.19.0",
     "archiver": "^7.0.1",
     "axios": "^1.13.2",
-    "body-parser": "^2.2.0",
+    "body-parser": "^2.2.1",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
-    "cron": "^4.3.4",
+    "cron": "^4.3.5",
     "crypto-js": "^4.2.0",
-    "express": "^5.1.0",
+    "express": "^5.2.1",
     "express-jwt": "^8.5.1",
     "http-proxy-middleware": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
@@ -36,18 +36,18 @@
     "prisma-extension-pagination": "^0.7.5",
     "socket.io": "^4.8.1",
     "svg-captcha": "^1.4.0",
-    "tsx": "^4.20.6"
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^6.2.0",
+    "@antfu/eslint-config": "^6.3.0",
     "@types/archiver": "^7.0.0",
     "@types/compression": "^1.8.1",
-    "@types/express": "^5.0.5",
+    "@types/express": "^5.0.6",
     "@types/multer": "^2.0.0",
-    "@types/node": "^24.10.0",
+    "@types/node": "^24.10.1",
     "eslint": "^9.36.1",
     "prisma": "^6.19.0",
-    "rimraf": "^6.1.0",
+    "rimraf": "^6.1.2",
     "typescript": "~5.9.3"
   }
 }
