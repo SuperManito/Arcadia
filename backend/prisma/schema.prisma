@@ -20,13 +20,13 @@ datasource db {
 
 model config {
   id          Int      @id @default(autoincrement())
-  key         String   @unique
+  key         String
   module      String   @default("runtime")
   value       String   @default("")
   create_time DateTime @default(now())
   update_time DateTime @default(now()) @updatedAt
 
-  @@index([key])
+  @@unique([key, module])
   @@index([module])
 }
 

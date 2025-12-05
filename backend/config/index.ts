@@ -1,15 +1,13 @@
-import { PrismaClient } from '@prisma/client'
-import type { ConfigModule, ConfigRecord, RuntimeConfig, UserConfig } from '../type/config'
-import { DEFAULT_CONFIG_VALUES, ConfigModule as Module } from '../type/config'
+import { config as dbConfig } from '../db'
+import type { ConfigRecord, RuntimeConfig, UserConfig } from '../type/config'
+import { ConfigModule, DEFAULT_CONFIG_VALUES } from '../type/config'
 import { isNotEmpty, randomString } from '../utils'
-
-const prisma = new PrismaClient()
 
 /**
  * 根据 key 和 module 查询配置值
  */
 export async function getConfigValue(key: string, module: ConfigModule | string): Promise<string> {
-  const config = await prisma.config.findFirst({
+  const config = await dbConfig.findFirst({
     where: { key, module },
   })
   if (!config) {
@@ -21,9 +19,15 @@ export async function getConfigValue(key: string, module: ConfigModule | string)
 /**
  * 更新单个配置
  */
-export async function updateConfig(key: string, value: string): Promise<ConfigRecord> {
-  return await prisma.config.update({
-    where: { key },
+export async function updateConfig(key: string, value: string, module: ConfigModule | string = ConfigModule.USER): Promise<ConfigRecord> {
+  const config = await dbConfig.findFirst({
+    where: { key, module },
+  })
+  if (!config) {
+    throw new Error(`配置项不存在: key=${key}, module=${module}`)
+  }
+  return await dbConfig.update({
+    where: { id: config.id },
     data: { value: String(value) },
   })
 }
@@ -32,29 +36,38 @@ export async function updateConfig(key: string, value: string): Promise<ConfigRe
  * 创建或更新配置
  */
 async function upsertConfig(key: string, module: ConfigModule | string, value: string): Promise<ConfigRecord> {
-  return await prisma.config.upsert({
-    where: { key },
-    update: { value: String(value) },
-    create: { key, module, value: String(value) },
+  const existing = await dbConfig.findFirst({
+    where: { key, module },
   })
+  if (existing) {
+    return await dbConfig.update({
+      where: { id: existing.id },
+      data: { value: String(value) },
+    })
+  }
+  else {
+    return await dbConfig.create({
+      data: { key, module, value: String(value) },
+    })
+  }
 }
 
 /**
  * 获取运行时配置（类型化）
  */
 export async function getRuntimeConfig(): Promise<RuntimeConfig> {
-  const configs = await prisma.config.findMany({
-    where: { module: Module.RUNTIME },
+  const configs = await dbConfig.findMany({
+    where: { module: ConfigModule.RUNTIME },
   })
 
-  const configMap = configs.reduce((map, config) => {
-    map[config.key] = config.value
-    return map
+  const map = configs.reduce((acc, item) => {
+    acc[item.key] = item.value
+    return acc
   }, {} as Record<string, string>)
 
   return {
-    jwtSecret: configMap.jwtSecret || '',
-    openApiToken: configMap.openApiToken || '',
+    jwtSecret: map.jwtSecret || '',
+    openApiToken: map.openApiToken || '',
   }
 }
 
@@ -62,18 +75,18 @@ export async function getRuntimeConfig(): Promise<RuntimeConfig> {
  * 获取用户配置（类型化）
  */
 export async function getUserConfig(): Promise<UserConfig> {
-  const configs = await prisma.config.findMany({
-    where: { module: Module.USER },
+  const configs = await dbConfig.findMany({
+    where: { module: ConfigModule.USER },
   })
 
-  const configMap = configs.reduce((map, config) => {
-    map[config.key] = config.value
-    return map
+  const map = configs.reduce((acc, item) => {
+    acc[item.key] = item.value
+    return acc
   }, {} as Record<string, string>)
 
   return {
-    username: configMap.username || '',
-    password: configMap.password || '',
+    username: map.username || '',
+    password: map.password || '',
   }
 }
 
@@ -84,10 +97,10 @@ export async function saveUserConfig(config: Partial<UserConfig>): Promise<void>
   const updates: Promise<ConfigRecord>[] = []
 
   if (config.username !== undefined) {
-    updates.push(upsertConfig('username', Module.USER, config.username))
+    updates.push(upsertConfig('username', ConfigModule.USER, config.username))
   }
   if (config.password !== undefined) {
-    updates.push(upsertConfig('password', Module.USER, config.password))
+    updates.push(upsertConfig('password', ConfigModule.USER, config.password))
   }
 
   await Promise.all(updates)
@@ -95,7 +108,6 @@ export async function saveUserConfig(config: Partial<UserConfig>): Promise<void>
 
 /**
  * 初始化运行时配置
- *
  * @description 自动生成缺失的 JWT 密钥和 OpenAPI Token
  */
 export async function initRuntimeConfig(): Promise<RuntimeConfig> {
@@ -104,12 +116,12 @@ export async function initRuntimeConfig(): Promise<RuntimeConfig> {
 
   if (!isNotEmpty(config.jwtSecret)) {
     const jwtSecret = randomString(32)
-    updates.push(upsertConfig('jwtSecret', Module.RUNTIME, jwtSecret))
+    updates.push(upsertConfig('jwtSecret', ConfigModule.RUNTIME, jwtSecret))
     config.jwtSecret = jwtSecret
   }
   if (!isNotEmpty(config.openApiToken)) {
     const openApiToken = randomString(32)
-    updates.push(upsertConfig('openApiToken', Module.RUNTIME, openApiToken))
+    updates.push(upsertConfig('openApiToken', ConfigModule.RUNTIME, openApiToken))
     config.openApiToken = openApiToken
   }
 
@@ -128,13 +140,13 @@ export async function initUserConfig(): Promise<UserConfig> {
   const updates: Promise<ConfigRecord>[] = []
 
   if (!isNotEmpty(config.username)) {
-    const username = DEFAULT_CONFIG_VALUES[Module.USER].username
-    updates.push(upsertConfig('username', Module.USER, username))
+    const username = DEFAULT_CONFIG_VALUES[ConfigModule.USER].username
+    updates.push(upsertConfig('username', ConfigModule.USER, username))
     config.username = username
   }
   if (!isNotEmpty(config.password)) {
-    const password = DEFAULT_CONFIG_VALUES[Module.USER].password
-    updates.push(upsertConfig('password', Module.USER, password))
+    const password = DEFAULT_CONFIG_VALUES[ConfigModule.USER].password
+    updates.push(upsertConfig('password', ConfigModule.USER, password))
     config.password = password
   }
 

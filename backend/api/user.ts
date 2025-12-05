@@ -36,12 +36,12 @@ api.post('/auth', async (request, response) => {
 
   const showCaptcha = authErrorCount >= errorCount
   if (captcha === '' && showCaptcha) {
-    response.send(API_STATUS_CODE.failData('请输入验证码！', { showCaptcha: true }))
+    response.send(API_STATUS_CODE.failData('请输入验证码！', { showCaptcha, limitTime: 0 }))
     return
   }
   const authCaptcha = authLog.captcha
   if (showCaptcha && captcha.toLowerCase() !== authCaptcha) {
-    response.send(API_STATUS_CODE.failData('验证码不正确！', { showCaptcha }))
+    response.send(API_STATUS_CODE.failData('验证码不正确！', { showCaptcha, limitTime: 0 }))
     return
   }
 
@@ -84,11 +84,11 @@ api.post('/auth', async (request, response) => {
       authLog.authErrorCount = authErrorCount
       authLog.authErrorTime = curTime.getTime()
       saveNewConf(APP_FILE_TYPE.AUTH, authLog, false)
-      response.send(API_STATUS_CODE.fail('错误的用户名或密码，请重试'))
+      response.send(API_STATUS_CODE.failData('错误的用户名或密码，请重试', { showCaptcha, limitTime: 0 }))
     }
   }
   else {
-    response.send(API_STATUS_CODE.fail('请输入用户名密码！'))
+    response.send(API_STATUS_CODE.failData('请输入用户名密码！', { showCaptcha, limitTime: 0 }))
   }
 })
 
@@ -109,7 +109,7 @@ api.post('/changePwd', async (request, response) => {
   const password = request.body.password
   if (username && password) {
     await saveUserConfig({ username, password })
-    await updateConfig('openApiToken', randomString(32))
+    await updateConfig('openApiToken', randomString(32), ConfigModule.RUNTIME)
 
     logger.info('用户更改了认证信息，令牌已重置')
     response.send(API_STATUS_CODE.ok('修改成功！'))
