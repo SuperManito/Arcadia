@@ -5,7 +5,7 @@ dist/
 
 log/
 logs/
-config/
+/config/
 tgbot/
 src/
 sessions

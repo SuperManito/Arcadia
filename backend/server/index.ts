@@ -4,6 +4,7 @@ import cors from 'cors'
 import compression from 'compression'
 import type { VerifyCallback } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
+import { expressjwt } from 'express-jwt'
 import bodyParser from 'body-parser'
 import { legacyCreateProxyMiddleware } from 'http-proxy-middleware'
 
@@ -17,9 +18,26 @@ import { API as ApiMessage, OpenAPI as OpenApiMessage } from '../api/message'
 import { API as ApiMain } from '../api/main'
 import { API as ApiUser } from '../api/user'
 import { API as ApiCommon } from '../api/common'
-import type { SysConfig } from '../type/config'
 
-export function registerApp(apiAuthentication: RequestHandler, sysConfig: SysConfig) {
+function getToken(req: Request) {
+  if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+    return req.headers.authorization.split(' ')[1] as string
+  }
+  return undefined
+}
+
+export function createApiAuthentication(jwtSecret: string): RequestHandler {
+  return expressjwt({
+    secret: jwtSecret,
+    algorithms: ['HS256'],
+    credentialsRequired: true,
+    getToken,
+  }).unless({
+    path: ['/', '/index.html', '/favicon.ico', '/_app.config.js', /^\/resource\/*/, /^\/assets\/*/, '/api/common/health', '/api/user/auth', '/api/captcha', /^\/api\/captcha\/.*/], // 指定路径不经过 Token 解析
+  })
+}
+
+export function registerApp(apiAuthentication: RequestHandler, jwtSecret: string) {
   const app: Express = express()
 
   // gzip压缩
@@ -92,7 +110,7 @@ export function registerApp(apiAuthentication: RequestHandler, sysConfig: SysCon
         proxyReq: (proxyReq, req: Request, res: Response) => {
           const token = req.query && req.query.token ? (req.query.token as string) : null
           if (token) {
-            jwt.verify(token, sysConfig.jwtSecret, ((err, _decoded) => {
+            jwt.verify(token, jwtSecret, ((err, _decoded) => {
               if (err) {
                 // JWT 认证失败
                 const { message, code } = API_STATUS_CODE.API.AUTH_FAIL

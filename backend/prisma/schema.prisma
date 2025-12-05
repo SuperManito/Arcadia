@@ -19,15 +19,15 @@ datasource db {
 // }
 
 model config {
-  id          Int         @id @default(autoincrement())
-  key         String      @unique
-  module      String      @default("system")
-  name        String
-  description String      @default("")
-  value       String      @default("")
-  create_time DateTime    @default(now())
-  update_time DateTime    @default(now()) @updatedAt
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  module      String   @default("runtime")
+  value       String   @default("")
+  create_time DateTime @default(now())
+  update_time DateTime @default(now()) @updatedAt
+
   @@index([key])
+  @@index([module])
 }
 
 model envs {

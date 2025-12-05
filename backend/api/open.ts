@@ -4,9 +4,9 @@ import { API_STATUS_CODE } from '../http'
 import { logger } from '../logger'
 import fs from 'node:fs'
 import { isNotEmpty } from '../utils'
-import configService from '../service/config'
+import { getConfigValue } from '../config'
 import { APP_FILE_PATH } from '../type'
-import { DEFAULT_CONFIGS, ModuleEnum } from '../type/config'
+import { ConfigModule } from '../type/config'
 const api: Express = express()
 
 // 加载用户自定义接口
@@ -45,7 +45,7 @@ async function tokenChecker(req: Request) {
       return API_STATUS_CODE.OPEN_API.NO_AUTH
     }
     // 后面得引入缓存
-    const openApiToken = await configService.getConfigValueByKeyAndModule(DEFAULT_CONFIGS.SYSTEM.openApiToken.key, ModuleEnum.SYSTEM)
+    const openApiToken = await getConfigValue('openApiToken', ConfigModule.RUNTIME)
     if (!isNotEmpty(openApiToken)) {
       return API_STATUS_CODE.OPEN_API.AUTH_FAIL
     }

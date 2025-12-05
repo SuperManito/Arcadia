@@ -276,21 +276,14 @@ export function getNeatContent(content: string): string {
 }
 
 /**
- * 检查主配置文件是否存在（初始化）
+ * 初始化文件系统
  */
-export function checkConfigFile() {
+export function initAppFileSystem() {
+  // 检查配置文件是否存在
   if (!fs.existsSync(APP_FILE_PATH.CONFIG)) {
-    console.error('服务启动失败，config.sh 文件不存在！')
+    console.error(`服务启动失败，${APP_FILE_NAME.CONFIG} 文件不存在！`)
     process.exit(1)
   }
-}
-
-/**
- * 初始化应用配置
- */
-export function initAppConfig() {
-  // 检查配置文件是否存在
-  checkConfigFile()
   // 创建目录
   if (!fs.existsSync(APP_DIR_PATH.SCRIPTS)) {
     fs.mkdirSync(APP_DIR_PATH.SCRIPTS)

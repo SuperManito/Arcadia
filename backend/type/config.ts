@@ -1,127 +1,60 @@
-export interface IConfig {
-  [key: string]: any
+import type { config as ConfigModel } from '@prisma/client'
+
+/**
+ * 配置模块枚举
+ */
+export enum ConfigModule {
+  RUNTIME = 'runtime', // 运行时配置
+  USER = 'user', // 单用户认证
+  APP = 'app', // 应用自定义配置
 }
 
 /**
- * 定义配置模块枚举
+ * 配置项类型
  */
-export enum ModuleEnum {
-  SYSTEM = 'SYSTEM',
-  USER = 'USER',
-  APP = 'APP',
-}
+export type ConfigRecord = ConfigModel
 
 /**
- * 配置类
+ * 配置更新项
  */
-export interface ConfigItem {
+export interface ConfigUpdateItem {
   key: string
-  module: ModuleEnum
-  value: any
-  name: string
-  description: string
+  value: string
+  module?: string
 }
 
 /**
- * 定义配置项目
+ * 运行时配置
  */
-export const DEFAULT_CONFIGS = {
-  USER: {
-    username: {
-      key: 'username',
-      value: 'useradmin',
-      name: '登录用户名',
-      description: '登录用户名',
-    },
-    password: {
-      key: 'password',
-      value: 'passwd',
-      name: '登录密码',
-      description: '登录密码',
-    },
+export interface RuntimeConfig {
+  jwtSecret: string
+  openApiToken: string
+}
+
+/**
+ * 用户配置
+ */
+export interface UserConfig {
+  username: string
+  password: string
+}
+
+/**
+ * 配置映射类型
+ */
+export type ConfigMap = Record<string, string>
+
+/**
+ * 默认配置值
+ */
+export const DEFAULT_CONFIG_VALUES: Record<ConfigModule, Record<string, string>> = {
+  [ConfigModule.RUNTIME]: {
+    jwtSecret: '',
+    openApiToken: '',
   },
-  SYSTEM: {
-    openApiToken: {
-      key: 'openApiToken',
-      value: null,
-      name: 'OpenApiToken',
-      description: 'OpenApiToken',
-    },
-    jwtSecret: {
-      key: 'jwtSecret',
-      value: null,
-      name: 'JWT授权密钥',
-      description: 'JWT授权密钥',
-    },
+  [ConfigModule.USER]: {
+    username: 'useradmin',
+    password: 'passwd',
   },
+  [ConfigModule.APP]: {},
 }
-
-export class ConfigBase implements IConfig {
-  /**
-   * 从配置项数组创建配置对象
-   * @param configs 配置项数组
-   * @returns 配置对象
-   */
-  public static fromConfigs<T extends ConfigBase>(this: new () => T, configs: ConfigItem[]): T {
-    const instance = new this()
-    configs.forEach(config => {
-      (instance as any)[config.key] = config.value
-    })
-    return instance
-  }
-
-  /**
-   * 将配置对象转换为配置项数组
-   * @returns 配置项数组
-   */
-  public toConfigItems(module: ModuleEnum): ConfigItem[] {
-    const items: ConfigItem[] = []
-    Object.keys(this).forEach(prop => {
-      const defaultConfig = DEFAULT_CONFIGS[module][prop]
-      items.push({
-        key: defaultConfig.key,
-        module,
-        name: defaultConfig.name,
-        description: defaultConfig.description,
-        value: this[prop],
-      })
-    })
-    return items
-  }
-
-  [key: string]: any
-}
-
-export class UserConfig extends ConfigBase implements IConfig {
-  /**
-   * 用户名
-   */
-  public username: string = ''
-
-  /**
-   * 密码
-   */
-  public password: string = ''
-}
-
-export class SysConfig extends ConfigBase implements IConfig {
-  /**
-   * 开放接口令牌
-   */
-  public openApiToken: string = ''
-
-  /**
-   * JWT 密钥
-   */
-  public jwtSecret: string = ''
-}
-
-// 测试方法
-// export function test() {
-//   const username = { key: 'username', data: 'admin' }
-//   const password = { key: 'password', data: 'password' }
-//   const config = UserConfig.fromConfigs([username, password])
-//   console.log(config)
-// }
-//
-// test()

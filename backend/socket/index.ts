@@ -6,7 +6,6 @@ import { Server } from 'socket.io'
 import type { JwtPayload, VerifyCallback } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
 import { logger } from '../logger'
-import type { SysConfig } from '../type/config'
 
 declare module 'http' {
   interface IncomingMessage {
@@ -24,7 +23,7 @@ function getToken(req: Request) {
   return undefined
 }
 
-export function initSocketServer(server: HttpServer, authMiddleware: RequestHandler, sysConfig: SysConfig) {
+export function initSocketServer(server: HttpServer, authMiddleware: RequestHandler, jwtSecret: string) {
   const io = new Server(server, {
     cors: {
       origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
@@ -46,7 +45,7 @@ export function initSocketServer(server: HttpServer, authMiddleware: RequestHand
   io.use((socket, next) => {
     const token = getToken(socket.request as Request)
     if (token) {
-      jwt.verify(token, sysConfig.jwtSecret, ((err, decoded) => {
+      jwt.verify(token, jwtSecret, ((err, decoded) => {
         if (err) {
           next(new Error('unauthorized'))
         }

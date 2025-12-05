@@ -6,8 +6,8 @@ import jwt from 'jsonwebtoken'
 import { getJsonFile, saveNewConf } from '../file'
 import { APP_FILE_TYPE } from '../type'
 import { dateToString, randomString } from '../utils'
-import configService from '../service/config'
-import { DEFAULT_CONFIGS, ModuleEnum, UserConfig } from '../type/config'
+import { getConfigValue, getUserConfig, saveUserConfig, updateConfig } from '../config'
+import { ConfigModule } from '../type/config'
 const api: Express = express()
 const errorCount = 1
 
@@ -46,16 +46,16 @@ api.post('/auth', async (request, response) => {
   }
 
   if (username && password) {
-    const userConfig = await configService.getConfigsByModuleAsClass(ModuleEnum.USER, UserConfig)
+    const userConfig = await getUserConfig()
 
     if (username === userConfig.username && password === userConfig.password) {
       const result = { token: '', newPwd: '' }
       if (username === 'useradmin' && password === 'passwd') {
         // 如果是默认密码
-        userConfig.password = randomString(16)
-        logger.info(`系统检测到为首次登录，已随机设置一个新的密码：${userConfig.password}`)
-        result.newPwd = userConfig.password
-        await configService.updateConfig(DEFAULT_CONFIGS.USER.password.key, userConfig.password)
+        const newPassword = randomString(16)
+        logger.info(`系统检测到为首次登录，已随机设置一个新的密码：${newPassword}`)
+        result.newPwd = newPassword
+        await updateConfig('password', newPassword)
       }
       authLog.authErrorCount = 0
       // 记录本次登录信息
@@ -71,7 +71,7 @@ api.post('/auth', async (request, response) => {
         }
         saveNewConf(APP_FILE_TYPE.AUTH, authLog, false)
       })
-      const jwtSecret = await configService.getConfigValueByKeyAndModule(DEFAULT_CONFIGS.SYSTEM.jwtSecret.key, ModuleEnum.SYSTEM)
+      const jwtSecret = await getConfigValue('jwtSecret', ConfigModule.RUNTIME)
       result.token = jwt.sign({
         username,
       }, jwtSecret, { expiresIn: 3600 * 24 * 3 })
@@ -96,7 +96,7 @@ api.post('/auth', async (request, response) => {
  * 获取用户信息
  */
 api.get('/info', async (_request, response) => {
-  const userConfig = await configService.getConfigsByModuleAsClass(ModuleEnum.USER, UserConfig)
+  const userConfig = await getUserConfig()
   const auth = getJsonFile(APP_FILE_TYPE.AUTH)
   response.send(API_STATUS_CODE.okData({ username: userConfig.username, lastLoginInfo: auth.lastLoginInfo || {} }))
 })
@@ -108,12 +108,8 @@ api.post('/changePwd', async (request, response) => {
   const username = request.body.username
   const password = request.body.password
   if (username && password) {
-    const userConfig = await configService.getConfigsByModuleAsClass(ModuleEnum.USER, UserConfig)
-
-    userConfig.password = password
-    userConfig.username = username
-    await configService.saveConfigObject(userConfig, ModuleEnum.USER)
-    await configService.updateConfig(DEFAULT_CONFIGS.SYSTEM.openApiToken.key, randomString(32))
+    await saveUserConfig({ username, password })
+    await updateConfig('openApiToken', randomString(32))
 
     logger.info('用户更改了认证信息，令牌已重置')
     response.send(API_STATUS_CODE.ok('修改成功！'))
