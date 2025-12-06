@@ -16,7 +16,7 @@ import { API as ApiEnv, OpenAPI as OpenApiEnv } from '../api/env'
 import { API as ApiCron, InnerAPI as InnerApiCron, OpenAPI as OpenApiCron } from '../api/cron'
 import { API as ApiMessage, OpenAPI as OpenApiMessage } from '../api/message'
 import { API as ApiMain } from '../api/main'
-import { API as ApiUser } from '../api/user'
+import { API as ApiUser, InnerAPI as InnerApiUser } from '../api/user'
 import { API as ApiCommon } from '../api/common'
 
 function getToken(req: Request) {
@@ -226,6 +226,7 @@ export function registerApp(apiAuthentication: RequestHandler, jwtSecret: string
   }
   const innerRouter: Router = express.Router()
   innerRouter.use('/cron', InnerApiCron)
+  innerRouter.use('/user', InnerApiUser)
   app.use('/api/inner', innerIpWhitelist, innerRouter)
 
   /**

@@ -7,8 +7,9 @@ import { getJsonFile, saveNewConf } from '../file'
 import { APP_FILE_TYPE } from '../type'
 import { dateToString, randomString } from '../utils'
 import { getConfigValue, getUserConfig, saveUserConfig, updateConfig } from '../config'
-import { ConfigModule } from '../type/config'
+import { ConfigModule, DEFAULT_CONFIG_VALUES } from '../type/config'
 const api: Express = express()
+const apiInner: Express = express()
 const errorCount = 1
 
 /**
@@ -126,6 +127,52 @@ api.get('/logout', (_request, response) => {
   response.send(API_STATUS_CODE.ok())
 })
 
+/**
+ * 获取用户信息
+ */
+apiInner.get('/info', async (_request, response) => {
+  try {
+    const userConfig = await getUserConfig()
+    const openApiToken = await getConfigValue('openApiToken', ConfigModule.RUNTIME)
+    const auth = getJsonFile(APP_FILE_TYPE.AUTH)
+
+    response.send(API_STATUS_CODE.okData({
+      username: userConfig.username,
+      password: userConfig.password,
+      openApiToken,
+      lastLoginInfo: auth.lastLoginInfo || {},
+      curLoginInfo: auth.curLoginInfo || {},
+    }))
+  }
+  catch (e: any) {
+    logger.error('获取用户信息失败', e)
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+/**
+ * 重置密码
+ */
+apiInner.post('/resetPwd', async (_request, response) => {
+  try {
+    const data = {
+      username: DEFAULT_CONFIG_VALUES[ConfigModule.USER].username,
+      password: DEFAULT_CONFIG_VALUES[ConfigModule.USER].password,
+    }
+    // 重置为默认用户名和密码
+    await saveUserConfig(data)
+    // 重置 OpenAPI Token
+    await updateConfig('openApiToken', randomString(32), ConfigModule.RUNTIME)
+    logger.info('用户名和密码已重置为默认值')
+    response.send(API_STATUS_CODE.okData(data))
+  }
+  catch (e: any) {
+    logger.error('重置密码失败', e)
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
 export {
   api as API,
+  apiInner as InnerAPI,
 }

@@ -44,14 +44,14 @@ function update_cron() {
         local send_mark_del="$RootDir/.send_mark_del.log"
         local array_num_add=0
         local array_num_del=0
-        local request="$1"
+        local res="$1"
 
-        if [[ "$(echo "${request}" | jq -r '.code')" != "1" ]]; then
-            echo -e "\n$ERROR 更新定时任务失败，接口响应错误 => $(echo "${request}" | jq -r '.message')"
+        if [[ "$(echo "${res}" | jq -r '.code')" != "1" ]]; then
+            echo -e "\n$ERROR 更新定时任务失败，接口响应错误 => $(echo "${res}" | jq -r '.message')\n"
             return
         fi
 
-        local result="$(echo "${request}" | jq -rc '.result')"
+        local result="$(echo "${res}" | jq -rc '.result')"
         local result_length="$(echo "${result}" | jq 'length')"
         for ((i = 0; i < ${result_length}; i++)); do
             success="$(echo "${result}" | jq -r ".[${i}].success")" # 处理结果：true 成功 false 失败
