@@ -5,7 +5,7 @@ import { logger } from '../logger'
 import jwt from 'jsonwebtoken'
 import { dateToString, randomString } from '../utils'
 import { clearAuthError, getConfigValue, getUserConfig, saveUserConfig, updateAuthError, updateConfig, updateLoginInfo } from '../config'
-import { ConfigModule, DEFAULT_CONFIG_VALUES } from '../type/config'
+import { ConfigModule, DEFAULT_CONFIG_VALUES, RuntimeConfigKey, UserConfigKey } from '../type/config'
 const api: Express = express()
 const apiInner: Express = express()
 const errorCount = 1
@@ -54,7 +54,7 @@ api.post('/auth', async (request, response) => {
         const newPassword = randomString(16)
         logger.info(`系统检测到为首次登录，已随机设置一个新的密码：${newPassword}`)
         result.newPwd = newPassword
-        await updateConfig('password', newPassword)
+        await updateConfig(UserConfigKey.PASSWORD, newPassword)
       }
 
       // 清空错误次数
@@ -72,7 +72,7 @@ api.post('/auth', async (request, response) => {
         }
       })
 
-      const jwtSecret = await getConfigValue('jwtSecret', ConfigModule.RUNTIME)
+      const jwtSecret = await getConfigValue(RuntimeConfigKey.JWT_SECRET, ConfigModule.RUNTIME)
       result.token = jwt.sign({
         username,
       }, jwtSecret, { expiresIn: 3600 * 24 * 3 })
@@ -105,7 +105,7 @@ api.post('/changePwd', async (request, response) => {
   const password = request.body.password
   if (username && password) {
     await saveUserConfig({ username, password })
-    await updateConfig('openApiToken', randomString(32), ConfigModule.RUNTIME)
+    await updateConfig(RuntimeConfigKey.OPEN_API_TOKEN, randomString(32), ConfigModule.RUNTIME)
 
     logger.info('用户更改了认证信息，令牌已重置')
     response.send(API_STATUS_CODE.ok('修改成功！'))
@@ -128,7 +128,7 @@ api.get('/logout', (_request, response) => {
 apiInner.get('/info', async (_request, response) => {
   try {
     const userConfig = await getUserConfig()
-    const openApiToken = await getConfigValue('openApiToken', ConfigModule.RUNTIME)
+    const openApiToken = await getConfigValue(RuntimeConfigKey.OPEN_API_TOKEN, ConfigModule.RUNTIME)
 
     response.send(API_STATUS_CODE.okData({
       username: userConfig.username,
@@ -150,13 +150,13 @@ apiInner.get('/info', async (_request, response) => {
 apiInner.post('/resetPwd', async (_request, response) => {
   try {
     const data = {
-      username: DEFAULT_CONFIG_VALUES[ConfigModule.USER].username,
-      password: DEFAULT_CONFIG_VALUES[ConfigModule.USER].password,
+      username: DEFAULT_CONFIG_VALUES[ConfigModule.USER][UserConfigKey.USERNAME],
+      password: DEFAULT_CONFIG_VALUES[ConfigModule.USER][UserConfigKey.PASSWORD],
     }
     // 重置为默认用户名和密码
     await saveUserConfig(data)
     // 重置 OpenAPI Token
-    await updateConfig('openApiToken', randomString(32), ConfigModule.RUNTIME)
+    await updateConfig(RuntimeConfigKey.OPEN_API_TOKEN, randomString(32), ConfigModule.RUNTIME)
     logger.info('用户名和密码已重置为默认值')
     response.send(API_STATUS_CODE.okData(data))
   }

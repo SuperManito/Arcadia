@@ -6,7 +6,27 @@ import type { config as ConfigModel } from '@prisma/client'
 export enum ConfigModule {
   RUNTIME = 'runtime', // 运行时配置
   USER = 'user', // 单用户认证
-  APP = 'app', // 应用自定义配置
+}
+
+/**
+ * 运行时配置键枚举
+ */
+export enum RuntimeConfigKey {
+  JWT_SECRET = 'jwtSecret',
+  OPEN_API_TOKEN = 'openApiToken',
+}
+
+/**
+ * 用户配置键枚举
+ */
+export enum UserConfigKey {
+  USERNAME = 'username',
+  PASSWORD = 'password',
+  AUTH_ERROR_COUNT = 'authErrorCount',
+  AUTH_ERROR_TIME = 'authErrorTime',
+  CAPTCHA = 'captcha',
+  LAST_LOGIN_INFO = 'lastLoginInfo',
+  CUR_LOGIN_INFO = 'curLoginInfo',
 }
 
 /**
@@ -63,17 +83,16 @@ export type ConfigMap = Record<string, string>
  */
 export const DEFAULT_CONFIG_VALUES: Record<ConfigModule, Record<string, string>> = {
   [ConfigModule.RUNTIME]: {
-    jwtSecret: '',
-    openApiToken: '',
+    [RuntimeConfigKey.JWT_SECRET]: '',
+    [RuntimeConfigKey.OPEN_API_TOKEN]: '',
   },
   [ConfigModule.USER]: {
-    username: 'useradmin',
-    password: 'passwd',
-    authErrorCount: '0',
-    authErrorTime: '0',
-    captcha: '',
-    lastLoginInfo: '{}',
-    curLoginInfo: '{}',
+    [UserConfigKey.USERNAME]: 'useradmin',
+    [UserConfigKey.PASSWORD]: 'passwd',
+    [UserConfigKey.AUTH_ERROR_COUNT]: '0',
+    [UserConfigKey.AUTH_ERROR_TIME]: '0',
+    [UserConfigKey.CAPTCHA]: '',
+    [UserConfigKey.LAST_LOGIN_INFO]: '{}',
+    [UserConfigKey.CUR_LOGIN_INFO]: '{}',
   },
-  [ConfigModule.APP]: {},
 }

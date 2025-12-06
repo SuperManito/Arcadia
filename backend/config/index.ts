@@ -1,6 +1,6 @@
 import { config as dbConfig } from '../db'
 import type { ConfigRecord, LoginInfo, RuntimeConfig, UserConfig } from '../type/config'
-import { ConfigModule, DEFAULT_CONFIG_VALUES } from '../type/config'
+import { ConfigModule, DEFAULT_CONFIG_VALUES, RuntimeConfigKey, UserConfigKey } from '../type/config'
 import { isNotEmpty, randomString } from '../utils'
 
 /**
@@ -66,8 +66,8 @@ export async function getRuntimeConfig(): Promise<RuntimeConfig> {
   }, {} as Record<string, string>)
 
   return {
-    jwtSecret: map.jwtSecret || '',
-    openApiToken: map.openApiToken || '',
+    jwtSecret: map[RuntimeConfigKey.JWT_SECRET] || '',
+    openApiToken: map[RuntimeConfigKey.OPEN_API_TOKEN] || '',
   }
 }
 
@@ -85,13 +85,13 @@ export async function getUserConfig(): Promise<UserConfig> {
   }, {} as Record<string, string>)
 
   return {
-    username: map.username || '',
-    password: map.password || '',
-    authErrorCount: map.authErrorCount ? Number(map.authErrorCount) : 0,
-    authErrorTime: map.authErrorTime ? Number(map.authErrorTime) : 0,
-    captcha: map.captcha || '',
-    lastLoginInfo: map.lastLoginInfo ? JSON.parse(map.lastLoginInfo) : undefined,
-    curLoginInfo: map.curLoginInfo ? JSON.parse(map.curLoginInfo) : undefined,
+    username: map[UserConfigKey.USERNAME] || '',
+    password: map[UserConfigKey.PASSWORD] || '',
+    authErrorCount: map[UserConfigKey.AUTH_ERROR_COUNT] ? Number(map[UserConfigKey.AUTH_ERROR_COUNT]) : 0,
+    authErrorTime: map[UserConfigKey.AUTH_ERROR_TIME] ? Number(map[UserConfigKey.AUTH_ERROR_TIME]) : 0,
+    captcha: map[UserConfigKey.CAPTCHA] || '',
+    lastLoginInfo: map[UserConfigKey.LAST_LOGIN_INFO] ? JSON.parse(map[UserConfigKey.LAST_LOGIN_INFO]) : undefined,
+    curLoginInfo: map[UserConfigKey.CUR_LOGIN_INFO] ? JSON.parse(map[UserConfigKey.CUR_LOGIN_INFO]) : undefined,
   }
 }
 
@@ -100,14 +100,12 @@ export async function getUserConfig(): Promise<UserConfig> {
  */
 export async function saveUserConfig(config: Partial<UserConfig>): Promise<void> {
   const updates: Promise<ConfigRecord>[] = []
-
   if (config.username !== undefined) {
-    updates.push(upsertConfig('username', ConfigModule.USER, config.username))
+    updates.push(upsertConfig(UserConfigKey.USERNAME, ConfigModule.USER, config.username))
   }
   if (config.password !== undefined) {
-    updates.push(upsertConfig('password', ConfigModule.USER, config.password))
+    updates.push(upsertConfig(UserConfigKey.PASSWORD, ConfigModule.USER, config.password))
   }
-
   await Promise.all(updates)
 }
 
@@ -116,8 +114,8 @@ export async function saveUserConfig(config: Partial<UserConfig>): Promise<void>
  */
 export async function updateAuthError(count: number, time: number): Promise<void> {
   await Promise.all([
-    upsertConfig('authErrorCount', ConfigModule.USER, String(count)),
-    upsertConfig('authErrorTime', ConfigModule.USER, String(time)),
+    upsertConfig(UserConfigKey.AUTH_ERROR_COUNT, ConfigModule.USER, String(count)),
+    upsertConfig(UserConfigKey.AUTH_ERROR_TIME, ConfigModule.USER, String(time)),
   ])
 }
 
@@ -132,7 +130,7 @@ export async function clearAuthError(): Promise<void> {
  * 保存验证码
  */
 export async function saveCaptcha(captcha: string): Promise<void> {
-  await upsertConfig('captcha', ConfigModule.USER, captcha)
+  await upsertConfig(UserConfigKey.CAPTCHA, ConfigModule.USER, captcha)
 }
 
 /**
@@ -144,61 +142,80 @@ export async function updateLoginInfo(loginInfo: LoginInfo): Promise<void> {
 
   // 将当前登录信息存为上次登录信息
   if (userConfig.curLoginInfo) {
-    updates.push(upsertConfig('lastLoginInfo', ConfigModule.USER, JSON.stringify(userConfig.curLoginInfo)))
+    updates.push(upsertConfig(UserConfigKey.LAST_LOGIN_INFO, ConfigModule.USER, JSON.stringify(userConfig.curLoginInfo)))
   }
   // 保存新的当前登录信息
-  updates.push(upsertConfig('curLoginInfo', ConfigModule.USER, JSON.stringify(loginInfo)))
+  updates.push(upsertConfig(UserConfigKey.CUR_LOGIN_INFO, ConfigModule.USER, JSON.stringify(loginInfo)))
 
   await Promise.all(updates)
 }
 
 /**
- * 初始化运行时配置
- * @description 自动生成缺失的 JWT 密钥和 OpenAPI Token
+ * 初始化配置系统
+ *
+ * @description 清理无效的 module 和 key，初始化所有必需配置，返回完整配置对象
  */
-export async function initRuntimeConfig(): Promise<RuntimeConfig> {
-  const config = await getRuntimeConfig()
-  const updates: Promise<ConfigRecord>[] = []
+export async function initConfig(): Promise<{ runtime: RuntimeConfig, user: UserConfig }> {
+  // 清理无效配置
+  const allConfigs = await dbConfig.findMany()
+  const validModules = Object.values(ConfigModule)
+  const validKeys: Record<string, string[]> = {
+    [ConfigModule.RUNTIME]: Object.values(RuntimeConfigKey),
+    [ConfigModule.USER]: Object.values(UserConfigKey),
+  }
+  const idsToDelete: number[] = []
+  for (const config of allConfigs) {
+    if (!validModules.includes(config.module as ConfigModule)) {
+      idsToDelete.push(config.id)
+      continue
+    }
+    const moduleValidKeys = validKeys[config.module] || []
+    if (!moduleValidKeys.includes(config.key)) {
+      idsToDelete.push(config.id)
+    }
+  }
+  if (idsToDelete.length > 0) {
+    await dbConfig.deleteMany({
+      where: { id: { in: idsToDelete } },
+    })
+  }
 
-  if (!isNotEmpty(config.jwtSecret)) {
+  // 初始化运行时配置
+  const runtimeConfig = await getRuntimeConfig()
+  const runtimeUpdates: Promise<ConfigRecord>[] = []
+  if (!isNotEmpty(runtimeConfig.jwtSecret)) {
     const jwtSecret = randomString(32)
-    updates.push(upsertConfig('jwtSecret', ConfigModule.RUNTIME, jwtSecret))
-    config.jwtSecret = jwtSecret
+    runtimeUpdates.push(upsertConfig(RuntimeConfigKey.JWT_SECRET, ConfigModule.RUNTIME, jwtSecret))
+    runtimeConfig.jwtSecret = jwtSecret
   }
-  if (!isNotEmpty(config.openApiToken)) {
+  if (!isNotEmpty(runtimeConfig.openApiToken)) {
     const openApiToken = randomString(32)
-    updates.push(upsertConfig('openApiToken', ConfigModule.RUNTIME, openApiToken))
-    config.openApiToken = openApiToken
+    runtimeUpdates.push(upsertConfig(RuntimeConfigKey.OPEN_API_TOKEN, ConfigModule.RUNTIME, openApiToken))
+    runtimeConfig.openApiToken = openApiToken
+  }
+  if (runtimeUpdates.length > 0) {
+    await Promise.all(runtimeUpdates)
   }
 
-  if (updates.length > 0) {
-    await Promise.all(updates)
+  // 初始化用户配置
+  const userConfig = await getUserConfig()
+  const userUpdates: Promise<ConfigRecord>[] = []
+  if (!isNotEmpty(userConfig.username)) {
+    const username = DEFAULT_CONFIG_VALUES[ConfigModule.USER][UserConfigKey.USERNAME]
+    userUpdates.push(upsertConfig(UserConfigKey.USERNAME, ConfigModule.USER, username))
+    userConfig.username = username
+  }
+  if (!isNotEmpty(userConfig.password)) {
+    const password = DEFAULT_CONFIG_VALUES[ConfigModule.USER][UserConfigKey.PASSWORD]
+    userUpdates.push(upsertConfig(UserConfigKey.PASSWORD, ConfigModule.USER, password))
+    userConfig.password = password
+  }
+  if (userUpdates.length > 0) {
+    await Promise.all(userUpdates)
   }
 
-  return config
-}
-
-/**
- * 初始化用户配置
- */
-export async function initUserConfig(): Promise<UserConfig> {
-  const config = await getUserConfig()
-  const updates: Promise<ConfigRecord>[] = []
-
-  if (!isNotEmpty(config.username)) {
-    const username = DEFAULT_CONFIG_VALUES[ConfigModule.USER].username
-    updates.push(upsertConfig('username', ConfigModule.USER, username))
-    config.username = username
+  return {
+    runtime: runtimeConfig,
+    user: userConfig,
   }
-  if (!isNotEmpty(config.password)) {
-    const password = DEFAULT_CONFIG_VALUES[ConfigModule.USER].password
-    updates.push(upsertConfig('password', ConfigModule.USER, password))
-    config.password = password
-  }
-
-  if (updates.length > 0) {
-    await Promise.all(updates)
-  }
-
-  return config
 }

@@ -3,7 +3,7 @@ import { initAppFileSystem } from './file'
 import { initCronJob } from './cron'
 import { initSocketServer, socketCommon } from './socket'
 import { createApiAuthentication, registerApp } from './server'
-import { initRuntimeConfig, initUserConfig } from './config'
+import { initConfig } from './config'
 
 async function startServer() {
   // 初始化文件系统
@@ -13,8 +13,7 @@ async function startServer() {
   initCronJob()
 
   // 初始化配置
-  const runtimeConfig = await initRuntimeConfig()
-  await initUserConfig()
+  const { runtime: runtimeConfig } = await initConfig()
 
   // 创建 API 认证中间件
   const apiAuthentication = createApiAuthentication(runtimeConfig.jwtSecret)

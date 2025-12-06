@@ -6,7 +6,7 @@ import fs from 'node:fs'
 import { isNotEmpty } from '../utils'
 import { getConfigValue } from '../config'
 import { APP_FILE_PATH } from '../type'
-import { ConfigModule } from '../type/config'
+import { ConfigModule, RuntimeConfigKey } from '../type/config'
 const api: Express = express()
 
 // 加载用户自定义接口
@@ -45,7 +45,7 @@ async function tokenChecker(req: Request) {
       return API_STATUS_CODE.OPEN_API.NO_AUTH
     }
     // 后面得引入缓存
-    const openApiToken = await getConfigValue('openApiToken', ConfigModule.RUNTIME)
+    const openApiToken = await getConfigValue(RuntimeConfigKey.OPEN_API_TOKEN, ConfigModule.RUNTIME)
     if (!isNotEmpty(openApiToken)) {
       return API_STATUS_CODE.OPEN_API.AUTH_FAIL
     }
