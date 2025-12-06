@@ -7,7 +7,6 @@
   },
   "scripts": {
     "server": "echo 'y' | prisma db push --accept-data-loss > ./prisma_push.log && tsx index",
-    "inner_server": "tsx inner",
     "build": "tsc",
     "tsc": "tsc --noEmit",
     "lint": "eslint .",

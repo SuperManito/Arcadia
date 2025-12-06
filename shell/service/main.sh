@@ -41,24 +41,21 @@ function service_manage() {
         ## 禁用 Core Dump
         ulimit -c 0 >/dev/null 2>&1
         ## 删除日志
-        rm -rf /root/.pm2/logs/arcadia_server-*.log /root/.pm2/logs/arcadia_inner-*.log /root/.pm2/logs/arcadia_ttyd-*.log
+        rm -rf /root/.pm2/logs/arcadia_server-*.log /root/.pm2/logs/arcadia_ttyd-*.log
         if [[ ${ExitStatusSERVER} -eq 0 ]]; then
             local ServiceStatus=$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')
             case ${ServiceStatus} in
             online)
                 pm2 restart arcadia_server
-                pm2 restart arcadia_inner >/dev/null 2>&1
                 echo -e "\n$COMPLETE 后台管理面板已重启\n"
                 ;;
             stopped)
                 pm2 start arcadia_server
-                pm2 start arcadia_inner >/dev/null 2>&1
                 echo -e "\n$COMPLETE 后台管理面板已重新启动\n"
                 ;;
             errored)
                 echo -e "\n$WARN 检测到服务状态异常，开始尝试修复...\n"
                 pm2 delete arcadia_server
-                pm2 delete arcadia_inner >/dev/null 2>&1
                 install_dependencies
                 cd $SrcDir
                 pm2 start ecosystem.config.js && sleep 3

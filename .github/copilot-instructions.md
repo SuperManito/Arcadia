@@ -42,8 +42,7 @@ backend/           # 后端服务
 ├── socket/        # WebSocket 服务
 ├── type/          # TypeScript 类型定义
 ├── utils/         # 工具函数
-├── index.ts       # 主入口（外部服务）
-└── inner.ts       # 内部服务入口
+└── index.ts       # 主入口（外部服务）
 
 shell/             # CLI 脚本
 ├── main.sh        # 主入口脚本
