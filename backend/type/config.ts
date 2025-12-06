@@ -27,6 +27,8 @@ export enum UserConfigKey {
   CAPTCHA = 'captcha',
   LAST_LOGIN_INFO = 'lastLoginInfo',
   CUR_LOGIN_INFO = 'curLoginInfo',
+  TOTP_SECRET = 'totpSecret',
+  TOTP_ENABLED = 'totpEnabled',
 }
 
 /**
@@ -61,16 +63,18 @@ export interface LoginInfo {
 }
 
 /**
- * 用户配置（扩展：包含登录信息和验证码）
+ * 用户配置（扩展：包含登录信息、验证码和 TOTP）
  */
 export interface UserConfig {
   username: string
   password: string
-  authErrorCount?: number // 认证错误次数
-  authErrorTime?: number // 认证错误时间戳
-  captcha?: string // 当前验证码
+  authErrorCount: number // 认证错误次数
+  authErrorTime: number // 认证错误时间戳
+  captcha: string // 当前验证码
   lastLoginInfo?: LoginInfo // 上次登录信息
   curLoginInfo?: LoginInfo // 当前登录信息
+  totpSecret: string // TOTP 密钥（Base32 编码）
+  totpEnabled: boolean // 是否启用双重认证
 }
 
 /**
@@ -94,5 +98,7 @@ export const DEFAULT_CONFIG_VALUES: Record<ConfigModule, Record<string, string>>
     [UserConfigKey.CAPTCHA]: '',
     [UserConfigKey.LAST_LOGIN_INFO]: '{}',
     [UserConfigKey.CUR_LOGIN_INFO]: '{}',
+    [UserConfigKey.TOTP_SECRET]: '',
+    [UserConfigKey.TOTP_ENABLED]: 'false',
   },
 }

@@ -11,7 +11,6 @@ import { APP_ROOT_DIR } from '../type'
 import { getUserConfig, saveCaptcha } from '../config'
 const api: Express = express()
 const taskRunning = {}
-const errorCount = 1
 
 /**
  * 登录是否显示验证码
@@ -19,7 +18,7 @@ const errorCount = 1
 api.get('/captcha/flag', async (_request, response) => {
   const userConfig = await getUserConfig()
   const authErrorCount = userConfig.authErrorCount || 0
-  response.send(API_STATUS_CODE.okData({ showCaptcha: authErrorCount >= errorCount }))
+  response.send(API_STATUS_CODE.okData({ showCaptcha: authErrorCount >= 1 }))
 })
 
 /**

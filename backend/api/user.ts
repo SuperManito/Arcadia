@@ -1,17 +1,137 @@
-import type { Express } from 'express'
+import type { Express, Request } from 'express'
 import express from 'express'
 import { API_STATUS_CODE, getClientIP, ip2Address } from '../http'
 import { logger } from '../logger'
 import jwt from 'jsonwebtoken'
 import { dateToString, randomString } from '../utils'
-import { clearAuthError, getConfigValue, getUserConfig, saveUserConfig, updateAuthError, updateConfig, updateLoginInfo } from '../config'
+import {
+  clearAuthError,
+  getConfigValue,
+  getUserConfig,
+  saveUserConfig,
+  updateAuthError,
+  updateConfig,
+  updateLoginInfo,
+} from '../config'
+import {
+  disableTOTP,
+  enableTOTP,
+  generateTOTPSecret,
+  getTOTPSecret,
+  isTOTPEnabled,
+  saveTOTPSecret,
+  verifyTOTPCode,
+} from '../config/totp'
 import { ConfigModule, DEFAULT_CONFIG_VALUES, RuntimeConfigKey, UserConfigKey } from '../type/config'
 const api: Express = express()
 const apiInner: Express = express()
-const errorCount = 1
 
 /**
- * auth
+ * 检查登录限制（是否锁定登录）
+ */
+async function checkAuthLimit(authErrorCount: number, authErrorTime: number | undefined, curTime: Date) {
+  if (authErrorCount >= 3 && authErrorTime) {
+    const limitTime = 60 - (curTime.getTime() - authErrorTime) / 1000
+    if (limitTime > 0) {
+      return {
+        limited: true,
+        showCaptcha: true,
+        limitTime: Math.floor(limitTime),
+      }
+    }
+  }
+  return { limited: false, showCaptcha: authErrorCount >= 1, limitTime: 0 }
+}
+
+/**
+ * 验证图形验证码
+ */
+function validateCaptcha(captcha: string, showCaptcha: boolean, authCaptcha: string | undefined) {
+  if (captcha === '' && showCaptcha) {
+    return { valid: false, message: '请输入验证码！' }
+  }
+  if (showCaptcha && captcha.toLowerCase() !== (authCaptcha || '')) {
+    return { valid: false, message: '验证码不正确！' }
+  }
+  return { valid: true, message: '' }
+}
+
+/**
+ * 验证用户名和密码
+ */
+async function validateCredentials(username: string, password: string, userConfig: any, authErrorCount: number, curTime: Date) {
+  if (!username || !password) {
+    return { valid: false, message: '请输入用户名密码！' }
+  }
+  if (username !== userConfig.username || password !== userConfig.password) {
+    // 记录错误次数和时间
+    await updateAuthError(authErrorCount + 1, curTime.getTime())
+    return { valid: false, message: '错误的用户名或密码，请重试' }
+  }
+  return { valid: true, message: '' }
+}
+
+/**
+ * 检查 TOTP 动态码格式（API 层数据校验）
+ * @param totpCode 必须是字符串类型，避免前导 0 丢失（如 "012345"）
+ */
+function checkTOTPCodeFormat(totpCode: string):
+  | { valid: true, code: number }
+  | { valid: false, message: string } {
+  if (!totpCode || typeof totpCode !== 'string') {
+    return { valid: false, message: '请输入动态验证码' }
+  }
+  try {
+    const codeStr = totpCode.trim()
+    if (!/^\d{6}$/.test(codeStr)) {
+      return { valid: false, message: '验证码必须为 6 位数字' }
+    }
+    return { valid: true, code: Number(codeStr) }
+  }
+  catch {
+    return { valid: false, message: '验证码格式错误' }
+  }
+}
+
+/**
+ * 完成登录：生成 JWT Token 并记录登录信息
+ */
+async function completeLogin(username: string, password: string, request: Request) {
+  const result = { token: '', newPwd: '' }
+  const curTime = new Date()
+
+  // 检查是否为默认密码，自动生成新密码
+  if (username === 'useradmin' && password === 'passwd') {
+    const newPassword = randomString(16)
+    logger.info(`系统检测到为首次登录，已随机设置一个新的密码：${newPassword}`)
+    result.newPwd = newPassword
+    await updateConfig(UserConfigKey.PASSWORD, newPassword)
+  }
+
+  // 清空错误次数
+  await clearAuthError()
+
+  // 记录本次登录信息
+  await ip2Address(getClientIP(request)).then(async ({ ip, address }) => {
+    await updateLoginInfo({
+      loginIp: ip,
+      loginAddress: address,
+      loginTime: dateToString(curTime),
+    })
+    if (ip !== '127.0.0.1' && ip !== 'localhost') {
+      logger.info(`用户 ${username} 已登录，登录地址：${ip} ${address}`)
+    }
+  })
+
+  // 生成 JWT Token
+  const jwtSecret = await getConfigValue(RuntimeConfigKey.JWT_SECRET, ConfigModule.RUNTIME)
+  result.token = jwt.sign({ username }, jwtSecret, { expiresIn: 3600 * 24 * 3 })
+
+  return result
+}
+
+/**
+ * 登录接口
  */
 api.post('/auth', async (request, response) => {
   const { username, password, captcha = '' } = request.body
@@ -20,73 +140,116 @@ api.post('/auth', async (request, response) => {
   const curTime = new Date()
   const authErrorCount = userConfig.authErrorCount || 0
 
-  if (authErrorCount >= 3 && userConfig.authErrorTime) {
-    const authErrorTime = userConfig.authErrorTime
-    // 判断登录是否间隔一分钟
-    const limitTime = 60 - (curTime.getTime() - authErrorTime) / 1000
-    if (limitTime > 0) {
-      // 累计错误登录次数超过3次锁定1分钟
-      response.send(API_STATUS_CODE.failData('认证失败次数过多，请稍后尝试！', {
-        showCaptcha: true,
-        limitTime: Math.floor(limitTime),
-      }))
-      return
-    }
+  // 检查登录限制
+  const limitCheck = await checkAuthLimit(authErrorCount, userConfig.authErrorTime, curTime)
+  if (limitCheck.limited) {
+    return response.send(API_STATUS_CODE.failData('认证失败次数过多，请稍后尝试！', {
+      showCaptcha: limitCheck.showCaptcha,
+      limitTime: limitCheck.limitTime,
+    }))
   }
 
-  const showCaptcha = authErrorCount >= errorCount
-  if (captcha === '' && showCaptcha) {
-    response.send(API_STATUS_CODE.failData('请输入验证码！', { showCaptcha, limitTime: 0 }))
-    return
+  // 验证图形验证码
+  const captchaCheck = validateCaptcha(captcha, limitCheck.showCaptcha, userConfig.captcha)
+  if (!captchaCheck.valid) {
+    return response.send(API_STATUS_CODE.failData(captchaCheck.message, {
+      showCaptcha: limitCheck.showCaptcha,
+      limitTime: 0,
+    }))
   }
 
-  const authCaptcha = userConfig.captcha
-  if (showCaptcha && captcha.toLowerCase() !== authCaptcha) {
-    response.send(API_STATUS_CODE.failData('验证码不正确！', { showCaptcha, limitTime: 0 }))
-    return
+  // 验证用户名和密码
+  const credentialsCheck = await validateCredentials(username, password, userConfig, authErrorCount, curTime)
+  if (!credentialsCheck.valid) {
+    return response.send(API_STATUS_CODE.failData(credentialsCheck.message, {
+      showCaptcha: limitCheck.showCaptcha,
+      limitTime: 0,
+    }))
   }
 
-  if (username && password) {
-    if (username === userConfig.username && password === userConfig.password) {
-      const result = { token: '', newPwd: '' }
-      if (username === 'useradmin' && password === 'passwd') {
-        // 如果是默认密码
-        const newPassword = randomString(16)
-        logger.info(`系统检测到为首次登录，已随机设置一个新的密码：${newPassword}`)
-        result.newPwd = newPassword
-        await updateConfig(UserConfigKey.PASSWORD, newPassword)
-      }
-
-      // 清空错误次数
-      await clearAuthError()
-
-      // 记录本次登录信息
-      await ip2Address(getClientIP(request)).then(async ({ ip, address }) => {
-        await updateLoginInfo({
-          loginIp: ip,
-          loginAddress: address,
-          loginTime: dateToString(curTime),
-        })
-        if (ip !== '127.0.0.1' && ip !== 'localhost') {
-          logger.info(`用户 ${username} 已登录，登录地址：${ip} ${address}`)
-        }
-      })
-
-      const jwtSecret = await getConfigValue(RuntimeConfigKey.JWT_SECRET, ConfigModule.RUNTIME)
-      result.token = jwt.sign({
-        username,
-      }, jwtSecret, { expiresIn: 3600 * 24 * 3 })
-
-      response.send(API_STATUS_CODE.okData(result))
-    }
-    else {
-      await updateAuthError(authErrorCount + 1, curTime.getTime())
-      response.send(API_STATUS_CODE.failData('错误的用户名或密码，请重试', { showCaptcha, limitTime: 0 }))
-    }
+  // 检查是否启用了 2FA
+  const totpEnabled = await isTOTPEnabled()
+  if (totpEnabled) {
+    return response.send(API_STATUS_CODE.okData({
+      requireTotp: true,
+      message: '请输入双重认证验证码',
+    }))
   }
-  else {
-    response.send(API_STATUS_CODE.failData('请输入用户名密码！', { showCaptcha, limitTime: 0 }))
+
+  // 未启用 2FA，直接完成登录
+  const result = await completeLogin(username, password, request)
+  response.send(API_STATUS_CODE.okData(result))
+})
+
+/**
+ * TOTP 双重认证接口
+ */
+api.post('/auth/2fa', async (request, response) => {
+  const { username, password, code, captcha = '' } = request.body
+  logger.info(`检测到 TOTP 验证请求，用户名 ${username}`)
+  const userConfig = await getUserConfig()
+  const curTime = new Date()
+  const authErrorCount = userConfig.authErrorCount || 0
+
+  // 检查登录限制
+  const limitCheck = await checkAuthLimit(authErrorCount, userConfig.authErrorTime, curTime)
+  if (limitCheck.limited) {
+    return response.send(API_STATUS_CODE.failData('认证失败次数过多，请稍后尝试！', {
+      showCaptcha: limitCheck.showCaptcha,
+      limitTime: limitCheck.limitTime,
+    }))
   }
+
+  // 验证图形验证码
+  const captchaCheck = validateCaptcha(captcha, limitCheck.showCaptcha, userConfig.captcha)
+  if (!captchaCheck.valid) {
+    return response.send(API_STATUS_CODE.failData(captchaCheck.message, {
+      showCaptcha: limitCheck.showCaptcha,
+      limitTime: 0,
+    }))
+  }
+
+  // 验证用户名和密码（防止跳过第一步）
+  const credentialsCheck = await validateCredentials(username, password, userConfig, authErrorCount, curTime)
+  if (!credentialsCheck.valid) {
+    return response.send(API_STATUS_CODE.failData(credentialsCheck.message, {
+      showCaptcha: limitCheck.showCaptcha,
+      limitTime: 0,
+    }))
+  }
+
+  // 检查是否启用了 2FA
+  const totpEnabled = await isTOTPEnabled()
+  if (!totpEnabled) {
+    return response.send(API_STATUS_CODE.fail('未启用双重认证'))
+  }
+
+  // 检查 TOTP 动态码格式
+  const codeCheck = checkTOTPCodeFormat(code)
+  if (!codeCheck.valid) {
+    return response.send(API_STATUS_CODE.failData(codeCheck.message, {
+      showCaptcha: limitCheck.showCaptcha,
+      limitTime: 0,
+    }))
+  }
+
+  // 获取用户 TOTP 密钥并验证
+  const totpSecret = await getTOTPSecret()
+  if (!totpSecret) {
+    return response.send(API_STATUS_CODE.fail('TOTP 密钥未设置'))
+  }
+  const isValid = verifyTOTPCode(codeCheck.code, totpSecret)
+  if (!isValid) {
+    await updateAuthError(authErrorCount + 1, curTime.getTime())
+    return response.send(API_STATUS_CODE.failData('动态验证码错误', {
+      showCaptcha: limitCheck.showCaptcha,
+      limitTime: 0,
+    }))
+  }
+
+  // 所有验证通过，完成登录
+  const result = await completeLogin(username, password, request)
+  response.send(API_STATUS_CODE.okData(result))
 })
 
 /**
@@ -163,6 +326,105 @@ apiInner.post('/resetPwd', async (_request, response) => {
   catch (e: any) {
     logger.error('重置密码失败', e)
     response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+/**
+ * 生成 TOTP 密钥和 otpauth URI（不保存，由前端缓存）
+ */
+api.post('/2fa/setup', async (request, response) => {
+  try {
+    const userConfig = await getUserConfig()
+    const { issuer = 'Arcadia' } = request.body // 支持自定义 issuer
+    const { totpSecret, otpauthUrl } = await generateTOTPSecret(userConfig.username, issuer)
+
+    // 不保存到数据库，由前端缓存，在 enable 接口中一起提交
+    response.send(API_STATUS_CODE.okData({
+      secret: totpSecret,
+      otpauthUrl,
+      issuer,
+      message: '请使用 Google Authenticator 或 Microsoft Authenticator 扫描二维码',
+    }))
+  }
+  catch (e: any) {
+    logger.error('生成 TOTP 失败', e)
+    response.send(API_STATUS_CODE.fail(e.message || '生成失败'))
+  }
+})
+
+/**
+ * 验证并启用 TOTP（接收前端缓存的 totpSecret）
+ */
+api.post('/2fa/enable', async (request, response) => {
+  try {
+    const { secret, code } = request.body
+
+    // 校验必填参数
+    if (!secret) {
+      return response.send(API_STATUS_CODE.fail('请先生成 TOTP 密钥'))
+    }
+    if (!code) {
+      return response.send(API_STATUS_CODE.fail('请输入动态验证码'))
+    }
+
+    const codeCheck = checkTOTPCodeFormat(code)
+    if (!codeCheck.valid) {
+      return response.send(API_STATUS_CODE.fail(codeCheck.message))
+    }
+
+    // 验证 TOTP 动态码（使用前端传来的 secret）
+    const isValid = verifyTOTPCode(codeCheck.code, secret)
+    if (!isValid) {
+      return response.send(API_STATUS_CODE.fail('验证码错误'))
+    }
+
+    // 验证通过，保存密钥并启用 2FA
+    await saveTOTPSecret(secret)
+    await enableTOTP()
+    logger.info('用户已启用双重认证')
+
+    response.send(API_STATUS_CODE.ok('双重认证已启用'))
+  }
+  catch (e: any) {
+    logger.error('启用 TOTP 失败', e)
+    response.send(API_STATUS_CODE.fail(e.message || '启用失败'))
+  }
+})
+
+/**
+ * 关闭 TOTP（依赖 JWT 认证，无需密码）
+ */
+api.post('/2fa/disable', async (_request, response) => {
+  try {
+    // 检查是否已启用
+    const totpEnabled = await isTOTPEnabled()
+    if (!totpEnabled) {
+      return response.send(API_STATUS_CODE.fail('双重认证未启用'))
+    }
+
+    // 关闭 2FA
+    await disableTOTP()
+    logger.info('用户已关闭双重认证')
+
+    response.send(API_STATUS_CODE.ok('双重认证已关闭'))
+  }
+  catch (e: any) {
+    logger.error('关闭 TOTP 失败', e)
+    response.send(API_STATUS_CODE.fail(e.message || '关闭失败'))
+  }
+})
+
+/**
+ * 获取双重认证状态
+ */
+api.get('/2fa/status', async (_request, response) => {
+  try {
+    const enabled = await isTOTPEnabled()
+    response.send(API_STATUS_CODE.okData(enabled))
+  }
+  catch (e: any) {
+    logger.error('获取 TOTP 状态失败', e)
+    response.send(API_STATUS_CODE.fail(e.message || '获取失败'))
   }
 })
 

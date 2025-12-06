@@ -32,6 +32,7 @@
     "jsonwebtoken": "^9.0.2",
     "log4js": "^6.9.1",
     "multer": "^2.0.2",
+    "otpauth": "^9.4.1",
     "prisma-extension-pagination": "^0.7.5",
     "socket.io": "^4.8.1",
     "svg-captcha": "^1.4.0",

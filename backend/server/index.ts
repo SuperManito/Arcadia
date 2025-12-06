@@ -42,6 +42,7 @@ export function createApiAuthentication(jwtSecret: string): RequestHandler {
       /^\/assets\/.*/,
       '/api/common/health',
       '/api/user/auth',
+      '/api/user/auth/totp',
       '/api/captcha',
       /^\/api\/captcha\/.*/,
       /^\/api\/inner\/.*/,

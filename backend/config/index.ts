@@ -92,6 +92,8 @@ export async function getUserConfig(): Promise<UserConfig> {
     captcha: map[UserConfigKey.CAPTCHA] || '',
     lastLoginInfo: map[UserConfigKey.LAST_LOGIN_INFO] ? JSON.parse(map[UserConfigKey.LAST_LOGIN_INFO]) : undefined,
     curLoginInfo: map[UserConfigKey.CUR_LOGIN_INFO] ? JSON.parse(map[UserConfigKey.CUR_LOGIN_INFO]) : undefined,
+    totpSecret: map[UserConfigKey.TOTP_SECRET] || '',
+    totpEnabled: map[UserConfigKey.TOTP_ENABLED] === 'true',
   }
 }
 
