@@ -6,8 +6,9 @@ import { randomString } from '../utils'
 import svgCaptcha from 'svg-captcha'
 import { exec } from 'node:child_process'
 import { socketCommon } from '../socket'
-import { getJsonFile, getNeatContent, saveNewConf } from '../file'
-import { APP_FILE_TYPE, APP_ROOT_DIR } from '../type'
+import { getNeatContent } from '../file'
+import { APP_ROOT_DIR } from '../type'
+import { getUserConfig, saveCaptcha } from '../config'
 const api: Express = express()
 const taskRunning = {}
 const errorCount = 1
@@ -15,16 +16,16 @@ const errorCount = 1
 /**
  * 登录是否显示验证码
  */
-api.get('/captcha/flag', (_request, response) => {
-  const con = getJsonFile(APP_FILE_TYPE.AUTH)
-  const authErrorCount = con.authErrorCount || 0
+api.get('/captcha/flag', async (_request, response) => {
+  const userConfig = await getUserConfig()
+  const authErrorCount = userConfig.authErrorCount || 0
   response.send(API_STATUS_CODE.okData({ showCaptcha: authErrorCount >= errorCount }))
 })
 
 /**
  * 验证码
  */
-api.get('/captcha', (req, res) => {
+api.get('/captcha', async (req, res) => {
   const { w = 120, h = 50, background = '#ffffff' } = req.query
   const options = {
     noise: 2,
@@ -36,9 +37,8 @@ api.get('/captcha', (req, res) => {
     background: background as string,
   }
   const captcha = svgCaptcha.create(options)
-  const con = getJsonFile(APP_FILE_TYPE.AUTH)
-  con.captcha = captcha.text.toLowerCase() // 小写
-  saveNewConf(APP_FILE_TYPE.AUTH, con, false)
+  const captchaText = captcha.text.toLowerCase() // 小写
+  await saveCaptcha(captchaText)
   res.type('svg')
   res.status(200).send(captcha.data)
 })

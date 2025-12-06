@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-04-18
+## Modified: 2025-12-06
 
 ## 目录
 RootDir=${ARCADIA_DIR}
@@ -25,8 +25,6 @@ FileConfSample=$SampleDir/config.sh
 FileEnvUser=$ConfigDir/env.sh
 FileSyncConfUser=$ConfigDir/sync.yml
 FileSyncConfSample=$SampleDir/sync.yml
-FileAuthUser=$ConfigDir/auth.json
-FileAuthSample=$SampleDir/auth.json
 FileUpdateExtra=$ConfigDir/update_extra.sh
 FileInitExtra=$ConfigDir/init_extra.sh
 FileTaskBeforeExtra=$ConfigDir/task_before_extra.sh

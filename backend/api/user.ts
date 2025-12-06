@@ -3,10 +3,8 @@ import express from 'express'
 import { API_STATUS_CODE, getClientIP, ip2Address } from '../http'
 import { logger } from '../logger'
 import jwt from 'jsonwebtoken'
-import { getJsonFile, saveNewConf } from '../file'
-import { APP_FILE_TYPE } from '../type'
 import { dateToString, randomString } from '../utils'
-import { getConfigValue, getUserConfig, saveUserConfig, updateConfig } from '../config'
+import { clearAuthError, getConfigValue, getUserConfig, saveUserConfig, updateAuthError, updateConfig, updateLoginInfo } from '../config'
 import { ConfigModule, DEFAULT_CONFIG_VALUES } from '../type/config'
 const api: Express = express()
 const apiInner: Express = express()
@@ -18,11 +16,12 @@ const errorCount = 1
 api.post('/auth', async (request, response) => {
   const { username, password, captcha = '' } = request.body
   logger.info(`检测到用户登录行为，尝试登录用户名 ${username}`)
-  const authLog = getJsonFile(APP_FILE_TYPE.AUTH)
+  const userConfig = await getUserConfig()
   const curTime = new Date()
-  let authErrorCount = authLog.authErrorCount || 0
-  if (authErrorCount >= 3 && authLog.authErrorTime) {
-    const authErrorTime = authLog.authErrorTime
+  const authErrorCount = userConfig.authErrorCount || 0
+
+  if (authErrorCount >= 3 && userConfig.authErrorTime) {
+    const authErrorTime = userConfig.authErrorTime
     // 判断登录是否间隔一分钟
     const limitTime = 60 - (curTime.getTime() - authErrorTime) / 1000
     if (limitTime > 0) {
@@ -40,15 +39,14 @@ api.post('/auth', async (request, response) => {
     response.send(API_STATUS_CODE.failData('请输入验证码！', { showCaptcha, limitTime: 0 }))
     return
   }
-  const authCaptcha = authLog.captcha
+
+  const authCaptcha = userConfig.captcha
   if (showCaptcha && captcha.toLowerCase() !== authCaptcha) {
     response.send(API_STATUS_CODE.failData('验证码不正确！', { showCaptcha, limitTime: 0 }))
     return
   }
 
   if (username && password) {
-    const userConfig = await getUserConfig()
-
     if (username === userConfig.username && password === userConfig.password) {
       const result = { token: '', newPwd: '' }
       if (username === 'useradmin' && password === 'passwd') {
@@ -58,33 +56,31 @@ api.post('/auth', async (request, response) => {
         result.newPwd = newPassword
         await updateConfig('password', newPassword)
       }
-      authLog.authErrorCount = 0
+
+      // 清空错误次数
+      await clearAuthError()
+
       // 记录本次登录信息
-      await ip2Address(getClientIP(request)).then(({ ip, address }) => {
-        authLog.lastLoginInfo = Object.assign(authLog.curLoginInfo || {}, {})
-        authLog.curLoginInfo = {
+      await ip2Address(getClientIP(request)).then(async ({ ip, address }) => {
+        await updateLoginInfo({
           loginIp: ip,
           loginAddress: address,
           loginTime: dateToString(curTime),
-        }
+        })
         if (ip !== '127.0.0.1' && ip !== 'localhost') {
           logger.info(`用户 ${username} 已登录，登录地址：${ip} ${address}`)
         }
-        saveNewConf(APP_FILE_TYPE.AUTH, authLog, false)
       })
+
       const jwtSecret = await getConfigValue('jwtSecret', ConfigModule.RUNTIME)
       result.token = jwt.sign({
         username,
       }, jwtSecret, { expiresIn: 3600 * 24 * 3 })
-      // 更新配置
 
       response.send(API_STATUS_CODE.okData(result))
     }
     else {
-      authErrorCount++
-      authLog.authErrorCount = authErrorCount
-      authLog.authErrorTime = curTime.getTime()
-      saveNewConf(APP_FILE_TYPE.AUTH, authLog, false)
+      await updateAuthError(authErrorCount + 1, curTime.getTime())
       response.send(API_STATUS_CODE.failData('错误的用户名或密码，请重试', { showCaptcha, limitTime: 0 }))
     }
   }
@@ -98,8 +94,7 @@ api.post('/auth', async (request, response) => {
  */
 api.get('/info', async (_request, response) => {
   const userConfig = await getUserConfig()
-  const auth = getJsonFile(APP_FILE_TYPE.AUTH)
-  response.send(API_STATUS_CODE.okData({ username: userConfig.username, lastLoginInfo: auth.lastLoginInfo || {} }))
+  response.send(API_STATUS_CODE.okData({ username: userConfig.username, lastLoginInfo: userConfig.lastLoginInfo || {} }))
 })
 
 /**
@@ -134,14 +129,13 @@ apiInner.get('/info', async (_request, response) => {
   try {
     const userConfig = await getUserConfig()
     const openApiToken = await getConfigValue('openApiToken', ConfigModule.RUNTIME)
-    const auth = getJsonFile(APP_FILE_TYPE.AUTH)
 
     response.send(API_STATUS_CODE.okData({
       username: userConfig.username,
       password: userConfig.password,
       openApiToken,
-      lastLoginInfo: auth.lastLoginInfo || {},
-      curLoginInfo: auth.curLoginInfo || {},
+      lastLoginInfo: userConfig.lastLoginInfo || {},
+      curLoginInfo: userConfig.curLoginInfo || {},
     }))
   }
   catch (e: any) {

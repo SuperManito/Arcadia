@@ -32,11 +32,25 @@ export interface RuntimeConfig {
 }
 
 /**
- * 用户配置
+ * 登录信息接口
+ */
+export interface LoginInfo {
+  loginIp: string
+  loginAddress: string
+  loginTime: string
+}
+
+/**
+ * 用户配置（扩展：包含登录信息和验证码）
  */
 export interface UserConfig {
   username: string
   password: string
+  authErrorCount?: number // 认证错误次数
+  authErrorTime?: number // 认证错误时间戳
+  captcha?: string // 当前验证码
+  lastLoginInfo?: LoginInfo // 上次登录信息
+  curLoginInfo?: LoginInfo // 当前登录信息
 }
 
 /**
@@ -55,6 +69,11 @@ export const DEFAULT_CONFIG_VALUES: Record<ConfigModule, Record<string, string>>
   [ConfigModule.USER]: {
     username: 'useradmin',
     password: 'passwd',
+    authErrorCount: '0',
+    authErrorTime: '0',
+    captcha: '',
+    lastLoginInfo: '{}',
+    curLoginInfo: '{}',
   },
   [ConfigModule.APP]: {},
 }

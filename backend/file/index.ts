@@ -130,7 +130,7 @@ export function getFileTree(type: APP_DIR_TYPE, dirPath: string, params: FileTre
     return []
   }
   const parentDir = dirPath
-  const filterPaths = [APP_FILE_PATH.DB, APP_FILE_PATH.AUTH] // 默认过滤的文件路径
+  const filterPaths = [APP_FILE_PATH.DB] // 默认过滤的文件路径
 
   const options = (({ search = '', startTime = '', endTime = '', onlyDir = false, type = APP_DIR_TYPE.ALL }: FileTreeParams) => {
     if (type === APP_DIR_TYPE.LOG) {
@@ -369,9 +369,6 @@ export function saveNewConf(file: string, content: string, isBak: boolean = true
       fs.writeFileSync(APP_FILE_PATH.CONFIG, content)
       isBak && checkConfigSave(oldContent)
       break
-    case APP_FILE_TYPE.AUTH:
-      fs.writeFileSync(APP_FILE_PATH.AUTH, JSON.stringify(content, null, 2))
-      break
     default:
       break
   }
@@ -388,9 +385,6 @@ export function getFile(fileKey: string): string {
   switch (fileKey) {
     case APP_FILE_TYPE.CONFIG:
       content = getFileContentByName(APP_FILE_PATH.CONFIG)
-      break
-    case APP_FILE_TYPE.AUTH:
-      content = getFileContentByName(APP_FILE_PATH.AUTH)
       break
     default:
       content = getFileContentByName(fileKey)
@@ -461,10 +455,6 @@ export function pathCheck(checkPath: string) {
   rootPathCheck(checkPath)
   if (!fs.existsSync(checkPath)) {
     throw new Error('文件（夹）不存在')
-  }
-  // 文件操作限制（认证文件保护）
-  if (APP_FILE_PATH.AUTH === nodePath.join(checkPath)) {
-    throw new Error('该文件无法进行操作')
   }
 }
 

@@ -6,14 +6,12 @@ export const APP_PUBLIC_DIR = path.join(APP_SOURCE_DIR, 'public') // 静态文�
 
 export enum APP_FILE_TYPE {
   CONFIG = 'config',
-  AUTH = 'auth',
 }
 
 export enum APP_FILE_NAME {
   DB = 'config.db',
   CONFIG = 'config.sh',
   ENV = 'env.sh',
-  AUTH = 'auth.json',
   EXTRA_SERVER = 'extra_server.js',
 }
 
@@ -48,7 +46,6 @@ export const APP_FILE_PATH = {
   DB: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.DB), // config.db 文件路径
   CONFIG: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.CONFIG), // config.sh 文件路径
   ENV: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.ENV), // env.sh 文件路径
-  AUTH: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.AUTH), // auth.json 文件路径
   EXTRA_SERVER: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.EXTRA_SERVER), // extra_server.js 文件路径
   RESOLVE_SCRIPT: path.join(APP_DIR_PATH.SHELL, 'utils/resolve.sh'), // resolve.sh 文件路径
 }

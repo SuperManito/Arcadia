@@ -3,12 +3,11 @@ import express from 'express'
 import { API_STATUS_CODE } from '../http'
 import { logger } from '../logger'
 import fs from 'node:fs'
-import nodePath from 'node:path'
 import { Buffer } from 'node:buffer'
 import multer from 'multer'
 import type { FileTreeParams } from '../file'
 import { fileCreate, fileDelete, fileDownload, fileInfo, fileMove, fileRename, getFile, getFileList, getFileTree, pathCheck, rootPathCheck, saveFile } from '../file'
-import { APP_DIR_PATH, APP_DIR_TYPE, APP_FILE_PATH, APP_ROOT_DIR } from '../type'
+import { APP_DIR_PATH, APP_DIR_TYPE, APP_ROOT_DIR } from '../type'
 import { validateParams } from '../utils'
 const api: Express = express()
 const apiOpen: Express = express()
@@ -386,15 +385,10 @@ const upload = multer({
       }
       cb(null, savePath)
     },
-    filename(req, file, cb) {
+    filename(_req, file, cb) {
       // 解决中文名乱码的问题
       file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8')
-      const savePath = req.query.path
       let originalName = file.originalname
-      // 文件操作限制（认证文件保护）
-      if (nodePath.join(savePath as string, originalName) === APP_FILE_PATH.AUTH) {
-        originalName += '.json'
-      }
       // 检查文件名中的非法字符
       originalName = originalName.replace(/[<>:"/\\|?*]+/g, '_')
       cb(null, originalName)

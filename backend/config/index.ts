@@ -1,5 +1,5 @@
 import { config as dbConfig } from '../db'
-import type { ConfigRecord, RuntimeConfig, UserConfig } from '../type/config'
+import type { ConfigRecord, LoginInfo, RuntimeConfig, UserConfig } from '../type/config'
 import { ConfigModule, DEFAULT_CONFIG_VALUES } from '../type/config'
 import { isNotEmpty, randomString } from '../utils'
 
@@ -87,6 +87,11 @@ export async function getUserConfig(): Promise<UserConfig> {
   return {
     username: map.username || '',
     password: map.password || '',
+    authErrorCount: map.authErrorCount ? Number(map.authErrorCount) : 0,
+    authErrorTime: map.authErrorTime ? Number(map.authErrorTime) : 0,
+    captcha: map.captcha || '',
+    lastLoginInfo: map.lastLoginInfo ? JSON.parse(map.lastLoginInfo) : undefined,
+    curLoginInfo: map.curLoginInfo ? JSON.parse(map.curLoginInfo) : undefined,
   }
 }
 
@@ -102,6 +107,47 @@ export async function saveUserConfig(config: Partial<UserConfig>): Promise<void>
   if (config.password !== undefined) {
     updates.push(upsertConfig('password', ConfigModule.USER, config.password))
   }
+
+  await Promise.all(updates)
+}
+
+/**
+ * 更新认证错误信息
+ */
+export async function updateAuthError(count: number, time: number): Promise<void> {
+  await Promise.all([
+    upsertConfig('authErrorCount', ConfigModule.USER, String(count)),
+    upsertConfig('authErrorTime', ConfigModule.USER, String(time)),
+  ])
+}
+
+/**
+ * 清空认证错误信息
+ */
+export async function clearAuthError(): Promise<void> {
+  await updateAuthError(0, 0)
+}
+
+/**
+ * 保存验证码
+ */
+export async function saveCaptcha(captcha: string): Promise<void> {
+  await upsertConfig('captcha', ConfigModule.USER, captcha)
+}
+
+/**
+ * 更新登录信息
+ */
+export async function updateLoginInfo(loginInfo: LoginInfo): Promise<void> {
+  const userConfig = await getUserConfig()
+  const updates: Promise<ConfigRecord>[] = []
+
+  // 将当前登录信息存为上次登录信息
+  if (userConfig.curLoginInfo) {
+    updates.push(upsertConfig('lastLoginInfo', ConfigModule.USER, JSON.stringify(userConfig.curLoginInfo)))
+  }
+  // 保存新的当前登录信息
+  updates.push(upsertConfig('curLoginInfo', ConfigModule.USER, JSON.stringify(loginInfo)))
 
   await Promise.all(updates)
 }
