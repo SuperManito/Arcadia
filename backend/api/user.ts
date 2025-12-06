@@ -140,45 +140,49 @@ api.post('/auth', async (request, response) => {
   const curTime = new Date()
   const authErrorCount = userConfig.authErrorCount || 0
 
+  // 响应数据模板
+  const responseData: Record<string, any> = {
+    token: '',
+    newPwd: '',
+    showCaptcha: false,
+    limitTime: 0,
+    requireTwoFactor: false,
+  }
+
   // 检查登录限制
   const limitCheck = await checkAuthLimit(authErrorCount, userConfig.authErrorTime, curTime)
+  responseData.showCaptcha = limitCheck.showCaptcha
+  responseData.limitTime = limitCheck.limitTime
   if (limitCheck.limited) {
-    return response.send(API_STATUS_CODE.failData('认证失败次数过多，请稍后尝试！', {
-      showCaptcha: limitCheck.showCaptcha,
-      limitTime: limitCheck.limitTime,
-    }))
+    return response.send(API_STATUS_CODE.failData('认证失败次数过多，请稍后尝试！', responseData))
   }
 
   // 验证图形验证码
   const captchaCheck = validateCaptcha(captcha, limitCheck.showCaptcha, userConfig.captcha)
   if (!captchaCheck.valid) {
-    return response.send(API_STATUS_CODE.failData(captchaCheck.message, {
-      showCaptcha: limitCheck.showCaptcha,
-      limitTime: 0,
-    }))
+    responseData.limitTime = 0
+    return response.send(API_STATUS_CODE.failData(captchaCheck.message, responseData))
   }
 
   // 验证用户名和密码
   const credentialsCheck = await validateCredentials(username, password, userConfig, authErrorCount, curTime)
   if (!credentialsCheck.valid) {
-    return response.send(API_STATUS_CODE.failData(credentialsCheck.message, {
-      showCaptcha: limitCheck.showCaptcha,
-      limitTime: 0,
-    }))
+    responseData.limitTime = 0
+    return response.send(API_STATUS_CODE.failData(credentialsCheck.message, responseData))
   }
 
   // 检查是否启用了 2FA
   const totpEnabled = await isTOTPEnabled()
   if (totpEnabled) {
-    return response.send(API_STATUS_CODE.okData({
-      requireTotp: true,
-      message: '请输入双重认证验证码',
-    }))
+    responseData.requireTwoFactor = true
+    return response.send(API_STATUS_CODE.okData(responseData))
   }
 
   // 未启用 2FA，直接完成登录
   const result = await completeLogin(username, password, request)
-  response.send(API_STATUS_CODE.okData(result))
+  responseData.token = result.token
+  responseData.newPwd = result.newPwd
+  response.send(API_STATUS_CODE.okData(responseData))
 })
 
 /**
@@ -191,31 +195,34 @@ api.post('/auth/twoFactor', async (request, response) => {
   const curTime = new Date()
   const authErrorCount = userConfig.authErrorCount || 0
 
+  // 响应数据模板
+  const responseData: Record<string, any> = {
+    token: '',
+    newPwd: '',
+    showCaptcha: false,
+    limitTime: 0,
+  }
+
   // 检查登录限制
   const limitCheck = await checkAuthLimit(authErrorCount, userConfig.authErrorTime, curTime)
+  responseData.showCaptcha = limitCheck.showCaptcha
+  responseData.limitTime = limitCheck.limitTime
   if (limitCheck.limited) {
-    return response.send(API_STATUS_CODE.failData('认证失败次数过多，请稍后尝试！', {
-      showCaptcha: limitCheck.showCaptcha,
-      limitTime: limitCheck.limitTime,
-    }))
+    return response.send(API_STATUS_CODE.failData('认证失败次数过多，请稍后尝试！', responseData))
   }
 
   // 验证图形验证码
   const captchaCheck = validateCaptcha(captcha, limitCheck.showCaptcha, userConfig.captcha)
   if (!captchaCheck.valid) {
-    return response.send(API_STATUS_CODE.failData(captchaCheck.message, {
-      showCaptcha: limitCheck.showCaptcha,
-      limitTime: 0,
-    }))
+    responseData.limitTime = 0
+    return response.send(API_STATUS_CODE.failData(captchaCheck.message, responseData))
   }
 
   // 验证用户名和密码（防止跳过第一步）
   const credentialsCheck = await validateCredentials(username, password, userConfig, authErrorCount, curTime)
   if (!credentialsCheck.valid) {
-    return response.send(API_STATUS_CODE.failData(credentialsCheck.message, {
-      showCaptcha: limitCheck.showCaptcha,
-      limitTime: 0,
-    }))
+    responseData.limitTime = 0
+    return response.send(API_STATUS_CODE.failData(credentialsCheck.message, responseData))
   }
 
   // 检查是否启用了 2FA
@@ -227,10 +234,8 @@ api.post('/auth/twoFactor', async (request, response) => {
   // 检查 TOTP 动态码格式
   const codeCheck = checkTOTPCodeFormat(code)
   if (!codeCheck.valid) {
-    return response.send(API_STATUS_CODE.failData(codeCheck.message, {
-      showCaptcha: limitCheck.showCaptcha,
-      limitTime: 0,
-    }))
+    responseData.limitTime = 0
+    return response.send(API_STATUS_CODE.failData(codeCheck.message, responseData))
   }
 
   // 获取用户 TOTP 密钥并验证
@@ -241,15 +246,15 @@ api.post('/auth/twoFactor', async (request, response) => {
   const isValid = verifyTOTPCode(codeCheck.code, totpSecret)
   if (!isValid) {
     await updateAuthError(authErrorCount + 1, curTime.getTime())
-    return response.send(API_STATUS_CODE.failData('动态验证码错误', {
-      showCaptcha: limitCheck.showCaptcha,
-      limitTime: 0,
-    }))
+    responseData.limitTime = 0
+    return response.send(API_STATUS_CODE.failData('动态验证码错误', responseData))
   }
 
   // 所有验证通过，完成登录
   const result = await completeLogin(username, password, request)
-  response.send(API_STATUS_CODE.okData(result))
+  responseData.token = result.token
+  responseData.newPwd = result.newPwd
+  response.send(API_STATUS_CODE.okData(responseData))
 })
 
 /**
@@ -330,15 +335,14 @@ apiInner.post('/resetPwd', async (_request, response) => {
 })
 
 /**
- * 生成 TOTP 密钥和 otpauth URI（不保存，由前端缓存）
+ * 初始化 TOTP 密钥与 otpauth URL
  */
 api.post('/twoFactorAuth/setup', async (request, response) => {
   try {
     const userConfig = await getUserConfig()
-    const { issuer = 'Arcadia' } = request.body // 支持自定义 issuer
+    const { issuer = 'Arcadia' } = request.body
     const { totpSecret, otpauthUrl } = await generateTOTPSecret(userConfig.username, issuer)
 
-    // 不保存到数据库，由前端缓存，在 enable 接口中一起提交
     response.send(API_STATUS_CODE.okData({
       secret: totpSecret,
       otpauthUrl,
@@ -353,7 +357,7 @@ api.post('/twoFactorAuth/setup', async (request, response) => {
 })
 
 /**
- * 验证并启用 TOTP（接收前端缓存的 totpSecret）
+ * 验证并启用 TOTP
  */
 api.post('/twoFactorAuth/enable', async (request, response) => {
   try {
@@ -372,7 +376,7 @@ api.post('/twoFactorAuth/enable', async (request, response) => {
       return response.send(API_STATUS_CODE.fail(codeCheck.message))
     }
 
-    // 验证 TOTP 动态码（使用前端传来的 secret）
+    // 验证 TOTP 动态码
     const isValid = verifyTOTPCode(codeCheck.code, secret)
     if (!isValid) {
       return response.send(API_STATUS_CODE.fail('验证码错误'))
@@ -392,7 +396,7 @@ api.post('/twoFactorAuth/enable', async (request, response) => {
 })
 
 /**
- * 关闭 TOTP（依赖 JWT 认证，无需密码）
+ * 关闭 TOTP
  */
 api.post('/twoFactorAuth/disable', async (_request, response) => {
   try {
