@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-18
+## Modified: 2025-12-06
 
 ## 打印表格（基于 table-printer-cli）
 # output_table_data '{ "列名1": "data1", "列名2": "data2" }'
@@ -33,7 +33,7 @@ function update_cron() {
     # $1 Body/json
     function api_updatecron() {
         local data=$1
-        local response=$(curl -s -X POST -H "Content-Type: application/json" -d "$data" "http://127.0.0.1:15678/inner/cron/updateAll?_t=$(date +%s)000")
+        local response=$(curl -s -X POST -H "Content-Type: application/json" -d "$data" "http://127.0.0.1:5678/api/inner/cron/updateAll?_t=$(date +%s)000")
         echo "${response}"
     }
 

@@ -13,7 +13,7 @@ import { APP_PUBLIC_DIR } from '../type'
 import { OpenAPIAuthentication, OpenAPIExtra } from '../api/open'
 import { API as ApiFile, OpenAPI as OpenApiFile } from '../api/file'
 import { API as ApiEnv, OpenAPI as OpenApiEnv } from '../api/env'
-import { API as ApiCron, OpenAPI as OpenApiCron } from '../api/cron'
+import { API as ApiCron, InnerAPI as InnerApiCron, OpenAPI as OpenApiCron } from '../api/cron'
 import { API as ApiMessage, OpenAPI as OpenApiMessage } from '../api/message'
 import { API as ApiMain } from '../api/main'
 import { API as ApiUser } from '../api/user'
@@ -33,7 +33,19 @@ export function createApiAuthentication(jwtSecret: string): RequestHandler {
     credentialsRequired: true,
     getToken,
   }).unless({
-    path: ['/', '/index.html', '/favicon.ico', '/_app.config.js', /^\/resource\/*/, /^\/assets\/*/, '/api/common/health', '/api/user/auth', '/api/captcha', /^\/api\/captcha\/.*/], // 指定路径不经过 Token 解析
+    path: [
+      '/',
+      '/index.html',
+      '/favicon.ico',
+      '/_app.config.js',
+      /^\/resource\/.*/,
+      /^\/assets\/.*/,
+      '/api/common/health',
+      '/api/user/auth',
+      '/api/captcha',
+      /^\/api\/captcha\/.*/,
+      /^\/api\/inner\/.*/,
+    ],
   })
 }
 
@@ -197,6 +209,24 @@ export function registerApp(apiAuthentication: RequestHandler, jwtSecret: string
   apiRouter.use('/message', ApiMessage)
   apiRouter.use('/common', ApiCommon)
   app.use('/api', apiAuthentication, handleAuthenticationError, apiRouter)
+
+  /**
+   * 内部 API（仅本地访问）
+   */
+  const innerIpWhitelist: RequestHandler = (req, res, next) => {
+    const clientIp = req.ip || req.socket.remoteAddress || ''
+    const isLocalhost = clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === '::ffff:127.0.0.1'
+    if (isLocalhost) {
+      next()
+    }
+    else {
+      const { code } = API_STATUS_CODE.API.NO_AUTH
+      res.status(403).send(API_STATUS_CODE.fail(`禁止访问：仅允许本地调用 (${clientIp})`, code))
+    }
+  }
+  const innerRouter: Router = express.Router()
+  innerRouter.use('/cron', InnerApiCron)
+  app.use('/api/inner', innerIpWhitelist, innerRouter)
 
   /**
    * 未匹配的路由
