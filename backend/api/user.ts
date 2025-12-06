@@ -184,7 +184,7 @@ api.post('/auth', async (request, response) => {
 /**
  * TOTP 双重认证接口
  */
-api.post('/auth/2fa', async (request, response) => {
+api.post('/auth/twoFactor', async (request, response) => {
   const { username, password, code, captcha = '' } = request.body
   logger.info(`检测到 TOTP 验证请求，用户名 ${username}`)
   const userConfig = await getUserConfig()
@@ -332,7 +332,7 @@ apiInner.post('/resetPwd', async (_request, response) => {
 /**
  * 生成 TOTP 密钥和 otpauth URI（不保存，由前端缓存）
  */
-api.post('/2fa/setup', async (request, response) => {
+api.post('/twoFactorAuth/setup', async (request, response) => {
   try {
     const userConfig = await getUserConfig()
     const { issuer = 'Arcadia' } = request.body // 支持自定义 issuer
@@ -355,7 +355,7 @@ api.post('/2fa/setup', async (request, response) => {
 /**
  * 验证并启用 TOTP（接收前端缓存的 totpSecret）
  */
-api.post('/2fa/enable', async (request, response) => {
+api.post('/twoFactorAuth/enable', async (request, response) => {
   try {
     const { secret, code } = request.body
 
@@ -394,7 +394,7 @@ api.post('/2fa/enable', async (request, response) => {
 /**
  * 关闭 TOTP（依赖 JWT 认证，无需密码）
  */
-api.post('/2fa/disable', async (_request, response) => {
+api.post('/twoFactorAuth/disable', async (_request, response) => {
   try {
     // 检查是否已启用
     const totpEnabled = await isTOTPEnabled()
@@ -417,7 +417,7 @@ api.post('/2fa/disable', async (_request, response) => {
 /**
  * 获取双重认证状态
  */
-api.get('/2fa/status', async (_request, response) => {
+api.get('/twoFactorAuth/status', async (_request, response) => {
   try {
     const enabled = await isTOTPEnabled()
     response.send(API_STATUS_CODE.okData(enabled))
