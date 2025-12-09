@@ -46,10 +46,10 @@ async function checkAuthLimit(authErrorCount: number, authErrorTime: number | un
  */
 function validateCaptcha(captcha: string, showCaptcha: boolean, authCaptcha: string | undefined) {
   if (captcha === '' && showCaptcha) {
-    return { valid: false, message: '请输入验证码！' }
+    return { valid: false, message: '请输入图形验证码！' }
   }
   if (showCaptcha && captcha.toLowerCase() !== (authCaptcha || '')) {
-    return { valid: false, message: '验证码不正确！' }
+    return { valid: false, message: '图形验证码不正确！' }
   }
   return { valid: true, message: '' }
 }
@@ -82,12 +82,12 @@ function checkTOTPCodeFormat(totpCode: string):
   try {
     const codeStr = totpCode.trim()
     if (!/^\d{6}$/.test(codeStr)) {
-      return { valid: false, message: '验证码必须为 6 位数字' }
+      return { valid: false, message: '动态验证码须为 6 位数字' }
     }
     return { valid: true, code: ''.concat(codeStr) }
   }
   catch {
-    return { valid: false, message: '验证码格式错误' }
+    return { valid: false, message: '动态验证码格式错误' }
   }
 }
 
@@ -239,13 +239,13 @@ api.post('/auth/twoFactor', async (request, response) => {
   // 获取用户 TOTP 密钥并验证
   const totpSecret = await getTOTPSecret()
   if (!totpSecret) {
-    return response.send(API_STATUS_CODE.fail('TOTP 密钥未设置'))
+    return response.send(API_STATUS_CODE.fail('未设置双重认证密钥'))
   }
   const isValid = verifyTOTPCode(codeCheck.code, totpSecret)
   if (!isValid) {
     await updateAuthError(authErrorCount + 1, curTime.getTime())
     responseData.limitTime = 0
-    return response.send(API_STATUS_CODE.failData('动态验证码错误', responseData))
+    return response.send(API_STATUS_CODE.failData('动态验证码无效', responseData))
   }
 
   // 清空错误次数
@@ -279,7 +279,7 @@ api.post('/changePwd', async (request, response) => {
     response.send(API_STATUS_CODE.ok('修改成功！'))
   }
   else {
-    response.send(API_STATUS_CODE.fail('请输入用户名密码！'))
+    response.send(API_STATUS_CODE.fail('请输入用户名和密码！'))
   }
 })
 
@@ -369,7 +369,7 @@ api.post('/twoFactorAuth/enable', async (request, response) => {
 
     // 校验必填参数
     if (!secret) {
-      return response.send(API_STATUS_CODE.fail('请先生成 TOTP 密钥'))
+      return response.send(API_STATUS_CODE.fail('请先生成双重认证密钥'))
     }
     if (!code) {
       return response.send(API_STATUS_CODE.fail('请输入动态验证码'))
@@ -383,7 +383,7 @@ api.post('/twoFactorAuth/enable', async (request, response) => {
     // 验证 TOTP 动态码
     const isValid = verifyTOTPCode(codeCheck.code, secret)
     if (!isValid) {
-      return response.send(API_STATUS_CODE.fail('验证码错误'))
+      return response.send(API_STATUS_CODE.fail('动态验证码无效'))
     }
 
     // 验证通过，保存密钥并启用 2FA
