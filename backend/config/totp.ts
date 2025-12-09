@@ -12,6 +12,7 @@ export interface TOTPSetupResult {
 
 /**
  * 生成 TOTP 密钥和 otpauth URI
+ *
  * @param username 用户名
  * @param issuer 发行者名称
  * @returns TOTP 设置信息
@@ -19,7 +20,7 @@ export interface TOTPSetupResult {
 export async function generateTOTPSecret(
   username: string,
   issuer: string = 'Arcadia',
-): Promise<TOTPSetupResult> {
+) {
   // 生成随机密钥（160 位 = 20 字节）
   const secret = new Secret({ size: 20 })
 
@@ -39,21 +40,21 @@ export async function generateTOTPSecret(
   return {
     totpSecret: secret.base32,
     otpauthUrl,
-  }
+  } as TOTPSetupResult
 }
 
 /**
  * 验证 TOTP 动态码（核心业务方法）
- * @param code 用户输入的 6 位数字（number 类型，已校验）
+ *
+ * @param code 6 位数字
  * @param secret Base32 编码的 TOTP 密钥
  * @param window 时间窗口容错（默认 1 = ±30 秒）
- * @returns 是否验证通过
  */
 export function verifyTOTPCode(
-  code: number,
+  code: string,
   secret: string,
   window: number = 1,
-): boolean {
+) {
   try {
     const totp = new TOTP({
       algorithm: 'SHA1',
@@ -63,7 +64,7 @@ export function verifyTOTPCode(
     })
 
     // 将 number 转为字符串传给 TOTP 库
-    const delta = totp.validate({ token: ''.concat(String(code)), window })
+    const delta = totp.validate({ token: ''.concat(code), window })
     return delta !== null
   }
   catch {
@@ -73,9 +74,8 @@ export function verifyTOTPCode(
 
 /**
  * 检查当前用户是否启用了 TOTP
- * @returns 是否启用
  */
-export async function isTOTPEnabled(): Promise<boolean> {
+export async function isTOTPEnabled() {
   try {
     const enabled = await getUserConfigValue(ConfigKeyUser.TOTP_ENABLED)
     return enabled === 'true'
@@ -87,9 +87,8 @@ export async function isTOTPEnabled(): Promise<boolean> {
 
 /**
  * 获取当前用户的 TOTP 密钥
- * @returns Base32 编码的密钥，未设置则返回空字符串
  */
-export async function getTOTPSecret(): Promise<string> {
+export async function getTOTPSecret() {
   try {
     return await getUserConfigValue(ConfigKeyUser.TOTP_SECRET)
   }
@@ -100,7 +99,6 @@ export async function getTOTPSecret(): Promise<string> {
 
 /**
  * 保存 TOTP 密钥
- * @param secret Base32 编码的密钥
  */
 export async function saveTOTPSecret(secret: string) {
   return await updateUserConfigValue(ConfigKeyUser.TOTP_SECRET, secret)
@@ -122,10 +120,8 @@ export async function disableTOTP() {
 
 /**
  * 验证用户的 TOTP 动态码（自动读取数据库中的密钥）
- * @param code 用户输入的 6 位数字（number 类型，已校验）
- * @returns 是否验证通过
  */
-export async function verifyUserTOTPCode(code: number): Promise<boolean> {
+export async function verifyUserTOTPCode(code: string) {
   const secret = await getTOTPSecret()
   if (!secret) {
     return false

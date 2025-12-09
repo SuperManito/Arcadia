@@ -74,7 +74,7 @@ async function validateCredentials(username: string, password: string, userConfi
  * @param totpCode 必须是字符串类型，避免前导 0 丢失（如 "012345"）
  */
 function checkTOTPCodeFormat(totpCode: string):
-  | { valid: true, code: number }
+  | { valid: true, code: string }
   | { valid: false, message: string } {
   if (!totpCode || typeof totpCode !== 'string') {
     return { valid: false, message: '请输入动态验证码' }
@@ -84,7 +84,7 @@ function checkTOTPCodeFormat(totpCode: string):
     if (!/^\d{6}$/.test(codeStr)) {
       return { valid: false, message: '验证码必须为 6 位数字' }
     }
-    return { valid: true, code: Number(codeStr) }
+    return { valid: true, code: ''.concat(codeStr) }
   }
   catch {
     return { valid: false, message: '验证码格式错误' }
@@ -383,7 +383,7 @@ api.post('/twoFactorAuth/enable', async (request, response) => {
     // 验证通过，保存密钥并启用 2FA
     await saveTOTPSecret(secret)
     await enableTOTP()
-    logger.info('用户已启用双重认证')
+    logger.info('用户账户已启用双重认证')
 
     response.send(API_STATUS_CODE.ok('双重认证已启用'))
   }
