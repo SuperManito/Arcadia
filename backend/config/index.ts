@@ -62,8 +62,10 @@ export async function getRuntimeConfigValue(key: ConfigKeyRuntime) {
  */
 export async function updateConfigValue(key: ConfigKey, module: ConfigModule, value: string | number) {
   validateConfigFieldKey(key, module)
-  return await dbConfig.$upsert({
-    data: { key, module, value: String(value) },
+  return await dbConfig.upsert({
+    where: { key_module: { key, module } },
+    update: { value: String(value) },
+    create: { key, module, value: String(value) },
   })
 }
 export async function updateUserConfigValue(key: ConfigKeyUser, value: string | number) {
