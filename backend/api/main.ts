@@ -8,7 +8,8 @@ import { exec } from 'node:child_process'
 import { socketCommon } from '../socket'
 import { getNeatContent } from '../file'
 import { APP_ROOT_DIR } from '../type'
-import { getUserConfig, saveCaptcha } from '../config'
+import { getUserModuleConfig } from '../config'
+import { saveCaptcha } from '../config/user'
 const api: Express = express()
 const taskRunning = {}
 
@@ -16,7 +17,7 @@ const taskRunning = {}
  * 登录是否显示验证码
  */
 api.get('/captcha/flag', async (_request, response) => {
-  const userConfig = await getUserConfig()
+  const userConfig = await getUserModuleConfig()
   const authErrorCount = userConfig.authErrorCount || 0
   response.send(API_STATUS_CODE.okData({ showCaptcha: authErrorCount >= 1 }))
 })

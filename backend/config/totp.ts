@@ -1,6 +1,6 @@
 import { Secret, TOTP } from 'otpauth'
-import { getConfigValue, updateConfig } from './index'
-import { ConfigModule, UserConfigKey } from '../type/config'
+import { getUserConfigValue, updateUserConfigValue } from './index'
+import { ConfigKeyUser } from '../type/config'
 
 /**
  * TOTP 设置结果
@@ -77,7 +77,7 @@ export function verifyTOTPCode(
  */
 export async function isTOTPEnabled(): Promise<boolean> {
   try {
-    const enabled = await getConfigValue(UserConfigKey.TOTP_ENABLED, ConfigModule.USER)
+    const enabled = await getUserConfigValue(ConfigKeyUser.TOTP_ENABLED)
     return enabled === 'true'
   }
   catch {
@@ -91,7 +91,7 @@ export async function isTOTPEnabled(): Promise<boolean> {
  */
 export async function getTOTPSecret(): Promise<string> {
   try {
-    return await getConfigValue(UserConfigKey.TOTP_SECRET, ConfigModule.USER)
+    return await getUserConfigValue(ConfigKeyUser.TOTP_SECRET)
   }
   catch {
     return ''
@@ -102,22 +102,22 @@ export async function getTOTPSecret(): Promise<string> {
  * 保存 TOTP 密钥
  * @param secret Base32 编码的密钥
  */
-export async function saveTOTPSecret(secret: string): Promise<void> {
-  await updateConfig(UserConfigKey.TOTP_SECRET, secret, ConfigModule.USER)
+export async function saveTOTPSecret(secret: string) {
+  return await updateUserConfigValue(ConfigKeyUser.TOTP_SECRET, secret)
 }
 
 /**
  * 启用 TOTP
  */
-export async function enableTOTP(): Promise<void> {
-  await updateConfig(UserConfigKey.TOTP_ENABLED, 'true', ConfigModule.USER)
+export async function enableTOTP() {
+  return await updateUserConfigValue(ConfigKeyUser.TOTP_ENABLED, 'true')
 }
 
 /**
  * 禁用 TOTP
  */
-export async function disableTOTP(): Promise<void> {
-  await updateConfig(UserConfigKey.TOTP_ENABLED, 'false', ConfigModule.USER)
+export async function disableTOTP() {
+  return await updateUserConfigValue(ConfigKeyUser.TOTP_ENABLED, 'false')
 }
 
 /**

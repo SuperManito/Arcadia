@@ -1,223 +1,270 @@
+import type { Config as ConfigModel } from '../db'
 import { config as dbConfig } from '../db'
-import type { ConfigRecord, LoginInfo, RuntimeConfig, UserConfig } from '../type/config'
-import { ConfigModule, DEFAULT_CONFIG_VALUES, RuntimeConfigKey, UserConfigKey } from '../type/config'
+import type { ConfigDataRuntime, ConfigDataUser, ConfigKey, UserLoginInfo } from '../type/config'
+import {
+  ConfigKeyRuntime,
+  ConfigKeyUser,
+  ConfigModule,
+  DEFAULT_CONFIG_VALUES,
+  UserLoginInfoDataKey,
+} from '../type/config'
 import { isNotEmpty, randomString } from '../utils'
+import { logger } from '../logger'
 
 /**
- * 根据 key 和 module 查询配置值
+ * 验证配置键是否有效
  */
-export async function getConfigValue(key: string, module: ConfigModule | string): Promise<string> {
-  const config = await dbConfig.findFirst({
-    where: { key, module },
-  })
-  if (!config) {
-    throw new Error('配置项不存在')
+function validateConfigFieldKey(key: string, module: ConfigModule): void {
+  let validKeys: ConfigKey[] = []
+  switch (module) {
+    case ConfigModule.RUNTIME:
+      validKeys = Object.values(ConfigKeyRuntime)
+      break
+    case ConfigModule.USER:
+      validKeys = Object.values(ConfigKeyUser)
+      break
   }
-  return config.value
+  if (!validKeys.includes(key as any)) {
+    throw new Error(`无效的配置键: module=${module}, key=${key}`)
+  }
+}
+function validateConfigFieldModule(module: string) {
+  const validModules = Object.values(ConfigModule) as ConfigModule[]
+  if (!validModules.includes(module as any)) {
+    throw new Error(`无效的配置键: module=${module}`)
+  }
 }
 
 /**
- * 更新单个配置
+ * 获取配置值
  */
-export async function updateConfig(key: string, value: string, module: ConfigModule | string = ConfigModule.USER): Promise<ConfigRecord> {
-  const config = await dbConfig.findFirst({
-    where: { key, module },
-  })
-  if (!config) {
-    throw new Error(`配置项不存在: key=${key}, module=${module}`)
-  }
-  return await dbConfig.update({
-    where: { id: config.id },
-    data: { value: String(value) },
-  })
-}
-
-/**
- * 创建或更新配置
- */
-async function upsertConfig(key: string, module: ConfigModule | string, value: string): Promise<ConfigRecord> {
-  const existing = await dbConfig.findFirst({
-    where: { key, module },
-  })
-  if (existing) {
-    return await dbConfig.update({
-      where: { id: existing.id },
-      data: { value: String(value) },
+export async function getConfigValue(key: ConfigKey, module: ConfigModule) {
+  validateConfigFieldKey(key, module)
+  try {
+    const config = await dbConfig.findFirst({
+      where: { key, module },
     })
+    return config?.value ?? ''
   }
-  else {
-    return await dbConfig.create({
-      data: { key, module, value: String(value) },
-    })
+  catch {
+    return ''
   }
+}
+export async function getUserConfigValue(key: ConfigKeyUser) {
+  return getConfigValue(key, ConfigModule.USER)
+}
+export async function getRuntimeConfigValue(key: ConfigKeyRuntime) {
+  return getConfigValue(key, ConfigModule.RUNTIME)
 }
 
 /**
- * 获取运行时配置（类型化）
+ * 更新或创建配置
  */
-export async function getRuntimeConfig(): Promise<RuntimeConfig> {
+export async function updateConfigValue(key: ConfigKey, module: ConfigModule, value: string | number) {
+  validateConfigFieldKey(key, module)
+  return await dbConfig.$upsert({
+    data: { key, module, value: String(value) },
+  })
+}
+export async function updateUserConfigValue(key: ConfigKeyUser, value: string | number) {
+  return updateConfigValue(key, ConfigModule.USER, value)
+}
+export async function updateRuntimeConfigValue(key: ConfigKeyRuntime, value: string | number) {
+  return updateConfigValue(key, ConfigModule.RUNTIME, value)
+}
+
+/**
+ * 获取模块配置并转换为键值对映射
+ */
+async function getModuleConfigMap(module: ConfigModule): Promise<Record<string, string>> {
   const configs = await dbConfig.findMany({
-    where: { module: ConfigModule.RUNTIME },
+    where: { module },
   })
+  const defaultKeys = Object.keys(DEFAULT_CONFIG_VALUES[module])
 
-  const map = configs.reduce((acc, item) => {
+  // 补充对应模块缺失的配置字段记录
+  if (configs.length < defaultKeys.length) {
+    const existingKeys = new Set(configs.map(c => c.key))
+    const defaultValues = DEFAULT_CONFIG_VALUES[module]
+    const allKeys = Object.keys(defaultValues) as ConfigKey[]
+    const updates: Promise<ConfigModel>[] = []
+    for (const key of allKeys) {
+      if (!existingKeys.has(key)) {
+        updates.push(updateConfigValue(key, module, defaultValues[key as keyof typeof defaultValues]))
+      }
+    }
+    if (updates.length > 0) {
+      await Promise.all(updates)
+    }
+  }
+
+  return configs.reduce((acc, item) => {
     acc[item.key] = item.value
     return acc
   }, {} as Record<string, string>)
-
-  return {
-    jwtSecret: map[RuntimeConfigKey.JWT_SECRET] || '',
-    openApiToken: map[RuntimeConfigKey.OPEN_API_TOKEN] || '',
-  }
 }
 
 /**
- * 获取用户配置（类型化）
+ * 获取配置
  */
-export async function getUserConfig(): Promise<UserConfig> {
-  const configs = await dbConfig.findMany({
-    where: { module: ConfigModule.USER },
-  })
-
-  const map = configs.reduce((acc, item) => {
-    acc[item.key] = item.value
+export async function getUserModuleConfig() {
+  const map = await getModuleConfigMap(ConfigModule.USER)
+  const result = {} as ConfigDataUser
+  const loginInfoTemplate = Object.values(UserLoginInfoDataKey).reduce((acc, key) => {
+    acc[key] = ''
     return acc
-  }, {} as Record<string, string>)
+  }, {} as UserLoginInfo)
 
+  // 处理默认值并转换数据类型
+  for (const key of Object.values(ConfigKeyUser)) {
+    const value = map[key] || DEFAULT_CONFIG_VALUES[ConfigModule.USER][key]
+    switch (key) {
+      case ConfigKeyUser.AUTH_ERROR_COUNT:
+      case ConfigKeyUser.AUTH_ERROR_TIME:
+        result[key] = Number(value)
+        break
+      case ConfigKeyUser.LAST_LOGIN_INFO:
+      case ConfigKeyUser.CUR_LOGIN_INFO:
+        try {
+          result[key] = Object.assign({}, loginInfoTemplate, JSON.parse(value))
+        }
+        catch {
+          result[key] = Object.assign({}, loginInfoTemplate)
+        }
+        break
+      case ConfigKeyUser.TOTP_ENABLED:
+        result[key] = value === 'true'
+        break
+      default:
+        result[key] = value
+        break
+    }
+  }
+
+  return result
+}
+export async function getRuntimeModuleConfig() {
+  const map = await getModuleConfigMap(ConfigModule.RUNTIME)
+  const result = {} as ConfigDataRuntime
+
+  // 处理默认值并转换数据类型
+  for (const key of Object.values(ConfigKeyRuntime)) {
+    const value = map[key] || DEFAULT_CONFIG_VALUES[ConfigModule.RUNTIME][key]
+    result[key] = value
+  }
+  return result
+}
+export async function getModuleConfig(module: ConfigModule) {
+  switch (module) {
+    case ConfigModule.RUNTIME:
+      return await getRuntimeModuleConfig()
+    case ConfigModule.USER:
+      return await getUserModuleConfig()
+  }
+}
+export async function getFullConfig() {
   return {
-    username: map[UserConfigKey.USERNAME] || '',
-    password: map[UserConfigKey.PASSWORD] || '',
-    authErrorCount: map[UserConfigKey.AUTH_ERROR_COUNT] ? Number(map[UserConfigKey.AUTH_ERROR_COUNT]) : 0,
-    authErrorTime: map[UserConfigKey.AUTH_ERROR_TIME] ? Number(map[UserConfigKey.AUTH_ERROR_TIME]) : 0,
-    captcha: map[UserConfigKey.CAPTCHA] || '',
-    lastLoginInfo: map[UserConfigKey.LAST_LOGIN_INFO] ? JSON.parse(map[UserConfigKey.LAST_LOGIN_INFO]) : undefined,
-    curLoginInfo: map[UserConfigKey.CUR_LOGIN_INFO] ? JSON.parse(map[UserConfigKey.CUR_LOGIN_INFO]) : undefined,
-    totpSecret: map[UserConfigKey.TOTP_SECRET] || '',
-    totpEnabled: map[UserConfigKey.TOTP_ENABLED] === 'true',
+    [ConfigModule.RUNTIME]: await getRuntimeModuleConfig(),
+    [ConfigModule.USER]: await getUserModuleConfig(),
   }
 }
 
 /**
- * 保存用户配置
+ * 清理无效和重复的配置记录
  */
-export async function saveUserConfig(config: Partial<UserConfig>): Promise<void> {
-  const updates: Promise<ConfigRecord>[] = []
-  if (config.username !== undefined) {
-    updates.push(upsertConfig(UserConfigKey.USERNAME, ConfigModule.USER, config.username))
-  }
-  if (config.password !== undefined) {
-    updates.push(upsertConfig(UserConfigKey.PASSWORD, ConfigModule.USER, config.password))
-  }
-  await Promise.all(updates)
-}
-
-/**
- * 更新认证错误信息
- */
-export async function updateAuthError(count: number, time: number): Promise<void> {
-  await Promise.all([
-    upsertConfig(UserConfigKey.AUTH_ERROR_COUNT, ConfigModule.USER, String(count)),
-    upsertConfig(UserConfigKey.AUTH_ERROR_TIME, ConfigModule.USER, String(time)),
-  ])
-}
-
-/**
- * 清空认证错误信息
- */
-export async function clearAuthError(): Promise<void> {
-  await updateAuthError(0, 0)
-}
-
-/**
- * 保存验证码
- */
-export async function saveCaptcha(captcha: string): Promise<void> {
-  await upsertConfig(UserConfigKey.CAPTCHA, ConfigModule.USER, captcha)
-}
-
-/**
- * 更新登录信息
- */
-export async function updateLoginInfo(loginInfo: LoginInfo): Promise<void> {
-  const userConfig = await getUserConfig()
-  const updates: Promise<ConfigRecord>[] = []
-
-  // 将当前登录信息存为上次登录信息
-  if (userConfig.curLoginInfo) {
-    updates.push(upsertConfig(UserConfigKey.LAST_LOGIN_INFO, ConfigModule.USER, JSON.stringify(userConfig.curLoginInfo)))
-  }
-  // 保存新的当前登录信息
-  updates.push(upsertConfig(UserConfigKey.CUR_LOGIN_INFO, ConfigModule.USER, JSON.stringify(loginInfo)))
-
-  await Promise.all(updates)
-}
-
-/**
- * 初始化配置系统
- *
- * @description 清理无效的 module 和 key，初始化所有必需配置，返回完整配置对象
- */
-export async function initConfig(): Promise<{ runtime: RuntimeConfig, user: UserConfig }> {
-  // 清理无效配置
+async function cleanInvalidConfigs(): Promise<void> {
   const allConfigs = await dbConfig.findMany()
-  const validModules = Object.values(ConfigModule)
-  const validKeys: Record<string, string[]> = {
-    [ConfigModule.RUNTIME]: Object.values(RuntimeConfigKey),
-    [ConfigModule.USER]: Object.values(UserConfigKey),
-  }
   const idsToDelete: number[] = []
+  const seenKeys = new Map<string, number>()
+
   for (const config of allConfigs) {
-    if (!validModules.includes(config.module as ConfigModule)) {
+    // 验证 module 是否有效
+    try {
+      validateConfigFieldModule(config.module as ConfigModule)
+    }
+    catch {
       idsToDelete.push(config.id)
       continue
     }
-    const moduleValidKeys = validKeys[config.module] || []
-    if (!moduleValidKeys.includes(config.key)) {
+    // 验证 key 是否有效
+    try {
+      validateConfigFieldKey(config.key, config.module as ConfigModule)
+    }
+    catch {
+      idsToDelete.push(config.id)
+      continue
+    }
+    // 检查是否重复（保留第一条，删除后续重复）
+    const uniqueKey = `${config.module}:${config.key}`
+    if (seenKeys.has(uniqueKey)) {
       idsToDelete.push(config.id)
     }
+    else {
+      seenKeys.set(uniqueKey, config.id)
+    }
   }
+
   if (idsToDelete.length > 0) {
-    await dbConfig.deleteMany({
-      where: { id: { in: idsToDelete } },
-    })
+    await dbConfig.$deleteById(idsToDelete)
+    // logger.info(`清理了 ${idsToDelete.length} 条无效或重复的配置记录`)
   }
+}
 
-  // 初始化运行时配置
-  const runtimeConfig = await getRuntimeConfig()
-  const runtimeUpdates: Promise<ConfigRecord>[] = []
-  if (!isNotEmpty(runtimeConfig.jwtSecret)) {
+/**
+ * 初始化用户配置
+ */
+async function initUserConfig() {
+  const config = await getUserModuleConfig()
+  const updates: Promise<ConfigModel>[] = []
+  if (!isNotEmpty(config.username)) {
+    const username = DEFAULT_CONFIG_VALUES[ConfigModule.USER][ConfigKeyUser.USERNAME]
+    updates.push(updateUserConfigValue(ConfigKeyUser.USERNAME, username))
+    config.username = username
+  }
+  if (!isNotEmpty(config.password)) {
+    const password = DEFAULT_CONFIG_VALUES[ConfigModule.USER][ConfigKeyUser.PASSWORD]
+    updates.push(updateUserConfigValue(ConfigKeyUser.PASSWORD, password))
+    config.password = password
+  }
+  if (updates.length > 0) {
+    await Promise.all(updates)
+  }
+}
+
+/**
+ * 初始化运行时配置
+ */
+async function initRuntimeConfig() {
+  const config = await getRuntimeModuleConfig()
+  const updates: Promise<ConfigModel>[] = []
+  if (!isNotEmpty(config.jwtSecret)) {
     const jwtSecret = randomString(32)
-    runtimeUpdates.push(upsertConfig(RuntimeConfigKey.JWT_SECRET, ConfigModule.RUNTIME, jwtSecret))
-    runtimeConfig.jwtSecret = jwtSecret
+    updates.push(updateRuntimeConfigValue(ConfigKeyRuntime.JWT_SECRET, jwtSecret))
+    config.jwtSecret = jwtSecret
   }
-  if (!isNotEmpty(runtimeConfig.openApiToken)) {
+  if (!isNotEmpty(config.openApiToken)) {
     const openApiToken = randomString(32)
-    runtimeUpdates.push(upsertConfig(RuntimeConfigKey.OPEN_API_TOKEN, ConfigModule.RUNTIME, openApiToken))
-    runtimeConfig.openApiToken = openApiToken
+    updates.push(updateRuntimeConfigValue(ConfigKeyRuntime.OPEN_API_TOKEN, openApiToken))
+    config.openApiToken = openApiToken
   }
-  if (runtimeUpdates.length > 0) {
-    await Promise.all(runtimeUpdates)
+  if (updates.length > 0) {
+    await Promise.all(updates)
   }
+}
 
+/**
+ * 初始化应用配置
+ *
+ * @description 清理无效的 module 和 key，初始化所有必需配置，返回完整配置对象
+ */
+export async function initConfig() {
+  // 清理无效和重复配置
+  await cleanInvalidConfigs()
   // 初始化用户配置
-  const userConfig = await getUserConfig()
-  const userUpdates: Promise<ConfigRecord>[] = []
-  if (!isNotEmpty(userConfig.username)) {
-    const username = DEFAULT_CONFIG_VALUES[ConfigModule.USER][UserConfigKey.USERNAME]
-    userUpdates.push(upsertConfig(UserConfigKey.USERNAME, ConfigModule.USER, username))
-    userConfig.username = username
-  }
-  if (!isNotEmpty(userConfig.password)) {
-    const password = DEFAULT_CONFIG_VALUES[ConfigModule.USER][UserConfigKey.PASSWORD]
-    userUpdates.push(upsertConfig(UserConfigKey.PASSWORD, ConfigModule.USER, password))
-    userConfig.password = password
-  }
-  if (userUpdates.length > 0) {
-    await Promise.all(userUpdates)
-  }
-
-  return {
-    runtime: runtimeConfig,
-    user: userConfig,
-  }
+  await initUserConfig()
+  // 初始化运行时配置
+  await initRuntimeConfig()
+  // 重新查询并返回完整配置对象
+  logger.log('初始化应用配置完成')
+  return await getFullConfig()
 }
