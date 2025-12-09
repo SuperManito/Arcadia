@@ -115,7 +115,8 @@ export async function enableTOTP() {
  * 禁用 TOTP
  */
 export async function disableTOTP() {
-  return await updateUserConfigValue(ConfigKeyUser.TOTP_ENABLED, 'false')
+  await updateUserConfigValue(ConfigKeyUser.TOTP_ENABLED, 'false')
+  await updateUserConfigValue(ConfigKeyUser.TOTP_SECRET, '')
 }
 
 /**

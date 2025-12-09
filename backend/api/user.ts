@@ -323,9 +323,13 @@ apiInner.post('/resetPwd', async (_request, response) => {
     }
     // 重置为默认用户名和密码
     await saveUserCredentials(data)
+    logger.info('用户名和密码已重置为默认值')
+
     // 重置 OpenAPI Token
     await updateRuntimeConfigValue(ConfigKeyRuntime.OPEN_API_TOKEN, randomString(32))
-    logger.info('用户名和密码已重置为默认值')
+    // 关闭 2FA
+    await disableTOTP()
+
     response.send(API_STATUS_CODE.okData(data))
   }
   catch (e: any) {
