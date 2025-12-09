@@ -106,9 +106,6 @@ async function completeLogin(username: string, password: string, request: Reques
     await updateUserConfigValue(ConfigKeyUser.PASSWORD, newPassword)
   }
 
-  // 清空错误次数
-  await clearAuthError()
-
   // 记录本次登录信息
   await ip2Address(getClientIP(request)).then(async ({ ip, address }) => {
     await updateLoginInfo({
@@ -168,6 +165,9 @@ api.post('/auth', async (request, response) => {
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData(credentialsCheck.message, responseData))
   }
+
+  // 清空错误次数
+  await clearAuthError()
 
   // 检查是否启用了 2FA
   const totpEnabled = await isTOTPEnabled()
@@ -248,6 +248,8 @@ api.post('/auth/twoFactor', async (request, response) => {
     return response.send(API_STATUS_CODE.failData('动态验证码错误', responseData))
   }
 
+  // 清空错误次数
+  await clearAuthError()
   // 所有验证通过，完成登录
   const result = await completeLogin(username, password, request)
   responseData.token = result.token
