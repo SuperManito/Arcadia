@@ -244,11 +244,6 @@ async function initRuntimeConfig() {
     updates.push(updateRuntimeConfigValue(ConfigKeyRuntime.JWT_SECRET, jwtSecret))
     config.jwtSecret = jwtSecret
   }
-  if (!isNotEmpty(config.openApiToken)) {
-    const openApiToken = randomString(32)
-    updates.push(updateRuntimeConfigValue(ConfigKeyRuntime.OPEN_API_TOKEN, openApiToken))
-    config.openApiToken = openApiToken
-  }
   if (updates.length > 0) {
     await Promise.all(updates)
   }

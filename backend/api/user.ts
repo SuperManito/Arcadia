@@ -4,7 +4,7 @@ import { API_STATUS_CODE, getClientIP, ip2Address } from '../http'
 import { logger } from '../logger'
 import jwt from 'jsonwebtoken'
 import { dateToString, randomString } from '../utils'
-import { getRuntimeConfigValue, getUserModuleConfig, updateRuntimeConfigValue, updateUserConfigValue } from '../config'
+import { getRuntimeConfigValue, getUserModuleConfig, updateUserConfigValue } from '../config'
 import {
   clearAuthError,
   saveUserCredentials,
@@ -273,9 +273,8 @@ api.post('/changePwd', async (request, response) => {
   const password = request.body.password
   if (username && password) {
     await saveUserCredentials({ username, password })
-    await updateRuntimeConfigValue(ConfigKeyRuntime.OPEN_API_TOKEN, randomString(32))
 
-    logger.info('用户更改了认证信息，令牌已重置')
+    logger.info('用户更改了认证信息')
     response.send(API_STATUS_CODE.ok('修改成功！'))
   }
   else {
@@ -296,12 +295,10 @@ api.get('/logout', (_request, response) => {
 apiInner.get('/info', async (_request, response) => {
   try {
     const userConfig = await getUserModuleConfig()
-    const openApiToken = await getRuntimeConfigValue(ConfigKeyRuntime.OPEN_API_TOKEN)
 
     response.send(API_STATUS_CODE.okData({
       username: userConfig.username,
       password: userConfig.password,
-      openApiToken,
       lastLoginInfo: userConfig.lastLoginInfo || {},
       curLoginInfo: userConfig.curLoginInfo || {},
     }))
@@ -325,8 +322,6 @@ apiInner.post('/resetPwd', async (_request, response) => {
     await saveUserCredentials(data)
     logger.info('用户名和密码已重置为默认值')
 
-    // 重置 OpenAPI Token
-    await updateRuntimeConfigValue(ConfigKeyRuntime.OPEN_API_TOKEN, randomString(32))
     // 关闭 2FA
     await disableTOTP()
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-12-06
+## Modified: 2025-12-12
 
 ## 后端服务控制
 # service start/restart/stop/info/respwd
@@ -140,7 +140,6 @@ function service_manage() {
         local result="$(echo "${res}" | jq -rc '.result')"
         local username="$(echo "${result}" | jq -r ".username")"
         local password="$(echo "${result}" | jq -r ".password")"
-        local openApiToken="$(echo "${result}" | jq -r ".openApiToken")"
         local lastLoginIp="$(echo "${result}" | jq -r ".lastLoginInfo.loginIp")"
         local lastLoginAddress="$(echo "${result}" | jq -r ".lastLoginInfo.loginAddress")"
         local lastLoginTime="$(echo "${result}" | jq -r ".lastLoginInfo.loginTime")"
@@ -151,7 +150,6 @@ function service_manage() {
         echo ''
         echo "用户名 ${username}"
         echo "密码 ${password}"
-        echo "OpenAPI令牌 ${openApiToken}"
         echo "最近登录"
         [ -n "${lastLoginIp}" ] && echo "  I P 地址 ${lastLoginIp}"
         [ -n "${lastLoginAddress}" ] && echo "  地理位置 ${lastLoginAddress}"

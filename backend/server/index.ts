@@ -18,6 +18,7 @@ import { API as ApiMessage, OpenAPI as OpenApiMessage } from '../api/message'
 import { API as ApiMain } from '../api/main'
 import { API as ApiUser, InnerAPI as InnerApiUser } from '../api/user'
 import { API as ApiCommon } from '../api/common'
+import { API as ApiOpenApi } from '../api/token'
 
 function getToken(req: Request) {
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
@@ -209,6 +210,7 @@ export function registerApp(apiAuthentication: RequestHandler, jwtSecret: string
   apiRouter.use('/cron', ApiCron)
   apiRouter.use('/message', ApiMessage)
   apiRouter.use('/common', ApiCommon)
+  apiRouter.use('/token', ApiOpenApi)
   app.use('/api', apiAuthentication, handleAuthenticationError, apiRouter)
 
   /**

@@ -3,10 +3,8 @@ import type { Express, Request, RequestHandler } from 'express'
 import { API_STATUS_CODE } from '../http'
 import { logger } from '../logger'
 import fs from 'node:fs'
-import { isNotEmpty } from '../utils'
-import { getRuntimeConfigValue } from '../config'
 import { APP_FILE_PATH } from '../type'
-import { ConfigKeyRuntime } from '../type/config'
+import { verifyToken } from '../openApi'
 const api: Express = express()
 
 // 加载用户自定义接口
@@ -41,15 +39,11 @@ async function tokenChecker(req: Request) {
     if (!token || token === '') {
       token = req.query['api-token'] as string
     }
-    if (!token) {
+    if (!token || typeof token !== 'string') {
       return API_STATUS_CODE.OPEN_API.NO_AUTH
     }
-    // 后面得引入缓存
-    const openApiToken = await getRuntimeConfigValue(ConfigKeyRuntime.OPEN_API_TOKEN)
-    if (!isNotEmpty(openApiToken)) {
-      return API_STATUS_CODE.OPEN_API.AUTH_FAIL
-    }
-    if (token === openApiToken) {
+    const record = await verifyToken(token)
+    if (record) {
       return null // 认证通过
     }
   }

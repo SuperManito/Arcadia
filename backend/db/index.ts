@@ -6,6 +6,7 @@ import type {
   envs as Envs,
   envs_group as EnvsGroup,
   message as Message,
+  open_api_access_key as OpenApiAccessKey,
   task_core as TaskCore,
   tasks as Tasks,
 } from '@prisma/client'
@@ -16,6 +17,7 @@ import type {
   EnvsGroupSimpleResult,
   EnvsModel,
   MessageModel,
+  OpenApiAccessKeyModel,
   PageParams,
   PageResult,
   PaginateResult,
@@ -316,6 +318,7 @@ export type {
   EnvsGroupResult,
   EnvsGroupSimpleResult,
   Message,
+  OpenApiAccessKey,
   PageResult,
   TaskCore,
   Tasks,
@@ -327,6 +330,7 @@ export interface WhereInput {
   envs: Prisma.envsWhereInput
   envs_group: Prisma.envs_groupWhereInput
   message: Prisma.messageWhereInput
+  open_api_access_key: Prisma.open_api_access_keyWhereInput
   task_core: Prisma.task_coreWhereInput
   tasks: Prisma.tasksWhereInput
 }
@@ -339,3 +343,4 @@ export const envs = customPrisma.envs as unknown as EnvsModel
 export const envs_group = customPrisma.envs_group as unknown as EnvsGroupModel
 export const task_core = customPrisma.task_core as unknown as TaskCoreModel
 export const message = customPrisma.message as unknown as MessageModel
+export const open_api_access_key = customPrisma.open_api_access_key as unknown as OpenApiAccessKeyModel

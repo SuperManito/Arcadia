@@ -4,6 +4,7 @@ import { initCronJob } from './cron'
 import { initSocketServer, socketCommon } from './socket'
 import { createApiAuthentication, registerApp } from './server'
 import { initConfig } from './config'
+import { initTokenCache as initOpenApiAccessKeyCache } from './openApi'
 
 async function startServer() {
   // 初始化文件系统
@@ -11,6 +12,9 @@ async function startServer() {
 
   // 初始化定时任务
   initCronJob()
+
+  // 初始化 OpenAPI 访问令牌缓存
+  await initOpenApiAccessKeyCache()
 
   // 初始化配置
   const { runtime: runtimeConfig } = await initConfig()

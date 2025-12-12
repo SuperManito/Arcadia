@@ -26,7 +26,6 @@ export enum ConfigKeyUser {
  */
 export enum ConfigKeyRuntime {
   JWT_SECRET = 'jwtSecret',
-  OPEN_API_TOKEN = 'openApiToken',
 }
 
 /**
@@ -64,7 +63,6 @@ export interface ConfigDataUser {
 }
 export interface ConfigDataRuntime {
   jwtSecret: string
-  openApiToken: string
 }
 export interface ConfigData {
   [ConfigModule.RUNTIME]: ConfigDataRuntime
@@ -87,7 +85,6 @@ export const DEFAULT_USER_CONFIG_VALUES: Record<ConfigKeyUser, string> = {
 }
 export const DEFAULT_RUNTIME_CONFIG_VALUES: Record<ConfigKeyRuntime, string> = {
   [ConfigKeyRuntime.JWT_SECRET]: '',
-  [ConfigKeyRuntime.OPEN_API_TOKEN]: '',
 }
 export const DEFAULT_CONFIG_VALUES: {
   [ConfigModule.RUNTIME]: Record<ConfigKeyRuntime, string>

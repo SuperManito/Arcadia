@@ -96,3 +96,16 @@ model message {
   @@index([source])
   @@index([category])
 }
+
+model open_api_access_key {
+  id          Int       @id @default(autoincrement())
+  name        String    @default("")
+  value       String
+  expire_time DateTime?
+  enable      Int       @default(1)
+  create_time DateTime  @default(now())
+  update_time DateTime  @default(now()) @updatedAt
+
+  @@index([value, enable])
+  @@index([enable])
+}

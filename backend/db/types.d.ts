@@ -1,4 +1,14 @@
-import type { config as Config, envs as Envs, envs_group as EnvsGroup, message as Message, Prisma, PrismaClient, task_core as TaskCore, tasks as Tasks } from '@prisma/client'
+import type {
+  config as Config,
+  envs as Envs,
+  envs_group as EnvsGroup,
+  message as Message,
+  open_api_access_key as OpenApiAccessToken,
+  Prisma,
+  PrismaClient,
+  task_core as TaskCore,
+  tasks as Tasks,
+} from '@prisma/client'
 
 declare global {
   interface BigInt {
@@ -117,3 +127,4 @@ export type EnvsModel = PrismaClient['envs'] & ExtendedMethods<'envs', Envs>
 export type EnvsGroupModel = PrismaClient['envs_group'] & ExtendedMethods<'envs_group', EnvsGroup>
 export type TaskCoreModel = PrismaClient['task_core'] & ExtendedMethods<'task_core', TaskCore>
 export type MessageModel = PrismaClient['message'] & ExtendedMethods<'message', Message>
+export type OpenApiAccessKeyModel = PrismaClient['open_api_access_key'] & ExtendedMethods<'open_api_access_key', OpenApiAccessToken>
