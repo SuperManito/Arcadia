@@ -22,8 +22,8 @@ api.post('/', async (request: Request, response: Response) => {
     })
     response.send(API_STATUS_CODE.okData(token))
   }
-  catch (error: any) {
-    response.send(API_STATUS_CODE.fail(error.message || '创建失败'))
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || '创建失败'))
   }
 })
 
@@ -35,8 +35,8 @@ api.get('/', async (_request: Request, response: Response) => {
     const tokens = await listTokens()
     response.send(API_STATUS_CODE.okData(tokens))
   }
-  catch (error: any) {
-    response.send(API_STATUS_CODE.fail(error.message || '获取列表失败'))
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || '获取列表失败'))
   }
 })
 
@@ -49,15 +49,21 @@ api.put('/', async (request: Request, response: Response) => {
     if (!id || Number.isNaN(Number(id))) {
       return response.send(API_STATUS_CODE.fail('无效的 ID'))
     }
-    const token = await updateToken(Number(id), {
-      name: name?.trim(),
-      expire_time: expire_time ? new Date(expire_time) : null,
-      enable: enable === 0 ? 0 : 1,
-    })
+    const updateData: any = {}
+    if (name !== undefined) {
+      updateData.name = name.trim()
+    }
+    if (expire_time !== undefined) {
+      updateData.expire_time = expire_time ? new Date(expire_time) : null
+    }
+    if (enable !== undefined) {
+      updateData.enable = enable === 0 ? 0 : 1
+    }
+    const token = await updateToken(Number(id), updateData)
     response.send(API_STATUS_CODE.okData(token))
   }
-  catch (error: any) {
-    response.send(API_STATUS_CODE.fail(error.message || '更新失败'))
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || '更新失败'))
   }
 })
 
@@ -71,10 +77,10 @@ api.delete('/', async (request: Request, response: Response) => {
       return response.send(API_STATUS_CODE.fail('无效的 ID'))
     }
     await deleteToken(Number(id))
-    response.send(API_STATUS_CODE.ok('删除成功'))
+    response.send(API_STATUS_CODE.ok())
   }
-  catch (error: any) {
-    response.send(API_STATUS_CODE.fail(error.message || '删除失败'))
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || '删除失败'))
   }
 })
 
