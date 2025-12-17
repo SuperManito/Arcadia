@@ -6,7 +6,7 @@
     "node": ">=18.0"
   },
   "scripts": {
-    "server": "echo 'y' | prisma db push --accept-data-loss > ./prisma_push.log && tsx index",
+    "server": "prisma generate && echo 'y' | prisma db push --accept-data-loss > ./prisma_push.log && tsx index",
     "build": "tsc",
     "tsc": "tsc --noEmit",
     "lint": "eslint .",

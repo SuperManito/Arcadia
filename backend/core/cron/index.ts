@@ -6,6 +6,8 @@ import { APP_ROOT_DIR } from '../type'
 import { logger } from '../../utils/logger'
 import { execShell } from '../../utils/cmdUtil'
 import type { TaskInstance } from './type'
+import { socketCommon } from '../../server/socket'
+import { taskEvents } from '../../server/events'
 
 export const runningTasks: { [key: string]: tasksModel } = {} // 正在运行的任务信息
 const runningInstance: { [key: string]: ChildProcess | undefined } = {} // 正在运行的任务实例（child_process）
@@ -146,6 +148,18 @@ async function onCronMain(taskId: number) {
  */
 function runCronTaskShell(task: tasksModel) {
   const date = new Date()
+
+  // 触发任务启动事件
+  taskEvents.emit('task:started', task)
+
+  // 推送到客户端
+  socketCommon.emit('task:started', {
+    taskId: task.id,
+    taskName: task.name,
+    taskType: task.type,
+    startTime: Date.now(),
+  })
+
   return execShell(task.shell, {
     callback: (error, stdout, _stderr) => {
       // 任务回调
@@ -153,9 +167,30 @@ function runCronTaskShell(task: tasksModel) {
         logger.warn(`定时任务 "${task.shell}" 执行异常`, error.toString().substring(stdout.length - 1000))
       }
     },
-    onExit: (_code) => {
+    onExit: (code) => {
       // logger.log(`定时任务 ${taskId} 运行完毕`)
-      const data = { last_runtime: date, last_run_use: (new Date().getTime() - date.getTime()) / 1000 }
+      const duration = (new Date().getTime() - date.getTime()) / 1000
+      const data = { last_runtime: date, last_run_use: duration }
+      const success = code === 0 || code === null
+
+      // 触发任务完成事件（用于仪表板统计）
+      taskEvents.emit('task:completed', {
+        taskId: task.id,
+        duration,
+        success,
+        task,
+      })
+
+      // 推送到客户端
+      socketCommon.emit('task:completed', {
+        taskId: task.id,
+        taskName: task.name,
+        taskType: task.type,
+        duration,
+        success,
+        completedTime: Date.now(),
+      })
+
       let allow_concurrency = false // 是否允许并发
       if (task.config) {
         try {

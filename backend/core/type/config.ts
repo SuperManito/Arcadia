@@ -19,6 +19,7 @@ export enum ConfigKeyUser {
   CUR_LOGIN_INFO = 'curLoginInfo',
   TOTP_SECRET = 'totpSecret',
   TOTP_ENABLED = 'totpEnabled',
+  CRON_TASK_HISTORY_DAYS = 'cronTaskHistoryDays',
 }
 
 /**
@@ -60,6 +61,7 @@ export interface ConfigDataUser {
   curLoginInfo?: UserLoginInfo // 当前登录信息
   totpSecret: string // TOTP 密钥（Base32 编码）
   totpEnabled: boolean // 是否启用双重认证
+  cronTaskHistoryDays: number // 仪表板数据保留天数
 }
 export interface ConfigDataRuntime {
   jwtSecret: string
@@ -82,6 +84,7 @@ export const DEFAULT_USER_CONFIG_VALUES: Record<ConfigKeyUser, string> = {
   [ConfigKeyUser.CUR_LOGIN_INFO]: '{}',
   [ConfigKeyUser.TOTP_SECRET]: '',
   [ConfigKeyUser.TOTP_ENABLED]: 'false',
+  [ConfigKeyUser.CRON_TASK_HISTORY_DAYS]: '7',
 }
 export const DEFAULT_RUNTIME_CONFIG_VALUES: Record<ConfigKeyRuntime, string> = {
   [ConfigKeyRuntime.JWT_SECRET]: '',

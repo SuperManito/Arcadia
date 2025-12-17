@@ -1,6 +1,6 @@
 generator client {
   provider   = "prisma-client"
-  output     = "../generated/"
+  output     = "../../../node_modules/generated/prisma"
   engineType = "client"
 }
 

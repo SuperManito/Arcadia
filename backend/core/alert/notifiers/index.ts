@@ -1,8 +1,6 @@
 import { sendWebNotification } from './web'
 import { sendWechatNotification } from './wechat'
 import { sendDingtalkNotification } from './dingtalk'
-import { sendEmailNotification } from './email'
-import { sendSmsNotification } from './sms'
 import { sendBarkNotification } from './bark'
 import { sendPushplusNotification } from './pushplus'
 import { sendServerchanNotification } from './serverchan'
@@ -17,8 +15,6 @@ export const notifierRegistry: Record<string, (msg: messageModel, notification: 
   web: sendWebNotification,
   wechat: sendWechatNotification,
   dingtalk: sendDingtalkNotification,
-  email: sendEmailNotification,
-  sms: sendSmsNotification,
   bark: sendBarkNotification,
   pushplus: sendPushplusNotification,
   serverchan: sendServerchanNotification,

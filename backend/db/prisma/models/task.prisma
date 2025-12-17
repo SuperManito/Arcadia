@@ -20,3 +20,18 @@ model tasks {
   remark       String    @default("")
   bind         String    @default("")
 }
+
+model tasksExecutionStats {
+  id             Int      @id @default(autoincrement())
+  task_id        Int
+  task_name      String
+  task_type      String
+  exec_timestamp BigInt
+  duration       Int
+  success        Int
+  create_time    DateTime @default(now())
+
+  @@index([task_id, exec_timestamp])
+  @@index([exec_timestamp])
+  @@index([task_type, exec_timestamp])
+}

@@ -1,7 +1,6 @@
 import { CronJob, validateCronExpression as cronValidateCronExpression } from 'cron'
 import type { TaskInstance } from './type'
-
-const CronTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai'
+import { APP_TIMEZONE } from '../type'
 
 const id2Task: { [key: string]: TaskInstance } = {}
 
@@ -29,7 +28,7 @@ export function setTask(id: string, cron: string, callback: () => void) {
     },
     null, // onComplete
     true, // start
-    CronTimeZone, // timeZone
+    APP_TIMEZONE, // timeZone
   )
   cronTaskInstance.job.start() // 二次启用（保险）
 }

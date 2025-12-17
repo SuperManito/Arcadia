@@ -1,6 +1,6 @@
 import { prisma } from './prisma/db'
-import type { envsGroupModel } from './prisma/generated/models/envsGroup'
-import type { envsModel } from './prisma/generated/models/envs'
+import type { envsGroupModel } from 'generated/prisma/models/envsGroup'
+import type { envsModel } from 'generated/prisma/models/envs'
 
 export type * from './prisma/db'
 

@@ -5,6 +5,7 @@ import { initSocketServer, socketCommon } from './server/socket'
 import { createApiAuthentication, registerApp } from './server/httpServer'
 import { initConfig } from './core/config'
 import { initTokenCache as initOpenApiAccessKeyCache } from './api/openApi'
+import { initDashboardMonitor } from './core/cron/dashboard'
 
 async function startServer() {
   // 初始化文件系统
@@ -12,6 +13,9 @@ async function startServer() {
 
   // 初始化定时任务
   initCronJob()
+
+  // 初始化仪表板监控系统
+  initDashboardMonitor()
 
   // 初始化 OpenAPI 访问令牌缓存
   await initOpenApiAccessKeyCache()

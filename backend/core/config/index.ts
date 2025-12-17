@@ -123,6 +123,7 @@ export async function getUserModuleConfig() {
     switch (key) {
       case ConfigKeyUser.AUTH_ERROR_COUNT:
       case ConfigKeyUser.AUTH_ERROR_TIME:
+      case ConfigKeyUser.CRON_TASK_HISTORY_DAYS:
         result[key] = Number(value)
         break
       case ConfigKeyUser.LAST_LOGIN_INFO:

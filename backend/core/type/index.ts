@@ -54,3 +54,6 @@ export enum APP_FILE_TYPES {
   FOLDER = 'folder',
   FILE = 'file',
 }
+
+// 系统默认时区
+export const APP_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai'

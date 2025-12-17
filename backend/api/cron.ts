@@ -10,7 +10,7 @@ import type { CodeFileResolveResult } from '../server/fileCore'
 import { codeFileResolve } from '../server/fileCore'
 import { APP_DIR_PATH, APP_DIR_TYPE } from '../core/type'
 import type { ValidateObjectParamType } from '../utils'
-import { cleanProperties, validateObject, validatePageParams, validateParams } from '../utils'
+import { cleanProperties, getDateStr, validateObject, validatePageParams, validateParams } from '../utils'
 
 const api: Express = express()
 const apiOpen: Express = express()
@@ -786,6 +786,38 @@ apiInner.post('/updateAll', async (request, response) => {
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
     logger.error('批量更新定时任务失败', e)
+  }
+})
+
+/**
+ * 获取仪表板完整数据
+ */
+api.get('/dashboard', async (request, response) => {
+  try {
+    const { getDashboardData } = await import('../core/cron/query')
+
+    const taskType = (request.query.taskType as string) || 'all'
+    const date = (request.query.date as string) || getDateStr(new Date())
+
+    // 验证任务类型
+    if (!['all', 'system', 'user'].includes(taskType)) {
+      return response.send(API_STATUS_CODE.fail('invalid taskType'))
+    }
+
+    // 验证日期格式 (YYYY-MM-DD)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return response.send(API_STATUS_CODE.fail('invalid date format, expected YYYY-MM-DD'))
+    }
+
+    const data = await getDashboardData(
+      taskType as 'all' | 'system' | 'user',
+      date,
+    )
+    response.send(API_STATUS_CODE.okData(data))
+  }
+  catch (e: any) {
+    logger.error('[定时任务监控 API] 获取数据异常', e)
+    response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
 
