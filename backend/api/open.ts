@@ -1,10 +1,11 @@
-import express from 'express'
 import type { Express, Request, RequestHandler } from 'express'
-import { API_STATUS_CODE } from '../http'
-import { logger } from '../logger'
+import express from 'express'
+import { API_STATUS_CODE } from '../utils/httpUtil'
+import { logger } from '../utils/logger'
 import fs from 'node:fs'
-import { APP_FILE_PATH } from '../type'
-import { verifyToken } from '../openApi'
+import { APP_FILE_PATH } from '../core/type'
+import { verifyToken } from './openApi'
+
 const api: Express = express()
 
 // 加载用户自定义接口

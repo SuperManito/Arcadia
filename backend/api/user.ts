@@ -1,16 +1,11 @@
 import type { Express, Request } from 'express'
 import express from 'express'
-import { API_STATUS_CODE, getClientIP, ip2Address } from '../http'
-import { logger } from '../logger'
+import { API_STATUS_CODE, getClientIP, ip2Address } from '../utils/httpUtil'
+import { logger } from '../utils/logger'
 import jwt from 'jsonwebtoken'
 import { dateToString, randomString } from '../utils'
-import { getRuntimeConfigValue, getUserModuleConfig, updateUserConfigValue } from '../config'
-import {
-  clearAuthError,
-  saveUserCredentials,
-  updateAuthError,
-  updateLoginInfo,
-} from '../config/user'
+import { getRuntimeConfigValue, getUserModuleConfig, updateUserConfigValue } from '../core/config'
+import { clearAuthError, saveUserCredentials, updateAuthError, updateLoginInfo } from '../core/config/user'
 import {
   disableTOTP,
   enableTOTP,
@@ -19,8 +14,9 @@ import {
   isTOTPEnabled,
   saveTOTPSecret,
   verifyTOTPCode,
-} from '../config/totp'
-import { ConfigKeyRuntime, ConfigKeyUser, ConfigModule, DEFAULT_CONFIG_VALUES } from '../type/config'
+} from '../core/config/totp'
+import { ConfigKeyRuntime, ConfigKeyUser, ConfigModule, DEFAULT_CONFIG_VALUES } from '../core/type/config'
+
 const api: Express = express()
 const apiInner: Express = express()
 

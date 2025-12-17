@@ -1,10 +1,17 @@
 import type { Express } from 'express'
 import express from 'express'
-import { API_STATUS_CODE } from '../http'
-import { logger } from '../logger'
-import type { Envs, EnvsGroup, EnvsGroupResult, EnvsGroupSimpleResult, PageResult, WhereInput } from '../db'
-import db, { envs as dbEnvs, envs_group as dbEnvsGroup } from '../db'
-import { generateEnvSh } from '../env/generate'
+import { API_STATUS_CODE } from '../utils/httpUtil'
+import { logger } from '../utils/logger'
+import type {
+  ComboEnvsGroupModel,
+  envsGroupModel,
+  envsGroupWhereInput,
+  envsModel,
+  envsWhereInput,
+  PageResult,
+} from '../db'
+import db from '../db'
+import { generateEnvSh } from '../utils/envUtil'
 import type { ValidateObjectParamType } from '../utils'
 import { cleanProperties, validateObject, validatePageParams, validateParams } from '../utils'
 
@@ -16,7 +23,7 @@ enum EnvTypes {
   COMPOSITE = 'composite',
   COMPOSITE_VALUE = 'composite_value',
 }
-type TypeQueryResult = Envs | EnvsGroup | EnvsGroupSimpleResult
+
 type TypeCategory = EnvTypes
 
 // 数据更新回调
@@ -34,7 +41,7 @@ async function onChange(isItem?: boolean) {
     await fixItemOrder()
   }
   // 生成本地 env.sh
-  const env_groups: EnvsGroupResult[] = await dbEnvsGroup.$list(
+  const env_groups: ComboEnvsGroupModel[] = await db.envsGroup.$list(
     {
       id: { not: 0 },
     },
@@ -46,8 +53,8 @@ async function onChange(isItem?: boolean) {
         envs: true,
       },
     },
-  ) as unknown as EnvsGroupResult[]
-  const envs: Envs[] = await dbEnvs.$list({
+  )
+  const envs: envsModel[] = await db.envs.$list({
     group_id: 0,
   })
   generateEnvSh(env_groups, envs)
@@ -55,7 +62,7 @@ async function onChange(isItem?: boolean) {
 
 // 初始化
 ;(async function init() {
-  await dbEnvsGroup.$upsertById({
+  await db.envsGroup.$upsertById({
     id: 0,
     type: '_SPECIAL_',
     enable: 0,
@@ -66,14 +73,11 @@ async function onChange(isItem?: boolean) {
 
 api.get('/page', async (request, response) => {
   try {
-    const enable = request.query.enable ? (request.query.enable as string).split(',') : []
-    const where: WhereInput['envs_group'] = {}
-    const or: WhereInput['envs_group']['OR'] = []
+    const enable = request.query.enable ? (request.query.enable as string).split(',')[0] : '0'
+    const where: envsGroupWhereInput = {}
     // 启用/禁用状态过滤
-    if (enable.length > 0) {
-      enable.forEach((enable) => {
-        or.push({ enable: { equals: Number.parseInt(enable) } })
-      })
+    if (enable) {
+      where.enable = Number.parseInt(enable)
     }
     // 过滤掉特殊记录
     where.id = { not: 0 }
@@ -81,13 +85,10 @@ api.get('/page', async (request, response) => {
     if (request.query.search) {
       where.AND = {
         OR: [
-          { type: { contains: request.query.search as string } },
-          { description: { contains: request.query.search as string } },
+          { type: { contains: String(request.query.search) } },
+          { description: { contains: String(request.query.search) } },
         ],
       }
-    }
-    if (or.length > 0) {
-      where.OR = or
     }
     // 排序
     const orderBy = request.query.orderBy as string || 'sort'
@@ -95,20 +96,15 @@ api.get('/page', async (request, response) => {
     if (request.query.order === '0') {
       desc = false // 0 升序，1 降序
     }
-    const result = await dbEnvsGroup.$page({
+    const result = await db.envsGroup.$page({
       where,
-      page: request.query.page as string,
-      size: request.query.size as string,
+      page: String(request.query.page),
+      size: String(request.query.size),
       orderBy: { [orderBy]: (desc ? 'desc' : 'asc') },
       include: {
         envs: true,
       },
     })
-    // 替换关联数据为它的长度
-    result.data = result.data.map((item: EnvsGroupResult) => ({
-      ...item,
-      envs: item.envs.length,
-    }))
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
@@ -118,14 +114,11 @@ api.get('/page', async (request, response) => {
 
 api.get('/pageItem', async (request, response) => {
   try {
-    const enable = request.query.enable ? (request.query.enable as string).split(',') : []
-    const where: WhereInput['envs'] = {}
-    const or: WhereInput['envs']['OR'] = []
+    const where: envsWhereInput = {}
+    const enable = request.query.enable ? (request.query.enable as string).split(',')[0] : '0'
     // 启用/禁用状态过滤
-    if (enable.length > 0) {
-      enable.forEach((enable) => {
-        or.push({ enable: { equals: Number.parseInt(enable) } })
-      })
+    if (enable) {
+      where.enable = Number.parseInt(enable)
     }
     // 默认值
     if (request.query.group_id) {
@@ -147,16 +140,13 @@ api.get('/pageItem', async (request, response) => {
             ],
       }
     }
-    if (or.length > 0) {
-      where.OR = or
-    }
     // 排序
     const orderBy = request.query.orderBy as string || 'sort'
     let desc = true // desc 降序，asc 升序
     if (request.query.order === '0') {
       desc = false // 0 升序，1 降序
     }
-    response.send(API_STATUS_CODE.okData(await dbEnvs.$page({
+    response.send(API_STATUS_CODE.okData(await db.envs.$page({
       where,
       page: request.query.page as string,
       size: request.query.size as string,
@@ -171,13 +161,12 @@ api.get('/pageItem', async (request, response) => {
 apiOpen.get('/v1/page', async (request, response) => {
   try {
     // 传参校验
-    validatePageParams(request, ['sort', 'update_time'])
+    validatePageParams(request, ['sort', 'updateTime'])
     validateParams(request, [
       ['query', 'category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
       ['query', 'enable', [false, ['1', '0']]],
     ])
-    const where: WhereInput['envs_group'] & WhereInput['envs'] = {}
-    const or: WhereInput['envs_group']['OR'] & WhereInput['envs']['OR'] = []
+    const where: envsGroupWhereInput & envsWhereInput = {}
     const category = request.query.category
     switch (category) {
       case EnvTypes.ORDINARY:
@@ -231,11 +220,10 @@ apiOpen.get('/v1/page', async (request, response) => {
         break
     }
     // 启用/禁用状态过滤
-    const enable = request.query.enable ? (request.query.enable as string).split(',') : []
-    if (enable.length > 0) {
-      enable.forEach((value) => {
-        or.push({ enable: { equals: Number.parseInt(value) } })
-      })
+    const enable = request.query.enable ? (request.query.enable as string).split(',')[0] : '0'
+    // 启用/禁用状态过滤
+    if (enable) {
+      where.enable = Number.parseInt(enable)
     }
     // 排序
     const orderBy = request.query.orderBy as string || 'sort'
@@ -243,12 +231,9 @@ apiOpen.get('/v1/page', async (request, response) => {
     if (request.query.order === '0') {
       desc = false // 0 升序，1 降序
     }
-    if (or.length > 0) {
-      where.OR = or
-    }
-    let result: PageResult<'envs'> | PageResult<'envs_group'>
+    let result: PageResult<(envsModel & envsGroupModel)>
     if (category === EnvTypes.COMPOSITE) {
-      result = await dbEnvsGroup.$page({
+      result = await db.envsGroup.$page({
         where,
         page: request.query.page as string,
         size: request.query.size as string,
@@ -257,14 +242,9 @@ apiOpen.get('/v1/page', async (request, response) => {
           envs: true,
         },
       })
-      // 替换关联数据为它的长度
-      result.data = result.data.map((item: EnvsGroupResult) => ({
-        ...item,
-        envs: item.envs.length,
-      }))
     }
     else {
-      result = await dbEnvs.$page({
+      result = await db.envs.$page({
         where,
         page: request.query.page as string,
         size: request.query.size as string,
@@ -291,9 +271,9 @@ apiOpen.get('/v1/query', async (request, response) => {
     if (!name && !type && !description) {
       throw new Error('至少需要提供 name、type、description 的其中一个参数')
     }
-    const result: TypeQueryResult[] = []
+    const result: (envsGroupModel | envsModel)[] = []
     // 构建查询条件
-    const queryConditions: WhereInput['envs_group']['AND'] & WhereInput['envs']['AND'] = []
+    const queryConditions: (envsWhereInput & envsGroupWhereInput)[] = []
     if (type) {
       queryConditions.push({ type: { contains: type as string } }) // 优先使用 type
     }
@@ -304,30 +284,21 @@ apiOpen.get('/v1/query', async (request, response) => {
       queryConditions.push({ description: { contains: description as string } })
     }
     // 查询 envs 表
-    const envs_result = await dbEnvs.$list({
+    const envs_result = await db.envs.$list({
       group_id: 0,
       AND: queryConditions,
     }) || []
     if (envs_result.length > 0) {
       result.push(...envs_result)
     }
-    // 查询 envs_group 表
-    const envs_group_result = await dbEnvsGroup.$list({
+    // 查询 envsGroup 表
+    const envsGroup_result = await db.envsGroup.$list({
       id: { not: 0 },
       AND: queryConditions,
     }, undefined, { include: { envs: true } }) || []
-    if (envs_group_result.length > 0) {
-      // 替换关联数据为它的长度
-      const format_data = envs_group_result.map((item: EnvsGroupResult | EnvsGroupSimpleResult) => {
-        if (Array.isArray(item?.envs)) {
-          item.envs = item.envs.length
-        }
-        return item
-      })
-      result.push(...format_data)
-    }
+    result.push(...envsGroup_result)
     // 二次过滤（注：SQLite 的 contains 操作符不区分大小写）
-    const filteredData = result.filter((item: TypeQueryResult) => {
+    const filteredData = result.filter((item: envsModel) => {
       const matchesName = name ? item.type.includes(name as string) : true
       const matchesDescription = description ? item.description.includes(description as string) : true
       return matchesName && matchesDescription
@@ -340,7 +311,7 @@ apiOpen.get('/v1/query', async (request, response) => {
       const datas = filteredData.map((data) => {
         let category: TypeCategory
         if (Object.keys(data).includes('group_id')) {
-          category = (data as Envs).group_id === 0 ? EnvTypes.ORDINARY : EnvTypes.COMPOSITE_VALUE
+          category = (data as envsModel).group_id === 0 ? EnvTypes.ORDINARY : EnvTypes.COMPOSITE_VALUE
         }
         else {
           category = EnvTypes.COMPOSITE
@@ -371,7 +342,7 @@ apiOpen.get('/v1/queryMember', async (request, response) => {
       throw new Error('至少需要提供 value、remark 的其中一个参数')
     }
     // 构建查询条件
-    const queryConditions: WhereInput['envs']['AND'] = []
+    const queryConditions: envsWhereInput[] = []
     if (value) {
       queryConditions.push({ value: { contains: value as string } })
     }
@@ -379,7 +350,7 @@ apiOpen.get('/v1/queryMember', async (request, response) => {
       queryConditions.push({ remark: { contains: remark as string } })
     }
     // 查询 envs 表
-    const result = await dbEnvs.$list({
+    const result = await db.envs.$list({
       group_id: Number.parseInt(id as string),
       AND: queryConditions,
     }) || []
@@ -402,19 +373,15 @@ apiOpen.get('/v1/queryById', async (request, response) => {
     if (!/^\d+$/.test(id as string) || Number.parseInt(id as string) <= 0) {
       throw new Error('参数 id 无效（参数值类型错误）')
     }
-    let record: Envs | EnvsGroup | EnvsGroupSimpleResult
+    let record: envsModel | (ComboEnvsGroupModel)
     if (category === EnvTypes.COMPOSITE) {
-      record = await dbEnvsGroup.$getById(id as (string | number)) as EnvsGroup
+      record = await db.envsGroup.$getById(String(id), undefined, { include: { envs: true } })
     }
     else {
-      record = await dbEnvs.$getById(id as (string | number)) as Envs
+      record = await db.envs.$getById(String(id))
     }
     if (!record) {
       throw new Error('变量不存在')
-    }
-    // 查询复合变量组的成员数量
-    if (category === EnvTypes.COMPOSITE) {
-      ;(record as EnvsGroupSimpleResult).envs = (await dbEnvs.$list({ group_id: record.id }) || []).length
     }
     response.send(API_STATUS_CODE.okData(record))
   }
@@ -433,7 +400,7 @@ api.post('/save', async (request, response) => {
     if (!env.sort) {
       env.sort = 99999
     }
-    await dbEnvsGroup.$upsertById(env)
+    await db.envsGroup.$upsertById(env)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -457,7 +424,7 @@ api.post('/saveItem', async (request, response) => {
     if (!env.sort) {
       env.sort = 99999
     }
-    await dbEnvs.$upsertById(env)
+    await db.envs.$upsertById(env)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -470,26 +437,20 @@ api.post('/saveItem', async (request, response) => {
 
 api.post('/create', async (request, response) => {
   try {
-    let data: EnvsGroup[]
+    let data: envsGroupModel[]
     if (Array.isArray(request.body)) {
       data = request.body.map((e: any) => Object.assign({}, e))
     }
     else {
       data = [Object.assign({}, request.body)]
     }
-    const formatData: EnvsGroup[] = []
+    const formatData: envsGroupModel[] = []
     for (const obj of data) {
       // 检查变量重名
       await checkVaribleExsit(obj.type)
       formatData.push(obj)
     }
-    let result: EnvsGroup | { count: number }
-    if (data.length === 1) {
-      result = await dbEnvsGroup.$create(formatData[0])
-    }
-    else {
-      result = await dbEnvsGroup.$createMany(formatData)
-    }
+    const result = await db.envsGroup.$create(formatData)
     response.send(API_STATUS_CODE.okData(result))
     await onChange(false)
   }
@@ -500,14 +461,14 @@ api.post('/create', async (request, response) => {
 
 api.post('/createItem', async (request, response) => {
   try {
-    let data: Envs[]
+    let data: envsModel[]
     if (Array.isArray(request.body)) {
       data = request.body.map((e: any) => Object.assign({}, e))
     }
     else {
       data = [Object.assign({}, request.body)]
     }
-    const formatData: Envs[] = []
+    const formatData: envsModel[] = []
     for (const obj of data) {
       // 检查变量重名
       if (obj.type) {
@@ -515,13 +476,7 @@ api.post('/createItem', async (request, response) => {
       }
       formatData.push(obj)
     }
-    let result: Envs | { count: number }
-    if (data.length === 1) {
-      result = await dbEnvs.$create(formatData[0])
-    }
-    else {
-      result = await dbEnvs.$createMany(formatData)
-    }
+    const result = await db.envs.$create(formatData)
     response.send(API_STATUS_CODE.okData(result))
     await onChange(true)
   }
@@ -539,7 +494,7 @@ apiOpen.post('/v1/create', async (request, response) => {
       ['body', 'compositeId', [false, 'number']],
       ['body', 'data', [true, 'object']],
     ])
-    let data: (Envs | EnvsGroup)[]
+    let data: (envsModel | ComboEnvsGroupModel)[]
     if (Array.isArray(request.body.data)) {
       data = request.body.data.map((e: any) => Object.assign({}, e))
     }
@@ -579,7 +534,7 @@ apiOpen.post('/v1/create', async (request, response) => {
         break
     }
     const fields = validateRules.map((rule) => rule[0])
-    const formatData: (Envs | EnvsGroup)[] = []
+    const formatData: (envsModel | ComboEnvsGroupModel)[] = []
     for (let obj of data) {
       // 属性校验
       validateObject(obj, validateRules)
@@ -591,30 +546,20 @@ apiOpen.post('/v1/create', async (request, response) => {
       }
       // 补齐参数
       if (category === EnvTypes.ORDINARY) {
-        (obj as Envs).group_id = 0
+        (obj as envsModel).group_id = 0
       }
       else if (category === EnvTypes.COMPOSITE_VALUE) {
-        (obj as Envs).group_id = compositeId
+        (obj as envsModel).group_id = compositeId
         obj.type = '' // 复合变量值的 type 为空
       }
       formatData.push(obj)
     }
-    let result: Envs | EnvsGroup | { count: number }
-    if (data.length === 1) {
-      if (category === EnvTypes.COMPOSITE) {
-        result = await dbEnvsGroup.$create(formatData[0])
-      }
-      else {
-        result = await dbEnvs.$create(formatData[0])
-      }
+    let result: (envsModel | ComboEnvsGroupModel)[]
+    if (category === EnvTypes.COMPOSITE) {
+      result = await db.envsGroup.$create(formatData as envsGroupModel[])
     }
     else {
-      if (category === EnvTypes.COMPOSITE) {
-        result = await dbEnvsGroup.$createMany(formatData)
-      }
-      else {
-        result = await dbEnvs.$createMany(formatData)
-      }
+      result = await db.envs.$create(formatData as envsModel[])
     }
     response.send(API_STATUS_CODE.okData(result))
     logger.info('[OpenAPI · Env]', '创建环境变量', JSON.stringify(data.length === 1 ? formatData[0] : formatData))
@@ -633,7 +578,7 @@ apiOpen.post('/v1/update', async (request, response) => {
       ['body', 'category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
       ['body', 'data', [true, 'object']],
     ])
-    let data: (Envs | EnvsGroup)[]
+    let data: (envsModel | ComboEnvsGroupModel)[]
     if (Array.isArray(request.body.data)) {
       data = request.body.data.map((e: any) => Object.assign({}, e))
     }
@@ -673,7 +618,7 @@ apiOpen.post('/v1/update', async (request, response) => {
     }
     const fields = validateRules.map((rule) => rule[0])
     const exist_group_ids: number[] = [] // 已存在的复合变量(组) id（临时）
-    const formatData: (Envs | EnvsGroup)[] = []
+    const formatData: (envsModel | ComboEnvsGroupModel)[] = []
     for (let obj of data) {
       // 属性校验
       validateObject(obj, validateRules)
@@ -684,23 +629,23 @@ apiOpen.post('/v1/update', async (request, response) => {
         if (obj.id <= 0) {
           throw new Error('参数 id 无效（参数值类型错误）')
         }
-        if ((obj as Envs).group_id <= 0) {
+        if ((obj as envsModel).group_id <= 0) {
           throw new Error('参数 group_id 无效（参数值类型错误）')
         }
         // 检查变量是否存在
-        const envsItems = await dbEnvs.$list({ id: obj.id }) || []
+        const envsItems = await db.envs.$list({ id: obj.id }) || []
         if (envsItems.length <= 0) {
           throw new Error(`参数 id 无效，复合变量的值 ${obj.id} 不存在`)
         }
         // 检查复合变量(组)是否存在（仅一次）
-        if (!exist_group_ids.includes((obj as Envs).group_id)) {
-          if (((await dbEnvsGroup.$list({
-            id: (obj as Envs).group_id,
+        if (!exist_group_ids.includes((obj as envsModel).group_id)) {
+          if (((await db.envsGroup.$list({
+            id: (obj as envsModel).group_id,
           })) || []).length > 0) {
             exist_group_ids.push(obj.id)
           }
           else {
-            throw new Error(`参数 group_id 无效，复合变量(组) ${(obj as Envs).group_id} 不存在`)
+            throw new Error(`参数 group_id 无效，复合变量(组) ${(obj as envsModel).group_id} 不存在`)
           }
         }
         // 补齐参数
@@ -712,16 +657,16 @@ apiOpen.post('/v1/update', async (request, response) => {
         }
         if (category === EnvTypes.ORDINARY) {
           // 检查变量是否存在
-          const envsItems = await dbEnvs.$list({ id: obj.id }) || []
+          const envsItems = await db.envs.$list({ id: obj.id }) || []
           if (envsItems.length <= 0) {
             throw new Error(`参数 id 无效，普通变量 ${obj.id} 不存在`)
           }
           // 补齐参数
-          (obj as Envs).group_id = 0
+          (obj as envsModel).group_id = 0
         }
         else if (category === EnvTypes.COMPOSITE) {
           // 检查变量是否存在
-          const envsGroupItems = await dbEnvsGroup.$list({ id: obj.id }) || []
+          const envsGroupItems = await db.envsGroup.$list({ id: obj.id }) || []
           if (envsGroupItems.length <= 0) {
             throw new Error(`参数 id 无效，复合变量(组) ${obj.id} 不存在`)
           }
@@ -729,14 +674,14 @@ apiOpen.post('/v1/update', async (request, response) => {
       }
       formatData.push(obj)
     }
-    const result: (Envs | EnvsGroup)[] = []
+    const result: (envsModel | ComboEnvsGroupModel)[] = []
     for (const item of formatData) {
-      let r: Envs | EnvsGroup
+      let r: (envsModel | ComboEnvsGroupModel)
       if (category === EnvTypes.COMPOSITE) {
-        r = await dbEnvsGroup.$upsertById(item as EnvsGroup)
+        r = await db.envsGroup.$upsertById(item as envsGroupModel)
       }
       else {
-        r = await dbEnvs.$upsertById(item as Envs)
+        r = await db.envs.$upsertById(item as envsModel)
       }
       result.push(r)
     }
@@ -760,12 +705,12 @@ api.put('/changeStatus', async (request, response) => {
     })
     const status = request.body.enable
     for (const id of ids) {
-      const record = await dbEnvsGroup.$getById(id)
+      const record = await db.envsGroup.$getById(id)
       if (!record) {
         throw new Error('变量不存在')
       }
       record.enable = status
-      await dbEnvsGroup.$upsertById(record)
+      await db.envsGroup.$upsertById(record)
     }
     response.send(API_STATUS_CODE.ok())
     await onChange(false)
@@ -786,12 +731,12 @@ api.put('/changeStatusItem', async (request, response) => {
     })
     const status = request.body.enable
     for (const id of ids) {
-      const record = await dbEnvs.$getById(id)
+      const record = await db.envs.$getById(id)
       if (!record) {
         throw new Error('变量不存在')
       }
       record.enable = status
-      await dbEnvs.$upsertById(record)
+      await db.envs.$upsertById(record)
     }
     response.send(API_STATUS_CODE.ok())
     await onChange(true)
@@ -819,22 +764,22 @@ apiOpen.post('/v1/changeStatus', async (request, response) => {
     const status = request.body.status as 0 | 1
     const isComposite = request.body.isComposite as boolean
     for (const id of ids) {
-      let record: Envs | EnvsGroup | null
+      let record: envsModel | ComboEnvsGroupModel | null
       if (isComposite) {
-        record = await dbEnvsGroup.$getById(id)
+        record = await db.envsGroup.$getById(id)
       }
       else {
-        record = await dbEnvs.$getById(id)
+        record = await db.envs.$getById(id)
       }
       if (!record) {
         throw new Error('变量不存在')
       }
       record.enable = status
       if (isComposite) {
-        await dbEnvsGroup.$upsertById(record)
+        await db.envsGroup.$upsertById(record as envsGroupModel)
       }
       else {
-        await dbEnvs.$upsertById(record)
+        await db.envs.$upsertById(record as envsModel)
       }
       logger.info('[OpenAPI · Env]', '更改环境变量状态', id, status === 1 ? '启用' : '禁用', record)
     }
@@ -859,8 +804,8 @@ api.delete('/delete', async (request, response) => {
         throw new Error('参数 id 无效（参数值类型错误）')
       }
     })
-    await dbEnvs.$deleteById(ids, 'group_id')
-    await dbEnvsGroup.$deleteById(ids)
+    await db.envs.$deleteById(ids, 'group_id')
+    await db.envsGroup.$deleteById(ids)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -884,7 +829,7 @@ api.delete('/deleteItem', async (request, response) => {
         throw new Error('参数 id 无效（参数值类型错误）')
       }
     })
-    await dbEnvs.$deleteById(ids)
+    await db.envs.$deleteById(ids)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -911,11 +856,11 @@ apiOpen.post('/v1/delete', async (request, response) => {
     })
     const isComposite = request.body.isComposite as boolean
     if (isComposite) {
-      await dbEnvs.$deleteById(ids, 'group_id')
-      await dbEnvsGroup.$deleteById(ids)
+      await db.envs.$deleteById(ids, 'group_id')
+      await db.envsGroup.$deleteById(ids)
     }
     else {
-      await dbEnvs.$deleteById(ids)
+      await db.envs.$deleteById(ids)
     }
     response.send(API_STATUS_CODE.ok())
     logger.info('[OpenAPI · Env]', '删除环境变量', ids.join(','))
@@ -944,7 +889,7 @@ api.put('/order', async (request, response) => {
     }
     // 移动到最后
     if (request.body.moveToEnd) {
-      const data = await dbEnvsGroup.$page({ where: { id: { not: 0 } }, orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
+      const data = await db.envsGroup.$page({ where: { id: { not: 0 } }, orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
       order = data.data[0]?.sort
       if (!order && order !== 0) {
         response.send(API_STATUS_CODE.fail('未找到最大排序值'))
@@ -975,7 +920,7 @@ api.put('/orderItem', async (request, response) => {
     }
     // 移动到最后
     if (request.body.moveToEnd) {
-      const data = await dbEnvs.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
+      const data = await db.envs.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
       order = data.data[0]?.sort
       if (!order && order !== 0) {
         response.send(API_STATUS_CODE.fail('未找到最大排序值'))
@@ -1013,14 +958,14 @@ apiOpen.post('/v1/order', async (request, response) => {
     }
     const isComposite = request.body.isComposite as boolean
     if (isComposite) {
-      const envsGroupRecord = await dbEnvsGroup.$getById(id)
+      const envsGroupRecord = await db.envsGroup.$getById(id)
       if (!envsGroupRecord) {
         response.send(API_STATUS_CODE.fail('变量不存在'))
         return
       }
       // 移动到最后
       if (request.body.moveToEnd) {
-        const data = await dbEnvsGroup.$page({ where: { id: { not: 0 } }, orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
+        const data = await db.envsGroup.$page({ where: { id: { not: 0 } }, orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
         order = data.data[0]?.sort
         if (!order && order !== 0) {
           response.send(API_STATUS_CODE.fail('未找到最大排序值'))
@@ -1030,14 +975,14 @@ apiOpen.post('/v1/order', async (request, response) => {
       response.send(API_STATUS_CODE.okData(await updateSortById(id, order)))
     }
     else {
-      const envsRecord = await dbEnvs.$getById(id)
+      const envsRecord = await db.envs.$getById(id)
       if (!envsRecord) {
         response.send(API_STATUS_CODE.fail('变量不存在'))
         return
       }
       // 移动到最后
       if (request.body.moveToEnd) {
-        const data = await dbEnvs.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
+        const data = await db.envs.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
         order = data.data[0]?.sort
         if (!order && order !== 0) {
           response.send(API_STATUS_CODE.fail('未找到最大排序值'))
@@ -1055,15 +1000,16 @@ apiOpen.post('/v1/order', async (request, response) => {
 
 async function fixOrder() {
   await db.$executeRaw`
-            UPDATE envs_group
-            SET sort = t.row_num
-            FROM (SELECT rowid, id, row_number() over ( order by sort) as row_num
-                  FROM envs_group WHERE id != 0) t
-            WHERE t.id = envs_group.id`
+      UPDATE envsGroup
+      SET sort = t.row_num
+      FROM (SELECT rowid, id, row_number() over ( order by sort) as row_num
+            FROM envsGroup
+            WHERE id != 0) t
+      WHERE t.id = envsGroup.id`
 }
 
 async function updateSortById(id: number, newOrder: number) {
-  const oldRecord = await dbEnvsGroup.$getById(id) as EnvsGroup
+  const oldRecord = await db.envsGroup.$getById(id) as ComboEnvsGroupModel
   if (newOrder === oldRecord.sort) {
     return true
   }
@@ -1073,16 +1019,20 @@ async function updateSortById(id: number, newOrder: number) {
 
   await db.$executeRaw`BEGIN TRANSACTION;`
   if (newOrder > oldRecord.sort) {
-    await db.$executeRaw`UPDATE envs_group
+    await db.$executeRaw`UPDATE envsGroup
                          SET sort = sort + ${args[2]}
-                         WHERE sort > ${oldRecord.sort} AND sort <= ${newOrder} AND id != 0`
+                         WHERE sort > ${oldRecord.sort}
+                           AND sort <= ${newOrder}
+                           AND id != 0`
   }
   if (newOrder < oldRecord.sort) {
-    await db.$executeRaw`UPDATE envs_group
+    await db.$executeRaw`UPDATE envsGroup
                          SET sort = sort + ${args[2]}
-                         WHERE sort >= ${newOrder} AND sort < ${oldRecord.sort} AND id != 0`
+                         WHERE sort >= ${newOrder}
+                           AND sort < ${oldRecord.sort}
+                           AND id != 0`
   }
-  await db.$executeRaw`UPDATE envs_group
+  await db.$executeRaw`UPDATE envsGroup
                        SET sort = ${newOrder}
                        WHERE id = ${id}`
   await db.$executeRaw`COMMIT;`
@@ -1092,15 +1042,15 @@ async function updateSortById(id: number, newOrder: number) {
 
 async function fixItemOrder() {
   await db.$executeRaw`
-            UPDATE envs
-            SET sort = t.row_num
-            FROM (SELECT id, row_number() over (PARTITION BY group_id order by sort) as row_num
-                  FROM envs) t
-            WHERE t.id = envs.id`
+      UPDATE envs
+      SET sort = t.row_num
+      FROM (SELECT id, row_number() over (PARTITION BY group_id order by sort) as row_num
+            FROM envs) t
+      WHERE t.id = envs.id`
 }
 
 async function updateItemSortById(id: number, newOrder: number) {
-  const oldRecord = await dbEnvs.$getById(id) as Envs
+  const oldRecord = await db.envs.$getById(id) as envsModel
   if (newOrder === oldRecord.sort) {
     return true
   }
@@ -1112,12 +1062,16 @@ async function updateItemSortById(id: number, newOrder: number) {
   if (newOrder > oldRecord.sort) {
     await db.$executeRaw`UPDATE envs
                          SET sort = sort + ${args[2]}
-                         WHERE sort > ${oldRecord.sort} AND sort <= ${newOrder} AND group_id = ${args[5]}`
+                         WHERE sort > ${oldRecord.sort}
+                           AND sort <= ${newOrder}
+                           AND group_id = ${args[5]}`
   }
   if (newOrder < oldRecord.sort) {
     await db.$executeRaw`UPDATE envs
                          SET sort = sort + ${args[2]}
-                         WHERE sort >= ${newOrder} AND sort < ${oldRecord.sort} AND group_id = ${args[5]}`
+                         WHERE sort >= ${newOrder}
+                           AND sort < ${oldRecord.sort}
+                           AND group_id = ${args[5]}`
   }
   await db.$executeRaw`UPDATE envs
                        SET sort = ${newOrder}
@@ -1128,13 +1082,13 @@ async function updateItemSortById(id: number, newOrder: number) {
 }
 
 async function checkVaribleExsit(name: string) {
-  if (((await dbEnvsGroup.$list({
+  if (((await db.envsGroup.$list({
     id: { not: 0 },
     type: name,
   })) || []).length > 0) {
     throw new Error(`已存在复合变量 ${name}`)
   }
-  if (((await dbEnvs.$list({
+  if (((await db.envs.$list({
     type: name,
   })) || []).length > 0) {
     throw new Error(`已存在普通变量 ${name}`)

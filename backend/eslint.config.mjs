@@ -12,7 +12,7 @@ export default antfu({
     '.vscode',
     '.idea',
     '.local',
-    'prisma/**',
+    'prisma/generated/**',
     'public/**',
     'sample/**',
     'shell/**',
@@ -38,6 +38,7 @@ export default antfu({
     'jsdoc/require-returns-check': 'off',
     'jsdoc/require-returns-description': 'off',
     'jsdoc/require-returns-type': 'off',
+    'eslint-comments/no-unlimited-disable': 'off',
     // 自定义规则
     'no-unused-expressions': ['error', { allowShortCircuit: true }], // 允许短路表达式
     'perfectionist/sort-imports': 'off', // 关闭 import 排序规则

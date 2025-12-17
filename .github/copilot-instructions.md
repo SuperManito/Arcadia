@@ -103,8 +103,8 @@ shell/             # CLI 脚本
 
 使用 Prisma ORM + SQLite，主要模型：
 - `config` - 系统配置
-- `envs` / `envs_group` - 环境变量管理
-- `tasks` / `task_core` - 定时任务
+- `envs` / `envsGroup` - 环境变量管理
+- `tasks` / `taskCore` - 定时任务
 - `message` - 消息通知
 
 ### 数据库自动同步

@@ -1,0 +1,22 @@
+model taskCore {
+  id       String @id
+  cron     String
+  callback String
+}
+
+model tasks {
+  id           Int       @id @default(autoincrement())
+  name         String
+  cron         String
+  type         String
+  shell        String    @default("")
+  active       Int       @default(1)
+  last_runtime DateTime?
+  last_run_use Int?
+  tags         String    @default("")
+  sort         Int       @default(99999)
+  createTime   DateTime  @default(now())
+  config       String    @default("")
+  remark       String    @default("")
+  bind         String    @default("")
+}

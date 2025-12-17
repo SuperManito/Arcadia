@@ -1,14 +1,28 @@
 import type { Express, Request as ExpressRequest } from 'express'
 import express from 'express'
-import { API_STATUS_CODE } from '../http'
-import { logger } from '../logger'
+import { API_STATUS_CODE } from '../utils/httpUtil'
+import { logger } from '../utils/logger'
 import fs from 'node:fs'
 import { Buffer } from 'node:buffer'
 import multer from 'multer'
-import type { FileTreeParams } from '../file'
-import { fileCreate, fileDelete, fileDownload, fileInfo, fileMove, fileRename, getFile, getFileList, getFileTree, pathCheck, rootPathCheck, saveFile } from '../file'
-import { APP_DIR_PATH, APP_DIR_TYPE, APP_ROOT_DIR } from '../type'
+import type { FileTreeParams } from '../server/fileCore'
+import {
+  fileCreate,
+  fileDelete,
+  fileDownload,
+  fileInfo,
+  fileMove,
+  fileRename,
+  getFile,
+  getFileList,
+  getFileTree,
+  pathCheck,
+  rootPathCheck,
+  saveFile,
+} from '../server/fileCore'
+import { APP_DIR_PATH, APP_DIR_TYPE, APP_ROOT_DIR } from '../core/type'
 import { validateParams } from '../utils'
+
 const api: Express = express()
 const apiOpen: Express = express()
 

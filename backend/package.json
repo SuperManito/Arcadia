@@ -18,7 +18,8 @@
     "clean": "rimraf dist && rimraf package-lock.json && rimraf node_modules"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.0",
+    "@prisma/adapter-better-sqlite3": "^7.1.0",
+    "@prisma/client": "^7.1.0",
     "archiver": "^7.0.1",
     "axios": "^1.13.2",
     "body-parser": "^2.2.1",
@@ -33,7 +34,6 @@
     "log4js": "^6.9.1",
     "multer": "^2.0.2",
     "otpauth": "^9.4.1",
-    "prisma-extension-pagination": "^0.7.5",
     "socket.io": "^4.8.1",
     "svg-captcha": "^1.4.0",
     "tsx": "^4.21.0"
@@ -46,7 +46,7 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^24.10.1",
     "eslint": "^9.36.1",
-    "prisma": "^6.19.0",
+    "prisma": "^7.1.0",
     "rimraf": "^6.1.2",
     "typescript": "~5.9.3"
   }

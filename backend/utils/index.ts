@@ -76,6 +76,14 @@ export function isNotEmpty(str: any): boolean {
 }
 
 /**
+ * 休眠
+ * @param ms
+ */
+export function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
  * 正则匹配
  */
 export function regExecFirst(str = '', reg: RegExp) {

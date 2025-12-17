@@ -1,10 +1,10 @@
 import { createServer } from 'node:http'
-import { initAppFileSystem } from './file'
-import { initCronJob } from './cron'
-import { initSocketServer, socketCommon } from './socket'
-import { createApiAuthentication, registerApp } from './server'
-import { initConfig } from './config'
-import { initTokenCache as initOpenApiAccessKeyCache } from './openApi'
+import { initAppFileSystem } from './server/fileCore'
+import { initCronJob } from './core/cron'
+import { initSocketServer, socketCommon } from './server/socket'
+import { createApiAuthentication, registerApp } from './server/httpServer'
+import { initConfig } from './core/config'
+import { initTokenCache as initOpenApiAccessKeyCache } from './api/openApi'
 
 async function startServer() {
   // 初始化文件系统

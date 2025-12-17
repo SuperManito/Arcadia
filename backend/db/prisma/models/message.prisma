@@ -1,0 +1,49 @@
+// 通知
+model message {
+  id         Int      @id @default(autoincrement())
+  category   String   @default("system") // 系统类型 system,cron,login
+  type       String   @default("info") // info, warn, error, success
+  title      String
+  content    String   @default("") // 内容
+  tags       String   @default(",") // 标签,备用,逗号分隔,需要排序,前后带逗号
+  source     String   @default("") // 源,点击跳转,格式 xxx@id
+  status     Int      @default(0) // 0:未读 >0:已读
+  createTime DateTime @default(now())
+
+  @@index([category])
+  @@index([tags])
+}
+
+//监控告警匹配规则
+model alertConfigRule {
+  id            Int          @id @default(autoincrement())
+  alertConfigId Int?
+  alertConfig   alertConfig? @relation(fields: [alertConfigId], references: [id])
+
+  type  String @default("") //匹配类型,如 标题,内容,标签,源等
+  match String @default("") //匹配方式,如 include,regex
+  data  String @default("") //执行规则
+}
+
+//监控告警通知规则,如 网页,微信,机器人等渠道
+model alertConfigNotify {
+  id            Int          @id @default(autoincrement())
+  //通知名称,没有这个不方便后续选择
+  name          String       @default("")
+  alertConfigId Int?
+  alertConfig   alertConfig? @relation(fields: [alertConfigId], references: [id])
+
+  type   String @default("") //类型
+  target String @default("") //用户
+  ext    String @default("") //额外信息,一般为空
+}
+
+// 监控告警配置,匹配所有规则时,给所有notify发送消息
+model alertConfig {
+  id     Int                 @id @default(autoincrement())
+  name   String              @default("")
+  mode   String              @default("")
+  scope  String              @default("")
+  rules  alertConfigRule[]
+  notify alertConfigNotify[]
+}
