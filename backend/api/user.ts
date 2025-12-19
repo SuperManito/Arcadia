@@ -5,7 +5,7 @@ import { logger } from '../utils/logger'
 import jwt from 'jsonwebtoken'
 import { dateToString, randomString } from '../utils'
 import { getRuntimeConfigValue, getUserModuleConfig, updateUserConfigValue } from '../core/config'
-import { clearAuthError, saveUserCredentials, updateAuthError, updateLoginInfo } from '../core/config/user'
+import { clearAuthError, resetUserCredentials, saveUserCredentials, updateAuthError, updateLoginInfo } from '../core/config/user'
 import {
   disableTOTP,
   enableTOTP,
@@ -15,7 +15,7 @@ import {
   saveTOTPSecret,
   verifyTOTPCode,
 } from '../core/config/totp'
-import { ConfigKeyRuntime, ConfigKeyUser, ConfigModule, DEFAULT_CONFIG_VALUES } from '../core/type/config'
+import { ConfigKeyRuntime, ConfigKeyUser, DEFAULT_USER_CONFIG_VALUES } from '../core/type/config'
 
 const api: Express = express()
 const apiInner: Express = express()
@@ -95,7 +95,9 @@ async function completeLogin(username: string, password: string, request: Reques
   const curTime = new Date()
 
   // 检查是否为默认密码，自动生成新密码
-  if (username === 'useradmin' && password === 'passwd') {
+  const isDefaultUsername = username === DEFAULT_USER_CONFIG_VALUES[ConfigKeyUser.USERNAME]
+  const isDefaultPassword = password === DEFAULT_USER_CONFIG_VALUES[ConfigKeyUser.PASSWORD]
+  if (isDefaultUsername && isDefaultPassword) {
     const newPassword = randomString(16)
     logger.info(`系统检测到为首次登录，已随机设置一个新的密码：${newPassword}`)
     result.newPwd = newPassword
@@ -310,12 +312,8 @@ apiInner.get('/info', async (_request, response) => {
  */
 apiInner.post('/resetPwd', async (_request, response) => {
   try {
-    const data = {
-      username: DEFAULT_CONFIG_VALUES[ConfigModule.USER][ConfigKeyUser.USERNAME],
-      password: DEFAULT_CONFIG_VALUES[ConfigModule.USER][ConfigKeyUser.PASSWORD],
-    }
     // 重置为默认用户名和密码
-    await saveUserCredentials(data)
+    const data = await resetUserCredentials()
     logger.info('用户名和密码已重置为默认值')
 
     // 关闭 2FA

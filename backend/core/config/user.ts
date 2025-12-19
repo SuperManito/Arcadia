@@ -1,5 +1,5 @@
 import type { ConfigDataUser, UserLoginInfo } from '../type/config'
-import { ConfigKeyUser } from '../type/config'
+import { ConfigKeyUser, DEFAULT_USER_CONFIG_VALUES } from '../type/config'
 import { getUserModuleConfig, updateUserConfigValue } from './index'
 import { isNotEmpty } from '../../utils'
 import type { configModel } from '../../db'
@@ -16,6 +16,18 @@ export async function saveUserCredentials(config: Partial<ConfigDataUser>) {
     updates.push(updateUserConfigValue(ConfigKeyUser.PASSWORD, config.password as string))
   }
   await Promise.all(updates)
+}
+
+/**
+ * 重置用户登录凭证为默认值
+ */
+export async function resetUserCredentials() {
+  const data = {
+    username: DEFAULT_USER_CONFIG_VALUES[ConfigKeyUser.USERNAME],
+    password: DEFAULT_USER_CONFIG_VALUES[ConfigKeyUser.PASSWORD],
+  }
+  await saveUserCredentials(data)
+  return data
 }
 
 /**

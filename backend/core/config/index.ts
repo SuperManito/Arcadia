@@ -1,6 +1,10 @@
 import type { configModel } from '../../db'
-import db from '../../db'
 import type { ConfigDataRuntime, ConfigDataUser, ConfigKey, UserLoginInfo } from '../type/config'
+import db from '../../db'
+import path from 'node:path'
+import fs from 'node:fs'
+import { getJsonFile } from '../../server/fileCore'
+import { APP_DIR_PATH } from '../type'
 import {
   ConfigKeyRuntime,
   ConfigKeyUser,
@@ -219,15 +223,47 @@ async function cleanInvalidConfigs(): Promise<void> {
 async function initUserConfig() {
   const config = await getUserModuleConfig()
   const updates: Promise<configModel>[] = []
+  const defaultUsername = DEFAULT_CONFIG_VALUES[ConfigModule.USER][ConfigKeyUser.USERNAME]
+  const defaultPassword = DEFAULT_CONFIG_VALUES[ConfigModule.USER][ConfigKeyUser.PASSWORD]
+
+  // 旧版本数据迁移（临时措施，一段时间后移除）
+  if (!isNotEmpty(config.username) && !isNotEmpty(config.password)) {
+    const oldAuthFilePath = path.join(APP_DIR_PATH.CONFIG, 'auth.json')
+    const existsOldAuthFile = fs.existsSync(oldAuthFilePath)
+    if (existsOldAuthFile) {
+      try {
+        const { user, password } = getJsonFile(oldAuthFilePath)
+        const originalUsername = user
+        const originalPassword = password
+        const isDefinedUsername = isNotEmpty(originalUsername) && originalUsername !== defaultUsername
+        const isDefinedPassword = isNotEmpty(originalPassword) && originalPassword !== defaultPassword
+        if (isDefinedUsername || isDefinedPassword) {
+        // 迁移旧版认证配置
+          await updateUserConfigValue(ConfigKeyUser.USERNAME, originalUsername)
+          await updateUserConfigValue(ConfigKeyUser.PASSWORD, originalPassword)
+          logger.info('检测到旧版认证配置，已迁移至新配置系统')
+        }
+      }
+      catch (error) {
+        logger.error('迁移旧版本认证配置失败', error)
+      }
+      finally {
+        // 重新初始化
+        await initUserConfig()
+        // eslint-disable-next-line no-unsafe-finally
+        return
+      }
+    }
+  }
+
+  // 认证信息为空，设置默认的用户名和密码（新装环境）
   if (!isNotEmpty(config.username)) {
-    const username = DEFAULT_CONFIG_VALUES[ConfigModule.USER][ConfigKeyUser.USERNAME]
-    updates.push(updateUserConfigValue(ConfigKeyUser.USERNAME, username))
-    config.username = username
+    updates.push(updateUserConfigValue(ConfigKeyUser.USERNAME, defaultUsername))
+    config.username = defaultUsername
   }
   if (!isNotEmpty(config.password)) {
-    const password = DEFAULT_CONFIG_VALUES[ConfigModule.USER][ConfigKeyUser.PASSWORD]
-    updates.push(updateUserConfigValue(ConfigKeyUser.PASSWORD, password))
-    config.password = password
+    updates.push(updateUserConfigValue(ConfigKeyUser.PASSWORD, defaultPassword))
+    config.password = defaultPassword
   }
   if (updates.length > 0) {
     await Promise.all(updates)
