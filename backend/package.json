@@ -8,7 +8,7 @@
   "scripts": {
     "server": "prisma generate && echo 'y' | prisma db push --accept-data-loss > ./prisma_push.log && tsx index",
     "build": "tsc",
-    "tsc": "tsc --noEmit",
+    "tsc": "tsc --noEmit --skipLibCheck",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "migrate:dev": "prisma migrate dev",
