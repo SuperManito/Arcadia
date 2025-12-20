@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-Arcadia 是一个一站式代码运维平台，主要面向脚本语言编程与运维，支持定时任务调度。项目采用 TypeScript 全栈开发，后端使用 Node.js + Express + Prisma ORM，底层 CLI 使用 Shell 脚本实现。
+Arcadia 是一个一站式代码自动化运维平台，主要面向脚本语言编程与运维，支持定时任务调度。项目采用 TypeScript 全栈开发，后端使用 Node.js + Express + Prisma ORM，底层 CLI 使用 Shell 脚本实现。
 
 支持的运行时环境：Node.js、tsx、ts-node、Deno、Bun、Python、Go、Rust、Lua、Ruby、Perl、C、Shell
 

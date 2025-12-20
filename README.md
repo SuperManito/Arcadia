@@ -5,7 +5,7 @@
         <img src="./public/images/logo-light-sub.png" alt="Arcadia" width="240">
     </picture>
 </a>
-<h1>一站式代码运维平台</h1>
+<h1>一站式代码自动化运维平台</h1>
 <p><code>Node.js</code> <code>tsx</code> <code>ts-node</code> <code>Deno</code> <code>Bun</code> <code>Python</code> <code>Go</code> <code>Rust</code> <code>Lua</code> <code>Ruby</code> <code>Perl</code> <code>C</code> <code>Shell</code></p>
 <!-- <a href="https://skillicons.dev">
     <img src="https://skillicons.dev/icons?i=js,ts,nodejs,deno,bun,python,go,rust,lua,ruby,perl,c,bash" />
