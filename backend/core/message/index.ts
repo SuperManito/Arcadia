@@ -11,7 +11,11 @@ interface MessageData {
   category: 'info' | 'error' | 'warn'
 }
 
-export async function sendTextMessage(str: string) {
+interface messageInfo {
+  taskId?: number
+}
+
+export async function sendTextMessage(str: string, info: messageInfo = {}) {
   if (str.startsWith('{') && str.endsWith('}')) {
     return await sendMessage(JSON.parse(str))
   }
@@ -20,7 +24,7 @@ export async function sendTextMessage(str: string) {
     content: str,
     source: 'user',
     category: 'info',
-  })
+  }, info)
 }
 
 /**
@@ -28,7 +32,7 @@ export async function sendTextMessage(str: string) {
  *
  * @async
  */
-export async function sendMessage(data: MessageData) {
+export async function sendMessage(data: MessageData, info: messageInfo = {}) {
   try {
     validateObject(data, [
       ['title', [true, 'string']],
@@ -40,6 +44,9 @@ export async function sendMessage(data: MessageData) {
   catch (e) {
     logger.error('发送消息参数错误:', e)
     return false
+  }
+  if (info.taskId) {
+    logger.debug(`发送消息任务ID:${info.taskId},data:`, data, info)
   }
   data = cleanProperties(data, ['title', 'content', 'source', 'category'])
   const msg = await db.message.$create(data)

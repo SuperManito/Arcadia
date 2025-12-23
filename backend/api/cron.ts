@@ -3,7 +3,7 @@ import express from 'express'
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import { logger } from '../utils/logger'
 import { validateCronExpression } from '../core/cron/engine'
-import { applyCron, fixOrder, getBindGroup, runningTasks, runTask, terminateTask, updateSortById } from '../core/cron'
+import { applyCron, fixOrder, getBindGroup, runCronTask, runningTasks, stopCronTask, updateSortById } from '../core/cron'
 import type { tasksModel, tasksWhereInput } from '../db'
 import db from '../db'
 import type { CodeFileResolveResult } from '../server/fileCore'
@@ -587,7 +587,7 @@ api.post('/run', async (request, response) => {
       ids = [id]
     }
     for (const id of ids) {
-      runTask(id)
+      runCronTask(id)
     }
     response.send(API_STATUS_CODE.ok())
   }
@@ -608,7 +608,7 @@ apiOpen.post('/v1/run', async (request, response) => {
       ids = [id]
     }
     for (const id of ids) {
-      runTask(id)
+      runCronTask(id)
     }
     response.send(API_STATUS_CODE.ok())
     logger.info('[OpenAPI · Cron]', '运行定时任务', ids.join(','))
@@ -633,7 +633,7 @@ api.post('/terminate', async (request, response) => {
       ids = [id]
     }
     for (const id of ids) {
-      terminateTask(id)
+      stopCronTask(id)
     }
     response.send(API_STATUS_CODE.ok())
   }
@@ -654,7 +654,7 @@ apiOpen.post('/v1/terminate', async (request, response) => {
       ids = [id]
     }
     for (const id of ids) {
-      terminateTask(id)
+      stopCronTask(id)
     }
     response.send(API_STATUS_CODE.ok())
     logger.info('[OpenAPI · Cron]', '终止定时任务', ids.join(','))

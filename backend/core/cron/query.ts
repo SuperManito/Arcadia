@@ -1,7 +1,7 @@
 import db from '../../db'
 import { logger } from '../../utils/logger'
 import { getDateStr } from '../../utils'
-import { getTodayStatsSummary } from './dashboard'
+import { getTodayStatsSummary } from '../dashboard/task'
 
 type TaskType = 'all' | 'system' | 'user'
 

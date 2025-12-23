@@ -86,7 +86,7 @@ export async function createToken(data?: {
  * 获取 Token 列表
  */
 export async function listTokens() {
-  return await db.openApiAccessKey.findMany()
+  return await db.openApiAccessKey.$list()
 }
 
 /**

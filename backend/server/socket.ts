@@ -1,11 +1,12 @@
 import type { NextFunction, Request, RequestHandler, Response } from 'express'
 import type { Server as HttpServer } from 'node:http'
 import type { Socket } from 'socket.io'
-import type { ExtendedError } from 'socket.io/dist/namespace'
 import { Server } from 'socket.io'
+import type { ExtendedError } from 'socket.io/dist/namespace'
 import type { JwtPayload, VerifyCallback } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
 import { logger } from '../utils/logger'
+import { addAfterTaskRun, addBeforeTaskRun } from '../core/cron/taskRunner'
 
 declare module 'http' {
   interface IncomingMessage {
@@ -82,3 +83,27 @@ export const socketCommon = {
     }
   },
 }
+
+// task相关
+;(() => {
+  addBeforeTaskRun((task) => {
+    // 推送到客户端
+    socketCommon.emit('task:started', {
+      taskId: task.id,
+      taskName: task.name,
+      taskType: task.type,
+      startTime: Date.now(),
+    })
+  })
+
+  addAfterTaskRun((info) => {
+    socketCommon.emit('task:completed', {
+      taskId: info.task.id,
+      taskName: info.task.name,
+      taskType: info.task.type,
+      completedTime: Date.now(),
+      duration: info.duration,
+      success: info.success,
+    })
+  })
+})()

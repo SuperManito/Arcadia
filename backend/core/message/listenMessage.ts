@@ -13,7 +13,7 @@ export class MessageListener {
   private currentId = 0
   private processing = false
 
-  constructor(private readonly workDir: string) {
+  constructor(private readonly workDir: string, private readonly extInfo: any) {
     this.watcher = null
 
     fs.mkdirSync(this.workDir, { recursive: true })
@@ -96,7 +96,7 @@ export class MessageListener {
       // 根据类型处理消息
       switch (type) {
         case 'message':
-          await sendTextMessage(message)
+          await sendTextMessage(message, this.extInfo)
           break
         default:
           // 默认作为普通消息处理
@@ -104,7 +104,7 @@ export class MessageListener {
       }
 
       // 删除已处理的消息文件
-      fs.unlinkSync(file)
+      fs.rmSync(file, { force: true })
       logger.debug(`已处理消息 #${messageId}: ${type} = ${message}`)
     }
     catch (error) {

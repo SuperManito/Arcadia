@@ -104,7 +104,11 @@ api.get('/page', async (request, response) => {
       include: {
         envs: true,
       },
-    })
+    });
+    (result.data as any) = result.data.map((item) => ({
+      ...item,
+      envs: item.envs.length,
+    }))
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
@@ -241,7 +245,11 @@ apiOpen.get('/v1/page', async (request, response) => {
         include: {
           envs: true,
         },
-      })
+      });
+      (result.data as any) = (result.data as any).map((item) => ({
+        ...item,
+        envs: item.envs.length,
+      }))
     }
     else {
       result = await db.envs.$page({
@@ -292,11 +300,21 @@ apiOpen.get('/v1/query', async (request, response) => {
       result.push(...envs_result)
     }
     // 查询 envsGroup 表
-    const envsGroup_result = await db.envsGroup.$list({
+    const envsGroupResult = await db.envsGroup.$list({
       id: { not: 0 },
       AND: queryConditions,
     }, undefined, { include: { envs: true } }) || []
-    result.push(...envsGroup_result)
+    if (envsGroupResult.length > 0) {
+      // 替换关联数据为它的长度
+      const format_data = envsGroupResult.map((item: any) => {
+        if (Array.isArray(item?.envs)) {
+          item.envs = item.envs.length
+        }
+        return item
+      })
+      result.push(...format_data)
+    }
+    result.push(...envsGroupResult)
     // 二次过滤（注：SQLite 的 contains 操作符不区分大小写）
     const filteredData = result.filter((item: envsModel) => {
       const matchesName = name ? item.type.includes(name as string) : true

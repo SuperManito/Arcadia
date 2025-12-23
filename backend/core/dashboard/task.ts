@@ -30,7 +30,7 @@ let memoryStats: DashboardMemoryStats | null = null
 /**
  * 初始化监控系统
  */
-export function initDashboardMonitor() {
+export function initTaskMonitor() {
   logger.info('[定时任务监控] 初始化监控系统')
   // 初始化内存统计
   resetMemoryStats()
