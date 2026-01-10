@@ -153,3 +153,12 @@ pm2 start ecosystem.config.js  # 使用 PM2 启动
 2. `public/` 目录是前端构建产物，不需要修改
 3. 新增 Shell 脚本需要赋予可执行权限并确保使用 LF 换行符
 4. 配置存储在 SQLite 数据库中，路径为 `config/config.db`
+
+## AI 工作流程约束（仅限后端源代码目录）
+
+- **强制检查（必须）**：对于任何由 Agent 执行的 edit/修改任务，在将任务标记为“完成”、准备提交或建议合并之前，Agent 必须在仓库 `backend` 目录执行并确保下列命令全部通过：
+   - **严格执行顺序**：先运行 `npm run lint:fix`，在其成功完成并且没有未修复的 lint 错误后，再运行 `npm run tsc`。
+   - **`npm run lint:fix`**：应运行并尽可能自动修复 lint 问题；若仍有未解决的 lint 错误，Agent 必须报告并回退改动。
+   - **`npm run tsc`**：必须无 TypeScript 类型错误。
+
+   - **禁止运行其它 `npm` 命令作为完成检查的一部分**（例如：不要运行 `npm run server`、`npm build` 等）。
