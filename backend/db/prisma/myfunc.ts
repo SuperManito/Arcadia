@@ -39,11 +39,7 @@ export function withMyFunc() {
     return client.$extends({
       model: {
         $allModels: {
-          $create<
-            T,
-            A extends Prisma.Args<T, 'create'> = Prisma.Args<T, 'create'>,
-            R = Prisma.Result<T, A, 'create'> | Prisma.Result<T, A, 'createMany'>,
-          >(
+          $create<T, A extends Prisma.Args<T, 'create'> = Prisma.Args<T, 'create'>, R = Prisma.Result<T, A, 'create'> | Prisma.Result<T, A, 'createMany'>>(
             this: T,
             data: A['data'] | A['data'][],
             opts?: Omit<A, 'data'>,
@@ -60,11 +56,7 @@ export function withMyFunc() {
             const args = opts ? { data, ...opts } : { data }
             return (this as any).create(args) as Promise<R>
           },
-          $updateById<
-            T,
-            A extends Prisma.Args<T, 'update'> = Prisma.Args<T, 'update'>,
-            R = Prisma.Result<T, A, 'update'>,
-          >(
+          $updateById<T, A extends Prisma.Args<T, 'update'> = Prisma.Args<T, 'update'>, R = Prisma.Result<T, A, 'update'>>(
             this: T,
             input: { id: number | string, data: A['data'] },
             idName: string = 'id',
@@ -87,11 +79,7 @@ export function withMyFunc() {
             }) as Promise<R>
           },
 
-          $upsertById<
-            T,
-            A extends Prisma.Args<T, 'upsert'> = Prisma.Args<T, 'upsert'>,
-            R = Prisma.Result<T, A, 'upsert'>,
-          >(
+          $upsertById<T, A extends Prisma.Args<T, 'upsert'> = Prisma.Args<T, 'upsert'>, R = Prisma.Result<T, A, 'upsert'>>(
             this: T,
             data: A['create'],
             idName: string = 'id',
@@ -117,11 +105,7 @@ export function withMyFunc() {
             }) as Promise<R>
           },
 
-          $list<
-            T,
-            A extends Prisma.Args<T, 'findMany'> = Prisma.Args<T, 'findMany'>,
-            R = Prisma.Result<T, A, 'findMany'>,
-          >(
+          $list<T, A extends Prisma.Args<T, 'findMany'> = Prisma.Args<T, 'findMany'>, R = Prisma.Result<T, A, 'findMany'>>(
             this: T,
             where?: any,
             orderBy?: A['orderBy'],
@@ -134,11 +118,7 @@ export function withMyFunc() {
             }) as Promise<R>
           },
 
-          $getById<
-            T,
-            A extends Prisma.Args<T, 'findFirst'> = Prisma.Args<T, 'findFirst'>,
-            R = Prisma.Result<T, A, 'findFirst'> | null,
-          >(
+          $getById<T, A extends Prisma.Args<T, 'findFirst'> = Prisma.Args<T, 'findFirst'>, R = Prisma.Result<T, A, 'findFirst'> | null>(
             this: T,
             id: number | string,
             idName: string = 'id',
@@ -156,13 +136,7 @@ export function withMyFunc() {
             }) as Promise<R>
           },
 
-          $deleteById<
-            T,
-            DA extends Prisma.Args<T, 'delete'> = Prisma.Args<T, 'delete'>,
-            DMA extends Prisma.Args<T, 'deleteMany'> = Prisma.Args<T, 'deleteMany'>,
-            DR = Prisma.Result<T, DA, 'delete'>,
-            DMR = Prisma.Result<T, DMA, 'deleteMany'>,
-          >(
+          $deleteById<T, DA extends Prisma.Args<T, 'delete'> = Prisma.Args<T, 'delete'>, DMA extends Prisma.Args<T, 'deleteMany'> = Prisma.Args<T, 'deleteMany'>, DR = Prisma.Result<T, DA, 'delete'>, DMR = Prisma.Result<T, DMA, 'deleteMany'>>(
             this: T,
             id: number | string | (number | string)[],
             idName: string = 'id',
@@ -203,11 +177,7 @@ export function withMyFunc() {
               throw e
             }
           },
-          async $page<
-            T,
-            A extends Prisma.Args<T, 'findMany'> = Prisma.Args<T, 'findMany'>,
-            D = Prisma.Result<T, A, 'findMany'>,
-          >(
+          async $page<T, A extends Prisma.Args<T, 'findMany'> = Prisma.Args<T, 'findMany'>, D = Prisma.Result<T, A, 'findMany'>>(
             this: T,
             args: A & { page?: number | string, size?: number | string, searchCount?: boolean },
           ): Promise<PageResult<D>> {
