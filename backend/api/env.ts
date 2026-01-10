@@ -165,7 +165,7 @@ api.get('/pageItem', async (request, response) => {
 apiOpen.get('/v1/page', async (request, response) => {
   try {
     // 传参校验
-    validatePageParams(request, ['sort', 'updateTime'])
+    validatePageParams(request, ['sort', 'update_time'])
     validateParams(request, [
       ['query', 'category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
       ['query', 'enable', [false, ['1', '0']]],
