@@ -191,11 +191,12 @@ export function withMyFunc() {
             }
             // 清理查询条件
             const cleanedWhere = clean(this, args.where)
-
+            // 剔除无关参数
+            const { page: _page, size: _size, searchCount, ...restArgs } = args as any
             // 获取数据和总数
             const p = [
               (this as any).findMany({
-                ...args,
+                ...restArgs,
                 where: cleanedWhere,
                 skip: (page - 1) * size,
                 take: size,
@@ -207,7 +208,7 @@ export function withMyFunc() {
             const res = await Promise.all(p)
             return {
               data: res[0],
-              total: res.length > 1 ? res[1] : 'disable',
+              total: res.length > 1 ? res[1] : -1,
               page,
               size,
             }
