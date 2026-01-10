@@ -1,14 +1,14 @@
 // 通知
 model message {
-  id         Int      @id @default(autoincrement())
-  category   String   @default("system") // 系统类型 system,cron,login
-  type       String   @default("info") // info, warn, error, success
-  title      String
-  content    String   @default("") // 内容
-  tags       String   @default(",") // 标签,备用,逗号分隔,需要排序,前后带逗号
-  source     String   @default("") // 源,点击跳转,格式 xxx@id
-  status     Int      @default(0) // 0:未读 >0:已读
-  createTime DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  category    String   @default("system") // 系统类型 system,cron,login
+  type        String   @default("info") // info, warn, error, success
+  title       String
+  content     String   @default("") // 内容
+  tags        String   @default(",") // 标签,备用,逗号分隔,需要排序,前后带逗号
+  source      String   @default("") // 源,点击跳转,格式 xxx@id
+  status      Int      @default(0) // 0:未读 >0:已读
+  create_time DateTime @default(now())
 
   @@index([category])
   @@index([tags])

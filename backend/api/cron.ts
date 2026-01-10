@@ -94,8 +94,8 @@ api.get('/', async (request, response) => {
     // 格式化数据
     tasks.data.forEach((task: tasksModel) => {
       // 创建时间
-      if (task.createTime) {
-        task.createTime = new Date(task.createTime)
+      if (task.create_time) {
+        task.create_time = new Date(task.create_time)
       }
       // 上次运行时间
       if (task.last_runtime) {
@@ -196,8 +196,8 @@ apiOpen.get('/v1/page', async (request, response) => {
     // 格式化数据
     tasks.data.forEach((task: tasksModel) => {
       // 创建时间
-      if (task.createTime) {
-        task.createTime = new Date(task.createTime)
+      if (task.create_time) {
+        task.create_time = new Date(task.create_time)
       }
       // 上次运行时间
       if (task.last_runtime) {
@@ -244,7 +244,7 @@ apiOpen.get('/v1/query', async (request, response) => {
  */
 api.post('/', async (request, response) => {
   try {
-    const task = Object.assign({}, request.body, { createTime: new Date() })
+    const task = Object.assign({}, request.body, { create_time: new Date() })
     delete task.id
     // 校验定时规则
     validateCronExpression(task.cron)
@@ -290,7 +290,7 @@ apiOpen.post('/v1/create', async (request, response) => {
     // 补齐参数
     Object.assign(task, {
       type: 'user', // 只允许创建用户任务
-      createTime: new Date(),
+      create_time: new Date(),
     })
     // 操作数据库
     const createResult = await db.tasks.$create(task)
@@ -321,8 +321,8 @@ api.put('/', async (request, response) => {
         delete (task as any).orderBy
       if ('bind' in task)
         delete (task as any).bind
-      if ('createTime' in task)
-        delete (task as any).createTime
+      if ('create_time' in task)
+        delete (task as any).create_time
       // 校验定时规则
       if (task.cron) {
         validateCronExpression(task.cron)
@@ -748,7 +748,7 @@ apiInner.post('/updateAll', async (request, response) => {
             active: item.active === 0 ? 0 : 1, // 默认启用
             config: '',
             tags: task.tags || '',
-            createTime: new Date(),
+            create_time: new Date(),
             bind: convertPathToBind(type, item.path),
           }
           const createResult = await db.tasks.$create(data) as tasksModel

@@ -50,7 +50,7 @@ api.get('/page', async (request, response) => {
 
     const result = await db.message.$page({
       where,
-      orderBy: [{ createTime: desc ? 'desc' : 'asc' }],
+      orderBy: [{ create_time: desc ? 'desc' : 'asc' }],
       page: request.query.page as string,
       size: request.query.size as string,
     })
