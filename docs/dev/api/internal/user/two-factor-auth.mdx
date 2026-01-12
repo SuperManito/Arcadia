@@ -1,0 +1,78 @@
+---
+title: 配置双重认证 (2FA)
+---
+import APITable from '@site/src/components/APITable';
+import { GET, POST } from '@site/src/components/RequestTag';
+
+基于 TOTP (Time-Based One-Time Passwords) [RFC 6238](https://datatracker.ietf.org/doc/html/rfc6238) 标准
+
+## 获取启用状态
+
+<GET>/user/twoFactorAuth/status</GET>
+
+### 请求
+
+无参数
+
+## 初始化配置
+
+<POST>/user/twoFactorAuth/setup</POST>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `issuer` | `string` | 否 | 服务名称，默认为 `Arcadia` |
+
+</APITable>
+
+### 响应
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| :-: | :-: | --- |
+| `secret` | `string` | TOTP 密钥（Base32 编码） |
+| `otpauthUrl` | `string` | otpauth URI（用于生成二维码） |
+| `issuer` | `string` | 服务名称 |
+| `message` | `string` | 提示信息 |
+
+</APITable>
+
+```json title="示例"
+{
+  "secret": "JBSWY3DPEHPK3PXP",
+  "otpauthUrl": "otpauth://totp/Arcadia:useradmin?secret=JBSWY3DPEHPK3PXP&issuer=Arcadia&algorithm=SHA1&digits=6&period=30",
+  "issuer": "Arcadia",
+  "message": "请使用 Google Authenticator 或 Microsoft Authenticator 扫描二维码"
+}
+```
+
+## 启用
+
+<POST>/user/twoFactorAuth/enable</POST>
+
+### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `secret` | `string` | 是 | TOTP 密钥（从 setup 接口获取） |
+| `code` | `string` | 是 | 6 位动态验证码（纯数字） |
+
+</APITable>
+
+:::info 需要验证传参
+验证通过才会启用
+:::
+
+## 关闭
+
+<POST>/user/twoFactorAuth/disable</POST>
+
+### 请求
+
+无参数

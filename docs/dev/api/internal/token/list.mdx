@@ -1,0 +1,43 @@
+---
+title: 获取列表
+---
+import APITable from '@site/src/components/APITable';
+import { GET } from '@site/src/components/RequestTag';
+
+<GET>/token</GET>
+
+## 请求
+
+无参数
+
+## 响应
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| :-: | :-: | --- |
+| `id` | `number` | 唯一标识 |
+| `name` | `string` | 配置名称 |
+| `value` | `string` | 令牌 |
+| `expire_time` | `number` | 过期时间（时间戳），空为永久 |
+| `enable` | `number<0 \| 1>` | 状态 `1启用 \| 0禁用`，默认启用 |
+| `create_time` | `string` | 创建时间 |
+| `update_time` | `string` | 更新时间 |
+
+</APITable>
+
+```json title="示例"
+[
+  {
+    "id": 1,
+    "name": "新建令牌",
+    "value": "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456",
+    "expire_time": null,
+    "enable": 1,
+    "create_time": "2024-01-01 00:00:00",
+    "update_time": "2024-01-01 00:00:00",
+  },
+  ...
+]
+```
+

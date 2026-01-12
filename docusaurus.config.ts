@@ -16,7 +16,7 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
     url: 'https://arcadia.cool',
     baseUrl: '/',
 
-    tagline: '一站式代码运维平台（公测）', // 网站标语
+    tagline: '一站式代码自动化运维平台（公测）', // 网站标语
     onBrokenLinks: 'ignore',
     markdown: {
       hooks: {

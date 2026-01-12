@@ -14,7 +14,7 @@ import { POST } from '@site/src/components/RequestTag';
 | :-: | :-: | :-: | --- |
 | `username` | `string` | 是 | 用户名 |
 | `password` | `string` | 是 | 密码 |
-| `captcha` | `string` | 否 | 验证码 |
+| `captcha` | `string` | 否 | 图形验证码 |
 
 </APITable>
 
@@ -24,8 +24,11 @@ import { POST } from '@site/src/components/RequestTag';
 
 | 名称 | 类型 | 描述 |
 | :-: | :-: | --- |
-| `token` | `string` | Token |
-| `newPwd` | `string` | 系统自动更改的新密码 |
+| `token` | `string` | JWT Token |
+| `newPwd` | `string` | 系统自动更改的新密码，返回机制见下方注释 |
+| `showCaptcha` | `string` | 是否需要提供图形验证码 |
+| `limitTime` | `number` | 限制登录剩余时长（单位/秒） |
+| `requireTwoFactor` | `string` | 是否启用双重认证 |
 
 </APITable>
 
@@ -39,5 +42,36 @@ import { POST } from '@site/src/components/RequestTag';
 Token 有效时长：72小时
 
 :::info 注释
-`newPwd` 仅在系统强制更改用户密码后才返回，根据策略目前仅判断用户密码是否为初始密码，如果是则返回一个由随机字符组成的新密码，否则返回空字符串，密码变更后管理面板会有通知提醒。
+`newPwd` 仅在系统强制更改用户密码后才返回，根据策略目前仅判断用户密码是否为初始密码，如果是则返回一个由随机字符组成的新密码，否则返回空字符串，密码变更后管理面板会有通知提醒。  
+基础参数验证通过后就会响应 `success` 成功，如果启用了双重认证则不会返回 `token`，需要继续调用下方的接口。
 :::
+
+### 2FA 双重认证
+
+<POST>/user/auth/twoFactor</POST>
+
+#### 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `username` | `string` | 是 | 用户名 |
+| `password` | `string` | 是 | 密码 |
+| `captcha` | `string` | 否 | 图形验证码 |
+| `code` | `string` | 是 | 6 位动态验证码（纯数字） |
+
+</APITable>
+
+#### 响应
+
+<APITable>
+
+| 名称 | 类型 | 描述 |
+| :-: | :-: | --- |
+| `token` | `string` | JWT Token |
+| `newPwd` | `string` | 系统自动更改的新密码，返回机制见下方注释 |
+| `showCaptcha` | `string` | 是否需要提供图形验证码 |
+| `limitTime` | `number` | 限制登录剩余时长（单位/秒） |
+
+</APITable>

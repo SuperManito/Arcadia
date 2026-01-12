@@ -22,7 +22,7 @@ const AuroraText = memo(({ children, className = '', colors = ['#7928CA', '#0070
 
   return (
         <div className={`relative inline-block ${className}`}>
-            <span className="text-[0.6rem] sm:text-[1rem] relative animate-aurora bg-[length:200%_auto] bg-clip-text text-transparent" style={gradientStyle} aria-hidden="true">
+            <span className="text-[0.6rem] sm:text-[1rem] relative animate-aurora bg-size-[200%_auto] bg-clip-text text-transparent" style={gradientStyle} aria-hidden="true">
                 阿卡迪亚
             </span>
         </div>
@@ -33,7 +33,7 @@ AuroraText.displayName = '阿卡迪亚'
 function HeroContentDefault () {
   return (
         <>
-            <div className="col col--7 lg:mt-[6.5rem]">
+            <div className="col col--7 lg:mt-26">
                 <div className={clsx(styles.relative, 'row')}>
                     <div className="col" style={{ userSelect: 'none' }}>
                         <Heading as="h1" className={styles.tagline}>
@@ -41,14 +41,14 @@ function HeroContentDefault () {
                                 Arcadia <AuroraText />
                                 <br className="block" />
                             </span>{' '}
-                            <span className='text-[var(--ifm-color-content)]'>一站式代码运维平台</span>
+                            <span className='text-(--ifm-color-content)'>一站式代码自动化运维平台</span>
                         </Heading>
                         <Heading as="h1" className={styles.tagline}>
                             <span>
                                 Arcadia <AuroraText />
                                 <br className="block" />
                             </span>{' '}
-                            <span className='text-[var(--ifm-color-content)]'>一站式代码运维平台</span>
+                            <span className='text-(--ifm-color-content)'>一站式代码自动化运维平台</span>
                         </Heading>
                     </div>
                 </div>
@@ -91,7 +91,7 @@ function HeroContentDefault () {
 function HeroContentMobile () {
   return (
         <>
-            <div className="col lg:mt-[6.5rem]" style={{ userSelect: 'none', padding: '0' }}>
+            <div className="col lg:mt-26" style={{ userSelect: 'none', padding: '0' }}>
                 <div style={{ position: 'relative', margin: '0 auto', top: '-60px' }}>
                     <div style={{ position: 'absolute', width: '100%', height: '100%', left: '-18px', zIndex: '-1' }}>
                         <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 800 800" opacity="1">
@@ -123,7 +123,7 @@ function HeroContentMobile () {
                                 </span>
                                 <br className="block" />
                             </span>{' '}
-                            <span className='text-[var(--ifm-color-content)]'>一站式代码运维平台</span>
+                            <span className='text-(--ifm-color-content)'>一站式代码自动化运维平台</span>
                         </Heading>
                         <Heading as="h1" className={styles.tagline}>
                             <span>
@@ -133,7 +133,7 @@ function HeroContentMobile () {
                                 </span>
                                 <br className="block" />
                             </span>{' '}
-                            <span className='text-[var(--ifm-color-content)]'>一站式代码运维平台</span>
+                            <span className='text-(--ifm-color-content)'>一站式代码自动化运维平台</span>
                         </Heading>
                     </div>
                 </div>

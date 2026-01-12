@@ -1,0 +1,22 @@
+---
+title: 创建
+---
+import APITable from '@site/src/components/APITable';
+import { POST } from '@site/src/components/RequestTag';
+
+<POST>/token</POST>
+
+## 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `name` | `string` | 是 | 配置名称 |
+| `expire_time` | `number` | 否 | 过期时间（时间戳），不提供为永久 |
+
+</APITable>
+
+## 响应
+
+参考[获取列表响应](./list.mdx#响应)

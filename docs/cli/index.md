@@ -26,7 +26,7 @@ import DocCardList from '@theme/DocCardList';
 
   用户配置管理
   repo <args>     导入代码仓库配置
-  raw <args>      导入远程文件配置
+  raw <args>      导入代码文件配置
   envm <args>     管理环境变量数据
 
   服务管理

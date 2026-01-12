@@ -1,12 +1,12 @@
 ---
-description: 添加远程文件配置
+description: 添加代码文件配置
 ---
 import APITable from '@site/src/components/APITable';
 
-# 添加远程文件配置
+# 添加代码文件配置
 
 ```txt title="$ arcadia raw"
-❖ Arcadia CLI - 导入远程文件配置
+❖ Arcadia CLI - 导入代码文件配置
 
   使用方法：
 

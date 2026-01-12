@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Arcadia 一站式代码运维平台 OpenAPI
+  title: Arcadia 一站式代码自动化运维平台 OpenAPI
   description: |
     所有内容请以官网文档为准 https://arcadia.cool/docs/dev/api/open
 

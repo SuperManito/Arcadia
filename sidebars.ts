@@ -36,7 +36,7 @@ const sidebars: SidebarsConfig = {
       },
       items: [
         {
-          label: '导入代码',
+          label: '代码同步',
           type: 'category',
           link: {
             type: 'doc',
@@ -45,38 +45,20 @@ const sidebars: SidebarsConfig = {
           items: [
             {
               label: '代码仓库',
-              type: 'category',
-              link: {
-                type: 'doc',
-                id: 'configuration/import/repo/index',
-              },
-              items: [
-                'configuration/import/repo/config',
-                {
-                  label: '仓库代理',
-                  type: 'doc',
-                  id: 'configuration/import/repo/proxy',
-                  className: 'sidebar-channels',
-                },
-              ],
-              collapsed: true,
+              type: 'doc',
+              id: 'configuration/import/repo/index',
             },
             {
-              label: '远程文件',
-              type: 'category',
-              link: {
-                type: 'doc',
-                id: 'configuration/import/raw/index',
-              },
-              items: ['configuration/import/raw/config'],
-              collapsed: true,
+              label: '代码文件',
+              type: 'doc',
+              id: 'configuration/import/raw/index',
             },
           ],
           collapsed: true,
         },
         'configuration/main',
         'configuration/notify',
-        'configuration/TelegramBot/index',
+        'configuration/TGBot/index',
         // 'configuration/wskey',
       ],
       collapsed: true,
@@ -230,6 +212,7 @@ const sidebars: SidebarsConfig = {
                 'dev/api/internal/user/auth',
                 'dev/api/internal/user/info',
                 'dev/api/internal/user/change-password',
+                'dev/api/internal/user/two-factor-auth',
               ],
               collapsed: true,
             },
@@ -288,6 +271,20 @@ const sidebars: SidebarsConfig = {
                 'dev/api/internal/cron/running-tasks',
                 'dev/api/internal/cron/run',
                 'dev/api/internal/cron/terminate',
+              ],
+              collapsed: true,
+            },
+            {
+              label: 'Token 令牌管理',
+              type: 'category',
+              link: {
+                type: 'generated-index',
+              },
+              items: [
+                'dev/api/internal/token/list',
+                'dev/api/internal/token/create',
+                'dev/api/internal/token/update',
+                'dev/api/internal/token/delete',
               ],
               collapsed: true,
             },

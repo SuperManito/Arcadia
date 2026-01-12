@@ -9,7 +9,7 @@
 
 <p align="center">
     <strong>
-        一站式代码运维平台
+        一站式代码自动化运维平台
     </strong>
 </p>
 

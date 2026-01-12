@@ -151,7 +151,7 @@ const TypewriterEffect = ({
           repeatType: 'reverse',
         }}
         className={cn(
-          'block rounded-sm w-[4px] h-6 sm:h-6 lg:h-12 bg-blue-500',
+          'block rounded-sm w-1 h-6 sm:h-6 lg:h-12 bg-blue-500',
           cursorClassName,
         )}
       ></motion.span>
@@ -275,8 +275,8 @@ export default function LanguageSupport () {
 
   return (
     <section className='container'>
-      <div className="flex flex-col items-center justify-center h-[16rem] lg:h-full rounded-2xl" style={{ margin: '0 auto' }}>
-        <div className="mt-8 md:mt-16 md:mb-16 text-neutral-600 dark:text-[var(--ifm-color-emphasis-500)] text-center">
+      <div className="flex flex-col items-center justify-center h-64 lg:h-full rounded-2xl" style={{ margin: '0 auto' }}>
+        <div className="mt-8 md:mt-16 md:mb-16 text-neutral-600 dark:text-(--ifm-color-emphasis-500) text-center">
           <BlurFade delay={0.25} inView>
           <span className="font-bold tracking-tighter text-[1.4rem] md:text-[2.5rem] inline-flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg"

@@ -104,7 +104,7 @@ arcadia run <name/path/url> [--options]
 | `-a`, `--agent`                | 网络代理 | 否 | 使代码文件的 HTTP/HTTPS 网络请求通过全局代理进行，仅支持 Node.js 和 ts-node，使用该功能需要自行在配置文件对应处定义代理地址变量 |
 | `-T`, `--timeout`              | 运行超时 | 是 | 设置运行任务超时机制，选项后需跟 [timeout](https://www.coonote.com/linux/linux-cmd-timeout.html) 指令的参数作为选项值 |
 | `-N`, `--no-log`               | 忽略日志 | 否 | 不存储代码运行日志到本地 |
-| `-p`, `--proxy`                | 下载代理 | 否 | 仅适用于执行位于 GitHub 仓库的远程文件，该代理固定为 [jsDelivr](https://www.jsdelivr.com/?docs=gh) 公共 CDN 加速代理 |
+| `-p`, `--proxy`                | 下载代理 | 否 | 仅适用于执行位于 GitHub 仓库的代码文件，该代理固定为 [jsDelivr](https://www.jsdelivr.com/?docs=gh) 公共 CDN 加速代理 |
 | `-c`, `--concurrent`           | 并发运行 | 否 | 默认运行1个任务，若想增加运行任务数量那么请传参 _任务数量(正整数)_ |
 | `-b`, `--background`           | 后台运行 | 否 | 不在前台输出代码执行进度，不占用终端命令行 |
 | `-r`, `--recombine-env`        | 变量重组 | 是 | 按照指定顺序重新组合复合变量的值，选项后需跟变量名称、分隔符、重组表达式。表达式语法：多个值用 `,` 隔开，值区间用 `-` 连接，可以用 `%` 表示值的总数 |
@@ -178,7 +178,7 @@ arcadia run example.js -R TEST_CONFIG @ 1,2@3-5
   pm2 list
   ```
 
-  默认存在四个项目内置的服务 `arcadia_server` `arcadia_inner` `arcadia_ttyd` `tgbot`，请不要删除它们其中的任何一个
+  默认存在三个项目内置的服务 `arcadia_server` `arcadia_ttyd` `tgbot`，请不要删除它们其中的任何一个
 
   ```bash title="停止运行"
   pm2 delete <任务名>

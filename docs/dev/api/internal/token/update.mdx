@@ -1,0 +1,24 @@
+---
+title: 更新
+---
+import APITable from '@site/src/components/APITable';
+import { PUT } from '@site/src/components/RequestTag';
+
+<PUT>/token</PUT>
+
+## 请求
+
+<APITable>
+
+| 名称 | 类型 | 必填 | 描述 |
+| :-: | :-: | :-: | --- |
+| `id` | `number` | 是 | 唯一标识 |
+| `name` | `string` | 否 | 配置名称 |
+| `expire_time` | `number` | 否 | 过期时间（时间戳），空为永久 |
+| `enable` | `number<0 \| 1>` | 否 | 状态 `1启用 \| 0禁用`，默认启用 |
+
+</APITable>
+
+## 响应
+
+参考[获取列表响应](./list.mdx#响应)
