@@ -79,11 +79,15 @@ async function onChange(isItem?: boolean) {
 
 api.get('/page', async (request, response) => {
   try {
-    const enable = request.query.enable ? (request.query.enable as string).split(',')[0] : '0'
+    const enable = request.query.enable ? (request.query.enable as string).split(',') : []
     const where: envsGroupWhereInput = {}
     // 启用/禁用状态过滤
-    if (enable) {
-      where.enable = Number.parseInt(enable)
+    if (enable.length > 0) {
+      const or: envsGroupWhereInput[] = []
+      enable.forEach((value) => {
+        or.push({ enable: { equals: Number.parseInt(value) } })
+      })
+      where.OR = or
     }
     // 过滤掉特殊记录
     where.id = { not: 0 }
@@ -122,10 +126,14 @@ api.get('/page', async (request, response) => {
 api.get('/pageItem', async (request, response) => {
   try {
     const where: envsWhereInput = {}
-    const enable = request.query.enable ? (request.query.enable as string).split(',')[0] : '0'
+    const enable = request.query.enable ? (request.query.enable as string).split(',') : []
     // 启用/禁用状态过滤
-    if (enable) {
-      where.enable = Number.parseInt(enable)
+    if (enable.length > 0) {
+      const or: envsWhereInput[] = []
+      enable.forEach((value) => {
+        or.push({ enable: { equals: Number.parseInt(value) } })
+      })
+      where.OR = or
     }
     // 默认值
     if (request.query.group_id) {
@@ -228,9 +236,13 @@ apiOpen.get('/v1/page', async (request, response) => {
         break
     }
     // 启用/禁用状态过滤
-    const enable = request.query.enable ? (request.query.enable as string).split(',')[0] : '0'
-    if (enable) {
-      where.enable = Number.parseInt(enable)
+    const enable = request.query.enable ? (request.query.enable as string).split(',') : []
+    if (enable.length > 0) {
+      const or: (envsGroupWhereInput & envsWhereInput)[] = []
+      enable.forEach((value) => {
+        or.push({ enable: { equals: Number.parseInt(value) } })
+      })
+      where.OR = or
     }
     // 排序
     const orderBy = request.query.orderBy as string || 'sort'
