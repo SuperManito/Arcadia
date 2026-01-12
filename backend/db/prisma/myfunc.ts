@@ -2,6 +2,9 @@ import { Prisma } from '@prismaGeneratedModel/client'
 
 export interface PageResult<T> { data: T, total?: number, page: number, size: number }
 
+// https://github.com/prisma/prisma/blob/main/packages/client/src/runtime/core/types/exported/Result.ts#L96
+export interface GetBatchResult { count: number }
+
 export function clean(model: any, o: any): any {
   if (!o)
     return o
@@ -16,6 +19,19 @@ export function clean(model: any, o: any): any {
       obj[key] = (o as any)[key]
       return obj
     }, {})
+}
+
+export function cleanArgs(data: any, keys: string[]) {
+  if (!data || typeof data !== 'object')
+    return {}
+  const res: any = {}
+  const src = data as any
+  for (const k of Object.keys(src)) {
+    if (!keys.includes(k)) {
+      res[k] = src[k]
+    }
+  }
+  return res
 }
 
 export function cleanId(model: any, value: any, fieldName: string): string | number {
@@ -56,6 +72,7 @@ export function withMyFunc() {
             const args = opts ? { data, ...opts } : { data }
             return (this as any).create(args) as Promise<R>
           },
+
           $updateById<T, A extends Prisma.Args<T, 'update'> = Prisma.Args<T, 'update'>, R = Prisma.Result<T, A, 'update'>>(
             this: T,
             input: { id: number | string, data: A['data'] },
@@ -83,7 +100,7 @@ export function withMyFunc() {
             this: T,
             data: A['create'],
             idName: string = 'id',
-            options: Partial<Omit<A, 'where' | 'create' | 'update'>> = {},
+            options?: A,
           ): Promise<R> {
             const idValue = (data as any)[idName]
             const cleanedId = cleanId(this, idValue, idName)
@@ -94,35 +111,35 @@ export function withMyFunc() {
               return (this as any).create({
                 data: cleanedData,
                 ...options,
-              }) as Promise<R>
+              })
             }
             // 存在id使用默认的upsert逻辑
             return (this as any).upsert({
               where: { [idName]: cleanedId },
               create: cleanedData,
               update: cleanedData,
-              ...options,
-            }) as Promise<R>
+              ...cleanArgs(options, ['where', 'create', 'update']),
+            })
           },
 
           $list<T, A extends Prisma.Args<T, 'findMany'> = Prisma.Args<T, 'findMany'>, R = Prisma.Result<T, A, 'findMany'>>(
             this: T,
-            where?: any,
+            where?: A['where'],
             orderBy?: A['orderBy'],
-            options: Omit<A, 'where' | 'orderBy'> = {} as any,
+            options?: A,
           ): Promise<R> {
             return (this as any).findMany({
               where: clean(this, where),
               orderBy,
-              ...options,
-            }) as Promise<R>
+              ...cleanArgs(options, ['where', 'orderBy']),
+            })
           },
 
           $getById<T, A extends Prisma.Args<T, 'findFirst'> = Prisma.Args<T, 'findFirst'>, R = Prisma.Result<T, A, 'findFirst'> | null>(
             this: T,
             id: number | string,
             idName: string = 'id',
-            options: Partial<Omit<A, 'where'>> = {} as any,
+            options?: A,
           ): Promise<R> {
             const cleanedId = cleanId(this, id, idName)
 
@@ -132,7 +149,7 @@ export function withMyFunc() {
 
             return (this as any).findFirst({
               where: { [idName]: cleanedId },
-              ...options,
+              ...(cleanArgs(options, ['where'])),
             }) as Promise<R>
           },
 
@@ -192,7 +209,7 @@ export function withMyFunc() {
             // 清理查询条件
             const cleanedWhere = clean(this, args.where)
             // 剔除无关参数
-            const { page: _page, size: _size, searchCount, ...restArgs } = args as any
+            const { page: _page, size: _size, searchCount, ...restArgs } = cleanArgs(args, ['where'])
             // 获取数据和总数
             const p = [
               (this as any).findMany({

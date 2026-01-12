@@ -3,14 +3,15 @@ import express from 'express'
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import { logger } from '../utils/logger'
 import type {
-  ComboEnvsGroupModel,
+  ComboEnvsGroupWithCount,
   envsGroupModel,
   envsGroupWhereInput,
   envsModel,
   envsWhereInput,
+  GetBatchResult,
   PageResult,
 } from '../db'
-import db from '../db'
+import db, { flattenEnvsGroupPageResult, flattenIncludeRelationCount } from '../db'
 import { generateEnvSh } from '../utils/envUtil'
 import type { ValidateObjectParamType } from '../utils'
 import { cleanProperties, validateObject, validatePageParams, validateParams } from '../utils'
@@ -23,8 +24,13 @@ enum EnvTypes {
   COMPOSITE = 'composite',
   COMPOSITE_VALUE = 'composite_value',
 }
-
 type TypeCategory = EnvTypes
+function isComposite(data: envsModel | envsGroupModel, i?: boolean): data is envsGroupModel {
+  if (typeof i === 'boolean') {
+    return i
+  }
+  return !('group_id' in data)
+}
 
 // 数据更新回调
 async function onChange(isItem?: boolean) {
@@ -41,7 +47,7 @@ async function onChange(isItem?: boolean) {
     await fixItemOrder()
   }
   // 生成本地 env.sh
-  const env_groups: ComboEnvsGroupModel[] = await db.envsGroup.$list(
+  const envGroupsResult = await db.envsGroup.$list(
     {
       id: { not: 0 },
     },
@@ -54,10 +60,10 @@ async function onChange(isItem?: boolean) {
       },
     },
   )
-  const envs: envsModel[] = await db.envs.$list({
+  const envs = await db.envs.$list({
     group_id: 0,
   })
-  generateEnvSh(env_groups, envs)
+  generateEnvSh(envGroupsResult, envs)
 }
 
 // 初始化
@@ -96,19 +102,16 @@ api.get('/page', async (request, response) => {
     if (request.query.order === '0') {
       desc = false // 0 升序，1 降序
     }
-    const result = await db.envsGroup.$page({
+    const envsGroupPageResult = await db.envsGroup.$page({
       where,
       page: String(request.query.page),
       size: String(request.query.size),
-      orderBy: { [orderBy]: (desc ? 'desc' : 'asc') },
+      orderBy: { [orderBy]: desc ? 'desc' : 'asc' },
       include: {
-        envs: true,
+        _count: { select: { envs: true } },
       },
-    });
-    (result.data as any) = result.data.map((item) => ({
-      ...item,
-      envs: item.envs.length,
-    }))
+    })
+    const result = flattenEnvsGroupPageResult(envsGroupPageResult)
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
@@ -150,12 +153,13 @@ api.get('/pageItem', async (request, response) => {
     if (request.query.order === '0') {
       desc = false // 0 升序，1 降序
     }
-    response.send(API_STATUS_CODE.okData(await db.envs.$page({
+    const result = await db.envs.$page({
       where,
       page: request.query.page as string,
       size: request.query.size as string,
-      orderBy: { [orderBy]: (desc ? 'desc' : 'asc') },
-    })))
+      orderBy: { [orderBy]: desc ? 'desc' : 'asc' },
+    })
+    response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message))
@@ -225,7 +229,6 @@ apiOpen.get('/v1/page', async (request, response) => {
     }
     // 启用/禁用状态过滤
     const enable = request.query.enable ? (request.query.enable as string).split(',')[0] : '0'
-    // 启用/禁用状态过滤
     if (enable) {
       where.enable = Number.parseInt(enable)
     }
@@ -235,21 +238,18 @@ apiOpen.get('/v1/page', async (request, response) => {
     if (request.query.order === '0') {
       desc = false // 0 升序，1 降序
     }
-    let result: PageResult<(envsModel & envsGroupModel)>
+    let result: PageResult<(envsModel[] | ComboEnvsGroupWithCount[])>
     if (category === EnvTypes.COMPOSITE) {
-      result = await db.envsGroup.$page({
+      const envsGroupPageResult = await db.envsGroup.$page({
         where,
         page: request.query.page as string,
         size: request.query.size as string,
         orderBy: { [orderBy]: (desc ? 'desc' : 'asc') },
         include: {
-          envs: true,
+          _count: { select: { envs: true } },
         },
-      });
-      (result.data as any) = (result.data as any).map((item) => ({
-        ...item,
-        envs: item.envs.length,
-      }))
+      })
+      result = flattenEnvsGroupPageResult(envsGroupPageResult)
     }
     else {
       result = await db.envs.$page({
@@ -279,7 +279,7 @@ apiOpen.get('/v1/query', async (request, response) => {
     if (!name && !type && !description) {
       throw new Error('至少需要提供 name、type、description 的其中一个参数')
     }
-    const result: (envsGroupModel | envsModel)[] = []
+    const result: (envsModel | ComboEnvsGroupWithCount)[] = []
     // 构建查询条件
     const queryConditions: (envsWhereInput & envsGroupWhereInput)[] = []
     if (type) {
@@ -292,31 +292,23 @@ apiOpen.get('/v1/query', async (request, response) => {
       queryConditions.push({ description: { contains: description as string } })
     }
     // 查询 envs 表
-    const envs_result = await db.envs.$list({
+    const envsResult = await db.envs.$list({
       group_id: 0,
       AND: queryConditions,
     }) || []
-    if (envs_result.length > 0) {
-      result.push(...envs_result)
+    if (envsResult.length > 0) {
+      result.push(...envsResult)
     }
     // 查询 envsGroup 表
     const envsGroupResult = await db.envsGroup.$list({
       id: { not: 0 },
       AND: queryConditions,
-    }, undefined, { include: { envs: true } }) || []
+    }, undefined, { include: { _count: { select: { envs: true } } } }) || []
     if (envsGroupResult.length > 0) {
-      // 替换关联数据为它的长度
-      const format_data = envsGroupResult.map((item: any) => {
-        if (Array.isArray(item?.envs)) {
-          item.envs = item.envs.length
-        }
-        return item
-      })
-      result.push(...format_data)
+      result.push(...flattenIncludeRelationCount(envsGroupResult))
     }
-    result.push(...envsGroupResult)
     // 二次过滤（注：SQLite 的 contains 操作符不区分大小写）
-    const filteredData = result.filter((item: envsModel) => {
+    const filteredData = result.filter((item: envsModel | ComboEnvsGroupWithCount) => {
       const matchesName = name ? item.type.includes(name as string) : true
       const matchesDescription = description ? item.description.includes(description as string) : true
       return matchesName && matchesDescription
@@ -391,9 +383,12 @@ apiOpen.get('/v1/queryById', async (request, response) => {
     if (!/^\d+$/.test(id as string) || Number.parseInt(id as string) <= 0) {
       throw new Error('参数 id 无效（参数值类型错误）')
     }
-    let record: envsModel | (ComboEnvsGroupModel)
+    let record: envsModel | ComboEnvsGroupWithCount | null = null
     if (category === EnvTypes.COMPOSITE) {
-      record = await db.envsGroup.$getById(String(id), undefined, { include: { envs: true } })
+      const envsGroupResult = await db.envsGroup.$getById(String(id), undefined, { include: { _count: { select: { envs: true } } } })
+      if (envsGroupResult) {
+        record = flattenIncludeRelationCount(envsGroupResult)
+      }
     }
     else {
       record = await db.envs.$getById(String(id))
@@ -512,7 +507,7 @@ apiOpen.post('/v1/create', async (request, response) => {
       ['body', 'compositeId', [false, 'number']],
       ['body', 'data', [true, 'object']],
     ])
-    let data: (envsModel | ComboEnvsGroupModel)[]
+    let data: (envsModel | envsGroupModel)[]
     if (Array.isArray(request.body.data)) {
       data = request.body.data.map((e: any) => Object.assign({}, e))
     }
@@ -552,7 +547,7 @@ apiOpen.post('/v1/create', async (request, response) => {
         break
     }
     const fields = validateRules.map((rule) => rule[0])
-    const formatData: (envsModel | ComboEnvsGroupModel)[] = []
+    const formatData: (envsModel | envsGroupModel)[] = []
     for (let obj of data) {
       // 属性校验
       validateObject(obj, validateRules)
@@ -572,7 +567,7 @@ apiOpen.post('/v1/create', async (request, response) => {
       }
       formatData.push(obj)
     }
-    let result: (envsModel | ComboEnvsGroupModel)[]
+    let result: envsModel | envsGroupModel | GetBatchResult
     if (category === EnvTypes.COMPOSITE) {
       result = await db.envsGroup.$create(formatData as envsGroupModel[])
     }
@@ -596,7 +591,7 @@ apiOpen.post('/v1/update', async (request, response) => {
       ['body', 'category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
       ['body', 'data', [true, 'object']],
     ])
-    let data: (envsModel | ComboEnvsGroupModel)[]
+    let data: (envsModel | envsGroupModel)[]
     if (Array.isArray(request.body.data)) {
       data = request.body.data.map((e: any) => Object.assign({}, e))
     }
@@ -635,8 +630,8 @@ apiOpen.post('/v1/update', async (request, response) => {
         break
     }
     const fields = validateRules.map((rule) => rule[0])
-    const exist_group_ids: number[] = [] // 已存在的复合变量(组) id（临时）
-    const formatData: (envsModel | ComboEnvsGroupModel)[] = []
+    const existGroupIds: number[] = [] // 已存在的复合变量(组) id（临时）
+    const formatData: (envsModel | envsGroupModel)[] = []
     for (let obj of data) {
       // 属性校验
       validateObject(obj, validateRules)
@@ -656,11 +651,11 @@ apiOpen.post('/v1/update', async (request, response) => {
           throw new Error(`参数 id 无效，复合变量的值 ${obj.id} 不存在`)
         }
         // 检查复合变量(组)是否存在（仅一次）
-        if (!exist_group_ids.includes((obj as envsModel).group_id)) {
+        if (!existGroupIds.includes((obj as envsModel).group_id)) {
           if (((await db.envsGroup.$list({
             id: (obj as envsModel).group_id,
           })) || []).length > 0) {
-            exist_group_ids.push(obj.id)
+            existGroupIds.push(obj.id)
           }
           else {
             throw new Error(`参数 group_id 无效，复合变量(组) ${(obj as envsModel).group_id} 不存在`)
@@ -692,16 +687,14 @@ apiOpen.post('/v1/update', async (request, response) => {
       }
       formatData.push(obj)
     }
-    const result: (envsModel | ComboEnvsGroupModel)[] = []
+    const result: (envsModel | envsGroupModel)[] = []
     for (const item of formatData) {
-      let r: (envsModel | ComboEnvsGroupModel)
-      if (category === EnvTypes.COMPOSITE) {
-        r = await db.envsGroup.$upsertById(item as envsGroupModel)
+      if (isComposite(item, category === EnvTypes.COMPOSITE)) {
+        result.push(await db.envsGroup.$upsertById(item))
       }
       else {
-        r = await db.envs.$upsertById(item as envsModel)
+        result.push(await db.envs.$upsertById(item))
       }
-      result.push(r)
     }
     response.send(API_STATUS_CODE.okData(result))
     logger.info('[OpenAPI · Env]', '更新环境变量', JSON.stringify(data.length === 1 ? formatData[0] : formatData))
@@ -782,7 +775,7 @@ apiOpen.post('/v1/changeStatus', async (request, response) => {
     const status = request.body.status as 0 | 1
     const isComposite = request.body.isComposite as boolean
     for (const id of ids) {
-      let record: envsModel | ComboEnvsGroupModel | null
+      let record: envsModel | envsGroupModel | null
       if (isComposite) {
         record = await db.envsGroup.$getById(id)
       }
@@ -914,7 +907,8 @@ api.put('/order', async (request, response) => {
         return
       }
     }
-    response.send(API_STATUS_CODE.okData(await updateSortById(id, order)))
+    const result = await updateSortById(id, order)
+    response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -945,7 +939,8 @@ api.put('/orderItem', async (request, response) => {
         return
       }
     }
-    response.send(API_STATUS_CODE.okData(await updateItemSortById(id, order)))
+    const result = await updateItemSortById(id, order)
+    response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -990,7 +985,8 @@ apiOpen.post('/v1/order', async (request, response) => {
           return
         }
       }
-      response.send(API_STATUS_CODE.okData(await updateSortById(id, order)))
+      const result = await updateSortById(id, order)
+      response.send(API_STATUS_CODE.okData(result))
     }
     else {
       const envsRecord = await db.envs.$getById(id)
@@ -1007,7 +1003,8 @@ apiOpen.post('/v1/order', async (request, response) => {
           return
         }
       }
-      response.send(API_STATUS_CODE.okData(await updateItemSortById(id, order)))
+      const result = await updateItemSortById(id, order)
+      response.send(API_STATUS_CODE.okData(result))
     }
     await onChange(!isComposite)
   }
@@ -1027,7 +1024,7 @@ async function fixOrder() {
 }
 
 async function updateSortById(id: number, newOrder: number) {
-  const oldRecord = await db.envsGroup.$getById(id) as ComboEnvsGroupModel
+  const oldRecord = await db.envsGroup.$getById(id) as envsGroupModel
   if (newOrder === oldRecord.sort) {
     return true
   }

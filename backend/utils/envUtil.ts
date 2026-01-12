@@ -1,12 +1,12 @@
 import fs from 'node:fs'
 import { APP_FILE_PATH } from '../core/type'
-import type { envsGroupModel, envsModel } from '../db'
+import type { ComboEnvsGroupModel, envsModel } from '../db'
 
 /**
  * 生成环境变量批量声明脚本
  *
  */
-function generateEnvSh(group: (envsGroupModel & { envs: envsModel[] })[], items: envsModel[]) {
+export function generateEnvSh(group: ComboEnvsGroupModel[], items: envsModel[]) {
   let header = '#!/bin/bash'
   header += '\n# This file is auto generated, please do not modify it manually'
   header += '\n# 本文件由系统自动生成，请勿手动修改\n'
@@ -47,8 +47,4 @@ function generateEnvSh(group: (envsGroupModel & { envs: envsModel[] })[], items:
     }
   })
   fs.writeFileSync(APP_FILE_PATH.ENV, lines.join('\n'))
-}
-
-export {
-  generateEnvSh,
 }
