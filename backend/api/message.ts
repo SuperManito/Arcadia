@@ -3,7 +3,7 @@ import express from 'express'
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import type { messageWhereInput } from '../db'
 import db from '../db'
-import { validateParams } from '../utils'
+import { validateRequestParams } from '../utils'
 
 const api: Express = express()
 
@@ -67,18 +67,20 @@ api.get('/page', async (request, response) => {
  */
 api.get('/:id', async (request, response) => {
   try {
-    validateParams(request, [
-      ['query', 'id', [true, 'number']],
-    ])
-
-    const id = Number.parseInt(request.params.id)
-    const message = await db.message.$getById(id)
-
+    const params = validateRequestParams(request, {
+      query: [
+        ['id', [true, 'string']],
+      ] as const,
+    })
+    const { id } = params.query
+    if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
+      throw new Error('参数 id 无效（参数值类型错误）')
+    }
+    const message = await db.message.$getById(Number.parseInt(id))
     if (!message) {
       response.send(API_STATUS_CODE.fail('消息不存在'))
       return
     }
-
     response.send(API_STATUS_CODE.okData(message))
   }
   catch (e: any) {
@@ -93,7 +95,6 @@ api.post('/', async (request, response) => {
   try {
     const message = Object.assign({}, request.body)
     delete message.id
-
     const createdMessage = await db.message.$create(message)
     response.send(API_STATUS_CODE.okData(createdMessage))
   }
@@ -108,12 +109,10 @@ api.post('/', async (request, response) => {
 api.put('/', async (request, response) => {
   try {
     const message = Object.assign({}, request.body)
-
     if (!message.id) {
       response.send(API_STATUS_CODE.fail('缺少必要参数 id'))
       return
     }
-
     const updatedMessage = await db.message.update({
       where: { id: message.id },
       data: message,
@@ -130,20 +129,13 @@ api.put('/', async (request, response) => {
  */
 api.delete('/', async (request, response) => {
   try {
-    validateParams(request, [
-      ['body', 'id', [true, 'number | number[]']],
-    ])
-
-    const id = request.body.id
-    let ids: number[] = []
-
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
-
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number | number[]']],
+      ] as const,
+    })
+    const { id } = params.body
+    const ids: number[] = Array.isArray(id) ? id : [id]
     await db.message.$deleteById(ids)
     response.send(API_STATUS_CODE.ok())
   }
@@ -157,22 +149,14 @@ api.delete('/', async (request, response) => {
  */
 api.put('/status', async (request, response) => {
   try {
-    validateParams(request, [
-      ['body', 'id', [true, 'number | number[]']],
-      ['body', 'status', [true, 'number']],
-    ])
-
-    const id = request.body.id
-    const status = request.body.status
-    let ids: number[] = []
-
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
-
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number | number[]']],
+        ['status', [true, 'number']],
+      ] as const,
+    })
+    const { id, status } = params.body
+    const ids: number[] = Array.isArray(id) ? id : [id]
     await db.message.updateMany({
       where: {
         id: { in: ids },
@@ -181,7 +165,6 @@ api.put('/status', async (request, response) => {
         status,
       },
     })
-
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {

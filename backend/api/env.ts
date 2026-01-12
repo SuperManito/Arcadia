@@ -14,7 +14,12 @@ import type {
 import db, { flattenEnvsGroupPageResult, flattenIncludeRelationCount } from '../db'
 import { generateEnvSh } from '../utils/envUtil'
 import type { ValidateObjectParamType } from '../utils'
-import { cleanProperties, validateObject, validatePageParams, validateParams } from '../utils'
+import {
+  cleanProperties,
+  validateObject,
+  validatePageFixedParams,
+  validateRequestParams,
+} from '../utils'
 
 const api: Express = express()
 const apiOpen: Express = express()
@@ -177,13 +182,16 @@ api.get('/pageItem', async (request, response) => {
 apiOpen.get('/v1/page', async (request, response) => {
   try {
     // 传参校验
-    validatePageParams(request, ['sort', 'update_time'])
-    validateParams(request, [
-      ['query', 'category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
-      ['query', 'enable', [false, ['1', '0']]],
-    ])
+    validatePageFixedParams(request, ['sort', 'update_time'])
+    const params = validateRequestParams(request, {
+      query: [
+        ['category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
+        ['enable', [false, ['1', '0', '1,0', '0,1']]],
+        ['compositeId', [false, 'string']],
+      ] as const,
+    })
     const where: envsGroupWhereInput & envsWhereInput = {}
-    const category = request.query.category
+    const { category, compositeId } = params.query
     switch (category) {
       case EnvTypes.ORDINARY:
         // 默认值
@@ -214,15 +222,14 @@ apiOpen.get('/v1/page', async (request, response) => {
           }
         }
         break
-      case EnvTypes.COMPOSITE_VALUE:
-        // 默认值
-        validateParams(request, [
-          ['query', 'compositeId', [true, 'string']],
-        ])
-        if (Number.parseInt(request.query.compositeId as string) <= 0) {
+      case EnvTypes.COMPOSITE_VALUE: {
+        if (typeof compositeId === 'undefined') {
+          throw new Error('需要提供 compositeId 参数')
+        }
+        if (!/^\d+$/.test(compositeId) || Number.parseInt(compositeId) <= 0) {
           throw new Error('参数 compositeId 无效（参数值类型错误）')
         }
-        where.group_id = { equals: Number.parseInt(request.query.compositeId as string) }
+        where.group_id = { equals: Number.parseInt(compositeId) }
         // 搜索过滤
         if (request.query.search) {
           const search = request.query.search as string
@@ -234,9 +241,10 @@ apiOpen.get('/v1/page', async (request, response) => {
           }
         }
         break
+      }
     }
     // 启用/禁用状态过滤
-    const enable = request.query.enable ? (request.query.enable as string).split(',') : []
+    const enable = params.query.enable ? params.query.enable.split(',') : []
     if (enable.length > 0) {
       const or: (envsGroupWhereInput & envsWhereInput)[] = []
       enable.forEach((value) => {
@@ -282,12 +290,14 @@ apiOpen.get('/v1/page', async (request, response) => {
 apiOpen.get('/v1/query', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['query', 'name', [false, 'string']],
-      ['query', 'type', [false, 'string']],
-      ['query', 'description', [false, 'string']],
-    ])
-    const { name, type, description } = request.query
+    const params = validateRequestParams(request, {
+      query: [
+        ['name', [false, 'string']],
+        ['type', [false, 'string']],
+        ['description', [false, 'string']],
+      ] as const,
+    })
+    const { name, type, description } = params.query
     if (!name && !type && !description) {
       throw new Error('至少需要提供 name、type、description 的其中一个参数')
     }
@@ -295,13 +305,13 @@ apiOpen.get('/v1/query', async (request, response) => {
     // 构建查询条件
     const queryConditions: (envsWhereInput & envsGroupWhereInput)[] = []
     if (type) {
-      queryConditions.push({ type: { contains: type as string } }) // 优先使用 type
+      queryConditions.push({ type: { contains: type } }) // 优先使用 type
     }
     else if (name) {
-      queryConditions.push({ type: { contains: name as string } })
+      queryConditions.push({ type: { contains: name } })
     }
     if (description) {
-      queryConditions.push({ description: { contains: description as string } })
+      queryConditions.push({ description: { contains: description } })
     }
     // 查询 envs 表
     const envsResult = await db.envs.$list({
@@ -321,8 +331,8 @@ apiOpen.get('/v1/query', async (request, response) => {
     }
     // 二次过滤（注：SQLite 的 contains 操作符不区分大小写）
     const filteredData = result.filter((item: envsModel | ComboEnvsGroupWithCount) => {
-      const matchesName = name ? item.type.includes(name as string) : true
-      const matchesDescription = description ? item.description.includes(description as string) : true
+      const matchesName = name ? item.type.includes(name) : true
+      const matchesDescription = description ? item.description.includes(description) : true
       return matchesName && matchesDescription
     })
     // 返回数据
@@ -351,13 +361,15 @@ apiOpen.get('/v1/query', async (request, response) => {
 apiOpen.get('/v1/queryMember', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['query', 'id', [true, 'string']],
-      ['query', 'value', [false, 'string']],
-      ['query', 'remark', [false, 'string']],
-    ])
-    const { id, value, remark } = request.query
-    if (!/^\d+$/.test(id as string) || Number.parseInt(id as string) <= 0) {
+    const params = validateRequestParams(request, {
+      query: [
+        ['id', [true, 'string']],
+        ['value', [false, 'string']],
+        ['remark', [false, 'string']],
+      ] as const,
+    })
+    const { id, value, remark } = params.query
+    if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
       throw new Error('参数 id 无效（参数值类型错误）')
     }
     if (!value && !remark) {
@@ -366,14 +378,14 @@ apiOpen.get('/v1/queryMember', async (request, response) => {
     // 构建查询条件
     const queryConditions: envsWhereInput[] = []
     if (value) {
-      queryConditions.push({ value: { contains: value as string } })
+      queryConditions.push({ value: { contains: value } })
     }
     if (remark) {
-      queryConditions.push({ remark: { contains: remark as string } })
+      queryConditions.push({ remark: { contains: remark } })
     }
     // 查询 envs 表
     const result = await db.envs.$list({
-      group_id: Number.parseInt(id as string),
+      group_id: Number.parseInt(id),
       AND: queryConditions,
     }) || []
     // 返回数据
@@ -387,12 +399,14 @@ apiOpen.get('/v1/queryMember', async (request, response) => {
 apiOpen.get('/v1/queryById', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['query', 'category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
-      ['query', 'id', [true, 'string']],
-    ])
-    const { category, id } = request.query
-    if (!/^\d+$/.test(id as string) || Number.parseInt(id as string) <= 0) {
+    const params = validateRequestParams(request, {
+      query: [
+        ['category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
+        ['id', [true, 'string']],
+      ] as const,
+    })
+    const { category, id } = params.query
+    if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
       throw new Error('参数 id 无效（参数值类型错误）')
     }
     let record: envsModel | ComboEnvsGroupWithCount | null = null
@@ -511,24 +525,25 @@ api.post('/createItem', async (request, response) => {
 })
 
 apiOpen.post('/v1/create', async (request, response) => {
-  const category: EnvTypes = request.body.category
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
-      ['body', 'compositeId', [false, 'number']],
-      ['body', 'data', [true, 'object']],
-    ])
+    const params = validateRequestParams(request, {
+      body: [
+        ['category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
+        ['compositeId', [false, 'number']],
+        ['data', [true, 'object']],
+      ] as const,
+    })
+    const { category, compositeId } = params.body
     let data: (envsModel | envsGroupModel)[]
-    if (Array.isArray(request.body.data)) {
-      data = request.body.data.map((e: any) => Object.assign({}, e))
+    if (Array.isArray(params.body.data)) {
+      data = params.body.data.map((e: any) => Object.assign({}, e))
     }
     else {
-      data = [Object.assign({}, request.body.data)]
+      data = [Object.assign({}, params.body.data)]
     }
     // 过滤数据
     let validateRules: ValidateObjectParamType[] = []
-    let compositeId!: number
     switch (category) {
       case EnvTypes.ORDINARY:
         validateRules = [
@@ -547,7 +562,9 @@ apiOpen.post('/v1/create', async (request, response) => {
         ]
         break
       case EnvTypes.COMPOSITE_VALUE:
-        compositeId = request.body.compositeId
+        if (typeof compositeId === 'undefined') {
+          throw new Error('需要提供 compositeId 参数')
+        }
         if (compositeId <= 0) {
           throw new Error('参数 compositeId 无效（参数值类型错误）')
         }
@@ -574,7 +591,7 @@ apiOpen.post('/v1/create', async (request, response) => {
         (obj as envsModel).group_id = 0
       }
       else if (category === EnvTypes.COMPOSITE_VALUE) {
-        (obj as envsModel).group_id = compositeId
+        (obj as envsModel).group_id = compositeId as number
         obj.type = '' // 复合变量值的 type 为空
       }
       formatData.push(obj)
@@ -596,19 +613,21 @@ apiOpen.post('/v1/create', async (request, response) => {
 })
 
 apiOpen.post('/v1/update', async (request, response) => {
-  const category = request.body.category
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
-      ['body', 'data', [true, 'object']],
-    ])
+    const params = validateRequestParams(request, {
+      body: [
+        ['category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
+        ['data', [true, 'object']],
+      ] as const,
+    })
+    const { category } = params.body
     let data: (envsModel | envsGroupModel)[]
-    if (Array.isArray(request.body.data)) {
-      data = request.body.data.map((e: any) => Object.assign({}, e))
+    if (Array.isArray(params.body.data)) {
+      data = params.body.data.map((e: any) => Object.assign({}, e))
     }
     else {
-      data = [Object.assign({}, request.body.data)]
+      data = [Object.assign({}, params.body.data)]
     }
     // 过滤数据
     let validateRules: ValidateObjectParamType[] = []
@@ -772,20 +791,20 @@ api.put('/changeStatusItem', async (request, response) => {
 apiOpen.post('/v1/changeStatus', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'id', [true, 'number | number[]']],
-      ['body', 'status', [true, [1, 0]]],
-      ['body', 'isComposite', [false, 'boolean']],
-    ])
-    const id = request.body.id
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number | number[]']],
+        ['status', [true, [1, 0]]],
+        ['isComposite', [false, 'boolean']],
+      ] as const,
+    })
+    const { id, status, isComposite } = params.body
     const ids = Array.isArray(id) ? id : [id]
     ids.forEach((id) => {
       if (id <= 0) {
         throw new Error('参数 id 无效（参数值类型错误）')
       }
     })
-    const status = request.body.status as 0 | 1
-    const isComposite = request.body.isComposite as boolean
     for (const id of ids) {
       let record: envsModel | envsGroupModel | null
       if (isComposite) {
@@ -817,10 +836,12 @@ apiOpen.post('/v1/changeStatus', async (request, response) => {
 api.delete('/delete', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'id', [true, 'number | number[]']],
-    ])
-    const id = request.body.id
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number | number[]']],
+      ] as const,
+    })
+    const { id } = params.body
     const ids = Array.isArray(id) ? id : [id]
     ids.forEach((id) => {
       if (id <= 0) {
@@ -842,10 +863,12 @@ api.delete('/delete', async (request, response) => {
 api.delete('/deleteItem', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'id', [true, 'number | number[]']],
-    ])
-    const id = request.body.id
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number | number[]']],
+      ] as const,
+    })
+    const { id } = params.body
     const ids = Array.isArray(id) ? id : [id]
     ids.forEach((id) => {
       if (id <= 0) {
@@ -866,18 +889,19 @@ api.delete('/deleteItem', async (request, response) => {
 apiOpen.post('/v1/delete', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'id', [true, 'number | number[]']],
-      ['body', 'isComposite', [false, 'boolean']],
-    ])
-    const id = request.body.id
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number | number[]']],
+        ['isComposite', [false, 'boolean']],
+      ] as const,
+    })
+    const { id, isComposite } = params.body
     const ids = Array.isArray(id) ? id : [id]
     ids.forEach((id) => {
       if (id <= 0) {
         throw new Error('参数 id 无效（参数值类型错误）')
       }
     })
-    const isComposite = request.body.isComposite as boolean
     if (isComposite) {
       await db.envs.$deleteById(ids, 'group_id')
       await db.envsGroup.$deleteById(ids)
@@ -897,29 +921,32 @@ apiOpen.post('/v1/delete', async (request, response) => {
 api.put('/order', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'id', [true, 'number']],
-    ])
-    const id = request.body.id
-    let order = request.body.order
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number']],
+        ['order', [false, 'number']],
+        ['moveToEnd', [false, 'boolean']],
+      ] as const,
+    })
+    const { id, order, moveToEnd } = params.body
+    let orderValue = order
     if (id <= 0) {
       response.send(API_STATUS_CODE.fail('参数 id 无效（参数值类型错误）'))
       return
     }
-    if (!order && !request.body.moveToEnd) {
+    if (typeof order === 'number' && order < 0) {
+      response.send(API_STATUS_CODE.fail('参数 order 无效（参数值类型错误）'))
+      return
+    }
+    if (typeof order === 'undefined' && !moveToEnd) {
       response.send(API_STATUS_CODE.fail('缺少必要的参数 order 或 moveToEnd'))
       return
     }
     // 移动到最后
-    if (request.body.moveToEnd) {
-      const data = await db.envsGroup.$page({ where: { id: { not: 0 } }, orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
-      order = data.data[0]?.sort
-      if (!order && order !== 0) {
-        response.send(API_STATUS_CODE.fail('未找到最大排序值'))
-        return
-      }
+    if (moveToEnd) {
+      orderValue = await getCurrentMaxSortValue(true)
     }
-    const result = await updateSortById(id, order)
+    const result = await updateSortById(id, orderValue as number)
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
@@ -933,25 +960,32 @@ api.put('/order', async (request, response) => {
 api.put('/orderItem', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'id', [true, 'number']],
-    ])
-    const id = request.body.id
-    let order = request.body.order
-    if (!order && !request.body.moveToEnd) {
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number']],
+        ['order', [false, 'number']],
+        ['moveToEnd', [false, 'boolean']],
+      ] as const,
+    })
+    const { id, order, moveToEnd } = params.body
+    let orderValue = order
+    if (id <= 0) {
+      response.send(API_STATUS_CODE.fail('参数 id 无效（参数值类型错误）'))
+      return
+    }
+    if (typeof order === 'number' && order < 0) {
+      response.send(API_STATUS_CODE.fail('参数 order 无效（参数值类型错误）'))
+      return
+    }
+    if (typeof order === 'undefined' && !moveToEnd) {
       response.send(API_STATUS_CODE.fail('缺少必要的参数 order 或 moveToEnd'))
       return
     }
     // 移动到最后
-    if (request.body.moveToEnd) {
-      const data = await db.envs.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
-      order = data.data[0]?.sort
-      if (!order && order !== 0) {
-        response.send(API_STATUS_CODE.fail('未找到最大排序值'))
-        return
-      }
+    if (moveToEnd) {
+      orderValue = await getCurrentMaxSortValue(false)
     }
-    const result = await updateItemSortById(id, order)
+    const result = await updateItemSortById(id, orderValue as number)
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
@@ -965,23 +999,28 @@ api.put('/orderItem', async (request, response) => {
 apiOpen.post('/v1/order', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'id', [true, 'number']],
-      ['body', 'isComposite', [false, 'boolean']],
-      ['body', 'order', [false, 'number']],
-      ['body', 'moveToEnd', [false, 'boolean']],
-    ])
-    const id = request.body.id
-    let order = request.body.order
-    if (!order && !request.body.moveToEnd) {
-      response.send(API_STATUS_CODE.fail('缺少必要的参数 order 或 moveToEnd'))
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number']],
+        ['order', [false, 'number']],
+        ['moveToEnd', [false, 'boolean']],
+        ['isComposite', [false, 'boolean']],
+      ] as const,
+    })
+    const { id, order, moveToEnd, isComposite } = params.body
+    let orderValue = order
+    if (id <= 0) {
+      response.send(API_STATUS_CODE.fail('参数 id 无效（参数值类型错误）'))
       return
     }
-    if (order && order <= 0) {
+    if (typeof order === 'number' && order < 0) {
       response.send(API_STATUS_CODE.fail('参数 order 无效（参数值类型错误）'))
       return
     }
-    const isComposite = request.body.isComposite as boolean
+    if (typeof order === 'undefined' && !moveToEnd) {
+      response.send(API_STATUS_CODE.fail('缺少必要的参数 order 或 moveToEnd'))
+      return
+    }
     if (isComposite) {
       const envsGroupRecord = await db.envsGroup.$getById(id)
       if (!envsGroupRecord) {
@@ -989,15 +1028,10 @@ apiOpen.post('/v1/order', async (request, response) => {
         return
       }
       // 移动到最后
-      if (request.body.moveToEnd) {
-        const data = await db.envsGroup.$page({ where: { id: { not: 0 } }, orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
-        order = data.data[0]?.sort
-        if (!order && order !== 0) {
-          response.send(API_STATUS_CODE.fail('未找到最大排序值'))
-          return
-        }
+      if (moveToEnd) {
+        orderValue = await getCurrentMaxSortValue(true)
       }
-      const result = await updateSortById(id, order)
+      const result = await updateSortById(id, orderValue as number)
       response.send(API_STATUS_CODE.okData(result))
     }
     else {
@@ -1007,15 +1041,10 @@ apiOpen.post('/v1/order', async (request, response) => {
         return
       }
       // 移动到最后
-      if (request.body.moveToEnd) {
-        const data = await db.envs.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
-        order = data.data[0]?.sort
-        if (!order && order !== 0) {
-          response.send(API_STATUS_CODE.fail('未找到最大排序值'))
-          return
-        }
+      if (moveToEnd) {
+        orderValue = await getCurrentMaxSortValue(false)
       }
-      const result = await updateItemSortById(id, order)
+      const result = await updateItemSortById(id, orderValue as number)
       response.send(API_STATUS_CODE.okData(result))
     }
     await onChange(!isComposite)
@@ -1024,6 +1053,21 @@ apiOpen.post('/v1/order', async (request, response) => {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
+
+async function getCurrentMaxSortValue(isEnvsGroup: boolean) {
+  const result = isEnvsGroup
+    ? await db.envsGroup.$page(
+        { where: { id: { not: 0 } }, orderBy: [{ sort: 'desc' }], page: 1, size: 1 },
+      )
+    : await db.envs.$page(
+        { orderBy: [{ sort: 'desc' }], page: 1, size: 1 },
+      )
+  const sort = result.data[0]?.sort
+  if (!sort && sort !== 0) {
+    throw new Error('未找到最大排序值')
+  }
+  return sort
+}
 
 async function fixOrder() {
   await db.$executeRaw`

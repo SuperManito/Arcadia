@@ -45,5 +45,6 @@ export default antfu({
     'style/arrow-parens': 'off', // 关闭箭头函数参数括号的样式规则
     'regexp/no-unused-capturing-group': 'off', // 关闭未使用的捕获组规则
     'node/prefer-global/process': 'off', // 关闭优先使用全局 process 对象的规则
+    'unicorn/prefer-type-error': 'off', // 允许使用非 TypeError 抛出错误
   },
 })

@@ -2,7 +2,7 @@ import type { Express } from 'express'
 import express from 'express'
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import db from '../db'
-import { validateParams } from '../utils'
+import { validateRequestParams } from '../utils'
 
 const api: Express = express()
 
@@ -35,11 +35,16 @@ api.get('/config/page', async (request, response) => {
  */
 api.get('/config/:id', async (request, response) => {
   try {
-    validateParams(request, [
-      ['query', 'id', [true, 'number']],
-    ])
-    const id = Number.parseInt(request.params.id)
-    const config = await db.alertConfig.$getById(id)
+    const params = validateRequestParams(request, {
+      query: [
+        ['id', [true, 'string']],
+      ] as const,
+    })
+    const { id } = params.query
+    if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
+      throw new Error('参数 id 无效（参数值类型错误）')
+    }
+    const config = await db.alertConfig.$getById(Number.parseInt(id))
     response.send(API_STATUS_CODE.okData(config))
   }
   catch (e: any) {
@@ -52,12 +57,13 @@ api.get('/config/:id', async (request, response) => {
  */
 api.post('/config', async (request, response) => {
   try {
-    validateParams(request, [
-      ['body', 'id', [true, 'number']],
-    ])
+    validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number']],
+      ],
+    })
     const config = Object.assign({}, request.body)
     delete config.id
-
     const createdConfig = await db.alertConfig.$create(config)
     response.send(API_STATUS_CODE.okData(createdConfig))
   }
@@ -138,12 +144,16 @@ api.get('/rule/page', async (request, response) => {
  */
 api.get('/rule/:id', async (request, response) => {
   try {
-    const id = Number.parseInt(request.params.id)
-    validateParams(request, [
-      ['query', 'id', [true, 'number']],
-    ])
-
-    const rule = await db.alertConfigRule.$getById(id)
+    const params = validateRequestParams(request, {
+      query: [
+        ['id', [true, 'string']],
+      ] as const,
+    })
+    const { id } = params.query
+    if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
+      throw new Error('参数 id 无效（参数值类型错误）')
+    }
+    const rule = await db.alertConfigRule.$getById(Number.parseInt(id))
     response.send(API_STATUS_CODE.okData(rule))
   }
   catch (e: any) {
@@ -239,13 +249,16 @@ api.get('/notify/page', async (request, response) => {
  */
 api.get('/notify/:id', async (request, response) => {
   try {
-    const id = Number.parseInt(request.params.id)
-
-    validateParams(request, [
-      ['query', 'id', [true, 'number']],
-    ])
-
-    const notify = await db.alertConfigNotify.$getById(id)
+    const params = validateRequestParams(request, {
+      query: [
+        ['id', [true, 'string']],
+      ] as const,
+    })
+    const { id } = params.query
+    if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
+      throw new Error('参数 id 无效（参数值类型错误）')
+    }
+    const notify = await db.alertConfigNotify.$getById(Number.parseInt(id))
     response.send(API_STATUS_CODE.okData(notify))
   }
   catch (e: any) {

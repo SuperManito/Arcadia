@@ -1,16 +1,30 @@
-import type { Express } from 'express'
+import type { Express, Request, Response } from 'express'
 import express from 'express'
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import { logger } from '../utils/logger'
 import { validateCronExpression } from '../core/cron/engine'
-import { applyCron, fixOrder, getBindGroup, runCronTask, runningTasks, stopCronTask, updateSortById } from '../core/cron'
+import {
+  applyCron,
+  fixOrder,
+  getBindGroup,
+  runCronTask,
+  runningTasks,
+  stopCronTask,
+  updateSortById,
+} from '../core/cron'
 import type { tasksModel, tasksWhereInput } from '../db'
 import db from '../db'
 import type { CodeFileResolveResult } from '../server/fileCore'
 import { codeFileResolve } from '../server/fileCore'
 import { APP_DIR_PATH, APP_DIR_TYPE } from '../core/type'
 import type { ValidateObjectParamType } from '../utils'
-import { cleanProperties, getDateStr, validateObject, validatePageParams, validateParams } from '../utils'
+import {
+  cleanProperties,
+  getDateStr,
+  validateObject,
+  validatePageFixedParams,
+  validateRequestParams,
+} from '../utils'
 
 const api: Express = express()
 const apiOpen: Express = express()
@@ -92,7 +106,7 @@ api.get('/', async (request, response) => {
       size: request.query.size as unknown as string,
     })
     // 格式化数据
-    tasks.data.forEach((task: tasksModel) => {
+    tasks.data.forEach((task) => {
       // 创建时间
       if (task.create_time) {
         task.create_time = new Date(task.create_time)
@@ -136,12 +150,14 @@ api.get('/', async (request, response) => {
 apiOpen.get('/v1/page', async (request, response) => {
   try {
     // 传参校验
-    validatePageParams(request, ['sort', 'last_runtime', 'last_run_use'])
-    validateParams(request, [
-      ['query', 'type', [false, ['user', 'system']]],
-      ['query', 'active', [false, ['1', '0']]],
-      ['query', 'tags', [false, 'string', true]],
-    ])
+    validatePageFixedParams(request, ['sort', 'last_runtime', 'last_run_use'])
+    validateRequestParams(request, {
+      query: [
+        ['type', [false, ['user', 'system']]],
+        ['active', [false, ['1', '0']]],
+        ['tags', [false, 'string', true]],
+      ],
+    })
     const active = request.query.active ? (request.query.active as string).split(',') : []
     const tags = request.query.tags ? (request.query.tags as string).split(',').map((s) => s.trim()).filter((s) => s) : []
     const filter = Object.assign({}, request.query)
@@ -194,7 +210,7 @@ apiOpen.get('/v1/page', async (request, response) => {
       size: request.query.size as unknown as string,
     })
     // 格式化数据
-    tasks.data.forEach((task: tasksModel) => {
+    tasks.data.forEach((task) => {
       // 创建时间
       if (task.create_time) {
         task.create_time = new Date(task.create_time)
@@ -220,14 +236,16 @@ apiOpen.get('/v1/page', async (request, response) => {
 apiOpen.get('/v1/query', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['query', 'id', [true, 'string']],
-    ])
-    const id = request.query.id
-    if (!/^\d+$/.test(id as string) || Number.parseInt(id as string) <= 0) {
+    const params = validateRequestParams(request, {
+      query: [
+        ['id', [true, 'string']],
+      ] as const,
+    })
+    const { id } = params.query
+    if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
       throw new Error('参数 id 无效（参数值类型错误）')
     }
-    const record = await db.tasks.$getById(Number.parseInt(id as string))
+    const record = await db.tasks.$getById(Number.parseInt(id))
     if (!record) {
       throw new Error('任务不存在')
     }
@@ -248,11 +266,13 @@ api.post('/', async (request, response) => {
     delete task.id
     // 校验定时规则
     validateCronExpression(task.cron)
-    const createResult = await db.tasks.$create(task)
+    const createResult = await db.tasks.$create(task) as tasksModel
     response.send(API_STATUS_CODE.okData(createResult))
     logger.info('添加定时任务', JSON.stringify(task))
     await fixOrder()
-    await applyCron((createResult as tasksModel).id)
+    if (createResult?.id) {
+      await applyCron(createResult.id)
+    }
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -262,14 +282,17 @@ api.post('/', async (request, response) => {
 apiOpen.post('/v1/create', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'name', [true, 'string']],
-      ['body', 'cron', [true, 'string']],
-      ['body', 'shell', [true, 'string']],
-      ['body', 'active', [false, [1, 0]]],
-      ['body', 'remark', [false, 'string']],
-      ['body', 'config', [false, 'object']],
-    ])
+    const params = validateRequestParams(request, {
+      body: [
+        ['name', [true, 'string']],
+        ['cron', [true, 'string']],
+        ['shell', [true, 'string']],
+        ['active', [false, [1, 0]]],
+        ['remark', [false, 'string']],
+        ['config', [false, 'object']],
+      ] as const,
+    })
+    const { cron } = params.body
     const task = cleanProperties(Object.assign({}, request.body), ['name', 'cron', 'shell', 'active', 'remark', 'config'])
     // 校验高级配置
     if (task.config) {
@@ -286,18 +309,20 @@ apiOpen.post('/v1/create', async (request, response) => {
       task.config = Object.keys(config).length === 0 ? '' : JSON.stringify(config) // 转为字符串
     }
     // 校验定时规则
-    validateCronExpression(task.cron)
+    validateCronExpression(cron)
     // 补齐参数
     Object.assign(task, {
       type: 'user', // 只允许创建用户任务
       create_time: new Date(),
     })
     // 操作数据库
-    const createResult = await db.tasks.$create(task)
+    const createResult = await db.tasks.$create(task) as tasksModel
     response.send(API_STATUS_CODE.okData(createResult))
     logger.info('[OpenAPI · Cron]', '添加定时任务', JSON.stringify(task))
     await fixOrder()
-    await applyCron((createResult as tasksModel).id)
+    if (createResult?.id) {
+      await applyCron(createResult.id)
+    }
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -331,7 +356,10 @@ api.put('/', async (request, response) => {
     const results: boolean[] = []
     const needFixCronIds: number[] = []
     for (const task of tasks) {
-      const originTask = await db.tasks.$getById(task.id) as tasksModel
+      const originTask = await db.tasks.$getById(task.id)
+      if (!originTask) {
+        throw new Error(`任务 ${task.id} 不存在`)
+      }
       try {
         const res = await db.tasks.update({ data: task, where: { id: task.id } })
         logger.info('修改定时任务', JSON.stringify(res))
@@ -360,19 +388,22 @@ api.put('/', async (request, response) => {
 apiOpen.post('/v1/update', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'id', [true, 'number']],
-      ['body', 'name', [false, 'string']],
-      ['body', 'cron', [false, 'string']],
-      ['body', 'shell', [false, 'string']],
-      ['body', 'active', [false, [1, 0]]],
-      ['body', 'remark', [false, 'string']],
-      ['body', 'config', [false, 'object']],
-    ])
-    if (request.body.id <= 0) {
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number']],
+        ['name', [false, 'string']],
+        ['cron', [false, 'string']],
+        ['shell', [false, 'string']],
+        ['active', [false, [1, 0]]],
+        ['remark', [false, 'string']],
+        ['config', [false, 'object']],
+      ] as const,
+    })
+    const { id, cron } = params.body
+    if (id <= 0) {
       throw new Error('参数 id 无效（参数值类型错误）')
     }
-    const record = await db.tasks.$getById(request.body.id)
+    const record = await db.tasks.$getById(id)
     if (!record) {
       throw new Error('任务不存在')
     }
@@ -392,16 +423,16 @@ apiOpen.post('/v1/update', async (request, response) => {
       task.config = Object.keys(config).length === 0 ? '' : JSON.stringify(config) // 转为字符串
     }
     // 校验定时规则
-    if (task.cron) {
-      validateCronExpression(task.cron)
+    if (cron) {
+      validateCronExpression(cron)
     }
     // 操作数据库
-    const res = await db.tasks.update({ data: task, where: { id: task.id } })
+    const res = await db.tasks.update({ data: task, where: { id } })
     response.send(API_STATUS_CODE.okData(res))
     logger.info('[OpenAPI · Cron]', '修改定时任务', JSON.stringify(task))
     // 定时规则变更，重新加载定时任务
-    if (task && task.cron && record.cron !== task.cron) {
-      await applyCron(task.id)
+    if (record.cron !== cron) {
+      await applyCron(id)
     }
   }
   catch (e: any) {
@@ -415,13 +446,7 @@ apiOpen.post('/v1/update', async (request, response) => {
 api.delete('/', async (request, response) => {
   try {
     const id = request.body.id
-    let ids: number[]
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
+    const ids: number[] = Array.isArray(id) ? id : [id]
     const res = await db.tasks.$deleteById(ids)
     response.send(API_STATUS_CODE.okData(res))
     if (res) {
@@ -439,17 +464,13 @@ api.delete('/', async (request, response) => {
 apiOpen.post('/v1/delete', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'id', [true, 'number | number[]']],
-    ])
-    const id = request.body.id
-    let ids: number[]
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number | number[]']],
+      ] as const,
+    })
+    const { id } = params.body
+    const ids: number[] = Array.isArray(id) ? id : [id]
     ids.forEach((id) => {
       if (id <= 0) {
         throw new Error('参数 id 无效（参数值类型错误）')
@@ -471,106 +492,92 @@ apiOpen.post('/v1/delete', async (request, response) => {
 /**
  * 调整排序
  */
-api.put('/order', async (request, response) => {
-  try {
-    const id = request.body.id
-    let order = request.body.order
-    if (!id || (!order && !request.body.moveToEnd)) {
-      response.send(API_STATUS_CODE.fail('请提供完整参数'))
-      return
-    }
-    // 移动到最后
-    if (request.body.moveToEnd) {
-      const data = await db.tasks.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
-      order = data.data[0]?.sort
-      if (!order && order !== 0) {
-        response.send(API_STATUS_CODE.fail('未找到最大排序值'))
-        return
-      }
-    }
-    response.send(API_STATUS_CODE.okData(await updateSortById(id, order)))
-    await fixOrder()
-  }
-  catch (e: any) {
-    response.send(API_STATUS_CODE.fail(e.message || e))
-  }
-})
-
-apiOpen.post('/v1/order', async (request, response) => {
+async function order(request: Request, response: Response) {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'id', [true, 'number']],
-      ['body', 'order', [false, 'number']],
-      ['body', 'moveToEnd', [false, 'boolean']],
-    ])
-    const id = request.body.id
-    let order = request.body.order
-    if (!order && !request.body.moveToEnd) {
-      response.send(API_STATUS_CODE.fail('缺少必要的参数 order 或 moveToEnd'))
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number']],
+        ['order', [false, 'number']],
+        ['moveToEnd', [false, 'boolean']],
+      ] as const,
+    })
+    const { id, order, moveToEnd } = params.body
+    let orderValue = order
+    if (id <= 0) {
+      response.send(API_STATUS_CODE.fail('参数 id 无效（参数值类型错误）'))
       return
     }
-    if (order && order <= 0) {
+    if (typeof order === 'number' && order < 0) {
       response.send(API_STATUS_CODE.fail('参数 order 无效（参数值类型错误）'))
       return
     }
+    if (typeof order === 'undefined' && !moveToEnd) {
+      response.send(API_STATUS_CODE.fail('缺少必要的参数 order 或 moveToEnd'))
+      return
+    }
     // 移动到最后
-    if (request.body.moveToEnd) {
-      const data = await db.tasks.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
-      order = data.data[0]?.sort
-      if (!order && order !== 0) {
+    if (moveToEnd) {
+      const result = await db.tasks.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
+      const sort = result.data[0]?.sort
+      if (!sort && sort !== 0) {
         response.send(API_STATUS_CODE.fail('未找到最大排序值'))
         return
       }
+      orderValue = sort
     }
-    response.send(API_STATUS_CODE.okData(await updateSortById(id, order)))
+    const result = await updateSortById(id, orderValue as number)
+    response.send(API_STATUS_CODE.okData(result))
     await fixOrder()
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
+}
+api.put('/order', async (request, response) => {
+  await order(request, response)
+})
+apiOpen.post('/v1/order', async (request, response) => {
+  await order(request, response)
 })
 
 /**
  * 获取标签列表
  */
+async function bindGroup(response: Response) {
+  try {
+    const result = await getBindGroup()
+    response.send(API_STATUS_CODE.okData(result))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+}
 api.get('/bindGroup', async (_request, response) => {
-  try {
-    response.send(API_STATUS_CODE.okData(await getBindGroup()))
-  }
-  catch (e: any) {
-    response.send(API_STATUS_CODE.fail(e.message || e))
-  }
+  await bindGroup(response)
 })
-
 apiOpen.get('/v1/tagsList', async (_request, response) => {
-  try {
-    response.send(API_STATUS_CODE.okData(await getBindGroup()))
-  }
-  catch (e: any) {
-    response.send(API_STATUS_CODE.fail(e.message || e))
-  }
+  await bindGroup(response)
 })
 
 /**
  * 查询正在运行中的任务
  */
-api.get('/runningTasks', async (_request, response) => {
+function getRunningTasks(response: Response) {
   try {
-    response.send(API_STATUS_CODE.okData(Object.values(runningTasks)))
+    const result = Object.values(runningTasks)
+    response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
+}
+api.get('/runningTasks', (_request, response) => {
+  getRunningTasks(response)
 })
 
-apiOpen.get('/v1/runningTasks', async (_request, response) => {
-  try {
-    response.send(API_STATUS_CODE.okData(Object.values(runningTasks)))
-  }
-  catch (e: any) {
-    response.send(API_STATUS_CODE.fail(e.message || e))
-  }
+apiOpen.get('/v1/runningTasks', (_request, response) => {
+  getRunningTasks(response)
 })
 
 /**
@@ -579,13 +586,7 @@ apiOpen.get('/v1/runningTasks', async (_request, response) => {
 api.post('/run', async (request, response) => {
   try {
     const id = request.body.id
-    let ids: number[]
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
+    const ids: number[] = Array.isArray(id) ? id : [id]
     for (const id of ids) {
       runCronTask(id)
     }
@@ -600,13 +601,7 @@ api.post('/run', async (request, response) => {
 apiOpen.post('/v1/run', async (request, response) => {
   try {
     const id = request.body.id
-    let ids: number[]
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
+    const ids: number[] = Array.isArray(id) ? id : [id]
     for (const id of ids) {
       runCronTask(id)
     }
@@ -625,13 +620,7 @@ apiOpen.post('/v1/run', async (request, response) => {
 api.post('/terminate', async (request, response) => {
   try {
     const id = request.body.id
-    let ids: number[]
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
+    const ids: number[] = Array.isArray(id) ? id : [id]
     for (const id of ids) {
       stopCronTask(id)
     }
@@ -646,13 +635,7 @@ api.post('/terminate', async (request, response) => {
 apiOpen.post('/v1/terminate', async (request, response) => {
   const id = request.body.id
   try {
-    let ids: number[]
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
+    const ids: number[] = Array.isArray(id) ? id : [id]
     for (const id of ids) {
       stopCronTask(id)
     }
