@@ -12,22 +12,19 @@ function clean_list_scripts() {
 
 ## 更新 Repo 代码仓库和 RawFile 代码文件
 function update_sync() {
-    import core/sync
-    ## 创建目录
-    make_dir $RepoDir $RawDir $LogTmpDir
     ## 清空定时任务关联代码文件清单内容
     clean_list_scripts
     ## 根据模式进行选择
     case $1 in
     sync | all)
         import update/repo
-        update_all_repo
+        update_repo
         import update/raw
         update_raw
         ;;
     repo)
         import update/repo
-        update_all_repo
+        update_repo
         ;;
     raw)
         import update/raw
@@ -52,8 +49,11 @@ function print_title_start() {
     raw)
         update_mod="代码文件"
         ;;
-    designated)
+    designated_repo)
         update_mod="指定代码仓库"
+        ;;
+    designated)
+        update_mod="指定配置"
         ;;
     extra)
         update_mod="运行额外更新脚本"
@@ -71,6 +71,9 @@ function print_title_end() {
 }
 
 function command_update_main() {
+    import core/sync
+    ## 创建目录
+    make_dir $RepoDir $RawDir $LogTmpDir
     case $1 in
     sync | all)
         print_title_start "sync"
@@ -97,21 +100,44 @@ function command_update_main() {
         ;;
     *)
         ## 判断传入参数
+        local path_content
         echo $1 | grep "\/" -q
         if [ $? -eq 0 ]; then
+            path_content="$1"
+        else
+            if [[ "$1" = "." ]]; then
+                path_content="$(pwd)"
+            elif [[ "$1" = "./" ]]; then
+                path_content="$(pwd)"
+            elif [ -d "$(pwd)/$1" ]; then
+                path_content="$(pwd)/$1"
+            fi
+        fi
+        if [[ "${path_content}" ]]; then
+            ## 转换为绝对路径
+            local path="$(get_absolute_path "${path_content}")"
+            ## 判定是否存在仓库
+            if [ ! -d "${path}/.git" ]; then
+                if [ -d "${path}" ]; then
+                    output_error "未检测到 ${BLUE}${path}${PLAIN} 路径下存在任何仓库，请重新确认！"
+                else
+                    output_error "未检测到 ${BLUE}${path}${PLAIN} 路径不存在，请重新确认！"
+                fi
+            fi
             import update/repo
             update_designated_repo $1
         else
-            if [ ! -d "$(pwd)/$1" ]; then
-                output_command_error 1 # 命令错误
-            fi
-            import update/repo
-            if [[ "$1" = "." ]]; then
-                update_designated_repo "$(pwd)"
-            elif [[ "$1" = "./" ]]; then
-                update_designated_repo "$(pwd)"
+            ## 更新特定名称的配置
+            if [[ "$(is_config_name_exist "$1" "repo")" == true ]]; then
+                print_title_start "designated"
+                import update/repo
+                update_repo "$1"
+            elif [[ "$(is_config_name_exist "$1" "raw")" == true ]]; then
+                print_title_start "designated"
+                import update/raw
+                update_raw "$1"
             else
-                update_designated_repo "$(pwd)/$1"
+                output_command_error 1 # 命令错误
             fi
         fi
         ;;

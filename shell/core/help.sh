@@ -180,14 +180,14 @@ function _print_help_update() {
   子命令：
 
     ${BLUE}sync${PLAIN} / ${BLUE}all${PLAIN}      更新所有代码同步配置
-    ${BLUE}repo${PLAIN}            更新全部代码仓库
+    ${BLUE}repo${PLAIN}            更新代码仓库
     ${BLUE}raw${PLAIN}             更新代码文件
     ${BLUE}extra${PLAIN}           运行额外更新脚本
-    ${BLUE}<path>${PLAIN}          更新指定路径下的代码仓库
+    ${BLUE}<name/path>${PLAIN}     更新指定配置或指定路径下的代码仓库
 
   命令帮助：
 
-    ${BLUE}<path>${PLAIN} 相对路径或绝对路径
+    ${BLUE}<name>${PLAIN} 配置名称  ${BLUE}<path>${PLAIN} 相对路径或绝对路径
 "
 }
 function _print_help_envm() {

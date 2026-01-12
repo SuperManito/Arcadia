@@ -429,3 +429,15 @@ function gen_cron_task_list() {
 
     cd $current_dir
 }
+
+function is_config_name_exist() {
+    local name="$1"
+    local type="$2"
+    local json_data="$(yq -r '.'"${type}"'' "$FileSyncConfUser" | jq -c .)"
+    local query_result="$(get_conf "${json_data}" 'if any(.[]; .name? == "'"${name}"'") then true else null end')"
+    if [[ "${query_result}" == "true" ]]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}

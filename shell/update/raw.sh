@@ -30,9 +30,21 @@ function update_raw() {
         fi
         ## 遍历代码文件配置数组，更新并生成新的定时文件清单
         for ((i = 0; i < ${#Array_Raw_url[*]}; i++)); do
-            ## 判断文件是否启用
-            [[ -z "${Array_Raw_url[i]}" ]] && continue
-            [[ ${Array_Raw_enable[i]} == "false" ]] && continue
+            ## 更新指定配置名称的代码文件
+            if [[ "${designated_update_name}" ]]; then
+                if [[ "${designated_update_name}" != "${Array_Raw_name[i]}" ]]; then
+                    continue
+                fi
+                # 注：已确认过配置存在，无需其它额外判断
+                if [[ -z "${Array_Raw_url[i]}" ]]; then
+                    echo -e "\n$ERROR 配置无效（缺少必填字段 url），请确认后重试..."
+                    return
+                fi
+            else
+                ## 判断文件是否启用
+                [[ -z "${Array_Raw_url[i]}" ]] && continue
+                [[ ${Array_Raw_enable[i]} == "false" ]] && continue
+            fi
 
             if [[ ${Array_Raw_cronSettings_updateTaskList[i]} == "true" ]]; then
                 [ -f "${Array_Raw_path[i]}" ] && echo "${Array_Raw_path[i]}" >>$ListOldScripts
