@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prismaGeneratedModel/client'
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import { withMyFunc } from './myfunc'
+import { APP_FILE_PATH } from '../../core/type'
 import { logger } from '../../utils/logger'
 
 export type * from './myfunc'
@@ -28,7 +29,7 @@ const _prisma = new PrismaClient({
         },
       ]
     : undefined,
-  adapter: new PrismaBetterSqlite3({ url: '../../config/config.db' }),
+  adapter: new PrismaBetterSqlite3({ url: APP_FILE_PATH.DB }),
 })
 
 export const prisma = _prisma.$extends(withMyFunc())
