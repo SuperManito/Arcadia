@@ -52,7 +52,7 @@ async function onChange(isItem?: boolean) {
     await fixItemOrder()
   }
   // 生成本地 env.sh
-  const envGroupsResult = await db.envsGroup.$list(
+  const envsGroupResult = await db.envsGroup.$list(
     {
       id: { not: 0 },
     },
@@ -65,10 +65,10 @@ async function onChange(isItem?: boolean) {
       },
     },
   )
-  const envs = await db.envs.$list({
+  const envsResult = await db.envs.$list({
     group_id: 0,
   })
-  generateEnvSh(envGroupsResult, envs)
+  generateEnvSh(envsGroupResult, envsResult)
 }
 
 // 初始化
