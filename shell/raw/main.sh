@@ -1,7 +1,7 @@
 #!/bin/bash
-## Modified: 2025-08-31
+## Modified: 2026-01-12
 
-## 一键添加远程文件配置
+## 一键添加代码文件配置
 # repo <name> <url> [--options]
 function command_raw() {
     local name url enable updateTaskList

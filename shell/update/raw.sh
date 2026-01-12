@@ -1,9 +1,10 @@
 #!/bin/bash
-## Modified: 2025-05-05
+## Modified: 2026-01-12
 
 ## 更新所有 Raw 代码文件
 # update raw
 function update_raw() {
+    local designated_update_name="$1"
 
     # 读取代码文件同步全局配置
     function get_globalconf() {
@@ -16,7 +17,7 @@ function update_raw() {
     }
 
     local RemoveMark
-    ## 统计远程文件数量并生成配置
+    ## 统计代码文件数量并生成配置
     count_rawconf_sum
     gen_rawconf_array
 
@@ -27,7 +28,7 @@ function update_raw() {
         else
             local filter="node_modules"
         fi
-        ## 遍历远程文件配置数组，更新并生成新的定时文件清单
+        ## 遍历代码文件配置数组，更新并生成新的定时文件清单
         for ((i = 0; i < ${#Array_Raw_url[*]}; i++)); do
             ## 判断文件是否启用
             [[ -z "${Array_Raw_url[i]}" ]] && continue
@@ -80,6 +81,6 @@ function update_raw() {
             done
         fi
     else
-        echo -e "\n$TIP 未检测到任何有效的远程文件配置，跳过更新远程文件..."
+        echo -e "\n$TIP 未检测到任何有效的代码文件配置，跳过更新..."
     fi
 }

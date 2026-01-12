@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-07-15
+## Modified: 2026-01-12
 
 ## 统计代码仓库数量
 function count_reposum() {
@@ -11,7 +11,7 @@ function count_reposum() {
     fi
 }
 
-## 统计远程文件数量
+## 统计代码文件数量
 function count_rawconf_sum() {
     cat $FileSyncConfUser | yq >/dev/null 2>&1
     if [ $? -eq 0 ]; then
@@ -39,14 +39,14 @@ function get_conf() {
 # 私有仓库认证设置 - SSH认证私钥路径 Array_Repo_authSettings_privateKeyPath
 # 私有仓库认证设置 - HTTP认证用户名 Array_Repo_authSettings_username
 # 私有仓库认证设置 - HTTP认证密码 Array_Repo_authSettings_password
-# 代码仓库远程文件定时设置 - 定时任务启用状态 Array_Repo_cronSettings_updateTaskList
-# 代码仓库远程文件定时设置 - 自动禁用新的定时任务 Array_Repo_cronSettings_autoDisable
-# 代码仓库远程文件定时设置 - 新增定时任务推送通知提醒 Array_Repo_cronSettings_addNotify
-# 代码仓库远程文件定时设置 - 过期定时任务推送通知提醒 Array_Repo_cronSettings_delNotify
-# 代码仓库远程文件定时设置 - 远程文件过滤路径 Array_Repo_cronSettings_scriptsPath
-# 代码仓库远程文件定时设置 - 远程文件过滤格式 Array_Repo_cronSettings_scriptsType
-# 代码仓库远程文件定时设置 - 过滤白名单 Array_Repo_cronSettings_whiteList
-# 代码仓库远程文件定时设置 - 过滤黑名单 Array_Repo_cronSettings_blackList
+# 代码仓库代码文件定时设置 - 定时任务启用状态 Array_Repo_cronSettings_updateTaskList
+# 代码仓库代码文件定时设置 - 自动禁用新的定时任务 Array_Repo_cronSettings_autoDisable
+# 代码仓库代码文件定时设置 - 新增定时任务推送通知提醒 Array_Repo_cronSettings_addNotify
+# 代码仓库代码文件定时设置 - 过期定时任务推送通知提醒 Array_Repo_cronSettings_delNotify
+# 代码仓库代码文件定时设置 - 代码文件过滤路径 Array_Repo_cronSettings_scriptsPath
+# 代码仓库代码文件定时设置 - 代码文件过滤格式 Array_Repo_cronSettings_scriptsType
+# 代码仓库代码文件定时设置 - 过滤白名单 Array_Repo_cronSettings_whiteList
+# 代码仓库代码文件定时设置 - 过滤黑名单 Array_Repo_cronSettings_blackList
 function gen_repoconf_array() {
     if [[ $RepoSum -lt 1 ]]; then
         return
@@ -161,25 +161,25 @@ function gen_repoconf_array() {
         else
             Array_Repo_cronSettings_updateTaskList[$conf_index]="false"
         fi
-        # 定时远程文件路径（如若未定义则默认为'/'，表示根目录）
+        # 定时代码文件路径（如若未定义则默认为'/'，表示根目录）
         if [[ -z "$(get_config_wrapper "cronSettings.scriptsPath")" ]]; then
             Array_Repo_cronSettings_scriptsPath[$conf_index]="/"
         else
             Array_Repo_cronSettings_scriptsPath[$conf_index]="$(get_config_wrapper "cronSettings.scriptsPath")"
         fi
-        # 定时远程文件类型（如若未定义则默认为js、py、ts）
+        # 定时代码文件类型（如若未定义则默认为js、py、ts）
         if [[ "$(get_config_wrapper "cronSettings.scriptsType | arrays")" ]]; then
             Array_Repo_cronSettings_scriptsType[$conf_index]="js py ts"
         else
             Array_Repo_cronSettings_scriptsType[$conf_index]="$(get_config_wrapper "cronSettings.scriptsType | arrays" | jq -r 'join(" ")')"
         fi
-        # 定时远程文件白名单（如若未定义则默认为空）
+        # 定时代码文件白名单（如若未定义则默认为空）
         if [[ -z "$(get_config_wrapper "cronSettings.whiteList")" ]]; then
             Array_Repo_cronSettings_whiteList[$conf_index]=""
         else
             Array_Repo_cronSettings_whiteList[$conf_index]="$(get_config_wrapper "cronSettings.whiteList")"
         fi
-        # 定时远程文件黑名单（如若未定义则默认为空）
+        # 定时代码文件黑名单（如若未定义则默认为空）
         if [[ -z "$(get_config_wrapper "cronSettings.blackList")" ]]; then
             Array_Repo_cronSettings_blackList[$conf_index]=""
         else
@@ -226,13 +226,13 @@ function gen_repoconf_array() {
     done
 }
 
-## 生成用户远程文件配置信息数组
-# 远程文件名称（用户定义） Array_Raw_name
-# 远程文件名称（文件名） Array_Raw_fileName
-# 远程文件远程地址 Array_Raw_url
-# 远程文件路径 Array_Raw_path
-# 远程文件启用状态 Array_Raw_enable
-# 远程文件定时设置 - 定时任务启用状态 Array_Raw_cronSettings_updateTaskList
+## 生成用户代码文件配置信息数组
+# 代码文件名称（用户定义） Array_Raw_name
+# 代码文件名称（文件名） Array_Raw_fileName
+# 代码文件远程地址 Array_Raw_url
+# 代码文件路径 Array_Raw_path
+# 代码文件启用状态 Array_Raw_enable
+# 代码文件定时设置 - 定时任务启用状态 Array_Raw_cronSettings_updateTaskList
 function gen_rawconf_array() {
     if [[ $RawSum -lt 1 ]]; then
         return
@@ -258,15 +258,15 @@ function gen_rawconf_array() {
     local arr_index tmp_url json_data
     for ((i = 1; i <= $RawSum; i++)); do
         arr_index=$((i - 1))
-        ## 远程文件地址（如若未定义或格式错误则跳过视为无效配置）
+        ## 代码文件地址（如若未定义或格式错误则跳过视为无效配置）
         tmp_url="$(get_config_wrapper "url")"
         if [[ -z "${tmp_url}" ]]; then
-            # echo -e "$ERROR 未检测到第$(($arr_index + 1))个远程文件配置的远程地址，跳过..."
+            # echo -e "$ERROR 未检测到第$(($arr_index + 1))个代码文件配置的远程地址，跳过..."
             continue
         fi
         Array_Raw_url[$conf_index]="${tmp_url}"
         Array_Raw_path[$conf_index]="${RawDir}/${Array_Raw_url[conf_index]##*/}"
-        ## 远程文件启用状态（默认启用）
+        ## 代码文件启用状态（默认启用）
         if [[ "$(get_config_wrapper_bool "enable" "true")" == "false" ]]; then
             Array_Raw_enable[$conf_index]="false"
         else
@@ -276,7 +276,7 @@ function gen_rawconf_array() {
         if [[ "$(get_correct_raw_url "${Array_Raw_url[conf_index]}")" ]]; then
             Array_Raw_url[$conf_index]="$(get_correct_raw_url "${Array_Raw_url[conf_index]}")"
         fi
-        ## 远程文件名称（如若未定义则采用远程地址中的远程文件名称）
+        ## 代码文件名称（如若未定义则采用远程地址中的代码文件名称）
         Array_Raw_fileName[$conf_index]="${Array_Raw_url[conf_index]##*/}"
         if [[ -z "$(get_config_wrapper "name")" ]]; then
             Array_Raw_name[$conf_index]="${Array_Raw_fileName[conf_index]}"
@@ -291,7 +291,7 @@ function gen_rawconf_array() {
         fi
 
         # echo -e "
-        # 第$(($conf_index + 1))个远程文件的配置：
+        # 第$(($conf_index + 1))个代码文件的配置：
         # name: ${Array_Raw_name[conf_index]:-"无"}
         # url: ${Array_Raw_url[conf_index]:-"无"}
         # enable: ${Array_Raw_enable[conf_index]:-"无"}
@@ -304,10 +304,10 @@ function gen_rawconf_array() {
     done
 }
 
-## 生成定时任务远程文件的绝对路径清单
+## 生成定时任务代码文件的绝对路径清单
 function gen_cron_task_list() {
 
-    ## 生成远程文件清单对应的配置（部分用于在更新定时请求时携带）
+    ## 生成代码文件清单对应的配置（部分用于在更新定时请求时携带）
     function gen_script_listconf() {
         echo "$(cat $ListConfScripts | jq '."'"$1"'"='"$2"'')" >$ListConfScripts
     }
@@ -325,9 +325,9 @@ function gen_cron_task_list() {
     # 代码仓库路径
     local repoPath="$2"
     local repoDir="${repoPath##*/}"
-    # 远程文件路径
+    # 代码文件路径
     local scriptsPath="$3"
-    # 远程文件类型
+    # 代码文件类型
     local scriptsType="$4"
     local scriptsTypeMatch type
     if [[ "${scriptsType}" ]]; then
@@ -355,24 +355,24 @@ function gen_cron_task_list() {
     # echo "仓库 ${repoPath} 白名单：${whiteList:-"未定义"}"
     # echo "仓库 ${repoPath} 黑名单：${blackList:-"未定义"}"
 
-    ## 远程文件路径
-    # echo "仓库 ${repoPath} 远程文件路径：${scriptsPath:-"未定义"}"
+    ## 代码文件路径
+    # echo "仓库 ${repoPath} 代码文件路径：${scriptsPath:-"未定义"}"
 
     local Matching
     ## 仅根目录
     if [[ "${scriptsPath}" == "/" ]]; then
         ## 进入仓库根目录
         cd $repoPath
-        ## 判断路径下是否存在远程文件
+        ## 判断路径下是否存在代码文件
         if [[ "$(ls | grep -E "${scriptsTypeMatch}")" ]]; then
-            ## 判断是否定义了黑名单并筛选符合条件的远程文件
+            ## 判断是否定义了黑名单并筛选符合条件的代码文件
             if [[ -z "${blackList}" ]]; then
                 Matching=$(ls | grep -E "${scriptsTypeMatch}" 2>/dev/null | grep -E "${whiteList}")
             else
                 Matching=$(ls | grep -E "${scriptsTypeMatch}" 2>/dev/null | grep -E "${whiteList}" | grep -Ev ${blackList})
             fi
             for file in ${Matching}; do
-                ## 判断远程文件是否存在内容
+                ## 判断代码文件是否存在内容
                 if [ -s $file ]; then
                     echo "${repoPath}/${file}" >>$writeFile
                     gen_script_listconf "${repoPath}/${file}" '{"path": "'"${repoPath}"'/'"${file}"'", "autoDisable": "'"${autoDisable}"'", "addNotify": "'"${addNotify}"'", "delNotify": "'"${delNotify}"'"}'
@@ -396,20 +396,20 @@ function gen_cron_task_list() {
                 if [ -d "${FormatPath}" ]; then
                     cd ${FormatPath}
                 else
-                    echo -e "\n$ERROR 代码仓库 $((i + 1)) 的定时远程文件配置路径 ${BLUE}${FormatPath}${PLAIN} 不存在，跳过！\n"
+                    echo -e "\n$ERROR 代码仓库 $((i + 1)) 的定时代码文件配置路径 ${BLUE}${FormatPath}${PLAIN} 不存在，跳过！\n"
                     continue
                 fi
             fi
-            ## 判断路径下是否存在远程文件
+            ## 判断路径下是否存在代码文件
             if [[ "$(ls | grep -E "${scriptsTypeMatch}")" ]]; then
-                ## 判断是否定义了黑名单并筛选符合条件的远程文件
+                ## 判断是否定义了黑名单并筛选符合条件的代码文件
                 if [[ -z ${blackList} ]]; then
                     Matching=$(ls | grep -E "${scriptsTypeMatch}" 2>/dev/null | grep -E "${whiteList}")
                 else
                     Matching=$(ls | grep -E "${scriptsTypeMatch}" 2>/dev/null | grep -E "${whiteList}" | grep -Ev ${blackList})
                 fi
                 for file in ${Matching}; do
-                    ## 判断远程文件是否存在内容
+                    ## 判断代码文件是否存在内容
                     if [ -s $file ]; then
                         echo "${FormatPath}/${file}" >>$writeFile
                         gen_script_listconf "${FormatPath}/${file}" '{"path": "'"${FormatPath}"'/'"${file}"'", "autoDisable": "'"${autoDisable}"'", "addNotify": "'"${addNotify}"'", "delNotify": "'"${delNotify}"'"}'

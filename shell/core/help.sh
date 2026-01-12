@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-08-31
+## Modified: 2026-01-12
 
 function _print_help_title() {
   if [ "$1" ]; then
@@ -25,7 +25,7 @@ function _print_help_main() {
 
   用户配置管理
   ${BLUE}repo <args>${PLAIN}     导入代码仓库配置
-  ${BLUE}raw <args>${PLAIN}      导入远程文件配置
+  ${BLUE}raw <args>${PLAIN}      导入代码文件配置
   ${BLUE}envm <args>${PLAIN}     管理环境变量数据
 
   服务管理
@@ -152,7 +152,7 @@ function _print_help_repo() {
 "
 }
 function _print_help_raw() {
-  _print_help_title "导入远程文件配置"
+  _print_help_title "导入代码文件配置"
   echo -e "
   使用方法：
 
@@ -181,7 +181,7 @@ function _print_help_update() {
 
     ${BLUE}sync${PLAIN} / ${BLUE}all${PLAIN}      更新所有代码同步配置
     ${BLUE}repo${PLAIN}            更新全部代码仓库
-    ${BLUE}raw${PLAIN}             更新远程文件
+    ${BLUE}raw${PLAIN}             更新代码文件
     ${BLUE}extra${PLAIN}           运行额外更新脚本
     ${BLUE}<path>${PLAIN}          更新指定路径下的代码仓库
 

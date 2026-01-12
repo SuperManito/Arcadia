@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-27
+## Modified: 2026-01-12
 
 ## 进程状态功能
 # ps
@@ -24,7 +24,7 @@ function command_ps() {
     echo -e "
 ❖  内存使用率：${YELLOW}${memory_usage}${PLAIN}   可用内存：${YELLOW}${memory_available}MB${PLAIN}   空闲内存：${YELLOW}${memory_free}MB${PLAIN}
 
-❖  配置文件占用：${YELLOW}${ConfigSpaceUsage}MB${PLAIN}  日志占用：${YELLOW}${LogFilesSpaceUsage}MB${PLAIN}  代码仓库占用：${YELLOW}${RepoDirSpaceUsage}MB${PLAIN}  远程文件占用：${YELLOW}$((${ScriptsDirSpaceUsage} + ${RawDirSpaceUsage}))MB${PLAIN}"
+❖  配置文件占用：${YELLOW}${ConfigSpaceUsage}MB${PLAIN}  日志占用：${YELLOW}${LogFilesSpaceUsage}MB${PLAIN}  代码仓库占用：${YELLOW}${RepoDirSpaceUsage}MB${PLAIN}  代码文件占用：${YELLOW}$((${ScriptsDirSpaceUsage} + ${RawDirSpaceUsage}))MB${PLAIN}"
 
     ## 检测占用过高后释放内存（阈值：90%）
     if [[ $(echo ${memory_usage} | awk -F '.' '{print$1}') -gt "89" ]]; then
