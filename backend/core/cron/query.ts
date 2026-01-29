@@ -6,6 +6,13 @@ import { getTodayStatsSummary } from '../dashboard/task'
 type TaskType = 'all' | 'system' | 'user'
 
 /**
+ * 获取对齐到秒的时间戳（13位毫秒格式）
+ */
+function getAlignedTimestamp(date: Date = new Date()): number {
+  return Math.floor(date.getTime() / 1000) * 1000
+}
+
+/**
  * 任务执行数据点（用于折线图）
  */
 interface TaskExecutionPoint {
@@ -102,8 +109,8 @@ async function getTaskTrendData(
     const [year, month, day] = date.split('-').map(Number)
     const targetDate = new Date(year, month - 1, day)
 
-    // 当天 00:00:00
-    const startTimestamp = targetDate.getTime()
+    // 当天 00:00:00（对齐到秒）
+    const startTimestamp = getAlignedTimestamp(new Date(targetDate.setHours(0, 0, 0, 0)))
     // 当天 23:59:59.999
     const endTimestamp = startTimestamp + 24 * 60 * 60 * 1000 - 1
 

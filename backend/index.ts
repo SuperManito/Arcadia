@@ -15,7 +15,7 @@ async function startServer() {
   initCronJob()
 
   // 初始化仪表板监控系统
-  initDashboardMonitor()
+  await initDashboardMonitor()
 
   // 初始化 OpenAPI 访问令牌缓存
   await initOpenApiAccessKeyCache()
