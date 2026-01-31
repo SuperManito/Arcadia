@@ -14,7 +14,6 @@ export enum ConfigKeyUser {
   PASSWORD = 'password',
   AUTH_ERROR_COUNT = 'authErrorCount',
   AUTH_ERROR_TIME = 'authErrorTime',
-  CAPTCHA = 'captcha',
   LAST_LOGIN_INFO = 'lastLoginInfo',
   CUR_LOGIN_INFO = 'curLoginInfo',
   TOTP_SECRET = 'totpSecret',
@@ -56,7 +55,6 @@ export interface ConfigDataUser {
   password: string
   authErrorCount: number // 认证错误次数
   authErrorTime: number // 认证错误时间戳
-  captcha: string // 当前验证码
   lastLoginInfo?: UserLoginInfo // 上次登录信息
   curLoginInfo?: UserLoginInfo // 当前登录信息
   totpSecret: string // TOTP 密钥（Base32 编码）
@@ -79,7 +77,6 @@ export const DEFAULT_USER_CONFIG_VALUES: Record<ConfigKeyUser, string> = {
   [ConfigKeyUser.PASSWORD]: 'passwd',
   [ConfigKeyUser.AUTH_ERROR_COUNT]: '0',
   [ConfigKeyUser.AUTH_ERROR_TIME]: '0',
-  [ConfigKeyUser.CAPTCHA]: '',
   [ConfigKeyUser.LAST_LOGIN_INFO]: '{}',
   [ConfigKeyUser.CUR_LOGIN_INFO]: '{}',
   [ConfigKeyUser.TOTP_SECRET]: '',

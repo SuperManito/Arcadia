@@ -9,10 +9,21 @@ import { socketCommon } from '../server/socket'
 import { getNeatContent } from '../server/fileCore'
 import { APP_ROOT_DIR } from '../core/type'
 import { getUserModuleConfig } from '../core/config'
-import { saveCaptcha } from '../core/config/user'
 
 const api: Express = express()
 const taskRunning = {}
+
+/**
+ * 当前验证码
+ */
+let currentCaptcha = ''
+
+/**
+ * 获取当前验证码
+ */
+export function getCurrentCaptcha() {
+  return currentCaptcha
+}
 
 /**
  * 登录是否显示验证码
@@ -39,7 +50,7 @@ api.get('/captcha', async (req, res) => {
   }
   const captcha = svgCaptcha.create(options)
   const captchaText = captcha.text.toLowerCase() // 小写
-  await saveCaptcha(captchaText)
+  currentCaptcha = captchaText // 存储当前验证码
   res.type('svg')
   res.status(200).send(captcha.data)
 })

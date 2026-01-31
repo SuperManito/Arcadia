@@ -16,6 +16,7 @@ import {
   verifyTOTPCode,
 } from '../core/config/totp'
 import { ConfigKeyRuntime, ConfigKeyUser, DEFAULT_USER_CONFIG_VALUES } from '../core/type/config'
+import { getCurrentCaptcha } from './misc'
 
 const api: Express = express()
 const apiInner: Express = express()
@@ -40,11 +41,11 @@ async function checkAuthLimit(authErrorCount: number, authErrorTime: number | un
 /**
  * 验证图形验证码
  */
-function validateCaptcha(captcha: string, showCaptcha: boolean, authCaptcha: string | undefined) {
+function validateCaptcha(captcha: string, showCaptcha: boolean) {
   if (captcha === '' && showCaptcha) {
     return { valid: false, message: '请输入图形验证码！' }
   }
-  if (showCaptcha && captcha.toLowerCase() !== (authCaptcha || '')) {
+  if (showCaptcha && captcha.toLowerCase() !== getCurrentCaptcha()) {
     return { valid: false, message: '图形验证码不正确！' }
   }
   return { valid: true, message: '' }
@@ -151,7 +152,7 @@ api.post('/auth', async (request, response) => {
   }
 
   // 验证图形验证码
-  const captchaCheck = validateCaptcha(captcha, limitCheck.showCaptcha, userConfig.captcha)
+  const captchaCheck = validateCaptcha(captcha, limitCheck.showCaptcha)
   if (!captchaCheck.valid) {
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData(captchaCheck.message, responseData))
@@ -208,7 +209,7 @@ api.post('/auth/twoFactor', async (request, response) => {
   }
 
   // 验证图形验证码
-  const captchaCheck = validateCaptcha(captcha, limitCheck.showCaptcha, userConfig.captcha)
+  const captchaCheck = validateCaptcha(captcha, limitCheck.showCaptcha)
   if (!captchaCheck.valid) {
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData(captchaCheck.message, responseData))

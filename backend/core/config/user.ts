@@ -48,13 +48,6 @@ export async function clearAuthError() {
 }
 
 /**
- * 保存验证码
- */
-export async function saveCaptcha(captcha: string) {
-  await updateUserConfigValue(ConfigKeyUser.CAPTCHA, captcha)
-}
-
-/**
  * 更新登录信息
  */
 export async function updateLoginInfo(loginInfo: UserLoginInfo) {
