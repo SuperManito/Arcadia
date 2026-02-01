@@ -8,30 +8,16 @@ import { exec } from 'node:child_process'
 import { socketCommon } from '../server/socket'
 import { getNeatContent } from '../server/fileCore'
 import { APP_ROOT_DIR } from '../core/type'
-import { getUserModuleConfig } from '../core/config'
+import { setCaptcha, shouldShowCaptcha } from '../core/config/session'
 
 const api: Express = express()
 const taskRunning = {}
 
 /**
- * 当前验证码
- */
-let currentCaptcha = ''
-
-/**
- * 获取当前验证码
- */
-export function getCurrentCaptcha() {
-  return currentCaptcha
-}
-
-/**
  * 登录是否显示验证码
  */
 api.get('/captcha/flag', async (_request, response) => {
-  const userConfig = await getUserModuleConfig()
-  const authErrorCount = userConfig.authErrorCount || 0
-  response.send(API_STATUS_CODE.okData({ showCaptcha: authErrorCount >= 1 }))
+  response.send(API_STATUS_CODE.okData({ showCaptcha: shouldShowCaptcha() }))
 })
 
 /**
@@ -50,7 +36,7 @@ api.get('/captcha', async (req, res) => {
   }
   const captcha = svgCaptcha.create(options)
   const captchaText = captcha.text.toLowerCase() // 小写
-  currentCaptcha = captchaText // 存储当前验证码
+  setCaptcha(captchaText) // 存储当前验证码
   res.type('svg')
   res.status(200).send(captcha.data)
 })

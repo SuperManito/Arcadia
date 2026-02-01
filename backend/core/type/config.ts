@@ -51,8 +51,6 @@ export interface UserLoginInfo {
 export interface ConfigDataUser {
   username: string
   password: string
-  authErrorCount: number // 认证错误次数
-  authErrorTime: number // 认证错误时间戳
   lastLoginInfo?: UserLoginInfo // 上次登录信息
   curLoginInfo?: UserLoginInfo // 当前登录信息
   totpSecret: string // TOTP 密钥（Base32 编码）
