@@ -5,6 +5,7 @@ import { logger } from '../utils/logger'
 import fs from 'node:fs'
 import { Buffer } from 'node:buffer'
 import multer from 'multer'
+import nodePath from 'node:path'
 import type { FileTreeParams } from '../server/fileCore'
 import {
   fileCreate,
@@ -397,23 +398,32 @@ const upload = multer({
   storage: multer.diskStorage({
     destination(req, _file, cb) {
       const savePath = req.query.path as string
-      rootPathCheck(savePath)
+      // 规范化路径并验证
+      let resolvedPath: string
+      try {
+        resolvedPath = nodePath.resolve(savePath)
+        rootPathCheck(resolvedPath)
+      }
+      catch (err) {
+        return cb(err as Error, savePath)
+      }
+
       let stat: fs.Stats | null = null
       try {
-        stat = fs.statSync(savePath)
+        stat = fs.statSync(resolvedPath)
       }
       catch (err: any) {
         if (err.code === 'ENOENT') {
-          fs.mkdirSync(savePath, { recursive: true })
+          fs.mkdirSync(resolvedPath, { recursive: true })
         }
         else {
-          return cb(err as Error, savePath)
+          return cb(err as Error, resolvedPath)
         }
       }
       if (stat && !stat.isDirectory()) {
-        return cb(new Error('目标路径不是一个目录'), savePath)
+        return cb(new Error('目标路径不是一个目录'), resolvedPath)
       }
-      cb(null, savePath)
+      cb(null, resolvedPath)
     },
     filename(_req, file, cb) {
       // 解决中文名乱码的问题

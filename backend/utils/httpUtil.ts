@@ -52,8 +52,8 @@ export const userAgentTools = {
  */
 export function getClientIP(req: Request) {
   let ip = req.headers['x-forwarded-for'] as string
-    || req.ip
     || req.socket?.remoteAddress
+    || req.ip
     || ''
   if (ip.split(',').length > 0) {
     ip = ip.split(',')[0]

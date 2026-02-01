@@ -161,6 +161,7 @@ api.post('/auth', async (request, response) => {
   // 验证用户名和密码
   const credentialsCheck = await validateCredentials(username, password, userConfig, authErrorCount, curTime)
   if (!credentialsCheck.valid) {
+    logger.warn('登录认证失败', { username, ip: getClientIP(request), reason: credentialsCheck.message, attemptCount: authErrorCount + 1 })
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData(credentialsCheck.message, responseData))
   }
@@ -218,6 +219,7 @@ api.post('/auth/twoFactor', async (request, response) => {
   // 验证用户名和密码（防止跳过第一步）
   const credentialsCheck = await validateCredentials(username, password, userConfig, authErrorCount, curTime)
   if (!credentialsCheck.valid) {
+    logger.warn('登录认证失败 (双重认证)', { username, ip: getClientIP(request), reason: credentialsCheck.message, attemptCount: authErrorCount + 1 })
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData(credentialsCheck.message, responseData))
   }

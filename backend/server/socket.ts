@@ -1,8 +1,6 @@
-import type { NextFunction, Request, RequestHandler, Response } from 'express'
+import type { Request } from 'express'
 import type { Server as HttpServer } from 'node:http'
-import type { Socket } from 'socket.io'
 import { Server } from 'socket.io'
-import type { ExtendedError } from 'socket.io/dist/namespace'
 import type { JwtPayload, VerifyCallback } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
 import { logger } from '../utils/logger'
@@ -24,7 +22,7 @@ function getToken(req: Request) {
   return undefined
 }
 
-export function initSocketServer(server: HttpServer, authMiddleware: RequestHandler, jwtSecret: string) {
+export function initSocketServer(server: HttpServer, jwtSecret: string) {
   const io = new Server(server, {
     cors: {
       origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
@@ -35,14 +33,7 @@ export function initSocketServer(server: HttpServer, authMiddleware: RequestHand
     path: '/api/ws',
   })
 
-  // convert a connect middleware to a Socket.IO middleware
-  const wrap = (middleware: RequestHandler) =>
-    (socket: Socket, next: (err?: ExtendedError) => void) =>
-      middleware(socket.request as Request, {} as Response, next as NextFunction)
-
-  io.use(wrap(authMiddleware))
-
-  // only allow authenticated users
+  // Socket.IO 认证中间件
   io.use((socket, next) => {
     const token = getToken(socket.request as Request)
     if (token) {

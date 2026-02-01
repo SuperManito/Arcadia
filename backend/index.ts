@@ -29,7 +29,7 @@ async function startServer() {
   // 注册应用服务
   const app = registerApp(apiAuthentication, runtimeConfig.jwtSecret)
   const server = createServer(app)
-  socketCommon.setSocket(initSocketServer(server, apiAuthentication, runtimeConfig.jwtSecret))
+  socketCommon.setSocket(initSocketServer(server, runtimeConfig.jwtSecret))
 
   // 启动服务
   server.listen(5678, '0.0.0.0', async () => {

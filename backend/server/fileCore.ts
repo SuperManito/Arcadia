@@ -449,8 +449,10 @@ export function saveFile(filePath: string, content: string) {
  * @param checkPath
  */
 export function rootPathCheck(checkPath: string) {
-  if (!checkPath.startsWith(APP_ROOT_DIR)) {
-    throw new Error('非法操作')
+  const resolvedPath = nodePath.resolve(checkPath)
+  const normalizedRootDir = nodePath.resolve(APP_ROOT_DIR)
+  if (!resolvedPath.startsWith(normalizedRootDir + nodePath.sep) && resolvedPath !== normalizedRootDir) {
+    throw new Error('非法操作：路径超出允许范围')
   }
 }
 
@@ -461,7 +463,8 @@ export function rootPathCheck(checkPath: string) {
  */
 export function pathCheck(checkPath: string) {
   rootPathCheck(checkPath)
-  if (!fs.existsSync(checkPath)) {
+  const resolvedPath = nodePath.resolve(checkPath)
+  if (!fs.existsSync(resolvedPath)) {
     throw new Error('文件（夹）不存在')
   }
 }
@@ -473,8 +476,14 @@ export function pathCheck(checkPath: string) {
  * @param name 名称
  */
 export function fileRename(filePath: string, name: string) {
+  // 防止文件名包含路径遍历字符
+  if (name.includes('/') || name.includes('\\') || name.includes('..')) {
+    throw new Error('非法操作：文件名不能包含路径分隔符或相对路径')
+  }
   const parentPath = nodePath.join(filePath, '../')
-  fs.renameSync(filePath, nodePath.join(parentPath, name))
+  const newPath = nodePath.join(parentPath, name)
+  rootPathCheck(newPath)
+  fs.renameSync(filePath, newPath)
 }
 
 /**
@@ -519,7 +528,9 @@ export function fileDelete(filePath: string) {
  * @param newPath 目标路径
  */
 export function fileMove(filePath: string, newPath: string) {
-  fs.renameSync(filePath, newPath)
+  rootPathCheck(newPath)
+  const resolvedNewPath = nodePath.resolve(newPath)
+  fs.renameSync(filePath, resolvedNewPath)
 }
 
 /**
