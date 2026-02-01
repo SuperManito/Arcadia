@@ -31,23 +31,6 @@ export async function resetUserCredentials() {
 }
 
 /**
- * 更新认证错误信息
- */
-export async function updateAuthError(count: number, time: number) {
-  await Promise.all([
-    updateUserConfigValue(ConfigKeyUser.AUTH_ERROR_COUNT, String(count)),
-    updateUserConfigValue(ConfigKeyUser.AUTH_ERROR_TIME, String(time)),
-  ])
-}
-
-/**
- * 清空认证错误信息
- */
-export async function clearAuthError() {
-  await updateAuthError(0, 0)
-}
-
-/**
  * 更新登录信息
  */
 export async function updateLoginInfo(loginInfo: UserLoginInfo) {

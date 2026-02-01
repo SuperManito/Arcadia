@@ -125,8 +125,6 @@ export async function getUserModuleConfig() {
   for (const key of Object.values(ConfigKeyUser)) {
     const value = map[key] || DEFAULT_CONFIG_VALUES[ConfigModule.USER][key]
     switch (key) {
-      case ConfigKeyUser.AUTH_ERROR_COUNT:
-      case ConfigKeyUser.AUTH_ERROR_TIME:
       case ConfigKeyUser.CRON_TASK_HISTORY_DAYS:
         result[key] = Number(value)
         break
@@ -238,7 +236,7 @@ async function initUserConfig() {
         const isDefinedUsername = isNotEmpty(originalUsername) && originalUsername !== defaultUsername
         const isDefinedPassword = isNotEmpty(originalPassword) && originalPassword !== defaultPassword
         if (isDefinedUsername || isDefinedPassword) {
-        // 迁移旧版认证配置
+          // 迁移旧版认证配置
           await updateUserConfigValue(ConfigKeyUser.USERNAME, originalUsername)
           await updateUserConfigValue(ConfigKeyUser.PASSWORD, originalPassword)
           logger.info('检测到旧版认证配置，已迁移至新配置系统')

@@ -12,8 +12,6 @@ export enum ConfigModule {
 export enum ConfigKeyUser {
   USERNAME = 'username',
   PASSWORD = 'password',
-  AUTH_ERROR_COUNT = 'authErrorCount',
-  AUTH_ERROR_TIME = 'authErrorTime',
   LAST_LOGIN_INFO = 'lastLoginInfo',
   CUR_LOGIN_INFO = 'curLoginInfo',
   TOTP_SECRET = 'totpSecret',
@@ -75,8 +73,6 @@ export interface ConfigData {
 export const DEFAULT_USER_CONFIG_VALUES: Record<ConfigKeyUser, string> = {
   [ConfigKeyUser.USERNAME]: 'useradmin',
   [ConfigKeyUser.PASSWORD]: 'passwd',
-  [ConfigKeyUser.AUTH_ERROR_COUNT]: '0',
-  [ConfigKeyUser.AUTH_ERROR_TIME]: '0',
   [ConfigKeyUser.LAST_LOGIN_INFO]: '{}',
   [ConfigKeyUser.CUR_LOGIN_INFO]: '{}',
   [ConfigKeyUser.TOTP_SECRET]: '',

@@ -5,7 +5,7 @@ import { logger } from '../utils/logger'
 import jwt from 'jsonwebtoken'
 import { dateToString, randomString } from '../utils'
 import { getRuntimeConfigValue, getUserModuleConfig, updateUserConfigValue } from '../core/config'
-import { clearAuthError, resetUserCredentials, saveUserCredentials, updateAuthError, updateLoginInfo } from '../core/config/user'
+import { resetUserCredentials, saveUserCredentials, updateLoginInfo } from '../core/config/user'
 import {
   disableTOTP,
   enableTOTP,
@@ -20,6 +20,12 @@ import { getCurrentCaptcha } from './misc'
 
 const api: Express = express()
 const apiInner: Express = express()
+
+/**
+ * 登录失败记录
+ */
+let authErrorCount = 0
+let authErrorTime = 0
 
 /**
  * 检查登录限制（是否锁定登录）
@@ -54,13 +60,13 @@ function validateCaptcha(captcha: string, showCaptcha: boolean) {
 /**
  * 验证用户名和密码
  */
-async function validateCredentials(username: string, password: string, userConfig: any, authErrorCount: number, curTime: Date) {
+async function validateCredentials(username: string, password: string, userConfig: any, curTime: Date) {
   if (!username || !password) {
     return { valid: false, message: '请输入用户名密码！' }
   }
   if (username !== userConfig.username || password !== userConfig.password) {
-    // 记录错误次数和时间
-    await updateAuthError(authErrorCount + 1, curTime.getTime())
+    authErrorCount += 1
+    authErrorTime = curTime.getTime()
     return { valid: false, message: '错误的用户名或密码，请重试' }
   }
   return { valid: true, message: '' }
@@ -100,7 +106,7 @@ async function completeLogin(username: string, password: string, request: Reques
   const isDefaultPassword = password === DEFAULT_USER_CONFIG_VALUES[ConfigKeyUser.PASSWORD]
   if (isDefaultUsername && isDefaultPassword) {
     const newPassword = randomString(16)
-    logger.info(`系统检测到为首次登录，已随机设置一个新的密码：${newPassword}`)
+    logger.info('检测到首次登录，已将密码设置为一个随机的字符串')
     result.newPwd = newPassword
     await updateUserConfigValue(ConfigKeyUser.PASSWORD, newPassword)
   }
@@ -129,10 +135,9 @@ async function completeLogin(username: string, password: string, request: Reques
  */
 api.post('/auth', async (request, response) => {
   const { username, password, captcha = '' } = request.body
+  const clientIP = getClientIP(request)
   logger.info(`检测到用户登录行为，尝试登录用户名 ${username}`)
-  const userConfig = await getUserModuleConfig()
   const curTime = new Date()
-  const authErrorCount = userConfig.authErrorCount || 0
 
   // 响应数据模板
   const responseData: Record<string, any> = {
@@ -144,10 +149,11 @@ api.post('/auth', async (request, response) => {
   }
 
   // 检查登录限制
-  const limitCheck = await checkAuthLimit(authErrorCount, userConfig.authErrorTime, curTime)
+  const limitCheck = await checkAuthLimit(authErrorCount, authErrorTime, curTime)
   responseData.showCaptcha = limitCheck.showCaptcha
   responseData.limitTime = limitCheck.limitTime
   if (limitCheck.limited) {
+    logger.warn('登录被限制', { username, ip: clientIP, attemptCount: authErrorCount })
     return response.send(API_STATUS_CODE.failData('认证失败次数过多，请稍后尝试！', responseData))
   }
 
@@ -158,16 +164,19 @@ api.post('/auth', async (request, response) => {
     return response.send(API_STATUS_CODE.failData(captchaCheck.message, responseData))
   }
 
+  const userConfig = await getUserModuleConfig()
+
   // 验证用户名和密码
-  const credentialsCheck = await validateCredentials(username, password, userConfig, authErrorCount, curTime)
+  const credentialsCheck = await validateCredentials(username, password, userConfig, curTime)
   if (!credentialsCheck.valid) {
-    logger.warn('登录认证失败', { username, ip: getClientIP(request), reason: credentialsCheck.message, attemptCount: authErrorCount + 1 })
+    logger.warn('登录认证失败', { username, ip: clientIP, reason: credentialsCheck.message, attemptCount: authErrorCount })
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData(credentialsCheck.message, responseData))
   }
 
   // 清空错误次数
-  await clearAuthError()
+  authErrorCount = 0
+  authErrorTime = 0
 
   // 检查是否启用了 2FA
   const totpEnabled = await isTOTPEnabled()
@@ -188,10 +197,8 @@ api.post('/auth', async (request, response) => {
  */
 api.post('/auth/twoFactor', async (request, response) => {
   const { username, password, code, captcha = '' } = request.body
-  logger.info(`检测到 TOTP 验证请求，用户名 ${username}`)
-  const userConfig = await getUserModuleConfig()
+  const clientIP = getClientIP(request)
   const curTime = new Date()
-  const authErrorCount = userConfig.authErrorCount || 0
 
   // 响应数据模板
   const responseData: Record<string, any> = {
@@ -202,10 +209,11 @@ api.post('/auth/twoFactor', async (request, response) => {
   }
 
   // 检查登录限制
-  const limitCheck = await checkAuthLimit(authErrorCount, userConfig.authErrorTime, curTime)
+  const limitCheck = await checkAuthLimit(authErrorCount, authErrorTime, curTime)
   responseData.showCaptcha = limitCheck.showCaptcha
   responseData.limitTime = limitCheck.limitTime
   if (limitCheck.limited) {
+    logger.warn('登录限制', { username, ip: clientIP, attemptCount: authErrorCount })
     return response.send(API_STATUS_CODE.failData('认证失败次数过多，请稍后尝试！', responseData))
   }
 
@@ -215,11 +223,11 @@ api.post('/auth/twoFactor', async (request, response) => {
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData(captchaCheck.message, responseData))
   }
-
+  const userConfig = await getUserModuleConfig()
   // 验证用户名和密码（防止跳过第一步）
-  const credentialsCheck = await validateCredentials(username, password, userConfig, authErrorCount, curTime)
+  const credentialsCheck = await validateCredentials(username, password, userConfig, curTime)
   if (!credentialsCheck.valid) {
-    logger.warn('登录认证失败 (双重认证)', { username, ip: getClientIP(request), reason: credentialsCheck.message, attemptCount: authErrorCount + 1 })
+    logger.warn('登录认证失败 (双重认证)', { username, ip: clientIP, reason: credentialsCheck.message, attemptCount: authErrorCount + 1 })
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData(credentialsCheck.message, responseData))
   }
@@ -244,13 +252,16 @@ api.post('/auth/twoFactor', async (request, response) => {
   }
   const isValid = verifyTOTPCode(codeCheck.code, totpSecret)
   if (!isValid) {
-    await updateAuthError(authErrorCount + 1, curTime.getTime())
+    authErrorCount += 1
+    authErrorTime = curTime.getTime()
+    logger.warn('TOTP 动态码验证失败', { username, ip: clientIP, attemptCount: authErrorCount })
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData('动态验证码无效', responseData))
   }
 
   // 清空错误次数
-  await clearAuthError()
+  authErrorCount = 0
+  authErrorTime = 0
   // 所有验证通过，完成登录
   const result = await completeLogin(username, password, request)
   responseData.token = result.token
