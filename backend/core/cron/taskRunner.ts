@@ -42,8 +42,9 @@ export function addAfterTaskRun(fn: (info: taskRunInfo) => any, order: number = 
  * 定时任务回调内容
  *
  * @param {number} taskId
+ * @param {boolean} manual - 是否为手动触发，手动触发时忽略禁用状态
  */
-export async function runCronTask(taskId: number) {
+export async function runCronTask(taskId: number, manual: boolean = false) {
   const task = await db.tasks.$getById(taskId)
   // 删除不存在的定时任务
   if (!task) {
@@ -52,11 +53,22 @@ export async function runCronTask(taskId: number) {
   }
   // logger.log('触发定时任务', task.shell)
   // 跳过禁用的任务
-  if (task.active <= 0) {
+  if (!manual && task.active <= 0) {
     // logger.log("触发定时任务", task.shell, "（PASS，原因：已被禁用）")
     return
   }
-  if (runningTasks[taskId]) {
+  // 解析高级配置中的 allow_concurrency 字段
+  let allow_concurrency = false // 默认不允许并发
+  if (task.config) {
+    try {
+      const config = JSON.parse(task.config)
+      if (typeof config.allow_concurrency === 'boolean') {
+        allow_concurrency = config.allow_concurrency
+      }
+    }
+    catch {}
+  }
+  if (runningTasks[taskId] && !allow_concurrency) {
     // 跳过正在运行的任务
     // logger.log('触发定时任务', task.shell, '（PASS，原因：正在运行）')
     return

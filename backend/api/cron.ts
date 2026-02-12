@@ -588,7 +588,7 @@ api.post('/run', async (request, response) => {
     const id = request.body.id
     const ids: number[] = Array.isArray(id) ? id : [id]
     for (const id of ids) {
-      runCronTask(id)
+      runCronTask(id, true)
     }
     response.send(API_STATUS_CODE.ok())
   }
@@ -603,7 +603,7 @@ apiOpen.post('/v1/run', async (request, response) => {
     const id = request.body.id
     const ids: number[] = Array.isArray(id) ? id : [id]
     for (const id of ids) {
-      runCronTask(id)
+      runCronTask(id, true)
     }
     response.send(API_STATUS_CODE.ok())
     logger.info('[OpenAPI · Cron]', '运行定时任务', ids.join(','))
