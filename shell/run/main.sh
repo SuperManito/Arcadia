@@ -125,7 +125,7 @@ function _concurrent_dispatch() {
         [[ "${RUN_OPTION_NO_LOG}" != "true" ]] && echo -e "[$(_print_datetime)] ${_task_label} 后台执行开始，不记录结束时间\n" >>"${task_log_path}"
         # 等待线程池令牌
         _thread_pool_acquire
-        echo -e "[$(_print_datetime)] ${_task_label} 运行运行"
+        echo -e "[$(_print_datetime)] ${_task_label} 任务开始"
         # 通过 EXIT trap 确保令牌在任何退出情况下都能被释放
         (
             trap '' INT
@@ -133,7 +133,7 @@ function _concurrent_dispatch() {
             local _task_start=$(date +%s)
             eval "${run_cmd}"
             # 父进程已退出（Ctrl+C）则不再打印，避免干扰终端
-            kill -0 $$ 2>/dev/null && echo -e "[$(_print_datetime)] ${_task_label} 运行完毕（耗时 $(($(date +%s) - _task_start)) 秒）${GREEN}✔${PLAIN}"
+            kill -0 $$ 2>/dev/null && echo -e "[$(_print_datetime)] ${_task_label} 运行完毕 ${GREEN}✔${PLAIN}（耗时 $(($(date +%s) - _task_start)) 秒）"
         ) &
     else
         ## 全量并发
@@ -492,7 +492,7 @@ function run_script_main() {
     # 后台运行 & 并发运行
     elif [[ "${RUN_OPTION_BACKGROUND}" == "true" ]] || [[ "${RUN_OPTION_CONCURRENT}" == "true" ]]; then
         if [[ "${RUN_OPTION_THREAD}" == "true" ]]; then
-            echo -e "\n[$(_print_datetime)] All done!\n"
+            echo -e "[$(_print_datetime)] All done!"
             echo -e "\n$COMPLETE 所有任务已完成（线程数：${BLUE}${RUN_OPTION_THREAD_NUM}${PLAIN}，任务总数：${BLUE}${_thread_task_total}${PLAIN}），日志目录 ${BLUE}$(echo "${LogPath}" | awk -F "${RootDir}/" '{print$2}')${PLAIN}\n"
         else
             echo -e "\n$COMPLETE 已部署所有任务于后台运行，如需查询代码运行记录请前往 ${BLUE}$(echo "${LogPath}" | awk -F "${RootDir}/" '{print$2}')${PLAIN} 目录查看最新日志\n"
