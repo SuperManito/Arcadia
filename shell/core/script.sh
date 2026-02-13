@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-04-27
+## Modified: 2026-02-13
 
 ## 查找代码文件
 # 通过各种判断将得到的必要信息传给接下来运行的函数或命令
@@ -69,7 +69,7 @@ function find_script() {
         ## 判定变量是否存在否则报错终止退出
         if [ -n "${FileName}" ] && [ -n "${FileDir}" ]; then
             ## 添加依赖文件
-            check_moudules $FileDir
+            check_modules $FileDir
             local primary_path secondary_path
             ## 定义日志路径
             if [[ $(echo ${absolute_path} | awk -F '/' '{print$3}') == "repo" ]]; then
@@ -137,7 +137,7 @@ function find_script() {
             # 判断并定义代码文件类型
             match_script_type "${FileSuffix}"
             ## 添加依赖文件
-            check_moudules $FileDir
+            check_modules $FileDir
             ## 定义日志路径
             LogPath="$LogDir/${FileName}"
         else
@@ -200,21 +200,20 @@ function find_script() {
             FileName=${tmp_file_name%.*}
             FileDir=$ScriptsDir
             ## 添加依赖文件
-            check_moudules $FileDir
+            check_modules $FileDir
             ## 定义日志路径
             LogPath="$LogDir/${FileName}"
             make_dir ${LogPath}
             RUN_REMOTE="true"
         else
             echo ''
-            [ -f "$ScriptsDir/${tmp_file_name}.new" ] && rm -rf "$ScriptsDir/${tmp_file_name}.new"
-            echo -e "\n$FAIL 代码文件 ${tmp_file_name} 下载异常，请检查网络连通性并对目标 URL 地址是否正确进行验证！\n"
-            exit ## 终止退出
+            [ -f "${ScriptsDir}/${tmp_file_name}.new" ] && rm -rf "$ScriptsDir/${tmp_file_name}.new"
+            output_fail "代码文件 ${tmp_file_name} 下载异常，请检查网络连通性并对目标 URL 地址是否正确进行验证！"
         fi
     }
 
     ## 检测环境，添加依赖文件
-    function check_moudules() {
+    function check_modules() {
         local work_dir=$1
         if [[ "${FileType}" == "JavaScript" || "${FileType}" == "TypeScript" ]]; then
             ## 拷贝核心组件

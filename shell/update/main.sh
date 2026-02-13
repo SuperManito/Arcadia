@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-01-12
+## Modified: 2026-02-13
 
 ## 清空定时任务关联代码文件清单内容
 function clean_list_scripts() {
@@ -99,23 +99,10 @@ function command_update_main() {
         fi
         ;;
     *)
-        ## 判断传入参数
-        local path_content
-        echo $1 | grep "\/" -q
-        if [ $? -eq 0 ]; then
-            path_content="$1"
-        else
-            if [[ "$1" = "." ]]; then
-                path_content="$(pwd)"
-            elif [[ "$1" = "./" ]]; then
-                path_content="$(pwd)"
-            elif [ -d "$(pwd)/$1" ]; then
-                path_content="$(pwd)/$1"
-            fi
-        fi
-        if [[ "${path_content}" ]]; then
-            ## 转换为绝对路径
-            local path="$(get_absolute_path "${path_content}")"
+        ## 转换为绝对路径
+        local path="$(get_absolute_path "$1")"
+        ## 判定传入的内容是否为路径
+        if [[ -d "${path}" || -d "$(dirname "${path}")" ]]; then
             ## 判定是否存在仓库
             if [ ! -d "${path}/.git" ]; then
                 if [ -d "${path}" ]; then

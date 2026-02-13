@@ -52,6 +52,9 @@ function wait_before_run() {
     m)
         tmp_print=" ${BLUE}${tmp_params_format}${PLAIN} 分"
         ;;
+    h)
+        tmp_print=" ${BLUE}${tmp_params_format}${PLAIN} 时"
+        ;;
     d)
         tmp_print=" ${BLUE}${tmp_params_format}${PLAIN} 天"
         ;;
@@ -66,7 +69,7 @@ function wait_before_run() {
 
 ## 打印日期时间
 function _print_datetime() {
-    echo -e "$(date "+%Y-%m-%d %T.%3N")"
+    echo "$(date "+%Y-%m-%d %T.%3N")"
 }
 
 ## 记录日志标题
@@ -450,7 +453,7 @@ function run_script_main() {
                 LogFileName="$(date "+%Y-%m-%d-%H-%M-%S")-e${env_index}"
             else
                 # 任务空行
-                [ $group_index -gt 1 ] && echo -e "\n[$(_print_datetime)] 下一运行任务\n" >>${LogFilePath}
+                [ $env_index -gt 1 ] && echo -e "\n[$(_print_datetime)] 下一运行任务\n" >>${LogFilePath}
             fi
             # 执行
             for ((i = 1; i <= $run_times; i++)); do
@@ -654,7 +657,11 @@ function command_run() {
         print_command_help run
         ;;
     1)
-        command_run_main $1
+        if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+            print_command_help run
+        else
+            command_run_main $1
+        fi
         ;;
     *)
         local run_target="${1}"

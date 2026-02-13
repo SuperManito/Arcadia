@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-12-06
+## Modified: 2026-02-13
 
 ## 目录
 RootDir=${ARCADIA_DIR}
@@ -154,58 +154,32 @@ function make_dir() {
 function get_absolute_path() {
     local path
     local input="$1"
+    ## 已经是以项目根目录开头的绝对路径
     echo "${input}" | grep "^$RootDir" -q
     if [ $? -eq 0 ]; then
         path="${input}"
     else
-        ## 处理是 . 的路径
-        echo "${input}" | grep -E "^\.$" -q
-        if [ $? -eq 0 ]; then
-            input="$(pwd)"
-        fi
-        ## 处理开头是 ./ 的路径
-        echo "${input}" | grep -E "^\./" -q
-        if [ $? -eq 0 ]; then
-            input="$(echo "${input}" | sed "s|^\./|$(pwd)/|g")"
-        fi
-        ## 处理开头是 ../ 或是 .. 的路径
-        echo "${input}" | grep -E "^\.\./|^\.\.$" -q
-        if [ $? -eq 0 ]; then
-            local tmp_pwd="$(pwd | sed "s|/$(pwd | awk -F '/' '{printf$NF}')||g")"
-            input="$(echo "${input}" | sed "s|^\.\./|${tmp_pwd}/|g; s|^\.\.$|${tmp_pwd}/|g")"
-        fi
-        ## 处理结尾是 /.. 的路径
-        echo "${input}" | grep -E "/\.\.$" -q
-        if [ $? -eq 0 ]; then
-            local tmp_dir="$(dirname "${input}")"
-            echo "${tmp_dir}" | grep "^/" -q
-            if [ $? -eq 0 ]; then
-                input="${tmp_dir}"
-            fi
-        fi
+        ## 相对路径或特殊前缀
+        if echo "${input}" | grep -Eq "^\.(/|$)|^\.\.(\/|$)"; then
+            path="$(realpath -m "$(pwd)/${input}" 2>/dev/null || echo "$(pwd)/${input}")"
         ## 判断是否存在同名仓库目录
-        local tmp_dir_name=$(echo "${input}" | awk -F '/' '{printf$1}')
-        if [[ "${tmp_dir_name}" && -d "$RepoDir/$tmp_dir_name" ]]; then
-            path="$(echo "${input}" | sed "s|^|$RepoDir/|g")"
+        elif [[ "$(echo "${input}" | awk -F '/' '{printf$1}')" ]] && [[ -d "$RepoDir/$(echo "${input}" | awk -F '/' '{printf$1}')" ]]; then
+            path="${RepoDir}/${input}"
+        ## 已经是其他绝对路径
+        elif echo "${input}" | grep -q "^/"; then
+            path="${input}"
+        ## 裸路径，以当前目录为基准拼接
         else
-            echo "${input}" | grep "^/" -q
-            if [ $? -eq 0 ]; then
-                path="${input}"
+            if [[ "$(pwd)" == "/root" ]]; then
+                path="${RootDir}/${input}"
             else
-                if [[ "$(pwd)" == "/root" ]]; then
-                    path="$(echo "${input}" | sed "s|^|$RootDir/|g")"
-                else
-                    path="$(echo "${input}" | sed "s|^|$(pwd)/|g")"
-                fi
+                path="$(pwd)/${input}"
             fi
         fi
     fi
     if [[ "${path}" ]]; then
         ## 去除路径末尾的斜杠
-        echo "${path}" | grep "/$" -q
-        if [ $? -eq 0 ]; then
-            path="${path%?}"
-        fi
+        path="${path%/}"
         echo "${path}"
     fi
 }
