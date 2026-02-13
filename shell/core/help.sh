@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-01-12
+## Modified: 2026-02-13
 
 function _print_help_title() {
   if [ "$1" ]; then
@@ -90,23 +90,24 @@ function _print_help_run() {
 
   命令选项：
 
-    ${BLUE}-l${PLAIN}, ${BLUE}--loop${PLAIN}                  循环运行，连续多次的执行代码文件，选项后需跟循环次数
-    ${BLUE}-s${PLAIN}, ${BLUE}--silent${PLAIN}                静默运行，不推送任何通知消息
-    ${BLUE}-w${PLAIN}, ${BLUE}--wait${PLAIN}                  推迟执行，等待指定时间后再运行任务，选项后需跟时间值
-    ${BLUE}-D${PLAIN}, ${BLUE}--delay${PLAIN}                 延迟执行，随机倒数一定秒数后再执行代码文件
-    ${BLUE}-d${PLAIN}, ${BLUE}--daemon${PLAIN}                守护进程，将代码文件设置为守护进程保持在后台运行，期间中断或结束会自动重新运行
-    ${BLUE}-a${PLAIN}, ${BLUE}--agent${PLAIN}                 网络代理，使代码文件的 HTTP/HTTPS 网络请求通过全局代理进行，仅支持 Node.js 和 ts-node
-    ${BLUE}-T${PLAIN}, ${BLUE}--timeout${PLAIN}               运行超时，设置运行任务超时机制，选项后需跟 timeout 指令的参数作为选项值
-    ${BLUE}-N${PLAIN}, ${BLUE}--no-log${PLAIN}                忽略日志，不存储代码运行日志到本地
-    ${BLUE}-p${PLAIN}, ${BLUE}--proxy${PLAIN}                 下载代理，仅适用于执行位于 GitHub 仓库的代码文件，代理固定为 jsDelivr CDN
-    ${BLUE}-c${PLAIN}, ${BLUE}--concurrent${PLAIN}            并发运行，默认运行1个任务，若想增加运行任务数量那么请传参任务数量
-    ${BLUE}-b${PLAIN}, ${BLUE}--background${PLAIN}            后台运行，不在前台输出代码执行进度，不占用终端命令行
-    ${BLUE}-r${PLAIN}, ${BLUE}--recombine-env${PLAIN}         变量重组，按照指定顺序重新组合复合变量的值，选项后需跟变量名称、分隔符、重组表达式
-                                          表达式语法：多个值用 \",\" 隔开，值区间用 \"-\" 连接，可以用 \"%\" 表示值的总数
-    ${BLUE}-R${PLAIN}, ${BLUE}--recombine-env-group${PLAIN}   分组运行，为每组变量单独运行，是变量重组的扩展，传参基本一致，其中重组表达式内用 \"@\" 来区分不同组
-    ${BLUE}-S${PLAIN}, ${BLUE}--split-env${PLAIN}             拆分运行，将复合变量的值拆分后为每个值声明变量并单独运行代码文件，选项后需跟需要拆分的变量名称、分隔符
+    ${BLUE}-l${PLAIN}, ${BLUE}--loop${PLAIN}                  循环运行 - 连续多次的执行代码文件，选项后需跟循环次数
+    ${BLUE}-s${PLAIN}, ${BLUE}--silent${PLAIN}                静默运行 - 不推送任何通知消息
+    ${BLUE}-w${PLAIN}, ${BLUE}--wait${PLAIN}                  推迟执行 - 等待指定时间后再运行任务，选项后需跟时间值
+    ${BLUE}-D${PLAIN}, ${BLUE}--delay${PLAIN}                 延迟执行 - 随机倒数一定秒数后再执行代码文件
+    ${BLUE}-d${PLAIN}, ${BLUE}--daemon${PLAIN}                守护进程 - 将代码文件设置为守护进程保持在后台运行，期间中断或结束会自动重新运行
+    ${BLUE}-a${PLAIN}, ${BLUE}--agent${PLAIN}                 网络代理 - 使代码文件的 HTTP/HTTPS 网络请求通过全局代理进行，仅支持 Node.js 和 ts-node
+    ${BLUE}-T${PLAIN}, ${BLUE}--timeout${PLAIN}               运行超时 - 设置运行任务超时机制，选项后需跟 timeout 指令的参数作为选项值
+    ${BLUE}-N${PLAIN}, ${BLUE}--no-log${PLAIN}                不记录日志 - 不存储代码运行日志到本地
+    ${BLUE}-p${PLAIN}, ${BLUE}--proxy${PLAIN}                 启用下载代理 - 仅适用于执行位于 GitHub 仓库的代码文件，代理固定为 jsDelivr CDN
+    ${BLUE}-c${PLAIN}, ${BLUE}--concurrent${PLAIN}            并发运行 - 默认运行1个任务，若想增加运行任务数量那么请传参任务数量
+    ${BLUE}-t${PLAIN}, ${BLUE}--thread${PLAIN}                并发线程数 - 指定同时运行的最大任务数量，选项后需跟正整数，需与并发运行同时使用
+    ${BLUE}-b${PLAIN}, ${BLUE}--background${PLAIN}            后台运行 - 不在前台输出代码执行进度，不占用终端命令行
+    ${BLUE}-r${PLAIN}, ${BLUE}--recombine-env${PLAIN}         变量重组 - 按照指定顺序重新组合复合变量的值，选项后需跟变量名称、分隔符、重组表达式
+                                           表达式语法：多个值用 \",\" 隔开，值区间用 \"-\" 连接，可以用 \"%\" 表示值的总数
+    ${BLUE}-R${PLAIN}, ${BLUE}--recombine-env-group${PLAIN}   分组运行 - 为每组变量单独运行，是变量重组的扩展，传参基本一致，其中重组表达式内用 \"@\" 来区分不同组
+    ${BLUE}-S${PLAIN}, ${BLUE}--split-env${PLAIN}             拆分运行 - 将复合变量的值拆分后为每个值声明变量并单独运行代码文件，选项后需跟需要拆分的变量名称、分隔符
 
-    ${BLUE}-E${PLAIN}, ${BLUE}--exec-args${PLAIN}             执行参数，将该选项后面的内容作为参数传递给代码执行器
+    ${BLUE}-E${PLAIN}, ${BLUE}--exec-args${PLAIN}             执行参数 - 将该选项后面的内容作为参数传递给代码执行器
     ${BLUE}--${PLAIN}                          传递选项，将该选项后面的所有内容都作为选项参数传递给代码文件
 
     ${BLUE}--deno${PLAIN}，${BLUE}--use-deno${PLAIN}          使用 Deno 作为 JavaScript 和 TypeScript 的运行时环境
