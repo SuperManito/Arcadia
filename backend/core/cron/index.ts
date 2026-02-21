@@ -3,7 +3,7 @@ import type { tasksModel } from '../../db'
 import db from '../../db'
 import type { TaskInstance } from './type'
 import { logger } from '../../utils/logger'
-import { addAfterTaskRun, addBeforeTaskRun, runCronTask, runningInstance, runningTasks } from './taskRunner'
+import { addAfterTaskRun, addBeforeTaskRun, runCronTask, runningTasks, runningTasksInsts } from './taskRunner'
 import { APP_ROOT_DIR } from '../type'
 
 export { runCronTask, runningTasks, stopCronTask } from './taskRunner'
@@ -230,7 +230,7 @@ export async function updateSortById(taskId: number, newOrder: number) {
         if (task.last_runtime && task.last_runtime.getTime() <= startTime) {
           // 从正在运行的任务中删除
           delete runningTasks[task.id]
-          delete runningInstance[task.id]
+          delete runningTasksInsts[task.id]
           // 更新最后运行时间和其运行时长
           db.tasks.update({ where: { id: task.id }, data }).catch((_e) => {})
         }
@@ -239,7 +239,7 @@ export async function updateSortById(taskId: number, newOrder: number) {
     else {
       // 从正在运行的任务中删除
       delete runningTasks[task.id]
-      delete runningInstance[task.id]
+      delete runningTasksInsts[task.id]
       // 更新最后运行时间和其运行时长
       db.tasks.update({ where: { id: task.id }, data }).catch((_e) => {})
     }

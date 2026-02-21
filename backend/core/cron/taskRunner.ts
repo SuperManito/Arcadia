@@ -13,7 +13,7 @@ export interface taskRunInfo {
 }
 
 export const runningTasks: { [key: string]: tasksModel } = {} // 正在运行的任务信息
-export const runningInstance: { [key: string]: ChildProcess | undefined } = {} // 正在运行的任务实例（child_process）
+export const runningTasksInsts: { [key: string]: ChildProcess | undefined } = {} // 正在运行的任务实例（child_process）
 
 const beforeTaskRun: Array<{ order: number, fn: (task: tasksModel) => any }> = []
 const afterTaskRun: Array<{ order: number, fn: (info: taskRunInfo) => any }> = []
@@ -74,8 +74,8 @@ export async function runCronTask(taskId: number, manual: boolean = false) {
     return
   }
   runningTasks[taskId] = task // 将任务添加到正在运行的列表
-  runningInstance[taskId] = runTaskModel(task)
-  return runningInstance[taskId]
+  runningTasksInsts[taskId] = runTaskModel(task)
+  return runningTasksInsts[taskId]
 }
 
 /**
@@ -84,7 +84,7 @@ export async function runCronTask(taskId: number, manual: boolean = false) {
  * @param {number} taskId
  */
 export function stopCronTask(taskId: number) {
-  const task = runningInstance[taskId]
+  const task = runningTasksInsts[taskId]
   if (task) {
     let isExited = false
     let elapsedTime = 0
@@ -92,7 +92,7 @@ export function stopCronTask(taskId: number) {
     task.kill('SIGTERM')
     task.once('exit', (_code: string, signal: string) => {
       if (signal === 'SIGTERM' || signal === 'SIGKILL') {
-        delete runningInstance[taskId]
+        delete runningTasksInsts[taskId]
         isExited = true
         // logger.log(`定时任务 ${taskId} 已被终止`);
       }
@@ -102,7 +102,7 @@ export function stopCronTask(taskId: number) {
       if (isExited || elapsedTime >= 30000) {
         clearInterval(checkInterval) // 清除定时器（已终止或超时）
       }
-      else if (runningInstance[taskId]) {
+      else if (runningTasksInsts[taskId]) {
         task.kill('SIGKILL') // 强制终止
         // logger.log(`定时任务 ${taskId} 已被强制终止`);
       }

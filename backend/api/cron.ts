@@ -25,12 +25,13 @@ import {
   validatePageFixedParams,
   validateRequestParams,
 } from '../utils'
+import { getDashboardRunning, getDashboardStats, getDashboardTrend } from '../core/cron/query'
+import { isValidTasksFilterType, TasksTypeEnum } from '../core/type/cron'
+import type { TasksType } from '../core/type/cron'
 
 const api: Express = express()
 const apiOpen: Express = express()
 const apiInner: Express = express()
-
-type CronType = 'system' | 'user'
 
 interface TaskConfig {
   before_task_shell: string
@@ -120,7 +121,7 @@ api.get('/', async (request, response) => {
       // 日志路径与代码文件（临时）
       (task as any).log_path = '';
       (task as any).script_path = ''
-      if (task.bind && task.bind.startsWith('system#')) {
+      if (task.bind && task.bind.startsWith(`${TasksTypeEnum.SYSTEM}#`)) {
         try {
           const [_type, targetDir, targetFile] = task.bind.split('#')
           if (task.last_runtime) {
@@ -153,7 +154,7 @@ apiOpen.get('/v1/page', async (request, response) => {
     validatePageFixedParams(request, ['sort', 'last_runtime', 'last_run_use'])
     validateRequestParams(request, {
       query: [
-        ['type', [false, ['user', 'system']]],
+        ['type', [false, [TasksTypeEnum.USER, TasksTypeEnum.SYSTEM]]],
         ['active', [false, ['1', '0']]],
         ['tags', [false, 'string', true]],
       ],
@@ -312,7 +313,7 @@ apiOpen.post('/v1/create', async (request, response) => {
     validateCronExpression(cron)
     // 补齐参数
     Object.assign(task, {
-      type: 'user', // 只允许创建用户任务
+      type: TasksTypeEnum.USER, // 只允许创建用户任务
       create_time: new Date(),
     })
     // 操作数据库
@@ -651,7 +652,7 @@ apiOpen.post('/v1/terminate', async (request, response) => {
 /**
  * 将路径转换为 bind 字符串
  */
-function convertPathToBind(type: CronType, s: string) {
+function convertPathToBind(type: TasksType, s: string) {
   let prefix = `${APP_DIR_PATH.REPO}/`
   if (s.startsWith(prefix)) {
     s = s.replace(prefix, '')
@@ -674,7 +675,7 @@ apiInner.post('/updateAll', async (request, response) => {
     // 删除
     if (deleteFiles && deleteFiles.length > 0) {
       const deleteTask = await db.tasks.$list({
-        type: 'system',
+        type: TasksTypeEnum.SYSTEM,
         bind: { in: deleteFiles.map((s: CodeFileResolveResult) => convertPathToBind(type, s.path)) },
       })
       const deleteIds = deleteTask.map((s) => s.id)
@@ -711,7 +712,7 @@ apiInner.post('/updateAll', async (request, response) => {
     if (newFiles && newFiles.length > 0) {
       // 先删除已存在的防止重复添加
       const deleteTask = await db.tasks.$list({
-        type: 'system',
+        type: TasksTypeEnum.SYSTEM,
         bind: { in: newFiles.map((s: CodeFileResolveResult) => convertPathToBind(type, s.path)) },
       })
       const deleteIds = deleteTask.map((s) => s.id)
@@ -773,34 +774,61 @@ apiInner.post('/updateAll', async (request, response) => {
 })
 
 /**
- * 获取仪表板完整数据
+ * 获取仪表板统计指标
  */
-api.get('/dashboard', async (request, response) => {
+api.get('/dashboard/stats', async (request, response) => {
   try {
-    const { getDashboardData } = await import('../core/cron/query')
-
-    const taskType = (request.query.taskType as string) || 'all'
-    const date = (request.query.date as string) || getDateStr(new Date())
-
-    // 验证任务类型
-    if (!['all', 'system', 'user'].includes(taskType)) {
-      return response.send(API_STATUS_CODE.fail('invalid taskType'))
+    const taskType = (request.query.taskType as string) || TasksTypeEnum.ALL
+    if (!isValidTasksFilterType(taskType)) {
+      return response.send(API_STATUS_CODE.fail('任务类型有误，必须为 all、system 或 user'))
     }
-
-    // 验证日期格式 (YYYY-MM-DD)
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return response.send(API_STATUS_CODE.fail('invalid date format, expected YYYY-MM-DD'))
-    }
-
-    const data = await getDashboardData(
-      taskType as 'all' | 'system' | 'user',
-      date,
-    )
+    const data = await getDashboardStats(taskType)
     response.send(API_STATUS_CODE.okData(data))
   }
   catch (e: any) {
-    logger.error('[定时任务监控 API] 获取数据异常', e)
     response.send(API_STATUS_CODE.fail(e.message || e))
+    logger.error('[定时任务监控] 获取统计指标异常', e)
+  }
+})
+
+/**
+ * 获取仪表板任务运行趋势
+ */
+api.get('/dashboard/trend', async (request, response) => {
+  try {
+    const taskType = (request.query.taskType as string) || TasksTypeEnum.ALL
+    const date = (request.query.date as string) || getDateStr(new Date())
+
+    if (!isValidTasksFilterType(taskType)) {
+      return response.send(API_STATUS_CODE.fail('任务类型有误，必须为 all、system 或 user'))
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return response.send(API_STATUS_CODE.fail('日期格式有误，必须为 YYYY-MM-DD'))
+    }
+    const data = await getDashboardTrend(taskType, date)
+    response.send(API_STATUS_CODE.okData(data))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+    logger.error('[定时任务监控] 获取趋势数据异常', e)
+  }
+})
+
+/**
+ * 获取仪表板正在运行的任务
+ */
+api.get('/dashboard/running', async (request, response) => {
+  try {
+    const taskType = (request.query.taskType as string) || TasksTypeEnum.ALL
+    if (!isValidTasksFilterType(taskType)) {
+      return response.send(API_STATUS_CODE.fail('任务类型有误，必须为 all、system 或 user'))
+    }
+    const data = getDashboardRunning(taskType)
+    response.send(API_STATUS_CODE.okData(data))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+    logger.error('[定时任务监控] 获取运行中任务异常', e)
   }
 })
 

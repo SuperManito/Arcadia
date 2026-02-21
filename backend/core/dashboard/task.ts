@@ -6,25 +6,6 @@ import { getUserConfigValue } from '../config'
 import { taskEvents } from '../../server/events'
 
 /**
- * 当前天的汇总统计
- */
-interface TodayStats {
-  date: number
-  execCount: number
-  successCount: number
-  failureCount: number
-  totalDuration: number
-}
-
-/**
- * 全局内存统计数据
- */
-interface DashboardMemoryStats {
-  today: TodayStats
-  lastCleanupTime: number
-}
-
-/**
  * 持久化失败记录
  */
 interface PendingRecord {
@@ -36,9 +17,6 @@ interface PendingRecord {
   success: number
   retryCount: number
 }
-
-// 全局内存统计对象
-let memoryStats: DashboardMemoryStats | null = null
 
 // 持久化失败队列
 const pendingWrites: PendingRecord[] = []
@@ -57,126 +35,19 @@ function getAlignedTimestamp(date: Date = new Date()): number {
 }
 
 /**
- * 获取今日零点时间戳
- */
-function getTodayStartTimestamp(): number {
-  const now = new Date()
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
-}
-
-/**
  * 初始化监控系统
  */
 export async function initTaskMonitor() {
-  // 初始化内存统计
-  resetMemoryStats()
-
-  // 从数据库恢复今日统计（处理重启场景）
-  await recoverTodayStatsFromDB()
-
-  // 监听任务事件
   taskEvents.on('task:completed', onTaskCompleted)
-
-  // 定时清理过期数据（每天凌晨3点）
   scheduleCleanup()
-
-  // 启动重试定时器
   startRetryTimer()
 }
 
 /**
- * 重置内存统计数据
- */
-function resetMemoryStats() {
-  memoryStats = {
-    today: {
-      date: getTodayStartTimestamp(),
-      execCount: 0,
-      successCount: 0,
-      failureCount: 0,
-      totalDuration: 0,
-    },
-    lastCleanupTime: Date.now(),
-  }
-}
-
-/**
- * 从数据库恢复今日统计数据
- */
-async function recoverTodayStatsFromDB() {
-  try {
-    const todayStart = getTodayStartTimestamp()
-    const todayEnd = todayStart + 24 * 60 * 60 * 1000 - 1
-
-    const records = await db.tasksExecutionStats.findMany({
-      where: {
-        exec_timestamp: {
-          gte: todayStart,
-          lte: todayEnd,
-        },
-      },
-    })
-
-    const execCount = records.length
-    const successCount = records.filter(r => r.success === 1).length
-    const failureCount = execCount - successCount
-    const totalDuration = records.reduce((sum, r) => sum + r.duration, 0)
-
-    if (memoryStats) {
-      memoryStats.today = {
-        date: todayStart,
-        execCount,
-        successCount,
-        failureCount,
-        totalDuration,
-      }
-    }
-  }
-  catch (error) {
-    logger.error('[定时任务监控] 恢复今日统计失败', error)
-  }
-}
-
-/**
- * 检查并处理跨天情况
- */
-function checkAndResetIfNewDay(): boolean {
-  if (!memoryStats)
-    return false
-
-  const todayStart = getTodayStartTimestamp()
-
-  if (memoryStats.today.date !== todayStart) {
-    resetMemoryStats()
-    return true
-  }
-
-  return false
-}
-
-/**
- * 任务完成事件处理
+ * 任务完成事件处理 - 持久化执行记录
  */
 function onTaskCompleted(data: { taskId: number, duration: number, success: boolean, task?: tasksModel }) {
-  if (!memoryStats)
-    return
-
   const { duration, success, task } = data
-
-  // 检查是否跨天
-  checkAndResetIfNewDay()
-
-  // 更新今日汇总统计
-  memoryStats.today.execCount++
-  memoryStats.today.totalDuration += duration
-  if (success) {
-    memoryStats.today.successCount++
-  }
-  else {
-    memoryStats.today.failureCount++
-  }
-
-  // 立即持久化单条执行记录
   if (task) {
     persistTaskExecution(task, duration, success)
   }
@@ -208,16 +79,6 @@ async function persistTaskExecution(task: tasksModel, duration: number, success:
 }
 
 /**
- * 获取当前统计数据快照
- */
-export function getMemoryStats() {
-  if (!memoryStats) {
-    resetMemoryStats()
-  }
-  return memoryStats!
-}
-
-/**
  * 定时清理（每天凌晨3点）
  */
 function scheduleCleanup() {
@@ -225,8 +86,8 @@ function scheduleCleanup() {
   const nextCleanup = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 3, 0, 0)
   const delay = nextCleanup.getTime() - now.getTime()
 
-  cleanupTimer = setTimeout(() => {
-    cleanupOldData()
+  cleanupTimer = setTimeout(async () => {
+    await cleanupOldData()
     cleanupTimer = setInterval(cleanupOldData, 24 * 60 * 60 * 1000) as NodeJS.Timeout
   }, delay) as NodeJS.Timeout
 }
@@ -247,6 +108,7 @@ async function cleanupOldData() {
 
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - retentionDays)
+    cutoffDate.setHours(0, 0, 0, 0) // 以保留天数的当天零点为边界，避免删除当天部分数据
     const cutoffTimestamp = cutoffDate.getTime()
 
     await db.tasksExecutionStats.deleteMany({
@@ -256,10 +118,6 @@ async function cleanupOldData() {
         },
       },
     })
-
-    if (memoryStats) {
-      memoryStats.lastCleanupTime = Date.now()
-    }
   }
   catch (error) {
     logger.error('[定时任务监控] 数据清理异常', error)
@@ -317,33 +175,6 @@ function stopRetryTimer() {
 }
 
 /**
- * 获取今日统计摘要
- */
-export function getTodayStatsSummary() {
-  if (!memoryStats)
-    return null
-
-  // 获取统计前检查是否跨天
-  checkAndResetIfNewDay()
-
-  const { today } = memoryStats
-  const successRate = today.execCount > 0
-    ? Math.round((today.successCount / today.execCount) * 10000) / 100
-    : 0
-  const avgDuration = today.execCount > 0
-    ? Math.round((today.totalDuration / today.execCount) * 100) / 100
-    : 0
-
-  return {
-    execCount: today.execCount,
-    successCount: today.successCount,
-    failureCount: today.failureCount,
-    successRate,
-    avgDuration,
-  }
-}
-
-/**
  * 关闭监控系统
  */
 export function closeDashboardMonitor() {
@@ -352,6 +183,7 @@ export function closeDashboardMonitor() {
 
   if (cleanupTimer) {
     clearTimeout(cleanupTimer)
+    clearInterval(cleanupTimer)
     cleanupTimer = null
   }
 
