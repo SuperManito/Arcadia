@@ -1,37 +1,43 @@
-<!doctype html><html lang="zh-CN" style="--vh:1vh"><head><script>self["MonacoEnvironment"] = (function (paths) {
-          return {
-            globalAPI: false,
-            getWorkerUrl : function (moduleId, label) {
-              var result =  paths[label];
-              if (/^((http:)|(https:)|(file:)|(\/\/))/.test(result)) {
-                var currentUrl = String(window.location);
-                var currentOrigin = currentUrl.substr(0, currentUrl.length - window.location.hash.length - window.location.search.length - window.location.pathname.length);
-                if (result.substring(0, currentOrigin.length) !== currentOrigin) {
-                  var js = '/*' + label + '*/importScripts("' + result + '");';
-                  var blob = new Blob([js], { type: 'application/javascript' });
-                  return URL.createObjectURL(blob);
-                }
-              }
-              return result;
-            }
-          };
-        })({
-  "editorWorkerService": "./worker/editor.worker.bundle.js",
-  "css": "./worker/css.worker.bundle.js",
-  "html": "./worker/html.worker.bundle.js",
-  "json": "./worker/json.worker.bundle.js",
-  "typescript": "./worker/ts.worker.bundle.js",
-  "javascript": "./worker/ts.worker.bundle.js",
-  "less": "./worker/css.worker.bundle.js",
-  "scss": "./worker/css.worker.bundle.js",
-  "handlebars": "./worker/html.worker.bundle.js",
-  "razor": "./worker/html.worker.bundle.js"
-});</script><script src="./app.config.js?v=1.0.0-1745835406443"></script><meta charset="UTF-8"/><link rel="icon" type="image/x-icon" href="./favicon.ico"><link rel="apple-touch-startup-image" href="./app-logo.jpg"><link rel="apple-touch-icon-precomposed" href="./app-logo.jpg"><link rel="stylesheet" href="./resource/loading.css"/><meta name="theme-color" content="#ffffff"/><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-mode" content="light"><title>Arcadia</title><script type="module" crossorigin src="./assets/app-dbd4b5f0.js"></script><link rel="modulepreload" crossorigin href="./assets/vendor-ca0e89fa.js"><link rel="modulepreload" crossorigin href="./assets/vendor-6c6d1442.js"><link rel="stylesheet" crossorigin href="./css/app-139d7db5.css"><link rel="stylesheet" crossorigin href="./css/app-56f6e3d4.css"><link rel="stylesheet" crossorigin href="./css/app-1a974e6f.css"></head><body><div id="app"><div class="app-loading-page-wrapper"></div><script src="./resource/loading.js"></script></div><script>!(function (n, e) {
+<!doctype html>
+<html lang="zh-CN" style="--vh: 1vh">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+    <link rel="apple-touch-startup-image" href="./app-logo.jpg" />
+    <link rel="apple-touch-icon" href="./app-logo.jpg" />
+    <link rel="stylesheet" href="./resource/loading.css" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <meta name="theme-mode" content="light" />
+    <title>Arcadia</title>
+    <script src="./app.config.js?v=1.0.0-1771759379230"></script>
+    <script type="module" crossorigin src="./assets/js/index-55870275.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/js/index-c26db62a.js" />
+    <link rel="modulepreload" crossorigin href="./assets/js/index-dd0a2f8c.js" />
+    <link rel="stylesheet" crossorigin href="./assets/css/index-01ffbf34.css" />
+    <link rel="stylesheet" crossorigin href="./assets/css/index-181c1246.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="app-loading-page-wrapper"></div>
+      <script src="./resource/loading.js"></script>
+    </div>
+    <script>
+      !(function (n, e) {
         function setViewHeight() {
-            var windowVH = e.innerHeight / 100
-            n.documentElement.style.setProperty('--vh', windowVH + 'px')
+          var windowVH = e.innerHeight / 100;
+          n.documentElement.style.setProperty("--vh", windowVH + "px");
         }
-        var i = 'orientationchange' in window ? 'orientationchange' : 'resize'
-        n.addEventListener('DOMContentLoaded', setViewHeight)
-        e.addEventListener(i, setViewHeight)
-      })(document, window)</script></body></html>
+        var i = "orientationchange" in window ? "orientationchange" : "resize";
+        n.addEventListener("DOMContentLoaded", setViewHeight);
+        e.addEventListener(i, setViewHeight);
+      })(document, window);
+    </script>
+  </body>
+</html>

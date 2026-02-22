@@ -1,1 +1,1 @@
-window.__PRODUCTION____APP__CONF__={"VITE_GLOB_API_URL":"/api","VITE_GLOB_API_URL_PREFIX":"","VITE_GLOB_WS_URL":""};Object.freeze(window.__PRODUCTION____APP__CONF__);Object.defineProperty(window,"__PRODUCTION____APP__CONF__",{configurable:false,writable:false,});
+window.__ARCADIA__PRODUCTION__CONF__={"VITE_GLOB_API_URL":"/api","VITE_GLOB_API_URL_PREFIX":"","VITE_GLOB_WS_URL":""};Object.freeze(window.__ARCADIA__PRODUCTION__CONF__);Object.defineProperty(window,"__ARCADIA__PRODUCTION__CONF__",{configurable:false,writable:false,});

@@ -5,7 +5,7 @@ const appLogoData
 
 // 动态更新加载动画主题样式
 try {
-  const themeState = localStorage.getItem('__APP__THEME__STATE__') || 'light'
+  const themeState = localStorage.getItem('THEME__STATE') || 'light'
   const isMobile = window.matchMedia('(max-width: 996px)').matches
   const metaThemeColor = document.querySelector('meta[name=theme-color]')
   let loadingBackgroundStyle
@@ -13,13 +13,13 @@ try {
     loadingBackgroundStyle
       = themeState === 'light'
         ? 'linear-gradient(to bottom, #D5DEE7 0%, #E8EBF2 50%, #E2E7ED 100%), linear-gradient(to bottom, rgba(0,0,0,0.02) 50%, rgba(255,255,255,0.02) 61%, rgba(0,0,0,0.02) 73%), linear-gradient(33deg, rgba(255,255,255,0.20) 0%, rgba(0,0,0,0.20) 100%)'
-        : 'linear-gradient(60deg, rgb(30, 30, 34) 0%, rgb(24, 24, 28) 100%)'
+        : 'linear-gradient(60deg, rgb(30, 30, 34) 0%, rgb(22, 22, 24) 100%)'
   }
   else {
     loadingBackgroundStyle
       = themeState === 'light'
         ? 'linear-gradient(#FFF, #FFF)'
-        : 'linear-gradient(rgb(24, 24, 28), rgb(24, 24, 28))'
+        : 'linear-gradient(rgb(22, 22, 24), rgb(22, 22, 24))'
   }
   // 背景样式
   document.documentElement.style.setProperty(
@@ -40,7 +40,7 @@ try {
   if (metaThemeColor) {
     metaThemeColor.setAttribute(
       'content',
-      themeState === 'light' ? '#ffffff' : '#18181c',
+      themeState === 'light' ? '#ffffff' : '#161618',
     )
   }
 }
