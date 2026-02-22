@@ -1,15 +1,13 @@
 <div align="center">
 <a href="https://arcadia.cool" target="_blank">
     <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="./public/images/logo-dark-sub.png" width="240">
-        <img src="./public/images/logo-light-sub.png" alt="Arcadia" width="240">
+        <source media="(prefers-color-scheme: dark)" srcset="./public/assets/images/logo-dark-sub.png" width="240">
+        <img src="./public/assets/images/logo-light-sub.png" alt="Arcadia" width="240">
     </picture>
 </a>
 <h1>一站式代码自动化运维平台</h1>
 <p><code>Node.js</code> <code>tsx</code> <code>ts-node</code> <code>Deno</code> <code>Bun</code> <code>Python</code> <code>Go</code> <code>Rust</code> <code>Lua</code> <code>Ruby</code> <code>Perl</code> <code>C</code> <code>Shell</code></p>
-<!-- <a href="https://skillicons.dev">
-    <img src="https://skillicons.dev/icons?i=js,ts,nodejs,deno,bun,python,go,rust,lua,ruby,perl,c,bash" />
-</a> -->
+
 <p>
     <strong>
         <a href="https://arcadia.cool" style="text-decoration: none;">官方网站</a>
