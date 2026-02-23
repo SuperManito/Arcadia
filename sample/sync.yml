@@ -1,11 +1,11 @@
-## 更新日期: 2024-04-11
+## 更新日期: 2025-05-05
 # 代码仓库配置
 # 官网教程：https://arcadia.cool/docs/configuration/script/repo/config
 repo:
-  - name: "" # 仓库名称
-    url: "" # 仓库远程地址
+  - name: "" # 代码仓库名称
+    url: "" # 代码仓库远程地址
     branch: "" # 分支名称
-    enable: true # 是否启用该仓库配置
+    enable: true # 是否启用该配置
     isPrivate: false # 是否为私有仓库
     authSettings:
       method: "" # 认证方式，需填写固定值 ssh 或 http
@@ -17,7 +17,7 @@ repo:
         username: "" # 用户名
         password: "" # 密码或Token
     cronSettings:
-      updateTaskList: false # 是否为该配置启用定时任务（默认不启用）
+      updateTaskList: false # 是否为该配置涉及到的代码文件启用定时任务（默认不启用）
       scriptsPath: "" # 定时文件路径（默认为仓库根目录）
       scriptsType: # 定时文件格式（默认为 JavaScript、Python、TypeScript）
         - js
@@ -29,13 +29,14 @@ repo:
       addNotify: true # 是否为新增定时任务推送通知提醒
       delNotify: true # 是否为过期定时任务推送通知提醒
 
-# 远程脚本配置
+# 远程文件配置
 # 官网教程：https://arcadia.cool/docs/configuration/script/raw/config
 raw:
-  - name: "" # 文件名称
-    url: "" # 文件远程地址
+  - name: "" # 远程文件名称
+    url: "" # 远程文件地址
+    enable: true # 是否启用该配置
     cronSettings:
-      updateTaskList: false # 是否为该代码文件启用定时任务
+      updateTaskList: false # 是否为该配置涉及到的代码文件启用定时任务
 
 # 全局配置
 global:

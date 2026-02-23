@@ -1,7 +1,7 @@
 #!/bin/bash
-## Modified: 2024-04-27
+## Modified: 2026-01-12
 
-## 统计代码文件仓库数量
+## 统计代码仓库数量
 function count_reposum() {
     cat $FileSyncConfUser | yq >/dev/null 2>&1
     if [ $? -eq 0 ]; then
@@ -11,8 +11,8 @@ function count_reposum() {
     fi
 }
 
-## 统计远程代码文件数量
-function count_rawsum() {
+## 统计代码文件数量
+function count_rawconf_sum() {
     cat $FileSyncConfUser | yq >/dev/null 2>&1
     if [ $? -eq 0 ]; then
         RawSum="$(cat $FileSyncConfUser | yq '.raw | length')"
@@ -26,27 +26,27 @@ function get_conf() {
     echo "$1" | jq -rcM "$2"
 }
 
-## 生成用户代码文件仓库配置信息数组
-# 仓库名称 Array_Repo_name
-# 仓库远程地址 Array_Repo_url
-# 仓库分支名称 Array_Repo_branch
-# 仓库启用状态 Array_Repo_enable
-# 仓库本地存放目录名称 Array_Repo_dir
-# 仓库本地文件绝对路径 Array_Repo_path
+## 生成用户代码仓库配置信息数组
+# 代码仓库名称 Array_Repo_name
+# 代码仓库远程地址 Array_Repo_url
+# 代码仓库分支名称 Array_Repo_branch
+# 代码仓库启用状态 Array_Repo_enable
+# 代码仓库本地存放目录名称 Array_Repo_dir
+# 代码仓库本地文件绝对路径 Array_Repo_path
 # 私有仓库认证设置 - 认证类型 Array_Repo_authSettings
 # 私有仓库认证设置 - SSH认证别名 Array_Repo_authSettings_alias
 # 私有仓库认证设置 - SSH认证主机名 Array_Repo_authSettings_hostName
 # 私有仓库认证设置 - SSH认证私钥路径 Array_Repo_authSettings_privateKeyPath
 # 私有仓库认证设置 - HTTP认证用户名 Array_Repo_authSettings_username
 # 私有仓库认证设置 - HTTP认证密码 Array_Repo_authSettings_password
-# 仓库代码文件定时设置 - 定时任务启用状态 Array_Repo_cronSettings_updateTaskList
-# 仓库代码文件定时设置 - 自动禁用新的定时任务 Array_Repo_cronSettings_autoDisable
-# 仓库代码文件定时设置 - 新增定时任务推送通知提醒 Array_Repo_cronSettings_addNotify
-# 仓库代码文件定时设置 - 过期定时任务推送通知提醒 Array_Repo_cronSettings_delNotify
-# 仓库代码文件定时设置 - 代码文件过滤路径 Array_Repo_cronSettings_scriptsPath
-# 仓库代码文件定时设置 - 代码文件过滤格式 Array_Repo_cronSettings_scriptsType
-# 仓库代码文件定时设置 - 过滤白名单 Array_Repo_cronSettings_whiteList
-# 仓库代码文件定时设置 - 过滤黑名单 Array_Repo_cronSettings_blackList
+# 代码仓库代码文件定时设置 - 定时任务启用状态 Array_Repo_cronSettings_updateTaskList
+# 代码仓库代码文件定时设置 - 自动禁用新的定时任务 Array_Repo_cronSettings_autoDisable
+# 代码仓库代码文件定时设置 - 新增定时任务推送通知提醒 Array_Repo_cronSettings_addNotify
+# 代码仓库代码文件定时设置 - 过期定时任务推送通知提醒 Array_Repo_cronSettings_delNotify
+# 代码仓库代码文件定时设置 - 代码文件过滤路径 Array_Repo_cronSettings_scriptsPath
+# 代码仓库代码文件定时设置 - 代码文件过滤格式 Array_Repo_cronSettings_scriptsType
+# 代码仓库代码文件定时设置 - 过滤白名单 Array_Repo_cronSettings_whiteList
+# 代码仓库代码文件定时设置 - 过滤黑名单 Array_Repo_cronSettings_blackList
 function gen_repoconf_array() {
     if [[ $RepoSum -lt 1 ]]; then
         return
@@ -56,13 +56,21 @@ function gen_repoconf_array() {
     function get_config_wrapper() {
         get_conf "${json_data}" ".[${arr_index}] | .$1 // \"\""
     }
+    function get_config_wrapper_bool() {
+        local value="$(get_conf "${json_data}" ".[${arr_index}] | .$1")"
+        if [[ "${value}" == "true" || "${value}" == "false" ]]; then
+            echo "${value}"
+        else
+            echo "${2:-false}"
+        fi
+    }
 
     ## 遍历 repo 配置
     local conf_index=0 # 注：有效的仓库配置数组索引
     local arr_index tmp_url tmp_branch tmp_authSettings_method tmp_sshConfig_alias tmp_sshConfig_hostName tmp_sshConfig_privateKeyPath tmp_httpAuth_username tmp_httpAuth_password
     for ((i = 1; i <= $RepoSum; i++)); do
         arr_index=$((i - 1))
-        ## 仓库地址（如若未定义或格式错误则跳过视为无效配置）
+        ## 代码仓库地址（如若未定义或格式错误则跳过视为无效配置）
         tmp_url="$(get_config_wrapper "url")"
         if [[ -z "${tmp_url}" ]]; then
             # echo -e "$WARN 未检测到第$(($arr_index + 1))个仓库配置的远程地址，跳过..."
@@ -82,7 +90,7 @@ function gen_repoconf_array() {
                 continue
             fi
         fi
-        ## 仓库分支（如若未定义或格式错误则跳过视为无效配置）
+        ## 代码仓库分支（如若未定义或格式错误则跳过视为无效配置）
         tmp_branch="$(get_config_wrapper "branch")"
         if [[ -z "${tmp_branch}" ]]; then
             # echo -e "$WARN 未检测到第$(($arr_index + 1))个仓库配置的分支名称，跳过..."
@@ -90,16 +98,16 @@ function gen_repoconf_array() {
         fi
         Array_Repo_url[$conf_index]="${tmp_url}"
         Array_Repo_branch[$conf_index]="${tmp_branch}"
-        ## 仓库名称（如若未定义则采用远程地址中的仓库名称）
+        ## 代码仓库名称（如若未定义则采用远程地址中的仓库名称）
         Array_Repo_name[$conf_index]="$(get_config_wrapper "name")"
         if [[ -z "${Array_Repo_name[conf_index]}" ]]; then
             Array_Repo_name[$conf_index]="$(echo ${Array_Repo_url[conf_index]} | sed "s|\.git||g" | awk -F "/|:" '{print$NF}')"
         fi
-        ## 仓库路径
+        ## 代码仓库路径
         Array_Repo_dir[$conf_index]="$(echo "${Array_Repo_url[conf_index]}" | sed "s|\.git||g" | awk -F "/|:" '{print $((NF - 1)) "_" $NF}')"
         Array_Repo_path[$conf_index]="$RepoDir/${Array_Repo_dir[conf_index]}"
-        ## 仓库启用状态（默认启用）
-        if [[ "$(get_config_wrapper "enable")" == "false" ]]; then
+        ## 代码仓库启用状态（默认启用）
+        if [[ "$(get_config_wrapper_bool "enable" "true")" == "false" ]]; then
             Array_Repo_enable[$conf_index]="false"
         else
             Array_Repo_enable[$conf_index]="true"
@@ -112,7 +120,7 @@ function gen_repoconf_array() {
         Array_Repo_authSettings_privateKeyPath[$conf_index]=""
         Array_Repo_authSettings_username[$conf_index]=""
         Array_Repo_authSettings_password[$conf_index]=""
-        if [[ "$(get_config_wrapper "isPrivate")" == "true" ]] && [[ "$(get_config_wrapper "authSettings.method")" != "null" ]]; then
+        if [[ "$(get_config_wrapper_bool "isPrivate")" == "true" ]] && [[ "$(get_config_wrapper "authSettings.method")" != "null" ]]; then
             tmp_authSettings_method="$(get_config_wrapper "authSettings.method")"
             if [[ "${tmp_authSettings_method}" == "ssh" ]] && [[ "$(get_config_wrapper "authSettings.sshConfig")" ]]; then
                 tmp_sshConfig_alias="$(get_config_wrapper "authSettings.sshConfig.alias")"
@@ -148,7 +156,7 @@ function gen_repoconf_array() {
 
         ## 定时任务设置
         # 定时启用状态（默认禁用）
-        if [[ "$(get_config_wrapper "cronSettings.updateTaskList")" == "true" ]]; then
+        if [[ "$(get_config_wrapper_bool "cronSettings.updateTaskList")" == "true" ]]; then
             Array_Repo_cronSettings_updateTaskList[$conf_index]="true"
         else
             Array_Repo_cronSettings_updateTaskList[$conf_index]="false"
@@ -178,26 +186,26 @@ function gen_repoconf_array() {
             Array_Repo_cronSettings_blackList[$conf_index]="$(get_config_wrapper "cronSettings.blackList")"
         fi
         # 自动禁用新的定时任务（默认禁用）
-        if [[ "$(get_config_wrapper "cronSettings.autoDisable")" == "true" ]]; then
+        if [[ "$(get_config_wrapper_bool "cronSettings.autoDisable")" == "true" ]]; then
             Array_Repo_cronSettings_autoDisable[$conf_index]="true"
         else
             Array_Repo_cronSettings_autoDisable[$conf_index]="false"
         fi
         # 新增定时任务推送通知提醒（默认启用）
-        if [[ "$(get_config_wrapper "cronSettings.addNotify")" == "false" ]]; then
+        if [[ "$(get_config_wrapper_bool "cronSettings.addNotify" "true")" == "false" ]]; then
             Array_Repo_cronSettings_addNotify[$conf_index]="false"
         else
             Array_Repo_cronSettings_addNotify[$conf_index]="true"
         fi
         # 过期定时任务推送通知提醒（默认启用）
-        if [[ "$(get_config_wrapper "cronSettings.delNotify")" == "false" ]]; then
+        if [[ "$(get_config_wrapper_bool "cronSettings.delNotify" "true")" == "false" ]]; then
             Array_Repo_cronSettings_delNotify[$conf_index]="false"
         else
             Array_Repo_cronSettings_delNotify[$conf_index]="true"
         fi
 
         # echo "
-        # 第$(($conf_index + 1))个代码文件仓库的配置：
+        # 第$(($conf_index + 1))个代码仓库的配置：
         # name: ${Array_Repo_name[conf_index]:-"无"}
         # url: ${Array_Repo_url[conf_index]:-"无"}
         # branch: ${Array_Repo_branch[conf_index]:-"无"}
@@ -218,11 +226,12 @@ function gen_repoconf_array() {
     done
 }
 
-## 生成用户远程代码文件配置信息数组
+## 生成用户代码文件配置信息数组
 # 代码文件名称（用户定义） Array_Raw_name
 # 代码文件名称（文件名） Array_Raw_fileName
 # 代码文件远程地址 Array_Raw_url
 # 代码文件路径 Array_Raw_path
+# 代码文件启用状态 Array_Raw_enable
 # 代码文件定时设置 - 定时任务启用状态 Array_Raw_cronSettings_updateTaskList
 function gen_rawconf_array() {
     if [[ $RawSum -lt 1 ]]; then
@@ -232,6 +241,14 @@ function gen_rawconf_array() {
     local json_data="$(yq -r '.raw' "$FileSyncConfUser" | jq -c .)"
     function get_config_wrapper() {
         get_conf "${json_data}" ".[${arr_index}] | .$1 // \"\""
+    }
+    function get_config_wrapper_bool() {
+        local value="$(get_conf "${json_data}" ".[${arr_index}] | .$1")"
+        if [[ "${value}" == "true" || "${value}" == "false" ]]; then
+            echo "${value}"
+        else
+            echo "${2:-false}"
+        fi
     }
 
     import utils/request
@@ -244,12 +261,18 @@ function gen_rawconf_array() {
         ## 代码文件地址（如若未定义或格式错误则跳过视为无效配置）
         tmp_url="$(get_config_wrapper "url")"
         if [[ -z "${tmp_url}" ]]; then
-            # echo -e "$ERROR 未检测到第$(($arr_index + 1))个远程代码文件配置的远程地址，跳过..."
+            # echo -e "$ERROR 未检测到第$(($arr_index + 1))个代码文件配置的远程地址，跳过..."
             continue
         fi
         Array_Raw_url[$conf_index]="${tmp_url}"
         Array_Raw_path[$conf_index]="${RawDir}/${Array_Raw_url[conf_index]##*/}"
-        ## 仓库原始文件地址自动纠正
+        ## 代码文件启用状态（默认启用）
+        if [[ "$(get_config_wrapper_bool "enable" "true")" == "false" ]]; then
+            Array_Raw_enable[$conf_index]="false"
+        else
+            Array_Raw_enable[$conf_index]="true"
+        fi
+        ## 代码仓库原始文件地址自动纠正
         if [[ "$(get_correct_raw_url "${Array_Raw_url[conf_index]}")" ]]; then
             Array_Raw_url[$conf_index]="$(get_correct_raw_url "${Array_Raw_url[conf_index]}")"
         fi
@@ -261,16 +284,17 @@ function gen_rawconf_array() {
             Array_Raw_name[$conf_index]="$(get_config_wrapper "name")"
         fi
         # 定时启用状态（默认禁用）
-        if [[ "$(get_config_wrapper "cronSettings.updateTaskList")" == "true" ]]; then
+        if [[ "$(get_config_wrapper_bool "cronSettings.updateTaskList")" == "true" ]]; then
             Array_Raw_cronSettings_updateTaskList[$conf_index]="true"
         else
             Array_Raw_cronSettings_updateTaskList[$conf_index]="false"
         fi
 
         # echo -e "
-        # 第$(($conf_index + 1))个远程代码文件的配置：
+        # 第$(($conf_index + 1))个代码文件的配置：
         # name: ${Array_Raw_name[conf_index]:-"无"}
         # url: ${Array_Raw_url[conf_index]:-"无"}
+        # enable: ${Array_Raw_enable[conf_index]:-"无"}
         # path: ${Array_Raw_path[conf_index]:-"无"}
         # fileName: ${Array_Raw_fileName[conf_index]:-"无"}
         # updateTaskList: ${Array_Raw_cronSettings_updateTaskList[conf_index]:-"无"}
@@ -298,7 +322,7 @@ function gen_cron_task_list() {
         local writeFile="$ListNewScripts"
         ;;
     esac
-    # 仓库路径
+    # 代码仓库路径
     local repoPath="$2"
     local repoDir="${repoPath##*/}"
     # 代码文件路径
@@ -372,7 +396,7 @@ function gen_cron_task_list() {
                 if [ -d "${FormatPath}" ]; then
                     cd ${FormatPath}
                 else
-                    echo -e "\n$ERROR 仓库 $((i + 1)) 的定时代码文件配置路径 ${BLUE}${FormatPath}${PLAIN} 不存在，跳过！\n"
+                    echo -e "\n$ERROR 代码仓库 $((i + 1)) 的定时代码文件配置路径 ${BLUE}${FormatPath}${PLAIN} 不存在，跳过！\n"
                     continue
                 fi
             fi
@@ -404,4 +428,16 @@ function gen_cron_task_list() {
     fi
 
     cd $current_dir
+}
+
+function is_config_name_exist() {
+    local name="$1"
+    local type="$2"
+    local json_data="$(yq -r '.'"${type}"'' "$FileSyncConfUser" | jq -c .)"
+    local query_result="$(get_conf "${json_data}" 'if any(.[]; .name? == "'"${name}"'") then true else null end')"
+    if [[ "${query_result}" == "true" ]]; then
+        echo "true"
+    else
+        echo "false"
+    fi
 }

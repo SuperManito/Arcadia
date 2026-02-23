@@ -76,6 +76,14 @@ export function isNotEmpty(str: any): boolean {
 }
 
 /**
+ * 休眠
+ * @param ms
+ */
+export function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
  * 正则匹配
  */
 export function regExecFirst(str = '', reg: RegExp) {
@@ -146,64 +154,148 @@ export function checkType(value: any, type: string) {
 }
 
 /**
- * 传参格式校验（拦截器）
+ * 传参格式校验类型定义
  */
-export type ValidateParamsParamType = [paramType: 'query' | 'body', paramName: string, options?: [required: boolean, type: string | Array<string | number>, allowEmptyString?: boolean]]
+export type ValidateParamsOptions = [required?: boolean, type?: string | Array<string | number>, allowEmptyString?: boolean]
 
-export function validateParams(req: Request, params: ValidateParamsParamType[]) {
-  params.forEach(([paramType, paramName, options = []]) => {
-    const [required = false, type = 'string', allowEmptyString = false] = options
-    const params = req[paramType]
+type TypeStringToTS<T extends string>
+  = T extends 'string' ? string
+    : T extends 'number' ? number
+      : T extends 'boolean' ? boolean
+        : T extends 'string[]' ? string[]
+          : T extends 'number[]' ? number[]
+            : T extends 'boolean[]' ? boolean[]
+              : T extends `${infer A} | ${infer B}` ? TypeStringToTS<A> | TypeStringToTS<B>
+                : any
 
-    if (!Object.prototype.hasOwnProperty.call(params, paramName)) {
+// 从参数选项中推导类型
+type InferParamType<TOptions extends ValidateParamsOptions | undefined>
+  = TOptions extends readonly [any, infer Type, ...any]
+    ? Type extends ReadonlyArray<infer Item>
+      ? Item
+      : Type extends string
+        ? TypeStringToTS<Type>
+        : string
+    : string
+
+// 从参数配置项推导类型（考虑 required）
+type InferParam<TParam extends readonly [string, ValidateParamsOptions?]>
+  = TParam extends readonly [infer Name extends string, infer Options extends ValidateParamsOptions]
+    ? Options extends readonly [infer R, ...any]
+      ? R extends true
+        ? { readonly [K in Name]: InferParamType<Options> }
+        : { readonly [K in Name]?: InferParamType<Options> }
+      : { readonly [K in Name]?: string }
+    : TParam extends readonly [infer Name extends string]
+      ? { readonly [K in Name]?: string }
+      : Record<string, never>
+
+// 合并参数对象类型
+type MergeParams<T extends ReadonlyArray<readonly [string, ValidateParamsOptions?]>>
+  = T extends readonly [infer First extends readonly [string, ValidateParamsOptions?], ...infer Rest extends ReadonlyArray<readonly [string, ValidateParamsOptions?]>]
+    ? InferParam<First> & MergeParams<Rest>
+    : Record<string, never>
+
+// 参数配置类型
+interface ParamsConfig<
+  TQuery extends ReadonlyArray<readonly [string, ValidateParamsOptions?]> | undefined = undefined,
+  TBody extends ReadonlyArray<readonly [string, ValidateParamsOptions?]> | undefined = undefined,
+> {
+  query?: TQuery
+  body?: TBody
+}
+
+// 从配置推导验证后的参数类型
+export interface ValidatedParams<
+  TQuery extends ReadonlyArray<readonly [string, ValidateParamsOptions?]> | undefined,
+  TBody extends ReadonlyArray<readonly [string, ValidateParamsOptions?]> | undefined,
+> {
+  query: TQuery extends ReadonlyArray<readonly [string, ValidateParamsOptions?]>
+    ? MergeParams<TQuery>
+    : Record<string, any>
+  body: TBody extends ReadonlyArray<readonly [string, ValidateParamsOptions?]>
+    ? MergeParams<TBody>
+    : Record<string, any>
+}
+
+/**
+ * 传参校验（拦截器）
+ */
+export function validateRequestParams<
+  TQuery extends ReadonlyArray<readonly [string, ValidateParamsOptions?]> | undefined = undefined,
+  TBody extends ReadonlyArray<readonly [string, ValidateParamsOptions?]> | undefined = undefined,
+>(
+  req: Request,
+  config: ParamsConfig<TQuery, TBody>,
+): ValidatedParams<TQuery, TBody> {
+  Object.entries(config).forEach(([paramType, paramList]) => {
+    if (paramType !== 'query' && paramType !== 'body') {
+      return
+    }
+    if (!paramList) {
+      return
+    }
+    paramList.forEach(([paramName, options = []]) => {
+      const [required = false, type = 'string', allowEmptyString = false] = options
+      const params = req[paramType]
+
+      if (!Object.prototype.hasOwnProperty.call(params, paramName)) {
+        if (required) {
+          throw new Error(`缺少必要的参数 ${paramName}`)
+        }
+        return // 如果该参数不是必需的且不存在，则跳过其余检查
+      }
+      const paramValue = params[paramName]
       if (required) {
-        throw new Error(`缺少必要的参数 ${paramName}`)
-      }
-      return // 如果该参数不是必需的且不存在，则跳过其余检查
-    }
-    const paramValue = params[paramName]
-    if (required) {
-      if (paramType === 'query') {
-        const value = params[paramName]
-        if ((['undefined', 'None', null].includes(value) || (!allowEmptyString && value === ''))) {
-          throw new Error(`参数 ${paramName} 无效（参数值不能为空）`)
+        if (paramType === 'query') {
+          const value = params[paramName]
+          if ((['undefined', 'None', null].includes(value) || (!allowEmptyString && value === ''))) {
+            throw new Error(`参数 ${paramName} 无效（参数值不能为空）`)
+          }
+        }
+        else if (paramType === 'body') {
+          const value = params[paramName]
+          if ((['undefined', 'None', null].includes(value) || Number.isNaN(value)) || (Array.isArray(value) && value.length === 0) || (!allowEmptyString && typeof value === 'string' && value === '')) {
+            throw new Error(`参数 ${paramName} 无效（参数值不能为空）`)
+          }
         }
       }
-      else if (paramType === 'body') {
-        const value = params[paramName]
-        if ((['undefined', 'None', null].includes(value) || Number.isNaN(value)) || (Array.isArray(value) && value.length === 0) || (!allowEmptyString && typeof value === 'string' && value === '')) {
-          throw new Error(`参数 ${paramName} 无效（参数值不能为空）`)
+      if (Array.isArray(type)) {
+        if (!type.includes(paramValue)) {
+          throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
         }
       }
-    }
-    if (Array.isArray(type)) {
-      if (!type.includes(paramValue)) {
+      else if (type.includes('|')) {
+        const types = type.replace(/\s/g, '').split('|')
+        if (!types.some((t) => checkType(paramValue, t))) {
+          throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
+        }
+      }
+      else if (!checkType(paramValue, type)) {
         throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
       }
-    }
-    else if (type.includes('|')) {
-      const types = type.replace(/\s/g, '').split('|')
-      if (!types.some((t) => checkType(paramValue, t))) {
-        throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
-      }
-    }
-    else if (!checkType(paramValue, type)) {
-      throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
-    }
+    })
   })
+
+  return {
+    query: req.query,
+    body: req.body,
+  } as ValidatedParams<TQuery, TBody>
 }
 
 /**
  * 校验分页接口常用参数
  */
-export function validatePageParams(req: Request, orderByFields?: (string | number)[]) {
-  validateParams(req, [
-    ['query', 'search', [false, 'string', true]],
-    ['query', 'page', [false, 'string']],
-    ['query', 'size', [false, 'string']],
-    ['query', 'order', [false, ['1', '0']]],
-    ['query', 'orderBy', [false, orderByFields ?? 'string']],
-  ])
+export function validatePageFixedParams(req: Request, orderByFields?: (string | number)[]) {
+  validateRequestParams(req, {
+    query: [
+      ['search', [false, 'string', true]],
+      ['page', [false, 'string']],
+      ['size', [false, 'string']],
+      ['order', [false, ['1', '0']]],
+      ['orderBy', [false, orderByFields ?? 'string']],
+    ],
+  })
   for (const param of ['page', 'size']) {
     const keyValue = req.query[param] as string
     if (!keyValue) {

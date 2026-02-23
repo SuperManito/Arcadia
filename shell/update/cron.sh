@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-18
+## Modified: 2025-12-06
 
 ## 打印表格（基于 table-printer-cli）
 # output_table_data '{ "列名1": "data1", "列名2": "data2" }'
@@ -33,7 +33,7 @@ function update_cron() {
     # $1 Body/json
     function api_updatecron() {
         local data=$1
-        local response=$(curl -s -X POST -H "Content-Type: application/json" -d "$data" "http://127.0.0.1:15678/inner/cron/updateAll?_t=$(date +%s)000")
+        local response=$(curl -s -X POST -H "Content-Type: application/json" -d "$data" "http://127.0.0.1:5678/api/inner/cron/updateAll?_t=$(date +%s)000")
         echo "${response}"
     }
 
@@ -44,14 +44,14 @@ function update_cron() {
         local send_mark_del="$RootDir/.send_mark_del.log"
         local array_num_add=0
         local array_num_del=0
-        local request="$1"
+        local res="$1"
 
-        if [[ "$(echo "${request}" | jq -r '.code')" != "1" ]]; then
-            echo -e "\n$ERROR 更新定时任务失败，接口响应错误 => $(echo "${request}" | jq -r '.message')"
+        if [[ "$(echo "${res}" | jq -r '.code')" != "1" ]]; then
+            echo -e "\n$ERROR 更新定时任务失败，接口响应错误 => $(echo "${res}" | jq -r '.message')\n"
             return
         fi
 
-        local result="$(echo "${request}" | jq -rc '.result')"
+        local result="$(echo "${res}" | jq -rc '.result')"
         local result_length="$(echo "${result}" | jq 'length')"
         for ((i = 0; i < ${result_length}; i++)); do
             success="$(echo "${result}" | jq -r ".[${i}].success")" # 处理结果：true 成功 false 失败

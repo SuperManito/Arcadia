@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-04-27
+## Modified: 2026-02-13
 
 ## 列出本地代码文件清单功能
 # list <path>
@@ -49,8 +49,7 @@ function list_designated() {
             if [ "$(ls -A $work_dir)" = "" ]; then
                 output_error "路径 ${BLUE}$work_dir${PLAIN} 为空！"
             else
-                echo -e "\n$FAIL 在 ${BLUE}$work_dir${PLAIN} 路径下未检测到任何代码文件！\n"
-                exit
+                output_fail "在 ${BLUE}$work_dir${PLAIN} 路径下未检测到任何代码文件！"
             fi
         fi
     else

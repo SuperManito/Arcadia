@@ -1,14 +1,11 @@
 node_modules
-package-lock.json
-yarn.lock
+*-lock.*
+*.lock
 dist/
 
-scripts/
-repo/
-raw/
 log/
 logs/
-config/
+/config/
 tgbot/
 src/
 sessions

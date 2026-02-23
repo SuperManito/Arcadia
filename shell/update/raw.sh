@@ -1,9 +1,10 @@
 #!/bin/bash
-## Modified: 2024-04-13
+## Modified: 2026-01-12
 
 ## 更新所有 Raw 代码文件
 # update raw
 function update_raw() {
+    local designated_update_name="$1"
 
     # 读取代码文件同步全局配置
     function get_globalconf() {
@@ -16,8 +17,8 @@ function update_raw() {
     }
 
     local RemoveMark
-    ## 统计远程代码文件数量并生成配置
-    count_rawsum
+    ## 统计代码文件数量并生成配置
+    count_rawconf_sum
     gen_rawconf_array
 
     if [[ $RawSum -ge 1 && ${#Array_Raw_url[*]} -ge 1 ]]; then
@@ -27,14 +28,28 @@ function update_raw() {
         else
             local filter="node_modules"
         fi
-        ## 遍历远程代码文件配置数组，更新并生成新的定时文件清单
+        ## 遍历代码文件配置数组，更新并生成新的定时文件清单
         for ((i = 0; i < ${#Array_Raw_url[*]}; i++)); do
-            [[ -z "${Array_Raw_url[i]}" ]] && continue
+            ## 更新指定配置名称的代码文件
+            if [[ "${designated_update_name}" ]]; then
+                if [[ "${designated_update_name}" != "${Array_Raw_name[i]}" ]]; then
+                    continue
+                fi
+                # 注：已确认过配置存在，无需其它额外判断
+                if [[ -z "${Array_Raw_url[i]}" ]]; then
+                    echo -e "\n$ERROR 配置无效（缺少必填字段 url），请确认后重试..."
+                    return
+                fi
+            else
+                ## 判断文件是否启用
+                [[ -z "${Array_Raw_url[i]}" ]] && continue
+                [[ ${Array_Raw_enable[i]} == "false" ]] && continue
+            fi
 
             if [[ ${Array_Raw_cronSettings_updateTaskList[i]} == "true" ]]; then
                 [ -f "${Array_Raw_path[i]}" ] && echo "${Array_Raw_path[i]}" >>$ListOldScripts
             fi
-            echo "${Array_Raw_url[i]}" | grep -Eq "github|gitee|gitlab"
+            echo "${Array_Raw_url[i]}" | grep -Eq "github|gitee|gitlab|gitcode"
             if [ $? -eq 0 ]; then
                 echo ${Array_Raw_url[i]} | grep -E "git.*\.io/" -q
                 if [ $? -eq 0 ]; then
@@ -78,6 +93,6 @@ function update_raw() {
             done
         fi
     else
-        echo -e "\n$TIP 未检测到任何有效的远程文件配置，跳过更新远程代码文件..."
+        echo -e "\n$TIP 未检测到任何有效的代码文件配置，跳过更新..."
     fi
 }

@@ -1,22 +1,37 @@
-import type { Express } from 'express'
+import type { Express, Request, Response } from 'express'
 import express from 'express'
-import { API_STATUS_CODE } from '../http'
-import { logger } from '../logger'
-import { validateCronExpression } from '../cron/engine'
-import { applyCron, fixOrder, getBindGroup, runningTasks, runTask, terminateTask, updateSortById } from '../cron'
-import type { Tasks, TasksResult, WhereInput } from '../db'
-import { tasks as dbTasks } from '../db'
-import type { CodeFileResolveResult } from '../file'
-import { codeFileResolve } from '../file'
-import { APP_DIR_PATH, APP_DIR_TYPE } from '../type'
+import { API_STATUS_CODE } from '../utils/httpUtil'
+import { logger } from '../utils/logger'
+import { validateCronExpression } from '../core/cron/engine'
+import {
+  applyCron,
+  fixOrder,
+  getBindGroup,
+  runCronTask,
+  runningTasks,
+  stopCronTask,
+  updateSortById,
+} from '../core/cron'
+import type { tasksModel, tasksWhereInput } from '../db'
+import db from '../db'
+import type { CodeFileResolveResult } from '../server/fileCore'
+import { codeFileResolve } from '../server/fileCore'
+import { APP_DIR_PATH, APP_DIR_TYPE } from '../core/type'
 import type { ValidateObjectParamType } from '../utils'
-import { cleanProperties, validateObject, validatePageParams, validateParams } from '../utils'
+import {
+  cleanProperties,
+  getDateStr,
+  validateObject,
+  validatePageFixedParams,
+  validateRequestParams,
+} from '../utils'
+import { getDashboardRunning, getDashboardStats, getDashboardTrend } from '../core/cron/query'
+import { isValidTasksFilterType, TasksTypeEnum } from '../core/type/cron'
+import type { TasksType } from '../core/type/cron'
 
 const api: Express = express()
 const apiOpen: Express = express()
 const apiInner: Express = express()
-
-type CronType = 'system' | 'user'
 
 interface TaskConfig {
   before_task_shell: string
@@ -47,8 +62,8 @@ api.get('/', async (request, response) => {
     delete filter.tags
     delete filter.orderBy
     delete filter.order
-    const where: WhereInput['tasks'] = filter
-    const and: WhereInput['tasks']['AND'] = []
+    const where: tasksWhereInput = filter
+    const and: tasksWhereInput[] = []
     // 任务标签过滤
     if (tags.length > 0) {
       const tagFilters = tags.map((tag) => ({ tags: { contains: tag } }))
@@ -72,7 +87,7 @@ api.get('/', async (request, response) => {
     if (and.length > 0) {
       where.AND = and
     }
-    for (const fieldsKey in dbTasks.fields) {
+    for (const fieldsKey in db.tasks.fields) {
       if (where[fieldsKey]) {
         where[fieldsKey] = { contains: where[fieldsKey] }
       }
@@ -83,7 +98,7 @@ api.get('/', async (request, response) => {
     if (request.query.order === '0') {
       desc = false // 0 升序，1 降序
     }
-    const tasks = await dbTasks.$page({
+    const tasks = await db.tasks.$page({
       where,
       orderBy: [
         { [orderBy]: desc ? 'desc' : 'asc' },
@@ -92,7 +107,7 @@ api.get('/', async (request, response) => {
       size: request.query.size as unknown as string,
     })
     // 格式化数据
-    tasks.data.forEach((task: TasksResult) => {
+    tasks.data.forEach((task) => {
       // 创建时间
       if (task.create_time) {
         task.create_time = new Date(task.create_time)
@@ -102,26 +117,26 @@ api.get('/', async (request, response) => {
         task.last_runtime = new Date(task.last_runtime)
       }
       // 当前运行状态
-      task.is_running = !!runningTasks[task.id]
+      (task as any).is_running = !!runningTasks[task.id];
       // 日志路径与代码文件（临时）
-      task.log_path = ''
-      task.script_path = ''
-      if (task.bind && task.bind.startsWith('system#')) {
+      (task as any).log_path = '';
+      (task as any).script_path = ''
+      if (task.bind && task.bind.startsWith(`${TasksTypeEnum.SYSTEM}#`)) {
         try {
           const [_type, targetDir, targetFile] = task.bind.split('#')
           if (task.last_runtime) {
             try {
-              task.log_path = `${APP_DIR_PATH.LOG}/${targetDir}/${targetFile.split('.')[0]}`
+              (task as any).log_path = `${APP_DIR_PATH.LOG}/${targetDir}/${targetFile.split('.')[0]}`
             }
             catch {
-              task.log_path = ''
+              (task as any).log_path = ''
             }
           }
-          task.script_path = `${targetDir === APP_DIR_TYPE.RAW ? APP_DIR_PATH.RAW : `${APP_DIR_PATH.REPO}/${targetDir}`}/${targetFile}`
+          (task as any).script_path = `${targetDir === APP_DIR_TYPE.RAW ? APP_DIR_PATH.RAW : `${APP_DIR_PATH.REPO}/${targetDir}`}/${targetFile}`
         }
         catch {
-          task.log_path = ''
-          task.script_path = ''
+          (task as any).log_path = '';
+          (task as any).script_path = ''
         }
       }
     })
@@ -136,12 +151,14 @@ api.get('/', async (request, response) => {
 apiOpen.get('/v1/page', async (request, response) => {
   try {
     // 传参校验
-    validatePageParams(request, ['sort', 'last_runtime', 'last_run_use'])
-    validateParams(request, [
-      ['query', 'type', [false, ['user', 'system']]],
-      ['query', 'active', [false, ['1', '0']]],
-      ['query', 'tags', [false, 'string', true]],
-    ])
+    validatePageFixedParams(request, ['sort', 'last_runtime', 'last_run_use'])
+    validateRequestParams(request, {
+      query: [
+        ['type', [false, [TasksTypeEnum.USER, TasksTypeEnum.SYSTEM]]],
+        ['active', [false, ['1', '0']]],
+        ['tags', [false, 'string', true]],
+      ],
+    })
     const active = request.query.active ? (request.query.active as string).split(',') : []
     const tags = request.query.tags ? (request.query.tags as string).split(',').map((s) => s.trim()).filter((s) => s) : []
     const filter = Object.assign({}, request.query)
@@ -149,8 +166,8 @@ apiOpen.get('/v1/page', async (request, response) => {
     delete filter.tags
     delete filter.orderBy
     delete filter.order
-    const where: WhereInput['tasks'] = filter
-    const and: WhereInput['tasks']['AND'] = []
+    const where: tasksWhereInput = filter
+    const and: tasksWhereInput[] = []
     // 任务标签过滤
     if (tags.length > 0) {
       const tagFilters = tags.map((tag) => ({ tags: { contains: tag } }))
@@ -174,7 +191,7 @@ apiOpen.get('/v1/page', async (request, response) => {
     if (and.length > 0) {
       where.AND = and
     }
-    for (const fieldsKey in dbTasks.fields) {
+    for (const fieldsKey in db.tasks.fields) {
       if (where[fieldsKey]) {
         where[fieldsKey] = { contains: where[fieldsKey] }
       }
@@ -185,7 +202,7 @@ apiOpen.get('/v1/page', async (request, response) => {
     if (request.query.order === '0') {
       desc = false // 0 升序，1 降序
     }
-    const tasks = await dbTasks.$page({
+    const tasks = await db.tasks.$page({
       where,
       orderBy: [
         { [orderBy]: desc ? 'desc' : 'asc' },
@@ -194,7 +211,7 @@ apiOpen.get('/v1/page', async (request, response) => {
       size: request.query.size as unknown as string,
     })
     // 格式化数据
-    tasks.data.forEach((task: TasksResult) => {
+    tasks.data.forEach((task) => {
       // 创建时间
       if (task.create_time) {
         task.create_time = new Date(task.create_time)
@@ -204,7 +221,7 @@ apiOpen.get('/v1/page', async (request, response) => {
         task.last_runtime = new Date(task.last_runtime)
       }
       // 当前运行状态
-      task.is_running = !!runningTasks[task.id]
+      (task as any).is_running = !!runningTasks[task.id]
     })
     // 返回数据
     response.send(API_STATUS_CODE.okData(tasks))
@@ -220,14 +237,16 @@ apiOpen.get('/v1/page', async (request, response) => {
 apiOpen.get('/v1/query', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['query', 'id', [true, 'string']],
-    ])
-    const id = request.query.id
-    if (!/^\d+$/.test(id as string) || Number.parseInt(id as string) <= 0) {
+    const params = validateRequestParams(request, {
+      query: [
+        ['id', [true, 'string']],
+      ] as const,
+    })
+    const { id } = params.query
+    if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
       throw new Error('参数 id 无效（参数值类型错误）')
     }
-    const record = await dbTasks.$getById(Number.parseInt(id as string))
+    const record = await db.tasks.$getById(Number.parseInt(id))
     if (!record) {
       throw new Error('任务不存在')
     }
@@ -248,11 +267,13 @@ api.post('/', async (request, response) => {
     delete task.id
     // 校验定时规则
     validateCronExpression(task.cron)
-    const createResult = await dbTasks.$create(task)
+    const createResult = await db.tasks.$create(task) as tasksModel
     response.send(API_STATUS_CODE.okData(createResult))
     logger.info('添加定时任务', JSON.stringify(task))
     await fixOrder()
-    await applyCron(createResult.id)
+    if (createResult?.id) {
+      await applyCron(createResult.id)
+    }
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -262,14 +283,17 @@ api.post('/', async (request, response) => {
 apiOpen.post('/v1/create', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'name', [true, 'string']],
-      ['body', 'cron', [true, 'string']],
-      ['body', 'shell', [true, 'string']],
-      ['body', 'active', [false, [1, 0]]],
-      ['body', 'remark', [false, 'string']],
-      ['body', 'config', [false, 'object']],
-    ])
+    const params = validateRequestParams(request, {
+      body: [
+        ['name', [true, 'string']],
+        ['cron', [true, 'string']],
+        ['shell', [true, 'string']],
+        ['active', [false, [1, 0]]],
+        ['remark', [false, 'string']],
+        ['config', [false, 'object']],
+      ] as const,
+    })
+    const { cron } = params.body
     const task = cleanProperties(Object.assign({}, request.body), ['name', 'cron', 'shell', 'active', 'remark', 'config'])
     // 校验高级配置
     if (task.config) {
@@ -286,18 +310,20 @@ apiOpen.post('/v1/create', async (request, response) => {
       task.config = Object.keys(config).length === 0 ? '' : JSON.stringify(config) // 转为字符串
     }
     // 校验定时规则
-    validateCronExpression(task.cron)
+    validateCronExpression(cron)
     // 补齐参数
     Object.assign(task, {
-      type: 'user', // 只允许创建用户任务
+      type: TasksTypeEnum.USER, // 只允许创建用户任务
       create_time: new Date(),
     })
     // 操作数据库
-    const createResult = await dbTasks.$create(task)
+    const createResult = await db.tasks.$create(task) as tasksModel
     response.send(API_STATUS_CODE.okData(createResult))
     logger.info('[OpenAPI · Cron]', '添加定时任务', JSON.stringify(task))
     await fixOrder()
-    await applyCron(createResult.id)
+    if (createResult?.id) {
+      await applyCron(createResult.id)
+    }
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -309,7 +335,7 @@ apiOpen.post('/v1/create', async (request, response) => {
  */
 api.put('/', async (request, response) => {
   try {
-    let tasks: Tasks[]
+    let tasks: tasksModel[]
     if (Array.isArray(request.body)) {
       tasks = request.body.map((task) => Object.assign({}, task))
     }
@@ -331,9 +357,12 @@ api.put('/', async (request, response) => {
     const results: boolean[] = []
     const needFixCronIds: number[] = []
     for (const task of tasks) {
-      const originTask = await dbTasks.$getById(task.id) as Tasks
+      const originTask = await db.tasks.$getById(task.id)
+      if (!originTask) {
+        throw new Error(`任务 ${task.id} 不存在`)
+      }
       try {
-        const res = await dbTasks.update({ data: task, where: { id: task.id } })
+        const res = await db.tasks.update({ data: task, where: { id: task.id } })
         logger.info('修改定时任务', JSON.stringify(res))
         // 定时规则变更，重新加载定时任务
         if (task && task.cron && originTask.cron !== task.cron) {
@@ -360,19 +389,22 @@ api.put('/', async (request, response) => {
 apiOpen.post('/v1/update', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'id', [true, 'number']],
-      ['body', 'name', [false, 'string']],
-      ['body', 'cron', [false, 'string']],
-      ['body', 'shell', [false, 'string']],
-      ['body', 'active', [false, [1, 0]]],
-      ['body', 'remark', [false, 'string']],
-      ['body', 'config', [false, 'object']],
-    ])
-    if (request.body.id <= 0) {
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number']],
+        ['name', [false, 'string']],
+        ['cron', [false, 'string']],
+        ['shell', [false, 'string']],
+        ['active', [false, [1, 0]]],
+        ['remark', [false, 'string']],
+        ['config', [false, 'object']],
+      ] as const,
+    })
+    const { id, cron } = params.body
+    if (id <= 0) {
       throw new Error('参数 id 无效（参数值类型错误）')
     }
-    const record = await dbTasks.$getById(request.body.id)
+    const record = await db.tasks.$getById(id)
     if (!record) {
       throw new Error('任务不存在')
     }
@@ -392,16 +424,16 @@ apiOpen.post('/v1/update', async (request, response) => {
       task.config = Object.keys(config).length === 0 ? '' : JSON.stringify(config) // 转为字符串
     }
     // 校验定时规则
-    if (task.cron) {
-      validateCronExpression(task.cron)
+    if (cron) {
+      validateCronExpression(cron)
     }
     // 操作数据库
-    const res = await dbTasks.update({ data: task, where: { id: task.id } })
+    const res = await db.tasks.update({ data: task, where: { id } })
     response.send(API_STATUS_CODE.okData(res))
     logger.info('[OpenAPI · Cron]', '修改定时任务', JSON.stringify(task))
     // 定时规则变更，重新加载定时任务
-    if (task && task.cron && record.cron !== task.cron) {
-      await applyCron(task.id)
+    if (record.cron !== cron) {
+      await applyCron(id)
     }
   }
   catch (e: any) {
@@ -415,14 +447,8 @@ apiOpen.post('/v1/update', async (request, response) => {
 api.delete('/', async (request, response) => {
   try {
     const id = request.body.id
-    let ids: number[]
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
-    const res = await dbTasks.$deleteById(ids)
+    const ids: number[] = Array.isArray(id) ? id : [id]
+    const res = await db.tasks.$deleteById(ids)
     response.send(API_STATUS_CODE.okData(res))
     if (res) {
       logger.info('删除定时任务', ids.join(','))
@@ -439,23 +465,19 @@ api.delete('/', async (request, response) => {
 apiOpen.post('/v1/delete', async (request, response) => {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'id', [true, 'number | number[]']],
-    ])
-    const id = request.body.id
-    let ids: number[]
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number | number[]']],
+      ] as const,
+    })
+    const { id } = params.body
+    const ids: number[] = Array.isArray(id) ? id : [id]
     ids.forEach((id) => {
       if (id <= 0) {
         throw new Error('参数 id 无效（参数值类型错误）')
       }
     })
-    const res = await dbTasks.$deleteById(ids)
+    const res = await db.tasks.$deleteById(ids)
     response.send(API_STATUS_CODE.okData(res))
     if (res) {
       logger.info('[OpenAPI · Cron]', '删除定时任务', ids.join(','))
@@ -471,106 +493,92 @@ apiOpen.post('/v1/delete', async (request, response) => {
 /**
  * 调整排序
  */
-api.put('/order', async (request, response) => {
-  try {
-    const id = request.body.id
-    let order = request.body.order
-    if (!id || (!order && !request.body.moveToEnd)) {
-      response.send(API_STATUS_CODE.fail('请提供完整参数'))
-      return
-    }
-    // 移动到最后
-    if (request.body.moveToEnd) {
-      const data = await dbTasks.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
-      order = data.data[0]?.sort
-      if (!order && order !== 0) {
-        response.send(API_STATUS_CODE.fail('未找到最大排序值'))
-        return
-      }
-    }
-    response.send(API_STATUS_CODE.okData(await updateSortById(id, order)))
-    await fixOrder()
-  }
-  catch (e: any) {
-    response.send(API_STATUS_CODE.fail(e.message || e))
-  }
-})
-
-apiOpen.post('/v1/order', async (request, response) => {
+async function order(request: Request, response: Response) {
   try {
     // 传参校验
-    validateParams(request, [
-      ['body', 'id', [true, 'number']],
-      ['body', 'order', [false, 'number']],
-      ['body', 'moveToEnd', [false, 'boolean']],
-    ])
-    const id = request.body.id
-    let order = request.body.order
-    if (!order && !request.body.moveToEnd) {
-      response.send(API_STATUS_CODE.fail('缺少必要的参数 order 或 moveToEnd'))
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number']],
+        ['order', [false, 'number']],
+        ['moveToEnd', [false, 'boolean']],
+      ] as const,
+    })
+    const { id, order, moveToEnd } = params.body
+    let orderValue = order
+    if (id <= 0) {
+      response.send(API_STATUS_CODE.fail('参数 id 无效（参数值类型错误）'))
       return
     }
-    if (order && order <= 0) {
+    if (typeof order === 'number' && order < 0) {
       response.send(API_STATUS_CODE.fail('参数 order 无效（参数值类型错误）'))
       return
     }
+    if (typeof order === 'undefined' && !moveToEnd) {
+      response.send(API_STATUS_CODE.fail('缺少必要的参数 order 或 moveToEnd'))
+      return
+    }
     // 移动到最后
-    if (request.body.moveToEnd) {
-      const data = await dbTasks.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
-      order = data.data[0]?.sort
-      if (!order && order !== 0) {
+    if (moveToEnd) {
+      const result = await db.tasks.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
+      const sort = result.data[0]?.sort
+      if (!sort && sort !== 0) {
         response.send(API_STATUS_CODE.fail('未找到最大排序值'))
         return
       }
+      orderValue = sort
     }
-    response.send(API_STATUS_CODE.okData(await updateSortById(id, order)))
+    const result = await updateSortById(id, orderValue as number)
+    response.send(API_STATUS_CODE.okData(result))
     await fixOrder()
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
+}
+api.put('/order', async (request, response) => {
+  await order(request, response)
+})
+apiOpen.post('/v1/order', async (request, response) => {
+  await order(request, response)
 })
 
 /**
  * 获取标签列表
  */
+async function bindGroup(response: Response) {
+  try {
+    const result = await getBindGroup()
+    response.send(API_STATUS_CODE.okData(result))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+}
 api.get('/bindGroup', async (_request, response) => {
-  try {
-    response.send(API_STATUS_CODE.okData(await getBindGroup()))
-  }
-  catch (e: any) {
-    response.send(API_STATUS_CODE.fail(e.message || e))
-  }
+  await bindGroup(response)
 })
-
 apiOpen.get('/v1/tagsList', async (_request, response) => {
-  try {
-    response.send(API_STATUS_CODE.okData(await getBindGroup()))
-  }
-  catch (e: any) {
-    response.send(API_STATUS_CODE.fail(e.message || e))
-  }
+  await bindGroup(response)
 })
 
 /**
  * 查询正在运行中的任务
  */
-api.get('/runningTasks', async (_request, response) => {
+function getRunningTasks(response: Response) {
   try {
-    response.send(API_STATUS_CODE.okData(Object.values(runningTasks)))
+    const result = Object.values(runningTasks)
+    response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
+}
+api.get('/runningTasks', (_request, response) => {
+  getRunningTasks(response)
 })
 
-apiOpen.get('/v1/runningTasks', async (_request, response) => {
-  try {
-    response.send(API_STATUS_CODE.okData(Object.values(runningTasks)))
-  }
-  catch (e: any) {
-    response.send(API_STATUS_CODE.fail(e.message || e))
-  }
+apiOpen.get('/v1/runningTasks', (_request, response) => {
+  getRunningTasks(response)
 })
 
 /**
@@ -579,15 +587,9 @@ apiOpen.get('/v1/runningTasks', async (_request, response) => {
 api.post('/run', async (request, response) => {
   try {
     const id = request.body.id
-    let ids: number[]
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
+    const ids: number[] = Array.isArray(id) ? id : [id]
     for (const id of ids) {
-      runTask(id)
+      runCronTask(id, true)
     }
     response.send(API_STATUS_CODE.ok())
   }
@@ -600,15 +602,9 @@ api.post('/run', async (request, response) => {
 apiOpen.post('/v1/run', async (request, response) => {
   try {
     const id = request.body.id
-    let ids: number[]
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
+    const ids: number[] = Array.isArray(id) ? id : [id]
     for (const id of ids) {
-      runTask(id)
+      runCronTask(id, true)
     }
     response.send(API_STATUS_CODE.ok())
     logger.info('[OpenAPI · Cron]', '运行定时任务', ids.join(','))
@@ -625,15 +621,9 @@ apiOpen.post('/v1/run', async (request, response) => {
 api.post('/terminate', async (request, response) => {
   try {
     const id = request.body.id
-    let ids: number[]
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
+    const ids: number[] = Array.isArray(id) ? id : [id]
     for (const id of ids) {
-      terminateTask(id)
+      stopCronTask(id)
     }
     response.send(API_STATUS_CODE.ok())
   }
@@ -646,15 +636,9 @@ api.post('/terminate', async (request, response) => {
 apiOpen.post('/v1/terminate', async (request, response) => {
   const id = request.body.id
   try {
-    let ids: number[]
-    if (Array.isArray(id)) {
-      ids = id
-    }
-    else {
-      ids = [id]
-    }
+    const ids: number[] = Array.isArray(id) ? id : [id]
     for (const id of ids) {
-      terminateTask(id)
+      stopCronTask(id)
     }
     response.send(API_STATUS_CODE.ok())
     logger.info('[OpenAPI · Cron]', '终止定时任务', ids.join(','))
@@ -668,7 +652,7 @@ apiOpen.post('/v1/terminate', async (request, response) => {
 /**
  * 将路径转换为 bind 字符串
  */
-function convertPathToBind(type: CronType, s: string) {
+function convertPathToBind(type: TasksType, s: string) {
   let prefix = `${APP_DIR_PATH.REPO}/`
   if (s.startsWith(prefix)) {
     s = s.replace(prefix, '')
@@ -690,12 +674,12 @@ apiInner.post('/updateAll', async (request, response) => {
 
     // 删除
     if (deleteFiles && deleteFiles.length > 0) {
-      const deleteTask = await dbTasks.$list({
-        type: 'system',
+      const deleteTask = await db.tasks.$list({
+        type: TasksTypeEnum.SYSTEM,
         bind: { in: deleteFiles.map((s: CodeFileResolveResult) => convertPathToBind(type, s.path)) },
       })
       const deleteIds = deleteTask.map((s) => s.id)
-      await dbTasks.$deleteById(deleteIds)
+      await db.tasks.$deleteById(deleteIds)
       for (const item of deleteTask) {
         const paths = item.bind.split('#')
         const path = `${paths[1]}/${paths[2]}`
@@ -727,12 +711,12 @@ apiInner.post('/updateAll', async (request, response) => {
     const createdIds: number[] = []
     if (newFiles && newFiles.length > 0) {
       // 先删除已存在的防止重复添加
-      const deleteTask = await dbTasks.$list({
-        type: 'system',
+      const deleteTask = await db.tasks.$list({
+        type: TasksTypeEnum.SYSTEM,
         bind: { in: newFiles.map((s: CodeFileResolveResult) => convertPathToBind(type, s.path)) },
       })
       const deleteIds = deleteTask.map((s) => s.id)
-      await dbTasks.$deleteById(deleteIds)
+      await db.tasks.$deleteById(deleteIds)
       await applyCron(deleteIds)
       // 插入定时任务
       for (const item of newFiles) {
@@ -751,7 +735,7 @@ apiInner.post('/updateAll', async (request, response) => {
             create_time: new Date(),
             bind: convertPathToBind(type, item.path),
           }
-          const createResult = await dbTasks.$create(data) as Tasks
+          const createResult = await db.tasks.$create(data) as tasksModel
           createdIds.push(createResult.id)
           infos.push({
             success: true,
@@ -786,6 +770,65 @@ apiInner.post('/updateAll', async (request, response) => {
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
     logger.error('批量更新定时任务失败', e)
+  }
+})
+
+/**
+ * 获取仪表板统计指标
+ */
+api.get('/dashboard/stats', async (request, response) => {
+  try {
+    const taskType = (request.query.taskType as string) || TasksTypeEnum.ALL
+    if (!isValidTasksFilterType(taskType)) {
+      return response.send(API_STATUS_CODE.fail('任务类型有误，必须为 all、system 或 user'))
+    }
+    const data = await getDashboardStats(taskType)
+    response.send(API_STATUS_CODE.okData(data))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+    logger.error('[定时任务监控] 获取统计指标异常', e)
+  }
+})
+
+/**
+ * 获取仪表板任务运行趋势
+ */
+api.get('/dashboard/trend', async (request, response) => {
+  try {
+    const taskType = (request.query.taskType as string) || TasksTypeEnum.ALL
+    const date = (request.query.date as string) || getDateStr(new Date())
+
+    if (!isValidTasksFilterType(taskType)) {
+      return response.send(API_STATUS_CODE.fail('任务类型有误，必须为 all、system 或 user'))
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return response.send(API_STATUS_CODE.fail('日期格式有误，必须为 YYYY-MM-DD'))
+    }
+    const data = await getDashboardTrend(taskType, date)
+    response.send(API_STATUS_CODE.okData(data))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+    logger.error('[定时任务监控] 获取趋势数据异常', e)
+  }
+})
+
+/**
+ * 获取仪表板正在运行的任务
+ */
+api.get('/dashboard/running', async (request, response) => {
+  try {
+    const taskType = (request.query.taskType as string) || TasksTypeEnum.ALL
+    if (!isValidTasksFilterType(taskType)) {
+      return response.send(API_STATUS_CODE.fail('任务类型有误，必须为 all、system 或 user'))
+    }
+    const data = getDashboardRunning(taskType)
+    response.send(API_STATUS_CODE.okData(data))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+    logger.error('[定时任务监控] 获取运行中任务异常', e)
   }
 })
 

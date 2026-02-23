@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-17
+## Modified: 2025-05-05
 
 function get_request() {
     local url=$1
@@ -65,36 +65,41 @@ function json_parse() {
 function get_correct_raw_url() {
     local InputContent="$1"
 
-    case "$(echo "${InputContent}" | grep -Eo "github|gitee|gitlab")" in
+    case "$(echo "${InputContent}" | grep -Eo "github|gitee|gitlab|gitcode")" in
     github)
-        ## 地址纠正
         echo "${InputContent}" | grep "github\.com\/.*\/blob\/.*" -q
         if [ $? -eq 0 ]; then
             echo "$(echo "${InputContent}" | sed "s|github\.com/|raw\.githubusercontent\.com/|g; s|\/blob\/|\/|g; s|\/blob\/|\/raw\/|g")"
         else
-            echo '' # 返回空
+            echo ''
         fi
         ;;
     gitee)
-        ## 地址纠正
         echo "${InputContent}" | grep "gitee\.com\/.*\/blob\/.*" -q
         if [ $? -eq 0 ]; then
             echo "$(echo "${InputContent}" | sed "s/\/blob\//\/raw\//g")"
         else
-            echo '' # 返回空
+            echo ''
         fi
         ;;
     gitlab)
-        ## 地址纠正
         echo "${InputContent}" | grep "gitlab\.com\/.*\/blob\/.*" -q
         if [ $? -eq 0 ]; then
             echo "$(echo "${InputContent}" | sed "s/\/blob\//\/raw\//g")"
         else
-            echo '' # 返回空
+            echo ''
+        fi
+        ;;
+    gitcode)
+        echo "${InputContent}" | grep "gitcode\.com\/.*\/blob\/.*" -q
+        if [ $? -eq 0 ]; then
+            echo "$(echo "${InputContent}" | sed "s/\/blob\//\/raw\//g" | sed "s/gitcode\.com/raw\.gitcode\.com/g")"
+        else
+            echo ''
         fi
         ;;
     *)
-        echo '' # 返回空
+        echo ''
         ;;
     esac
 }

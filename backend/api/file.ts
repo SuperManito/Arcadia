@@ -1,15 +1,29 @@
 import type { Express, Request as ExpressRequest } from 'express'
 import express from 'express'
-import { API_STATUS_CODE } from '../http'
-import { logger } from '../logger'
+import { API_STATUS_CODE } from '../utils/httpUtil'
+import { logger } from '../utils/logger'
 import fs from 'node:fs'
-import nodePath from 'node:path'
 import { Buffer } from 'node:buffer'
 import multer from 'multer'
-import type { FileTreeParams } from '../file'
-import { fileCreate, fileDelete, fileDownload, fileInfo, fileMove, fileRename, getFile, getFileList, getFileTree, pathCheck, rootPathCheck, saveFile } from '../file'
-import { APP_DIR_PATH, APP_DIR_TYPE, APP_FILE_PATH, APP_ROOT_DIR } from '../type'
-import { validateParams } from '../utils'
+import nodePath from 'node:path'
+import type { FileTreeParams } from '../server/fileCore'
+import {
+  fileCreate,
+  fileDelete,
+  fileDownload,
+  fileInfo,
+  fileMove,
+  fileRename,
+  getFile,
+  getFileList,
+  getFileTree,
+  pathCheck,
+  rootPathCheck,
+  saveFile,
+} from '../server/fileCore'
+import { APP_DIR_PATH, APP_DIR_TYPE, APP_ROOT_DIR } from '../core/type'
+import { validateRequestParams } from '../utils'
+
 const api: Express = express()
 const apiOpen: Express = express()
 
@@ -34,10 +48,12 @@ api.get('/list', (request, response) => {
 
 apiOpen.get('/v1/list', (request, response) => {
   try {
-    validateParams(request, [
-      ['query', 'path', [true, 'string']],
-    ])
-    const path = request.query.path as string || APP_ROOT_DIR
+    const params = validateRequestParams(request, {
+      query: [
+        ['path', [false, 'string']],
+      ] as const,
+    })
+    const path = params.query.path || APP_ROOT_DIR
     pathCheck(path)
     response.send(API_STATUS_CODE.okData(getFileList(path)))
   }
@@ -107,10 +123,12 @@ api.get('/content', (request, response) => {
 
 apiOpen.get('/v1/content', (request, response) => {
   try {
-    validateParams(request, [
-      ['query', 'path', [true, 'string']],
-    ])
-    const path = request.query.path as string
+    const params = validateRequestParams(request, {
+      query: [
+        ['path', [true, 'string']],
+      ] as const,
+    })
+    const { path } = params.query
     pathCheck(path)
     response.send(API_STATUS_CODE.okData(getFile(path)))
   }
@@ -137,11 +155,13 @@ api.post('/content', (request, response) => {
 
 apiOpen.post('/v1/content', (request, response) => {
   try {
-    validateParams(request, [
-      ['body', 'path', [true, 'string']],
-      ['body', 'content', [true, 'string', true]],
-    ])
-    const { path, content } = request.body
+    const params = validateRequestParams(request, {
+      body: [
+        ['path', [true, 'string']],
+        ['content', [true, 'string', true]],
+      ] as const,
+    })
+    const { path, content } = params.body
     pathCheck(path)
     saveFile(path, content)
     response.send(API_STATUS_CODE.ok())
@@ -168,10 +188,12 @@ api.get('/info', (request, response) => {
 
 apiOpen.get('/v1/info', (request, response) => {
   try {
-    validateParams(request, [
-      ['query', 'path', [true, 'string']],
-    ])
-    const path = request.query.path as string
+    const params = validateRequestParams(request, {
+      query: [
+        ['path', [true, 'string']],
+      ] as const,
+    })
+    const { path } = params.query
     pathCheck(path)
     response.send(API_STATUS_CODE.okData(fileInfo(path)))
   }
@@ -198,11 +220,13 @@ api.post('/rename', (request, response) => {
 
 apiOpen.post('/v1/rename', (request, response) => {
   try {
-    validateParams(request, [
-      ['body', 'path', [true, 'string']],
-      ['body', 'name', [true, 'string']],
-    ])
-    const { path, name } = request.body
+    const params = validateRequestParams(request, {
+      body: [
+        ['path', [true, 'string']],
+        ['name', [true, 'string']],
+      ] as const,
+    })
+    const { path, name } = params.body
     pathCheck(path)
     fileRename(path, name)
     response.send(API_STATUS_CODE.ok())
@@ -263,12 +287,14 @@ api.post('/create', (request, response) => {
 
 apiOpen.post('/v1/create', (request, response) => {
   try {
-    validateParams(request, [
-      ['body', 'path', [true, 'string']],
-      ['body', 'name', [true, 'string']],
-      ['body', 'type', [true, ['folder', 'file']]],
-    ])
-    const { path, name, type } = request.body
+    const params = validateRequestParams(request, {
+      body: [
+        ['path', [true, 'string']],
+        ['name', [true, 'string']],
+        ['type', [true, ['folder', 'file']]],
+      ] as const,
+    })
+    const { path, name, type } = params.body
     rootPathCheck(path)
     response.send(API_STATUS_CODE.okData(fileCreate(path, name, type)))
   }
@@ -286,10 +312,10 @@ api.delete('/delete', (request, response) => {
     const path = request.body.path
     let files: string[]
     if (Array.isArray(path)) {
-      files = request.body.path.map((path: string) => path)
+      files = path as string[]
     }
     else {
-      files = [path]
+      files = [path as string]
     }
     for (const filePath of files) {
       logger.info('删除文件', filePath)
@@ -306,13 +332,15 @@ api.delete('/delete', (request, response) => {
 
 apiOpen.delete('/v1/delete', (request, response) => {
   try {
-    validateParams(request, [
-      ['body', 'path', [true, 'string | string[]']],
-    ])
-    const path = request.body.path
+    const params = validateRequestParams(request, {
+      body: [
+        ['path', [true, 'string | string[]']],
+      ] as const,
+    })
+    const { path } = params.body
     let files: string[]
     if (Array.isArray(path)) {
-      files = request.body.path.map((path: string) => path)
+      files = path
     }
     else {
       files = [path]
@@ -347,10 +375,12 @@ api.get('/download', (request, response) => {
 
 apiOpen.get('/v1/download', (request, response) => {
   try {
-    validateParams(request, [
-      ['query', 'path', [true, 'string']],
-    ])
-    const path = request.query.path as string
+    const params = validateRequestParams(request, {
+      query: [
+        ['path', [true, 'string']],
+      ] as const,
+    })
+    const { path } = params.query
     pathCheck(path)
     fileDownload(path, response)
     logger.info('[OpenAPI · File]', '文件或目录下载', path)
@@ -368,33 +398,37 @@ const upload = multer({
   storage: multer.diskStorage({
     destination(req, _file, cb) {
       const savePath = req.query.path as string
-      rootPathCheck(savePath)
+      // 规范化路径并验证
+      let resolvedPath: string
+      try {
+        resolvedPath = nodePath.resolve(savePath)
+        rootPathCheck(resolvedPath)
+      }
+      catch (err) {
+        return cb(err as Error, savePath)
+      }
+
       let stat: fs.Stats | null = null
       try {
-        stat = fs.statSync(savePath)
+        stat = fs.statSync(resolvedPath)
       }
       catch (err: any) {
         if (err.code === 'ENOENT') {
-          fs.mkdirSync(savePath, { recursive: true })
+          fs.mkdirSync(resolvedPath, { recursive: true })
         }
         else {
-          return cb(err as Error, savePath)
+          return cb(err as Error, resolvedPath)
         }
       }
       if (stat && !stat.isDirectory()) {
-        return cb(new Error('目标路径不是一个目录'), savePath)
+        return cb(new Error('目标路径不是一个目录'), resolvedPath)
       }
-      cb(null, savePath)
+      cb(null, resolvedPath)
     },
-    filename(req, file, cb) {
+    filename(_req, file, cb) {
       // 解决中文名乱码的问题
       file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8')
-      const savePath = req.query.path
       let originalName = file.originalname
-      // 文件操作限制（认证文件保护）
-      if (nodePath.join(savePath as string, originalName) === APP_FILE_PATH.AUTH) {
-        originalName += '.json'
-      }
       // 检查文件名中的非法字符
       originalName = originalName.replace(/[<>:"/\\|?*]+/g, '_')
       cb(null, originalName)

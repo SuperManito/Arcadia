@@ -1,23 +1,19 @@
-<p align="center">
-    <a href="https://arcadia.cool" target="_blank">
-        <picture>
-            <source media="(prefers-color-scheme: dark)" srcset="./public/images/logo-dark-sub.png" width="320">
-            <img src="./public/images/logo-light-sub.png" alt="Arcadia" width="320">
-        </picture>
-    </a>
-</p>
+<div align="center">
+<a href="https://arcadia.cool" target="_blank">
+    <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="./public/assets/images/logo-dark-sub.png" width="240">
+        <img src="./public/assets/images/logo-light-sub.png" alt="Arcadia" width="240">
+    </picture>
+</a>
+<h1>一站式代码自动化运维平台</h1>
+<p><code>Node.js</code> <code>tsx</code> <code>ts-node</code> <code>Deno</code> <code>Bun</code> <code>Python</code> <code>Go</code> <code>Rust</code> <code>Lua</code> <code>Ruby</code> <code>Perl</code> <code>C</code> <code>Shell</code></p>
 
-<p align="center">
-    <strong>
-        一站式代码运维平台
-    </strong>
-</p>
-
-<p align="center">
+<p>
     <strong>
         <a href="https://arcadia.cool" style="text-decoration: none;">官方网站</a>
     </strong>
 </p>
+</div>
 
 ## 介绍
 
@@ -27,24 +23,7 @@ Arcadia 平台主要面向于脚本语言编程与运维，支持定时任务调
 
 项目基于 TypeScript 全栈开发，采用了众多前沿技术，前端使用 Vue + Vite，后端使用 Node.js + Express + Prisma ORM。
 
-## 支持的编程语言
-
-已适配可直接运行代码文件的语言环境如下
-
-| 类型 | 涉及文件格式 |
-| :-: | :-: |
-| JavaScript | `.js` `.mjs` `.cjs` |
-| TypeScript | `.ts` `.mts` `.cts` |
-| Python | `.py` |
-| Go | `.go` |
-| Lua | `.lua` |
-| Rust | `.rs` |
-| Ruby | `.rb` |
-| Perl | `.pl` |
-| C | `.c` |
-| Shell | `.sh` |
-
-`Node.js` `tsx` `ts-node` `Deno` `Bun` `Python` `Go` `Rust` `Lua` `Ruby` `Perl` `C` `Shell`
+> 更多内容详见官网
 
 ## 安装方法
 
@@ -64,10 +43,10 @@ docker run -dit \
 supermanito/arcadia:beta
 ```
 
-之后访问 `http://localhost:5678` 进入管理面板
+之后访问 `http://localhost:5678` 进入管理面板，初始用户名 `useradmin` 密码 `passwd`。
 
 ***
 
 ### LICENSE
 
-Copyright © 2025, [SuperManito](https://github.com/SuperManito). Released under the [MIT](https://github.com/SuperManito/LinuxMirrors/blob/main/LICENSE).
+Copyright © 2026, [SuperManito](https://github.com/SuperManito). Released under the [MIT](https://github.com/SuperManito/LinuxMirrors/blob/main/LICENSE).

@@ -1,10 +1,10 @@
 #!/bin/bash
-## Modified: 2024-04-28
+## Modified: 2026-01-12
 
-## 一键添加远程文件配置
+## 一键添加代码文件配置
 # repo <name> <url> [--options]
 function command_raw() {
-    local name url updateTaskList
+    local name url enable updateTaskList
     # 定义临时文件
     local tmp_file="${RootDir}/.raw.yml"
 
@@ -34,18 +34,33 @@ function command_raw() {
 
             ## 判断命令选项
             while [ $# -gt 0 ]; do
+                # 通用判断
+                if [ "$2" ]; then
+                    echo "$2" | grep -Eq "^--"
+                    if [ $? -eq 0 ]; then
+                        output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定选项值！"
+                    fi
+                else
+                    output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定选项值！"
+                fi
+
                 case "$1" in
-                --updateTaskList)
-                    if [ "$2" ]; then
-                        echo "$2" | grep -Eqw "true|false"
-                        if [ $? -eq 0 ]; then
-                            updateTaskList="$2"
-                            shift
-                        else
-                            output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
-                        fi
+                --enable)
+                    echo "$2" | grep -Eqw "true|false"
+                    if [ $? -eq 0 ]; then
+                        enable="$2"
+                        shift
                     else
-                        output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请在该命令选项后指定布尔值！"
+                        output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
+                    fi
+                    ;;
+                --updateTaskList)
+                    echo "$2" | grep -Eqw "true|false"
+                    if [ $? -eq 0 ]; then
+                        updateTaskList="$2"
+                        shift
+                    else
+                        output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
                     fi
                     ;;
                 *)
@@ -60,18 +75,14 @@ function command_raw() {
 
     # 生成配置文件模板
     function create_template() {
-        echo '{ "name": "", "url": "", "cronSettings": { "updateTaskList": false } }' | jq | yq -y >$tmp_file
+        echo '{ "name": "'"${name}"'", "url": "'"${url}"'", "enable": true, "cronSettings": { "updateTaskList": false } }' | jq | yq -y >$tmp_file
         # 插入缩进空格
-        local LineSum="$(cat $tmp_file | grep "" -c)"
-        for ((i = 1; i <= $LineSum; i++)); do
+        local line_sum="$(cat $tmp_file | grep "" -c)"
+        for ((i = 1; i <= $line_sum; i++)); do
             [ $i -eq 1 ] && sed -i "1s/^/  - /g" $tmp_file || sed -i "${i}s/^/    /g" $tmp_file
         done
-    }
-
-    # 替换用户配置
-    function replace_user_conf() {
-        sed -i "s|name: ''|name: \"${name}\"|g" $tmp_file
-        sed -i "s|url: ''|url: \"${url}\"|g" $tmp_file
+        # 替换用户配置
+        [ "${enable}" ] && sed -i "s|enable: true|enable: ${enable}|g" $tmp_file
         [ "${updateTaskList}" ] && sed -i "s|updateTaskList: false|updateTaskList: ${updateTaskList}|g" $tmp_file
         echo -e "\n$TIP 自动生成的配置内容如下：\n"
         cat $tmp_file | sed "s/^  //g"
@@ -109,8 +120,6 @@ function command_raw() {
     [ $? -eq 0 ] && output_error "检测到该配置已存在，请勿重复添加！"
     # 生成配置文件模板
     create_template
-    # 替换用户配置
-    replace_user_conf
     # 保存配置
     save_conf
     # 删除临时文件

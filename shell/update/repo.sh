@@ -1,23 +1,36 @@
 #!/bin/bash
-## Modified: 2024-11-22
+## Modified: 2026-01-12
 
-## 更新所有仓库
+## 更新所有代码仓库
 # update repo
-function update_all_repo() {
-    ## 统计仓库数量并生成配置
+function update_repo() {
+    local designated_update_name="$1"
+    ## 统计代码仓库数量并生成配置
     count_reposum
     gen_repoconf_array
     if [[ $RepoSum -lt 1 || ${#Array_Repo_url[*]} -lt 1 ]]; then
-        echo -e "\n$TIP 未检测到任何有效的仓库配置，跳过更新仓库..."
+        echo -e "\n$TIP 未检测到任何有效的仓库配置，跳过更新..."
     fi
     local name url branch path
     local authSettings authSettings_alias authSettings_hostName authSettings_privateKeyPath authSettings_username authSettings_password
     local updateTaskList scriptsPath scriptsType whiteList blackList autoDisable addNotify delNotify
     ## 遍历仓库配置数组
     for ((i = 0; i < ${#Array_Repo_url[*]}; i++)); do
-        ## 判断仓库是否启用
-        [[ -z "${Array_Repo_url[i]}" || -z "${Array_Repo_branch[i]}" ]] && continue
-        [[ ${Array_Repo_enable[i]} == "false" ]] && continue
+        ## 更新指定配置名称的代码仓库
+        if [[ "${designated_update_name}" ]]; then
+            if [[ "${designated_update_name}" != "${Array_Repo_name[i]}" ]]; then
+                continue
+            fi
+            # 注：已确认过配置存在，无需其它额外判断
+            if [[ -z "${Array_Repo_url[i]}" || -z "${Array_Repo_branch[i]}" ]]; then
+                echo -e "\n$ERROR 配置无效（缺少必填字段 url | branch），请确认后重试..."
+                return
+            fi
+        else
+            ## 判断仓库是否启用
+            [[ -z "${Array_Repo_url[i]}" || -z "${Array_Repo_branch[i]}" ]] && continue
+            [[ ${Array_Repo_enable[i]} == "false" ]] && continue
+        fi
 
         ## 定义配置
         name="${Array_Repo_name[i]}"
@@ -81,19 +94,7 @@ function update_all_repo() {
 ## 更新指定路径下的仓库
 # update <path>
 function update_designated_repo() {
-    ## 处理传入路径
-    local repo_path pwd_tmp
-    local input_content="$1"
-    ## 转换为绝对路径
-    repo_path="$(get_absolute_path "${input_content}")"
-    ## 判定是否存在仓库
-    if [ ! -d ${repo_path}/.git ]; then
-        if [ -d ${repo_path} ]; then
-            output_error "未检测到 ${BLUE}${repo_path}${PLAIN} 路径下存在任何仓库，请重新确认！"
-        else
-            output_error "未检测到 ${BLUE}${repo_path}${PLAIN} 路径不存在，请重新确认！"
-        fi
-    fi
+    local repo_path="$1"
     ## 更新源代码
     if [[ "${repo_path}" = "$RootDir" ]]; then
         echo -e "\n$WARN 请使用 ${GREEN}${ArcadiaCmd} update${PLAIN} 命令更新项目"
@@ -102,7 +103,7 @@ function update_designated_repo() {
     ## 更新仓库
     import core/sync
     import update/cron
-    print_title_start "designated"
+    print_title_start "designated_repo"
     make_dir $RepoDir $LogTmpDir
     count_reposum
     gen_repoconf_array

@@ -1,0 +1,1 @@
+import{e}from"./index-2c41d487.js";export{C as CancellationTokenSource,E as Emitter,K as KeyCode,a as KeyMod,M as MarkerSeverity,b as MarkerTag,P as Position,R as Range,S as Selection,c as SelectionDirection,T as Token,U as Uri,d as editor,l as languages}from"./index-2c41d487.js";const o=globalThis.MonacoEnvironment;o?.globalAPI&&(globalThis.monaco=e);

@@ -1,0 +1,34 @@
+generator client {
+  provider   = "prisma-client"
+  output     = "../../../node_modules/@prismaGeneratedModel"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model config {
+  id          Int      @id @default(autoincrement())
+  key         String
+  module      String   @default("runtime")
+  value       String   @default("")
+  create_time DateTime @default(now())
+  update_time DateTime @default(now()) @updatedAt
+
+  @@unique([key, module])
+  @@index([module])
+}
+
+model openApiAccessKey {
+  id           Int       @id @default(autoincrement())
+  name         String    @default("")
+  value        String
+  expire_time  DateTime?
+  enable       Int       @default(1)
+  create_time  DateTime  @default(now())
+  update_time  DateTime  @default(now()) @updatedAt
+
+  @@index([value, enable])
+  @@index([enable])
+}

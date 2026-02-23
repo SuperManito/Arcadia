@@ -27,7 +27,6 @@ function command_upgrade() {
     [ -f "${BackendDir}/package.json" ] && project_depend_new=$(cat "${BackendDir}/package.json")
     if [[ "${project_depend_old}" != "${project_depend_new}" ]]; then
         pm2 delete arcadia_server >/dev/null 2>&1
-        pm2 delete arcadia_inner >/dev/null 2>&1
         pm2 delete arcadia_ttyd >/dev/null 2>&1
         $ArcadiaCmd service start
     fi

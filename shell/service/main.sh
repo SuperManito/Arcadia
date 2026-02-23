@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-04-18
+## Modified: 2025-12-12
 
 ## 后端服务控制
 # service start/restart/stop/info/respwd
@@ -41,24 +41,21 @@ function service_manage() {
         ## 禁用 Core Dump
         ulimit -c 0 >/dev/null 2>&1
         ## 删除日志
-        rm -rf /root/.pm2/logs/arcadia_server-*.log /root/.pm2/logs/arcadia_inner-*.log /root/.pm2/logs/arcadia_ttyd-*.log
+        rm -rf /root/.pm2/logs/arcadia_server-*.log /root/.pm2/logs/arcadia_ttyd-*.log
         if [[ ${ExitStatusSERVER} -eq 0 ]]; then
             local ServiceStatus=$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')
             case ${ServiceStatus} in
             online)
                 pm2 restart arcadia_server
-                pm2 restart arcadia_inner >/dev/null 2>&1
                 echo -e "\n$COMPLETE 后台管理面板已重启\n"
                 ;;
             stopped)
                 pm2 start arcadia_server
-                pm2 start arcadia_inner >/dev/null 2>&1
                 echo -e "\n$COMPLETE 后台管理面板已重新启动\n"
                 ;;
             errored)
                 echo -e "\n$WARN 检测到服务状态异常，开始尝试修复...\n"
                 pm2 delete arcadia_server
-                pm2 delete arcadia_inner >/dev/null 2>&1
                 install_dependencies
                 cd $SrcDir
                 pm2 start ecosystem.config.js && sleep 3
@@ -135,17 +132,45 @@ function service_manage() {
         ;;
     ## 登录信息
     info)
-        if [ ! -f $FileAuthUser ]; then
-            cp -f $FileAuthSample $FileAuthUser
+        local res="$(curl -s -X GET "http://127.0.0.1:5678/api/inner/user/info")"
+        if [[ "$(echo "${res}" | jq -r '.code')" != "1" ]]; then
+            echo -e "\n$ERROR 获取用户信息失败 => $(echo "${res}" | jq -r '.message')\n"
+            return
         fi
+        local result="$(echo "${res}" | jq -rc '.result')"
+        local username="$(echo "${result}" | jq -r ".username")"
+        local password="$(echo "${result}" | jq -r ".password")"
+        local lastLoginIp="$(echo "${result}" | jq -r ".lastLoginInfo.loginIp")"
+        local lastLoginAddress="$(echo "${result}" | jq -r ".lastLoginInfo.loginAddress")"
+        local lastLoginTime="$(echo "${result}" | jq -r ".lastLoginInfo.loginTime")"
+        local curLoginIp="$(echo "${result}" | jq -r ".curLoginInfo.loginIp")"
+        local curLoginAddress="$(echo "${result}" | jq -r ".curLoginInfo.loginAddress")"
+        local curLoginTime="$(echo "${result}" | jq -r ".curLoginInfo.loginTime")"
+
         echo ''
-        jq -r '{"用户名": .user, "密码": .password, "OpenAPI令牌": .openApiToken, "最近登录": .lastLoginInfo | { "I P 地址": .loginIp, "地理位置": .loginAddress, "登录时间": .loginTime, }, "当前登录": .curLoginInfo | { "I P 地址": .loginIp, "地理位置": .loginAddress, "登录时间": .loginTime, } }' $FileAuthUser | sed 's|[{},"]||g;'
-        echo -e '\n'
+        echo "用户名 ${username}"
+        echo "密码 ${password}"
+        echo "最近登录"
+        [ -n "${lastLoginIp}" ] && echo "  I P 地址 ${lastLoginIp}"
+        [ -n "${lastLoginAddress}" ] && echo "  地理位置 ${lastLoginAddress}"
+        [ -n "${lastLoginTime}" ] && echo "  登录时间 ${lastLoginTime}"
+        echo "当前登录"
+        [ -n "${curLoginIp}" ] && echo "  I P 地址 ${curLoginIp}"
+        [ -n "${curLoginAddress}" ] && echo "  地理位置 ${curLoginAddress}"
+        [ -n "${curLoginTime}" ] && echo "  登录时间 ${curLoginTime}"
+        echo ''
         ;;
     ## 重置密码
     respwd)
-        cp -f $FileAuthSample $FileAuthUser
-        echo -e "\n$COMPLETE 已重置管理面板用于登录认证的用户名和登密码\n\n[用户名]： useradmin\n[密  码]： passwd\n"
+        local res="$(curl -s -X POST "http://127.0.0.1:5678/api/inner/user/resetPwd")"
+        if [[ "$(echo "${res}" | jq -r '.code')" != "1" ]]; then
+            echo -e "\n$ERROR 用户名和密码重置失败 => $(echo "${res}" | jq -r '.message')\n"
+            return
+        fi
+        local result="$(echo "${res}" | jq -rc '.result')"
+        local username="$(echo "${result}" | jq -r ".username")"
+        local password="$(echo "${result}" | jq -r ".password")"
+        echo -e "\n$COMPLETE 已重置用户名和密码\n\n[用户名]：${username}\n[密  码]：${password}\n"
         ;;
     esac
     ## 删除 PM2 进程日志清单

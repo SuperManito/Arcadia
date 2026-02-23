@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-04-23
+## Modified: 2026-02-20
 
 ## 清空定时任务关联代码文件清单内容
 function clean_list_scripts() {
@@ -10,24 +10,21 @@ function clean_list_scripts() {
     echo "{}" >$ListConfScripts
 }
 
-## 更新 Repo 代码仓库和 RawFile 远程代码文件
+## 更新 Repo 代码仓库和 RawFile 代码文件
 function update_sync() {
-    import core/sync
-    ## 创建目录
-    make_dir $RepoDir $RawDir $LogTmpDir
     ## 清空定时任务关联代码文件清单内容
     clean_list_scripts
     ## 根据模式进行选择
     case $1 in
-    all)
+    sync | all)
         import update/repo
-        update_all_repo
+        update_repo
         import update/raw
         update_raw
         ;;
     repo)
         import update/repo
-        update_all_repo
+        update_repo
         ;;
     raw)
         import update/raw
@@ -43,34 +40,44 @@ function update_sync() {
 function print_title_start() {
     local update_mod
     case "$1" in
-    all)
-        update_mod="全部内容"
+    sync | all)
+        update_mod=""
         ;;
     repo)
-        update_mod="所有仓库"
+        update_mod="代码仓库"
         ;;
     raw)
-        update_mod="远程文件"
+        update_mod="代码文件"
         ;;
-    extra)
-        update_mod="额外脚本"
+    designated_repo)
+        update_mod="指定代码仓库"
         ;;
     designated)
-        update_mod="指定仓库"
+        update_mod="指定配置"
+        ;;
+    extra)
+        update_mod="运行额外更新脚本"
         ;;
     esac
-    echo -e "\n[\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN}] 执行更新程序开始 - ${update_mod}"
+    if [[ "${update_mod}" ]]; then
+        echo -e "\n[\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN}] 更新代码同步开始 - ${update_mod}"
+    else
+        echo -e "\n[\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN}] 更新代码同步开始"
+    fi
 }
 
 function print_title_end() {
-    echo -e "\n[\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN}] 执行更新程序结束\n"
+    echo -e "\n[\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN}] 更新代码同步结束\n"
 }
 
 function command_update_main() {
+    import core/sync
+    ## 创建目录
+    make_dir $RepoDir $RawDir $LogTmpDir
     case $1 in
-    all)
-        print_title_start "all"
-        update_sync "all"
+    sync | all)
+        print_title_start "sync"
+        update_sync "sync"
         import update/extra
         update_extra
         ;;
@@ -93,21 +100,44 @@ function command_update_main() {
         ;;
     *)
         ## 判断传入参数
+        local path_content
         echo $1 | grep "\/" -q
         if [ $? -eq 0 ]; then
-            import update/repo
-            update_designated_repo $1
+            path_content="$1"
         else
-            if [ ! -d "$(pwd)/$1" ]; then
-                output_command_error 1 # 命令错误
+            if [[ "$1" = "." ]]; then
+                path_content="$(pwd)"
+            elif [[ "$1" = "./" ]]; then
+                path_content="$(pwd)"
+            elif [ -d "$(pwd)/$1" ]; then
+                path_content="$(pwd)/$1"
+            fi
+        fi
+        if [[ "${path_content}" ]]; then
+            ## 转换为绝对路径
+            local path="$(get_absolute_path "${path_content}")"
+            ## 判定是否存在仓库
+            if [ ! -d "${path}/.git" ]; then
+                if [ -d "${path}" ]; then
+                    output_error "未检测到 ${BLUE}${path}${PLAIN} 路径下存在任何仓库，请重新确认！"
+                else
+                    output_error "路径 ${BLUE}${path}${PLAIN} 不存在，请重新确认！"
+                fi
             fi
             import update/repo
-            if [[ "$1" = "." ]]; then
-                update_designated_repo "$(pwd)"
-            elif [[ "$1" = "./" ]]; then
-                update_designated_repo "$(pwd)"
+            update_designated_repo "$1"
+        else
+            ## 更新特定名称的配置
+            if [[ "$(is_config_name_exist "$1" "repo")" == true ]]; then
+                print_title_start "designated"
+                import update/repo
+                update_repo "$1"
+            elif [[ "$(is_config_name_exist "$1" "raw")" == true ]]; then
+                print_title_start "designated"
+                import update/raw
+                update_raw "$1"
             else
-                update_designated_repo "$(pwd)/$1"
+                output_command_error 1 # 命令错误
             fi
         fi
         ;;

@@ -5,7 +5,7 @@ source $(dirname $(readlink -f "$0"))/core/main.sh
 
 # 检测配置文件是否存在，不存在则复制一份
 make_dir $ConfigDir
-config_files="config.sh auth.json bot.json sync.yml"
+config_files="config.sh bot.json sync.yml"
 for file in $config_files; do
     if [ ! -s "$ConfigDir/$file" ]; then
         cp -fv "$SampleDir/$file" "$ConfigDir/$file"

@@ -1,11 +1,11 @@
-import express from 'express'
 import type { Express, Request, RequestHandler } from 'express'
-import { API_STATUS_CODE } from '../http'
-import { logger } from '../logger'
+import express from 'express'
+import { API_STATUS_CODE } from '../utils/httpUtil'
+import { logger } from '../utils/logger'
 import fs from 'node:fs'
-import { isNotEmpty } from '../utils'
-import { getJsonFile } from '../file'
-import { APP_FILE_PATH, APP_FILE_TYPE } from '../type'
+import { APP_FILE_PATH } from '../core/type'
+import { verifyToken } from './openApi'
+
 const api: Express = express()
 
 // 加载用户自定义接口
@@ -33,21 +33,18 @@ if (fs.existsSync(extraServer)) {
 /**
  * 鉴权
  */
-function tokenChecker(req: Request) {
+async function tokenChecker(req: Request) {
   try {
     // 从 Header 和 URL 参数中提取 Token
     let token = req.headers['api-token']
     if (!token || token === '') {
       token = req.query['api-token'] as string
     }
-    if (!token) {
+    if (!token || typeof token !== 'string') {
       return API_STATUS_CODE.OPEN_API.NO_AUTH
     }
-    const openApiToken = (getJsonFile(APP_FILE_TYPE.AUTH) || {})?.openApiToken
-    if (!isNotEmpty(openApiToken)) {
-      return API_STATUS_CODE.OPEN_API.AUTH_FAIL
-    }
-    if (token === openApiToken) {
+    const record = await verifyToken(token)
+    if (record) {
       return null // 认证通过
     }
   }
@@ -55,8 +52,8 @@ function tokenChecker(req: Request) {
   return API_STATUS_CODE.OPEN_API.AUTH_FAIL
 }
 
-const OpenAPIAuthentication: RequestHandler = (req, res, next) => {
-  const failResult = tokenChecker(req)
+const OpenAPIAuthentication: RequestHandler = async (req, res, next) => {
+  const failResult = await tokenChecker(req)
   if (failResult) {
     res.send(API_STATUS_CODE.fail(failResult.message, failResult.code))
   }

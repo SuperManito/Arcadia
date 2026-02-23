@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2024-09-10
+## Modified: 2026-01-12
 
 ## 删除日志功能
 # rmlog [days]
@@ -12,8 +12,9 @@ function command_rmlog_main() {
         local target_file="$1"
         if [ -f $target_file ]; then
             local timestamp=$(($(date "+%s") - 86400 * ${RmDays}))
-            local del_format_date=$(date -d "@${timestamp}" "+%Y-%m-%d")
-            local line_end=$(($(cat $target_file | grep -n "${del_format_date}" | head -1 | awk -F ":" '{print $1}') - 3))
+            local del_format_date="$(date -d "@${timestamp}" "+%Y-%m-%d")"
+            local match_line=$(grep -n --binary-files=text "${del_format_date}" $target_file | head -1 | awk -F ":" '{print $1}')
+            local line_end=$((match_line - 3))
             [ ${line_end} -gt 0 ] && perl -i -ne "{print unless 1 .. ${line_end} }" $target_file
         fi
     }
@@ -48,7 +49,7 @@ function command_rmlog_main() {
     esac
 
     if [ -n "${RmDays}" ]; then
-        echo -e "\n$WORKING 开始检索并删除超过 ${BLUE}${RmDays}${PLAIN} 天的日志文件和日志内容...\n"
+        echo -e "\n$WORKING 开始检索并删除超过 ${BLUE}${RmDays}${PLAIN} 天的日志...\n"
         rm_script_log                                            # 删除代码运行日志
         rm_log_universal "$LogDir/server.log"                    # 删除后端服务日志
         rm_log_universal "$LogDir/update.log"                    # 删除 update 的运行日志
