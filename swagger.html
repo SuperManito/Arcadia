@@ -2,7 +2,7 @@
 <html lang="zh-CN" translate="no">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="SwaggerUI" />
     <title>Arcadia OpenAPI · SwaggerUI</title>
@@ -19,7 +19,7 @@
         spec: {
           "openapi": "3.0.0",
           "info": {
-            "title": "Arcadia 一站式代码运维平台 OpenAPI",
+            "title": "Arcadia 一站式代码自动化运维平台 OpenAPI",
             "description": "所有内容请以官网文档为准 https://arcadia.cool/docs/dev/api/open\n\n## 返回内容格式\n数据返回格式统一使用 JSON\n| 名称 | 类型 | 描述 |\n| :-: | :-: | --- |\n| `code` | `number` | 业务代码，详见下方 |\n| `message` | `string` | 消息 |\n| `type` | `string` | 类型 |\n| `result` | `any` | 结果 |\n\n## 业务代码说明\n|  状态码  |         含义           | 说明                             |\n| :-----: | :-------------------: | :-----------------------------: |\n|  `0`    |          OK           | 请求成功                          |\n|  `1`    |         FAIL          | 请求失败                          |\n|  `4400` |      BAD REQUEST      | 请求的地址不存在或者包含不支持的参数   |\n|  `4401` |     UNAUTHORIZED      | 未提供授权信息                     |\n|  `4403` |       FORBIDDEN       | 认证失败                          |\n",
             "version": "1.0.0"
           },
