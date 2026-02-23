@@ -33,32 +33,29 @@ AuroraText.displayName = '阿卡迪亚'
 function HeroContentDefault () {
   return (
         <>
-            <div className="col col--7 lg:mt-26">
+            <div className="col col--7 lg:mt-34">
                 <div className={clsx(styles.relative, 'row')}>
                     <div className="col" style={{ userSelect: 'none' }}>
-                        <Heading as="h1" className={styles.tagline}>
-                            <span>
-                                Arcadia <AuroraText />
-                                <br className="block" />
-                            </span>{' '}
-                            <span className='text-(--ifm-color-content)'>一站式代码自动化运维平台</span>
-                        </Heading>
-                        <Heading as="h1" className={styles.tagline}>
-                            <span>
-                                Arcadia <AuroraText />
-                                <br className="block" />
-                            </span>{' '}
-                            <span className='text-(--ifm-color-content)'>一站式代码自动化运维平台</span>
-                        </Heading>
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col" style={{ userSelect: 'none' }}>
-                        <Heading as={'h2'}>高效 易用 简约 漂亮 稳定 安全</Heading>
+                        <div style={{ position: 'relative' }}>
+                            <Heading as="h1" className={clsx(styles.tagline, styles.taglineGradient)}>
+                                <span>
+                                    Arcadia <AuroraText />
+                                    <br className="block" />
+                                </span>{' '}
+                                <span className='text-(--ifm-color-content)'>一站式代码自动化运维平台</span>
+                            </Heading>
+                            <Heading as="h1" className={clsx(styles.tagline, styles.taglineAbsolute)}>
+                                <span>
+                                    Arcadia <AuroraText />
+                                    <br className="block" />
+                                </span>{' '}
+                                <span className='text-(--ifm-color-content)'>一站式代码自动化运维平台</span>
+                            </Heading>
+                        </div>
                     </div>
                 </div>
                 <div>
-                    <Link className="button button--block button--primary button--outline button--lg" to="/docs/start/install">
+                    <Link className="button button--block button--primary button--outline button--lg mt-8" to="/docs/start/install">
                         开 始 使 用
                     </Link>
                 </div>
@@ -115,33 +112,28 @@ function HeroContentMobile () {
                 </div>
                 <div style={{ position: 'relative', marginTop: '-130px' }}>
                     <div className="col" style={{ userSelect: 'none', padding: '0' }}>
-                        <Heading as="h1" className={styles.tagline}>
-                            <span>
-                                Arcadia{' '}
-                                <span style={{ fontSize: '.8rem' }}>
-                                    <AuroraText>阿卡迪亚</AuroraText>
-                                </span>
-                                <br className="block" />
-                            </span>{' '}
-                            <span className='text-(--ifm-color-content)'>一站式代码自动化运维平台</span>
-                        </Heading>
-                        <Heading as="h1" className={styles.tagline}>
-                            <span>
-                                Arcadia{' '}
-                                <span style={{ fontSize: '.8rem' }}>
-                                    <AuroraText>阿卡迪亚</AuroraText>
-                                </span>
-                                <br className="block" />
-                            </span>{' '}
-                            <span className='text-(--ifm-color-content)'>一站式代码自动化运维平台</span>
-                        </Heading>
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col" style={{ userSelect: 'none', paddingBottom: '1em' }}>
-                        <Heading as={'h2'} style={{ fontSize: 'var(--ifm-h4-font-size)', margin: '0 0 0 0' }}>
-                            高效 易用 简约 漂亮 稳定 安全
-                        </Heading>
+                        <div style={{ position: 'relative' }}>
+                            <Heading as="h1" className={clsx(styles.tagline, styles.taglineGradient, styles.taglineMobile)}>
+                                <span>
+                                    Arcadia{' '}
+                                    <span style={{ fontSize: '.8rem' }}>
+                                        <AuroraText>阿卡迪亚</AuroraText>
+                                    </span>
+                                    <br className="block" />
+                                </span>{' '}
+                                <span className='text-(--ifm-color-content)'>一站式代码自动化运维平台</span>
+                            </Heading>
+                            <Heading as="h1" className={clsx(styles.tagline, styles.taglineAbsolute, styles.taglineMobile)}>
+                                <span>
+                                    Arcadia{' '}
+                                    <span style={{ fontSize: '.8rem' }}>
+                                        <AuroraText>阿卡迪亚</AuroraText>
+                                    </span>
+                                    <br className="block" />
+                                </span>{' '}
+                                <span className='text-(--ifm-color-content)'>一站式代码自动化运维平台</span>
+                            </Heading>
+                        </div>
                     </div>
                 </div>
                 <div>

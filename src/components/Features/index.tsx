@@ -47,7 +47,7 @@ function FeatureComponent ({
 export default function Feature () {
   const features = [
     {
-      title: '专业代码编辑器',
+      title: '代码编辑高亮',
       description: (
         <>
           采用 <b><Link className="text-neutral-400 dark:text-neutral-400" href="https://code.visualstudio.com" target="_blank" rel="noreferrer">VS Code</Link></b> 核心组件之一的摩纳哥编辑器，并且经过了高度定制，代码高亮效果与桌面客户端一致，支持移动端和标签页多开。
@@ -59,7 +59,7 @@ export default function Feature () {
       title: '定时任务调度',
       description: (
         <>
-          支持秒级任务与并发任务，设有卡片和数据表格两种布局，增删改查一应俱全，可查看任务关联的日志和源码，支持调试、过滤、排序等功能。
+          支持秒级任务与并发任务与数据监控仪表盘，增删改查一应俱全，可查看任务关联的日志和源码，支持调试、过滤、排序等功能。
         </>
       ),
       icon: <Icon icon="tabler:clock-play" size={32} />,

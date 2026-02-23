@@ -41,11 +41,11 @@ arcadia upgrade
 
 ```bash title="将项目官方远程仓库地址替换为开源代理地址"
 cd /arcadia/src
-git remote set-url origin https://ghp.ci/https://github.com/SuperManito/Arcadia.git
+git remote set-url origin https://ghfast.top/https://github.com/SuperManito/Arcadia.git
 cd /arcadia
 ```
 
-之后就可以愉快的使用 `arcadia upgrade` 了
+之后就可以正常使用 `arcadia upgrade` 了
 
 </details>
 

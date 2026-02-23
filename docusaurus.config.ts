@@ -145,7 +145,7 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
           },
           {
             to: 'http://issue.arcadia.cool/?lang=zh-CN',
-            label: 'Issue（公共测试）',
+            label: 'Issue',
             position: 'left',
             className: 'navbar-item',
           },

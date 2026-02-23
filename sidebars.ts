@@ -288,22 +288,22 @@ const sidebars: SidebarsConfig = {
               ],
               collapsed: true,
             },
-            {
-              label: 'Message 消息中心',
-              type: 'category',
-              link: {
-                type: 'generated-index',
-              },
-              items: [
-                'dev/api/internal/message/list',
-                'dev/api/internal/message/page',
-                'dev/api/internal/message/detail',
-                'dev/api/internal/message/count',
-                'dev/api/internal/message/status',
-                'dev/api/internal/message/delete',
-              ],
-              collapsed: true,
-            },
+            // {
+            //   label: 'Message 消息中心',
+            //   type: 'category',
+            //   link: {
+            //     type: 'generated-index',
+            //   },
+            //   items: [
+            //     'dev/api/internal/message/list',
+            //     'dev/api/internal/message/page',
+            //     'dev/api/internal/message/detail',
+            //     'dev/api/internal/message/count',
+            //     'dev/api/internal/message/status',
+            //     'dev/api/internal/message/delete',
+            //   ],
+            //   collapsed: true,
+            // },
             {
               label: '其它',
               type: 'category',
@@ -342,27 +342,27 @@ const sidebars: SidebarsConfig = {
               type: 'doc',
               id: 'dev/api/open/cron',
             },
-            {
-              label: 'Message 消息中心',
-              type: 'doc',
-              id: 'dev/api/open/message',
-            },
+            // {
+            //   label: 'Message 消息中心',
+            //   type: 'doc',
+            //   id: 'dev/api/open/message',
+            // },
           ],
           collapsed: false,
         },
       ],
       collapsed: false,
     },
-    {
-      label: '对接消息中心',
-      type: 'category',
-      link: {
-        type: 'doc',
-        id: 'dev/message/index',
-      },
-      items: [],
-      collapsed: false,
-    },
+    // {
+    //   label: '对接消息中心',
+    //   type: 'category',
+    //   link: {
+    //     type: 'doc',
+    //     id: 'dev/message/index',
+    //   },
+    //   items: [],
+    //   collapsed: false,
+    // },
   ],
 }
 
