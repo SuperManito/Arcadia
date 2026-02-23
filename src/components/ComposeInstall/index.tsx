@@ -7,24 +7,19 @@ import CodeBlock from '@theme/CodeBlock'
 import { useColorMode, useWindowSize } from '@docusaurus/theme-common'
 
 export default function NewComponent () {
-  function DockerComposeV2 () {
+  function DockerCompose ({ isV2 = true }: { isV2?: boolean }) {
     const fileName = 'docker-compose.yaml'
     return (
-      <div>
-        <ul>
-          <li>
-            <Heading as="h3">新建 YAML 文件</Heading>
-          </li>
-          <CodeBlock language="bash">
-            {`${useCurrentDir ? `vim ${fileName}` : `mkdir -p /opt/arcadia && cd /opt/arcadia\nvim ${fileName}`}`}
-          </CodeBlock>
-          <li>
-            <Heading as="h3">编辑内容</Heading>
-          </li>
-          <CodeBlock language="yaml">
-            {`services:
+      <>
+        <Heading as="h3">新建 YAML 文件</Heading>
+        <CodeBlock language="bash">
+          {`${useCurrentDir ? `vim ${fileName}` : `mkdir -p /opt/arcadia && cd /opt/arcadia\nvim ${fileName}`}`}
+        </CodeBlock>
+        <Heading as="h3">编辑内容</Heading>
+        <CodeBlock language="yaml">
+          {`${!isV2 ? 'version: \'2.0\'\n' : ''}services:
   arcadia:
-    image: ${backupMirrortChecked ? 'registry.cn-hangzhou.aliyuncs.com/' : ''}supermanito/arcadia:beta
+    image: ${mirror}supermanito/arcadia:beta
     container_name: ${containerName}
     hostname: ${hostname}
     restart: always
@@ -32,84 +27,37 @@ export default function NewComponent () {
     network_mode: ${network}
     ports:
       - ${port}:5678${mountLines}`}
-          </CodeBlock>
-          <li>
-            <Heading as="h3">启动容器</Heading>
-          </li>
-          <CodeBlock language="bash">{'docker compose up -d'}</CodeBlock>
-        </ul>
-      </div>
-    )
-  }
-
-  function DockerComposeV1 () {
-    const fileName = 'docker-compose.yaml'
-    return (
-      <div>
-        <ul>
-          <li>
-            <Heading as="h3">新建 YAML 文件</Heading>
-          </li>
-          <CodeBlock language="bash">
-            {`${useCurrentDir ? `vim ${fileName}` : `mkdir -p /opt/arcadia && cd /opt/arcadia\nvim ${fileName}`}`}
-          </CodeBlock>
-          <li>
-            <Heading as="h3">编辑内容</Heading>
-          </li>
-          <CodeBlock language="yaml">
-            {`version: '2.0'
-services:
-  arcadia:
-    image: ${backupMirrortChecked ? 'registry.cn-hangzhou.aliyuncs.com/' : ''}supermanito/arcadia:beta
-    container_name: ${containerName}
-    hostname: ${hostname}
-    restart: always
-    tty: true
-    network_mode: ${network}
-    ports:
-      - ${port}:5678${mountLines}`}
-          </CodeBlock>
-          <li>
-            <Heading as="h3">启动容器</Heading>
-          </li>
-          <CodeBlock language="bash">{'docker-compose up -d'}</CodeBlock>
-        </ul>
-      </div>
+        </CodeBlock>
+        <Heading as="h3">启动容器</Heading>
+        <CodeBlock language="bash">{'docker-compose up -d'}</CodeBlock>
+      </>
     )
   }
 
   function PodmanCompose () {
     const fileName = 'podman-compose.yaml'
     return (
-      <div>
-        <ul>
-          <li>
-            <Heading as="h3">新建 YAML 文件</Heading>
-          </li>
-          <CodeBlock language="bash">
-            {`${useCurrentDir ? `vim ${fileName}` : `mkdir -p /opt/arcadia && cd /opt/arcadia\nvim ${fileName}`}`}
-          </CodeBlock>
-          <li>
-            <Heading as="h3">编辑内容</Heading>
-          </li>
-          <CodeBlock language="yaml">
-            {`version: '3.8'
+      <>
+        <Heading as="h3">新建 YAML 文件</Heading>
+        <CodeBlock language="bash">
+          {`${useCurrentDir ? `vim ${fileName}` : `mkdir -p /opt/arcadia && cd /opt/arcadia\nvim ${fileName}`}`}
+        </CodeBlock>
+        <Heading as="h3">编辑内容</Heading>
+        <CodeBlock language="yaml">
+          {`version: '3.8'
 services:
   arcadia:
-    image: ${backupMirrortChecked ? 'registry.cn-hangzhou.aliyuncs.com/' : 'docker.io/'}supermanito/arcadia:beta
+    image: ${mirror || 'docker.io/'}supermanito/arcadia:beta
     container_name: ${containerName}
     hostname: ${hostname}
     tty: true
     network_mode: ${network}
     ports:
       - ${port}:5678${mountLines}`}
-          </CodeBlock>
-          <li>
-            <Heading as="h3">启动容器</Heading>
-          </li>
-          <CodeBlock language="bash">{'podman-compose up -d'}</CodeBlock>
-        </ul>
-      </div>
+        </CodeBlock>
+        <Heading as="h3">启动容器</Heading>
+        <CodeBlock language="bash">{'podman-compose up -d'}</CodeBlock>
+      </>
     )
   }
 
@@ -123,8 +71,29 @@ services:
     return colorMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm
   }, [colorMode])
   const [type, setType] = useState('docker-compose-v2') // 类型
-  const [backupMirrortChecked, setBackupMirrortChecked] = useState(false)
-  const [selectedMounts, setSelectedMounts] = useState(['config', 'log', 'scripts', 'repo', 'raw', 'tgbot'])
+  const mirrorOptions = [
+    { label: '无', value: '' },
+    { label: '阿里云（备用镜像）', value: 'registry.cn-hangzhou.aliyuncs.com/' },
+    { label: '毫秒镜像', value: 'docker.1ms.run/' },
+    { label: 'DaoCloud 道客', value: 'docker.m.daocloud.io/' },
+  ]
+  const [mirror, setMirror] = useState('')
+  const [mirrorItems, setMirrorItems] = useState(mirrorOptions)
+  const [mirrorInput, setMirrorInput] = useState('')
+  const mirrorInputRef = useRef<InputRef>(null)
+  const addMirrorItem = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+    e.preventDefault()
+    const target = mirrorInput
+    if (target && !mirrorItems.find(item => item.value === target)) {
+      setMirrorItems([...mirrorItems, { label: target, value: target }])
+    }
+    setMirror(target)
+    setTimeout(() => {
+      mirrorInputRef.current?.focus()
+      setMirrorInput('')
+    }, 0)
+  }
+  const [selectedMounts, setSelectedMounts] = useState(['config', 'log', 'scripts', 'repo', 'raw'])
   const [useCurrentDir, setUseCurrentDir] = useState(false)
   const [containerName, setContainerName] = useState('arcadia')
   const [hostname, setHostname] = useState('arcadia')
@@ -134,7 +103,7 @@ services:
   const networkInputRef = useRef<InputRef>(null)
   const addNetworkItem = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
     e.preventDefault()
-    const target = selectInput || 'container:arcadia'
+    const target = selectInput || 'bridge'
     setNetworkItems([...networkItems, target])
     setSelectInput(target)
     setTimeout(() => {
@@ -182,78 +151,111 @@ services:
           trigger={!isMobile ? 'click' : 'hover'}
           placement={!isMobile ? 'leftTop' : undefined}
           content={
-            <Row>
-              <Col span={16}>
-              <Flex vertical wrap="wrap" gap="small">
-                <span style={{ fontWeight: 600 }}>基础配置</span>
-                <Flex gap="small" justify="space-between" style={{ userSelect: 'none', width: '200px' }}>
-                  使用国内镜像
-                  <Switch checked={backupMirrortChecked} onChange={setBackupMirrortChecked} />
-                </Flex>
-                <Flex gap="small" justify="space-between" style={{ userSelect: 'none', width: '200px' }}>
-                  挂载至当前目录
-                  <Switch checked={useCurrentDir} onChange={setUseCurrentDir} />
-                </Flex>
-                <Flex gap="small">
-                  容器名称
-                  <Input size="small" style={{ width: 'calc(100% - 80px)' }} placeholder="请输入" value={containerName} onChange={e => { setContainerName(e.target.value ?? 'arcadia') }} />
-                </Flex>
-                <Flex gap="small">
-                  主机名称
-                  <Input size="small" style={{ width: 'calc(100% - 80px)' }} placeholder="请输入" value={hostname} onChange={e => { setHostname(e.target.value ?? 'arcadia') }} />
-                </Flex>
-                <Flex gap="small">
-                  网络模式
-                  <Select
-                    size="small"
-                    style={{ width: 'calc(100% - 80px)' }}
-                    placeholder="请选择"
-                    dropdownRender={(menu) => (
-                      <>
-                        {menu}
-                        <Divider style={{ margin: '4px 0' }} />
-                        <Flex gap="small">
-                          <Input
-                            size="small"
-                            placeholder="请输入"
-                            ref={networkInputRef}
-                            value={selectInput}
-                            onChange={e => { setSelectInput(e.target.value) }}
-                            onKeyDown={(e) => { e.stopPropagation() }}
-                          />
-                          <Button size="small" type="text" style={{ padding: '0 4px' }} onClick={addNetworkItem}>
-                          <Icon>mdi:plus</Icon>
-                          </Button>
-                        </Flex>
-                      </>
-                    )}
-                    options={networkItems.map((item) => ({ label: item, value: item }))}
-                    defaultValue={network}
-                    onChange={(value: string) => { setNetwork(value ?? 'bridge') }}
-                  />
-                </Flex>
-                <Flex gap="small">
-                  端口映射
-                  <InputNumber size="small" style={{ width: 'calc(100% - 80px)' }} placeholder="请输入" value={port} onChange={(value) => { setPort(value ?? 5678) }} />
-                </Flex>
-              </Flex>
-              </Col>
-              <Col span={8}>
-                <Flex vertical wrap="wrap" gap="small">
-                  <span style={{ fontWeight: 600 }}>挂载目录配置</span>
-                  <Checkbox.Group style={{ userSelect: 'none', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '8px' }} options={mountOptions} value={selectedMounts} onChange={setSelectedMounts} />
-                </Flex>
-              </Col>
-            </Row>
+            <div>
+              <Row>
+                <Col>
+                  <Flex align="center" vertical wrap="wrap" gap="middle">
+                    <span style={{ fontWeight: 600 }}>基础配置</span>
+                    <Flex align="center" gap="middle">
+                      <span>容器名称</span>
+                      <Input size="small" style={{ width: '140px' }} placeholder="请输入" value={containerName} onChange={e => { setContainerName(e.target.value ?? 'arcadia') }} />
+                    </Flex>
+                    <Flex align="center" gap="middle">
+                      <span>主机名称</span>
+                      <Input size="small" style={{ width: '140px' }} placeholder="请输入" value={hostname} onChange={e => { setHostname(e.target.value ?? 'arcadia') }} />
+                    </Flex>
+                    <Flex align="center" gap="middle">
+                      <span>网络模式</span>
+                      <Select
+                        size="small"
+                        style={{ width: '140px' }}
+                        placeholder="请选择"
+                        popupRender={(menu) => (
+                          <>
+                            {menu}
+                            <Divider style={{ margin: '4px 0' }} />
+                            <Flex align="center" gap="small">
+                              <Input
+                                size="small"
+                                placeholder="请输入"
+                                ref={networkInputRef}
+                                value={selectInput}
+                                onChange={e => { setSelectInput(e.target.value) }}
+                                onKeyDown={(e) => { e.stopPropagation() }}
+                              />
+                              <Button size="small" type="text" style={{ padding: '0 4px' }} onClick={addNetworkItem}>
+                                <Icon>mdi:plus</Icon>
+                              </Button>
+                            </Flex>
+                          </>
+                        )}
+                        options={networkItems.map((item) => ({ label: item, value: item }))}
+                        defaultValue={network}
+                        onChange={(value: string) => { setNetwork(value ?? 'bridge') }}
+                      />
+                    </Flex>
+                    <Flex align="center" gap="middle">
+                      <span>端口映射</span>
+                      <InputNumber size="small" style={{ width: '140px' }} placeholder="请输入" value={port} onChange={(value) => { setPort(value ?? 5678) }} />
+                    </Flex>
+                    <Flex align="center" gap="middle">
+                      <span>镜像加速</span>
+                      <Select
+                        size="small"
+                        style={{ width: '140px' }}
+                        popupMatchSelectWidth={false}
+                        placeholder="请选择"
+                        popupRender={(menu) => (
+                          <>
+                            {menu}
+                            <Divider style={{ margin: '4px 0' }} />
+                            <Flex align="center" gap="small">
+                              <Input
+                                size="small"
+                                placeholder="请输入镜像地址"
+                                ref={mirrorInputRef}
+                                value={mirrorInput}
+                                onChange={e => { setMirrorInput(e.target.value) }}
+                                onKeyDown={(e) => { e.stopPropagation() }}
+                              />
+                              <Button size="small" type="text" style={{ padding: '0 4px' }} onClick={addMirrorItem}>
+                                <Icon>mdi:plus</Icon>
+                              </Button>
+                            </Flex>
+                          </>
+                        )}
+                        options={mirrorItems.map((item) => ({ label: item.label, value: item.value }))}
+                        value={mirror}
+                        onChange={(value: string) => { setMirror(value ?? '') }}
+                      />
+                    </Flex>
+                  </Flex>
+                </Col>
+              </Row>
+              <Row>
+                <Col style={{ marginTop: '20px' }}>
+                  <Flex align="center" vertical wrap="wrap" gap="small">
+                    <span style={{ fontWeight: 600 }}>挂载目录配置</span>
+                    <Flex align="center" gap="middle" justify="space-between" style={{ userSelect: 'none', width: '100%' }}>
+                      <span>挂载至当前目录</span>
+                      <Switch size="small" checked={useCurrentDir} onChange={setUseCurrentDir} />
+                    </Flex>
+                    <Checkbox.Group style={{ userSelect: 'none', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '212px' }} options={mountOptions} value={selectedMounts} onChange={setSelectedMounts} />
+                  </Flex>
+                </Col>
+              </Row>
+            </div>
           }>
           <Button type="text" color="default" variant="filled" icon={<Icon size={20}>line-md:cog-loop</Icon>} style={{ padding: '0 4px' }}>
             { !isMobile ? '高级配置' : undefined }
           </Button>
         </Popover>
       </Space>
-      {type === 'docker-compose-v2' && <DockerComposeV2 />}
-      {type === 'docker-compose-v1' && <DockerComposeV1 />}
-      {type === 'podman-compose' && <PodmanCompose />}
+      <div style={{ paddingTop: '1rem' }}>
+        {type === 'docker-compose-v2' && <DockerCompose isV2={true} />}
+        {type === 'docker-compose-v1' && <DockerCompose isV2={false} />}
+        {type === 'podman-compose' && <PodmanCompose />}
+      </div>
     </ConfigProvider>
   )
 }
