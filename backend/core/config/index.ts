@@ -80,6 +80,27 @@ export async function updateRuntimeConfigValue(key: ConfigKeyRuntime, value: str
 }
 
 /**
+ * JWT 密钥
+ */
+let _jwtSecret = ''
+
+/**
+ * 获取 JWT 密钥
+ */
+export function getJwtSecretSync(): string {
+  return _jwtSecret
+}
+
+/**
+ * 轮换 JWT 密钥
+ */
+export async function rotateJwtSecret(): Promise<void> {
+  const newSecret = randomString(32)
+  await updateRuntimeConfigValue(ConfigKeyRuntime.JWT_SECRET, newSecret)
+  _jwtSecret = newSecret
+}
+
+/**
  * 获取模块配置并转换为键值对映射
  */
 async function getModuleConfigMap(module: ConfigModule): Promise<Record<string, string>> {
@@ -280,6 +301,8 @@ async function initRuntimeConfig() {
   if (updates.length > 0) {
     await Promise.all(updates)
   }
+  // 将密钥加载到内存
+  _jwtSecret = config.jwtSecret
 }
 
 /**

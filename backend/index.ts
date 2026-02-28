@@ -21,15 +21,15 @@ async function startServer() {
   await initOpenApiAccessKeyCache()
 
   // 初始化配置
-  const { runtime: runtimeConfig } = await initConfig()
+  await initConfig()
 
   // 创建 API 认证中间件
-  const apiAuthentication = createApiAuthentication(runtimeConfig.jwtSecret)
+  const apiAuthentication = createApiAuthentication()
 
   // 注册应用服务
-  const app = registerApp(apiAuthentication, runtimeConfig.jwtSecret)
+  const app = registerApp(apiAuthentication)
   const server = createServer(app)
-  socketCommon.setSocket(initSocketServer(server, runtimeConfig.jwtSecret))
+  socketCommon.setSocket(initSocketServer(server))
 
   // 启动服务
   server.listen(5678, '0.0.0.0', async () => {

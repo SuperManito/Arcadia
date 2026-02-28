@@ -5,6 +5,7 @@ import type { JwtPayload, VerifyCallback } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
 import { logger } from '../utils/logger'
 import { addAfterTaskRun, addBeforeTaskRun } from '../core/cron/taskRunner'
+import { getJwtSecretSync } from '../core/config'
 
 declare module 'http' {
   interface IncomingMessage {
@@ -22,7 +23,7 @@ function getToken(req: Request) {
   return undefined
 }
 
-export function initSocketServer(server: HttpServer, jwtSecret: string) {
+export function initSocketServer(server: HttpServer) {
   const io = new Server(server, {
     cors: {
       origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
@@ -37,7 +38,7 @@ export function initSocketServer(server: HttpServer, jwtSecret: string) {
   io.use((socket, next) => {
     const token = getToken(socket.request as Request)
     if (token) {
-      jwt.verify(token, jwtSecret, ((err, decoded) => {
+      jwt.verify(token, getJwtSecretSync(), ((err, decoded) => {
         if (err) {
           next(new Error('unauthorized'))
         }

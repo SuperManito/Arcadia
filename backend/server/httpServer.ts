@@ -10,6 +10,7 @@ import { legacyCreateProxyMiddleware } from 'http-proxy-middleware'
 
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import { APP_PUBLIC_DIR } from '../core/type'
+import { getJwtSecretSync } from '../core/config'
 import { OpenAPIAuthentication, OpenAPIExtra } from '../api/open'
 import { API as ApiFile, OpenAPI as OpenApiFile } from '../api/file'
 import { API as ApiEnv, OpenAPI as OpenApiEnv } from '../api/env'
@@ -27,9 +28,9 @@ function getToken(req: Request) {
   return undefined
 }
 
-export function createApiAuthentication(jwtSecret: string): RequestHandler {
+export function createApiAuthentication(): RequestHandler {
   return expressjwt({
-    secret: jwtSecret,
+    secret: (_req, _token) => getJwtSecretSync(),
     algorithms: ['HS256'],
     credentialsRequired: true,
     getToken,
@@ -51,7 +52,7 @@ export function createApiAuthentication(jwtSecret: string): RequestHandler {
   })
 }
 
-export function registerApp(apiAuthentication: RequestHandler, jwtSecret: string) {
+export function registerApp(apiAuthentication: RequestHandler) {
   const app: Express = express()
 
   // gzip压缩
@@ -124,7 +125,7 @@ export function registerApp(apiAuthentication: RequestHandler, jwtSecret: string
         proxyReq: (proxyReq, req: Request, res: Response) => {
           const token = req.query && req.query.token ? (req.query.token as string) : null
           if (token) {
-            jwt.verify(token, jwtSecret, ((err, _decoded) => {
+            jwt.verify(token, getJwtSecretSync(), ((err, _decoded) => {
               if (err) {
                 // JWT 认证失败
                 const { message, code } = API_STATUS_CODE.API.AUTH_FAIL

@@ -4,7 +4,7 @@ import { API_STATUS_CODE, getClientIP, ip2Address } from '../utils/httpUtil'
 import { logger } from '../utils/logger'
 import jwt from 'jsonwebtoken'
 import { dateToString, randomString } from '../utils'
-import { getRuntimeConfigValue, getUserModuleConfig, updateUserConfigValue } from '../core/config'
+import { getRuntimeConfigValue, getUserModuleConfig, rotateJwtSecret, updateUserConfigValue } from '../core/config'
 import { resetUserCredentials, saveUserCredentials, updateLoginInfo } from '../core/config/user'
 import {
   disableTOTP,
@@ -277,6 +277,8 @@ api.post('/changePwd', async (request, response) => {
   const password = request.body.password
   if (username && password) {
     await saveUserCredentials({ username, password })
+    // 轮换 JWT Secret，使所有已签发的 Token 立即失效
+    await rotateJwtSecret()
     logger.info('用户更改了认证信息')
     response.send(API_STATUS_CODE.ok('修改成功！'))
   }
@@ -290,6 +292,19 @@ api.post('/changePwd', async (request, response) => {
  */
 api.get('/logout', (_request, response) => {
   response.send(API_STATUS_CODE.ok())
+})
+
+/**
+ * 注销所有令牌（所有已登录设备的立即失效）
+ */
+api.post('/revokeAllTokens', async (_request, response) => {
+  try {
+    await rotateJwtSecret()
+    response.send(API_STATUS_CODE.ok('已注销所有令牌'))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || '注销失败'))
+  }
 })
 
 /**
