@@ -36,12 +36,6 @@ export function createApiAuthentication(): RequestHandler {
     getToken,
   }).unless({
     path: [
-      '/',
-      '/index.html',
-      '/favicon.ico',
-      '/_app.config.js',
-      /^\/resource\/.*/,
-      /^\/assets\/.*/,
       '/api/system/health',
       '/api/user/auth',
       '/api/user/auth/twoFactor',
