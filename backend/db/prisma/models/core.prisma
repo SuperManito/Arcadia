@@ -26,6 +26,7 @@ model openApiAccessKey {
   value        String
   expire_time  DateTime?
   enable       Int       @default(1)
+  permissions  String    @default("")
   create_time  DateTime  @default(now())
   update_time  DateTime  @default(now()) @updatedAt
 
