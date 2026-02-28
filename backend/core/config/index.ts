@@ -224,22 +224,20 @@ async function initUserConfig() {
   const defaultUsername = DEFAULT_CONFIG_VALUES[ConfigModule.USER][ConfigKeyUser.USERNAME]
   const defaultPassword = DEFAULT_CONFIG_VALUES[ConfigModule.USER][ConfigKeyUser.PASSWORD]
 
-  // 旧版本数据迁移（临时措施，一段时间后移除）
-  if (!isNotEmpty(config.username) && !isNotEmpty(config.password)) {
+  // 旧版本认证信息迁移（临时措施，一段时间后移除）
+  if (config.username === defaultUsername && config.password === defaultPassword) {
     const oldAuthFilePath = path.join(APP_DIR_PATH.CONFIG, 'auth.json')
     const existsOldAuthFile = fs.existsSync(oldAuthFilePath)
     if (existsOldAuthFile) {
+      logger.info('检测到旧版认证配置，尝试迁移用户认证信息')
       try {
-        const { user, password } = getJsonFile(oldAuthFilePath)
-        const originalUsername = user
-        const originalPassword = password
+        const { user: originalUsername, password: originalPassword } = getJsonFile(oldAuthFilePath)
         const isDefinedUsername = isNotEmpty(originalUsername) && originalUsername !== defaultUsername
         const isDefinedPassword = isNotEmpty(originalPassword) && originalPassword !== defaultPassword
         if (isDefinedUsername || isDefinedPassword) {
-          // 迁移旧版认证配置
           await updateUserConfigValue(ConfigKeyUser.USERNAME, originalUsername)
           await updateUserConfigValue(ConfigKeyUser.PASSWORD, originalPassword)
-          logger.info('检测到旧版认证配置，已迁移至新配置系统')
+          logger.info(`旧版本用户认证信息已成功迁移至新配置系统，建议手动删除 ${oldAuthFilePath} 文件`)
         }
       }
       catch (error) {
