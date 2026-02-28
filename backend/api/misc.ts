@@ -107,15 +107,14 @@ api.get('/runCmdStatus', (request, response) => {
  * 停止任务
  */
 api.post('/stopTask', (request, response) => {
-  const cmd = `cd ${APP_ROOT_DIR}; arcadia stop ${request.body.path}`
-  // console.log('before exec');
-  // exec maxBuffer 20MB
+  const safePath = (String(request.body.path || '')).replace(/'/g, `'"'"'`)
+  const cmd = `cd ${APP_ROOT_DIR}; arcadia stop '${safePath}'`
   exec(cmd, {
     maxBuffer: 1024 * 1024 * 20,
   }, (error, stdout, stderr) => {
     // console.log(error, stdout, stderr);
     if (error) {
-      console.error(`执行的错误: ${error}`)
+      // console.error(`执行错误: ${error}`)
       response.send(API_STATUS_CODE.okData(stdout ? `${stdout}${error}` : `${error}`))
       return
     }
@@ -127,7 +126,7 @@ api.post('/stopTask', (request, response) => {
     }
 
     if (stderr) {
-      console.error(`stderr: ${stderr}`)
+      // console.error(`stderr: ${stderr}`)
       response.send(API_STATUS_CODE.okData(stderr))
       return
     }

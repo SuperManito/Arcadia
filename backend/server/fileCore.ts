@@ -6,7 +6,7 @@ import nodePath from 'node:path'
 import fs from 'node:fs'
 import os from 'node:os'
 import archiver from 'archiver'
-import { exec, execSync } from 'node:child_process'
+import { execFile, execSync } from 'node:child_process'
 import {
   APP_DIR_PATH,
   APP_DIR_TYPE,
@@ -34,6 +34,10 @@ const canRunCodeFileExtList = [
   'c',
   'sh',
 ]
+// 受保护的文件路径
+const protectedPaths = [APP_FILE_PATH.DB]
+const openApiProtectedPaths = [APP_FILE_PATH.ENV]
+
 const excludeRegExp = /(user\.session)|(\.cache$)|(\.check$)|(\.git$)|(\.tmp$)|(__pycache__$)|(node_modules)|(Cargo\.lock$)|(go\.sum$)|(\.gem$)|(\.bundle\/)|(\.cargo\/)|(__MACOSX\/)|(\.rbc$)|(\.so$)|(\.luac$)|(\.o$)|(\.a$)|(\.dll$)|(\.exe$)|(\.out$)|(\.pyc$)|(\.class$)|(\.elc$)|(\.beam$)|(\.hi$)|(\.dSYM\/)|(\.ipynb_checkpoints\/)|(\.rustup\/)|(\.cargo-cache\/)|(\.luarocks\/)|(\.rbenv\/)|(\.rvm\/)|(\.cabal\/)|(\.stack-work\/)|(\.perl\/)/ // 全局过滤正则
 
 interface FileList {
@@ -431,7 +435,7 @@ export function getJsonFile(fileKey: string): any {
  * @param content
  */
 export function saveFile(filePath: string, content: string) {
-  pathCheck(filePath)
+  checkPathAccess(filePath)
   if (filePath === APP_FILE_PATH.CONFIG) {
     saveNewConf(APP_FILE_TYPE.CONFIG, content, true)
     return
@@ -447,22 +451,30 @@ export function saveFile(filePath: string, content: string) {
  * 目录参数检查
  *
  * @param checkPath
+ * @param isOpenApi 是否为 OpenAPI 接口调用
  */
-export function rootPathCheck(checkPath: string) {
+export function checkPathBoundary(checkPath: string, isOpenApi: boolean = false) {
   const resolvedPath = nodePath.resolve(checkPath)
   const normalizedRootDir = nodePath.resolve(APP_ROOT_DIR)
   if (!resolvedPath.startsWith(normalizedRootDir + nodePath.sep) && resolvedPath !== normalizedRootDir) {
     throw new Error('非法操作：路径超出允许范围')
   }
+  if (protectedPaths.includes(resolvedPath)) {
+    throw new Error('非法操作：禁止访问受保护的文件')
+  }
+  if (isOpenApi && openApiProtectedPaths.includes(resolvedPath)) {
+    throw new Error('非法操作：禁止访问受保护的文件')
+  }
 }
 
 /**
- * 路径以及操作合法性检查
+ * 路径及操作合法性检查（文件必须存在）
  *
  * @param checkPath
+ * @param isOpenApi 是否为 OpenAPI 接口调用
  */
-export function pathCheck(checkPath: string) {
-  rootPathCheck(checkPath)
+export function checkPathAccess(checkPath: string, isOpenApi: boolean = false) {
+  checkPathBoundary(checkPath, isOpenApi)
   const resolvedPath = nodePath.resolve(checkPath)
   if (!fs.existsSync(resolvedPath)) {
     throw new Error('文件（夹）不存在')
@@ -482,7 +494,7 @@ export function fileRename(filePath: string, name: string) {
   }
   const parentPath = nodePath.join(filePath, '../')
   const newPath = nodePath.join(parentPath, name)
-  rootPathCheck(newPath)
+  checkPathBoundary(newPath)
   fs.renameSync(filePath, newPath)
 }
 
@@ -528,7 +540,7 @@ export function fileDelete(filePath: string) {
  * @param newPath 目标路径
  */
 export function fileMove(filePath: string, newPath: string) {
-  rootPathCheck(newPath)
+  checkPathBoundary(newPath)
   const resolvedNewPath = nodePath.resolve(newPath)
   fs.renameSync(filePath, resolvedNewPath)
 }
@@ -700,7 +712,7 @@ function getDirectorySize(dirPath: string): number {
  * @param {string} filePath - 文件路径
  */
 export async function codeFileResolve(filePath: string): Promise<CodeFileResolveResult> {
-  return new Promise((resolve, reject) => exec(`bash ${APP_FILE_PATH.RESOLVE_SCRIPT} ${filePath}`, (error, stdout, _stderr) => {
+  return new Promise((resolve, reject) => execFile('bash', [APP_FILE_PATH.RESOLVE_SCRIPT, filePath], { encoding: 'utf8' }, (error, stdout) => {
     if (error) {
       logger.error('解析代码文件失败', filePath, '=>', error)
       const enhancedError = new Error(`解析代码文件失败：${error.message}`)
@@ -711,7 +723,6 @@ export async function codeFileResolve(filePath: string): Promise<CodeFileResolve
       try {
         const result = stdout.split('\n').filter((it) => it.trim().length > 0)
         resolve(JSON.parse(result[result.length - 1]))
-        // resolve(JSON.parse(stdout))
       }
       catch (e: any) {
         logger.error('解析代码文件失败', filePath, '=>', e)

@@ -219,7 +219,7 @@ export function registerApp(apiAuthentication: RequestHandler, jwtSecret: string
    * 内部 API（仅本地访问）
    */
   const innerIpWhitelist: RequestHandler = (req, res, next) => {
-    const clientIp = req.socket.remoteAddress || req.ip || ''
+    const clientIp = req.socket.remoteAddress || ''
     const isLocalhost = clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === '::ffff:127.0.0.1'
     if (isLocalhost) {
       next()

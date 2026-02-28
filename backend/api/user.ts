@@ -300,8 +300,6 @@ apiInner.get('/info', async (_request, response) => {
     const userConfig = await getUserModuleConfig()
 
     response.send(API_STATUS_CODE.okData({
-      username: userConfig.username,
-      password: userConfig.password,
       lastLoginInfo: userConfig.lastLoginInfo || {},
       curLoginInfo: userConfig.curLoginInfo || {},
     }))

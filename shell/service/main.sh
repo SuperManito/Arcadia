@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2025-12-12
+## Modified: 2026-02-28
 
 ## 后端服务控制
 # service start/restart/stop/info/respwd
@@ -138,8 +138,6 @@ function service_manage() {
             return
         fi
         local result="$(echo "${res}" | jq -rc '.result')"
-        local username="$(echo "${result}" | jq -r ".username")"
-        local password="$(echo "${result}" | jq -r ".password")"
         local lastLoginIp="$(echo "${result}" | jq -r ".lastLoginInfo.loginIp")"
         local lastLoginAddress="$(echo "${result}" | jq -r ".lastLoginInfo.loginAddress")"
         local lastLoginTime="$(echo "${result}" | jq -r ".lastLoginInfo.loginTime")"
@@ -148,8 +146,6 @@ function service_manage() {
         local curLoginTime="$(echo "${result}" | jq -r ".curLoginInfo.loginTime")"
 
         echo ''
-        echo "用户名 ${username}"
-        echo "密码 ${password}"
         echo "最近登录"
         [ -n "${lastLoginIp}" ] && echo "  I P 地址 ${lastLoginIp}"
         [ -n "${lastLoginAddress}" ] && echo "  地理位置 ${lastLoginAddress}"
