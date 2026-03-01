@@ -5,7 +5,7 @@ import { logger } from '../utils/logger'
 import jwt from 'jsonwebtoken'
 import { dateToString, randomString } from '../utils'
 import { getRuntimeConfigValue, getUserModuleConfig, rotateJwtSecret, updateUserConfigValue } from '../core/config'
-import { resetUserCredentials, saveUserCredentials, updateLoginInfo } from '../core/config/user'
+import { hashPassword, resetUserCredentials, saveUserCredentials, updateLoginInfo, verifyPassword } from '../core/config/user'
 import {
   disableTOTP,
   enableTOTP,
@@ -63,9 +63,19 @@ async function validateCredentials(username: string, password: string, userConfi
   if (!username || !password) {
     return { valid: false, message: '请输入用户名密码！' }
   }
-  if (username !== userConfig.username || password !== userConfig.password) {
+  if (username !== userConfig.username) {
     incrementAuthError(curTime.getTime())
     return { valid: false, message: '错误的用户名或密码，请重试' }
+  }
+  const verifyResult = verifyPassword(password, userConfig.password)
+  if (!verifyResult.valid) {
+    incrementAuthError(curTime.getTime())
+    return { valid: false, message: '错误的用户名或密码，请重试' }
+  }
+  // 迁移旧版，替换为哈希存储
+  if (verifyResult.needsMigration) {
+    await updateUserConfigValue(ConfigKeyUser.PASSWORD, hashPassword(password))
+    logger.info('用户密码已自动从明文格式迁移至哈希存储')
   }
   return { valid: true, message: '' }
 }
@@ -106,7 +116,7 @@ async function completeLogin(username: string, password: string, request: Reques
     const newPassword = randomString(16)
     logger.info('检测到首次登录，已将密码设置为一个随机的字符串')
     result.newPwd = newPassword
-    await updateUserConfigValue(ConfigKeyUser.PASSWORD, newPassword)
+    await updateUserConfigValue(ConfigKeyUser.PASSWORD, hashPassword(newPassword))
   }
 
   // 记录本次登录信息
