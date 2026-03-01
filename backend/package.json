@@ -42,6 +42,7 @@
     "@antfu/eslint-config": "^7.6.1",
     "@types/archiver": "^7.0.0",
     "@types/compression": "^1.8.1",
+    "@types/crypto-js": "^4.2.2",
     "@types/express": "^5.0.6",
     "@types/multer": "^2.0.0",
     "@types/node": "^25.3.3",
