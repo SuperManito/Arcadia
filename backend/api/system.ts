@@ -12,9 +12,9 @@ const api: Express = express()
 api.post('/', async (request: Request, response: Response) => {
   try {
     const { name, expire_time, permissions } = request.body
-    const validPermissions = Array.isArray(permissions)
-      ? permissions.filter((p: unknown): p is OpenApiResourceType =>
-          typeof p === 'string' && OPEN_API_RESOURCE_TYPES.includes(p as OpenApiResourceType),
+    const validPermissions: OpenApiResourceType[] = typeof permissions === 'string' && permissions.trim() !== ''
+      ? permissions.split(',').map(p => p.trim()).filter((p): p is OpenApiResourceType =>
+          OPEN_API_RESOURCE_TYPES.includes(p as OpenApiResourceType),
         )
       : []
     const token = await createToken({
@@ -62,9 +62,9 @@ api.put('/', async (request: Request, response: Response) => {
       updateData.enable = enable === 0 ? 0 : 1
     }
     if (permissions !== undefined) {
-      updateData.permissions = Array.isArray(permissions)
-        ? permissions.filter((p: unknown): p is OpenApiResourceType =>
-            typeof p === 'string' && OPEN_API_RESOURCE_TYPES.includes(p as OpenApiResourceType),
+      updateData.permissions = typeof permissions === 'string' && permissions.trim() !== ''
+        ? permissions.split(',').map(p => p.trim()).filter((p): p is OpenApiResourceType =>
+            OPEN_API_RESOURCE_TYPES.includes(p as OpenApiResourceType),
           )
         : []
     }

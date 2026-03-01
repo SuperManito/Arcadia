@@ -36,7 +36,6 @@ if (fs.existsSync(extraServer)) {
  * 返回 null 表示该路径不属于受限资源类型（不做权限校验）
  */
 function extractResourceType(req: Request): OpenApiResourceType | null {
-  // req.path 在挂载到 /api/open 后为相对路径，如 /cron/list
   const path = req.path
   for (const type of OPEN_API_RESOURCE_TYPES) {
     if (path === `/${type}` || path.startsWith(`/${type}/`)) {
