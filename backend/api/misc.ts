@@ -4,7 +4,7 @@ import { logger } from '../utils/logger'
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import { randomString } from '../utils'
 import svgCaptcha from 'svg-captcha'
-import { exec } from 'node:child_process'
+import { exec, execFile } from 'node:child_process'
 import { socketCommon } from '../server/socket'
 import { getNeatContent } from '../server/fileCore'
 import { APP_ROOT_DIR } from '../core/type'
@@ -107,26 +107,25 @@ api.get('/runCmdStatus', (request, response) => {
  * 停止任务
  */
 api.post('/stopTask', (request, response) => {
-  const safePath = (String(request.body.path || '')).replace(/'/g, `'"'"'`)
-  const cmd = `cd ${APP_ROOT_DIR}; arcadia stop '${safePath}'`
-  exec(cmd, {
+  const taskPath = String(request.body.path || '')
+  if (!taskPath) {
+    response.send(API_STATUS_CODE.fail('缺少必要参数 path'))
+    return
+  }
+  execFile('bash', ['-c', `cd ${APP_ROOT_DIR}; arcadia stop "$1"`, '--', taskPath], {
     maxBuffer: 1024 * 1024 * 20,
   }, (error, stdout, stderr) => {
-    // console.log(error, stdout, stderr);
     if (error) {
-      // console.error(`执行错误: ${error}`)
       response.send(API_STATUS_CODE.okData(stdout ? `${stdout}${error}` : `${error}`))
       return
     }
 
     if (stdout) {
-      // console.log(`stdout: ${stdout}`)
       response.send(API_STATUS_CODE.okData(getNeatContent(`${stdout}`)))
       return
     }
 
     if (stderr) {
-      // console.error(`stderr: ${stderr}`)
       response.send(API_STATUS_CODE.okData(stderr))
       return
     }
