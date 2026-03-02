@@ -11,15 +11,19 @@ import { OpenAPICard } from '@site/src/components/OpenAPICard'
 
 ## 接口基准地址
 
-- `http://localhost:5678/api/open`
+`http://localhost:5678/api/open`
 
 服务端已开启 CORS 跨域支持
 
 ## 需要授权
 
-需要在 **请求头（Header）** 或 **请求地址参数（URL）** 中使用 `api-token` 字段并提供 `openApiToken（令牌）` 的值
+需要在 **请求头（Header）** 或 **请求地址参数（URL）** 中携带 `api-token` 字段并提供授权令牌，建议优先在请求头中携带
 
-关于如何创建该令牌请前往面板个人设置 - 令牌管理页面
+关于如何创建和管理该令牌请前往面板《个人设置 - 令牌管理》页面
+
+## 权限控制
+
+令牌可以单独设置访问权限，接口会根据权限设置进行访问控制
 
 ## 安全的操作
 
@@ -34,7 +38,7 @@ import { OpenAPICard } from '@site/src/components/OpenAPICard'
 
 | 名称 | 类型 | 描述 |
 | :-: | :-: | --- |
-| `code` | `number<0 \| 1 \| 4400 \| 4401 \| 4403>` | 业务代码，详见下方 |
+| `code` | `number<0 \| 1 \| 4400 \| 4401 \| 4403 \| 4404 \| 4405>` | 业务代码，详见下方 |
 | `message` | `string` | 消息 |
 | `type` | `string` | 类型 |
 | `result` | `boolean \| object \| string` | 结果 |
@@ -52,18 +56,20 @@ import { OpenAPICard } from '@site/src/components/OpenAPICard'
 |  `4400` |      BAD REQUEST      | 请求的地址不存在或者包含不支持的参数   |
 |  `4401` |     UNAUTHORIZED      | 未提供授权信息                     |
 |  `4403` |       FORBIDDEN       | 认证失败                          |
+|  `4404` |       NOT FOUND       | 路径不存在                        |
+|  `4405` |   PERMISSION DENIED   | 权限不足                          |
 
 </APITable>
 
 ## 编程接口
 
-- 基准地址 `http://localhost:5678/api/open/extra`
+基准地址 `http://localhost:5678/api/open/extra`
 
-目前后端使用 <Icon size={22}>logos-nodejs-icon</Icon> [Node.js®](https://nodejs.org) 构建，所以如果你想使用这个功能则需要会写一些 JavaScript 代码
+后端使用 [<Icon size={18}>logos-nodejs-icon</Icon> Node.js](https://nodejs.org) 编写，所以如果你想使用这个功能则需要会写一些 JavaScript 代码
 
 :::info 编写规范
 将代码存放在 **config** 目录下的 `extra_server.js` 脚本中（自行创建），[重启服务](/docs/cli/server/service#开启重启服务)后生效，注意届时检查日志进行确认  
-脚本需要导出唯一函数名，已固定函数传参详见下方示例，接口服务框架采用 [Express v4](https://expressjs.com)，更多编写方法请查阅其文档
+脚本需要导出唯一函数名，已固定函数传参详见下方示例，接口服务框架采用 [Express v5](https://expressjs.com)，更多编写方法请查阅其文档
 :::
 
 请参考下方的简单示例
@@ -74,7 +80,7 @@ import { OpenAPICard } from '@site/src/components/OpenAPICard'
 ```jsx language=javascript title="extra_server.js" showLineNumbers
 async function Main(api, resTemplate, logger) {
     // api express框架实例
-    // resTemplate 接口响应内置模板（具体详见 src/core/http/index.js，也可以自定义）
+    // resTemplate 接口响应内置模板（具体详见 src/backend/api/model.ts，也可以自定义）
     // logger 日志组件，支持分级（info、warn、debug、error、fatal），之后你可以在 server.log 中查看
 
     api.get('/test1', function (request, response) {

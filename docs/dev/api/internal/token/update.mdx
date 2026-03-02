@@ -16,6 +16,7 @@ import { PUT } from '@site/src/components/RequestTag';
 | `name` | `string` | 否 | 配置名称 |
 | `expire_time` | `number` | 否 | 过期时间（时间戳），空为永久 |
 | `enable` | `number<0 \| 1>` | 否 | 状态 `1启用 \| 0禁用`，默认启用 |
+| `permissions` | `string` | 否 | 访问权限，默认为空（即不限制访问权限），仅支持 `env \| cron \| file` 三种类型，用逗号拼接 |
 
 </APITable>
 

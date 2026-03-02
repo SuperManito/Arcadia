@@ -213,6 +213,7 @@ const sidebars: SidebarsConfig = {
                 'dev/api/internal/user/info',
                 'dev/api/internal/user/change-password',
                 'dev/api/internal/user/two-factor-auth',
+                'dev/api/internal/user/revoke-all-tokens',
               ],
               collapsed: true,
             },

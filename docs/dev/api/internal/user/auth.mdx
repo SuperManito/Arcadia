@@ -26,9 +26,9 @@ import { POST } from '@site/src/components/RequestTag';
 | :-: | :-: | --- |
 | `token` | `string` | JWT Token |
 | `newPwd` | `string` | 系统自动更改的新密码，返回机制见下方注释 |
-| `showCaptcha` | `string` | 是否需要提供图形验证码 |
+| `showCaptcha` | `boolean` | 是否需要提供图形验证码 |
 | `limitTime` | `number` | 限制登录剩余时长（单位/秒） |
-| `requireTwoFactor` | `string` | 是否启用双重认证 |
+| `requireTwoFactor` | `boolean` | 是否启用双重认证 |
 
 </APITable>
 
@@ -71,7 +71,7 @@ Token 有效时长：72小时
 | :-: | :-: | --- |
 | `token` | `string` | JWT Token |
 | `newPwd` | `string` | 系统自动更改的新密码，返回机制见下方注释 |
-| `showCaptcha` | `string` | 是否需要提供图形验证码 |
+| `showCaptcha` | `boolean` | 是否需要提供图形验证码 |
 | `limitTime` | `number` | 限制登录剩余时长（单位/秒） |
 
 </APITable>

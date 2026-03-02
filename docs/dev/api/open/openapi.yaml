@@ -46,7 +46,7 @@ components:
       type: apiKey
       in: header
       name: api-token
-      description: 32位令牌，可通过命令 `arcadia service info` 获取 `openApiToken` 字段的值
+      description: 32位令牌，在控制面板《个人设置 - 令牌管理》页面获取
   schemas:
     EnvData:
       type: object
