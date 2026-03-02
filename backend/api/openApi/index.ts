@@ -4,6 +4,12 @@ import { randomString } from '../../utils'
 import { logger } from '../../utils/logger'
 
 /**
+ * OpenAPI 资源类型
+ */
+export const OPEN_API_RESOURCE_TYPES = ['cron', 'file', 'env'] as const
+export type OpenApiResourceType = typeof OPEN_API_RESOURCE_TYPES[number]
+
+/**
  * Token 验证结果缓存
  */
 const tokenCache = new Map<string, any | null>()
@@ -13,6 +19,40 @@ const tokenCache = new Map<string, any | null>()
  */
 function invalidateCache(token: string) {
   tokenCache.delete(token)
+}
+
+/**
+ * 解析权限字符串为资源类型数组
+ * 空字符串表示不限制（允许所有资源类型）
+ */
+function parsePermissions(permissions: string): OpenApiResourceType[] {
+  if (!permissions || permissions.trim() === '') {
+    return []
+  }
+  return permissions
+    .split(',')
+    .map(p => p.trim())
+    .filter((p): p is OpenApiResourceType => OPEN_API_RESOURCE_TYPES.includes(p as OpenApiResourceType))
+}
+
+/**
+ * 检查 Token 是否有权限访问指定资源类型
+ * 若 permissions 为空则表示不限制，允许所有类型
+ */
+export function hasPermission(record: { permissions?: string | null }, resourceType: OpenApiResourceType): boolean {
+  if (!record.permissions || record.permissions.trim() === '') {
+    return true
+  }
+  const allowed = parsePermissions(record.permissions)
+  return allowed.includes(resourceType)
+}
+
+/**
+ * 将资源类型数组序列化为存储字符串
+ * 空数组表示不限制
+ */
+export function serializePermissions(types: OpenApiResourceType[]): string {
+  return types.join(',')
 }
 
 /**
@@ -70,6 +110,7 @@ export async function verifyToken(token: string) {
 export async function createToken(data?: {
   name?: string
   expire_time?: Date | null
+  permissions?: OpenApiResourceType[]
 }) {
   const token = generateToken()
   const record = await db.openApiAccessKey.$create({
@@ -77,6 +118,7 @@ export async function createToken(data?: {
     name: data?.name || '',
     expire_time: data?.expire_time || null,
     enable: 1,
+    permissions: data?.permissions ? serializePermissions(data.permissions) : '',
   })
   tokenCache.set((record as openApiAccessKeyModel).value, record)
   return record
@@ -98,11 +140,17 @@ export async function updateToken(
     name?: string
     expire_time?: Date | null
     enable?: number
+    permissions?: OpenApiResourceType[]
   },
 ) {
+  const { permissions, ...rest } = data
+  const updateData: any = { ...rest }
+  if (permissions !== undefined) {
+    updateData.permissions = serializePermissions(permissions)
+  }
   const result = await db.openApiAccessKey.update({
     where: { id },
-    data,
+    data: updateData,
   })
   invalidateCache(result.value)
   return result

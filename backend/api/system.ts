@@ -1,7 +1,8 @@
 import type { Express, Request, Response } from 'express'
 import express from 'express'
 import { API_STATUS_CODE } from '../utils/httpUtil'
-import { createToken, deleteToken, listTokens, updateToken } from './openApi'
+import { createToken, deleteToken, listTokens, OPEN_API_RESOURCE_TYPES, updateToken } from './openApi'
+import type { OpenApiResourceType } from './openApi'
 
 const api: Express = express()
 
@@ -10,10 +11,16 @@ const api: Express = express()
  */
 api.post('/', async (request: Request, response: Response) => {
   try {
-    const { name, expire_time } = request.body
+    const { name, expire_time, permissions } = request.body
+    const validPermissions: OpenApiResourceType[] = typeof permissions === 'string' && permissions.trim() !== ''
+      ? permissions.split(',').map(p => p.trim()).filter((p): p is OpenApiResourceType =>
+          OPEN_API_RESOURCE_TYPES.includes(p as OpenApiResourceType),
+        )
+      : []
     const token = await createToken({
       name: name?.trim(),
       expire_time: expire_time ? new Date(expire_time) : null,
+      permissions: validPermissions,
     })
     response.send(API_STATUS_CODE.okData(token))
   }
@@ -40,11 +47,11 @@ api.get('/', async (_request: Request, response: Response) => {
  */
 api.put('/', async (request: Request, response: Response) => {
   try {
-    const { id, name, expire_time, enable } = request.body
+    const { id, name, expire_time, enable, permissions } = request.body
     if (!id || Number.isNaN(Number(id))) {
       return response.send(API_STATUS_CODE.fail('无效的 ID'))
     }
-    const updateData: any = {}
+    const updateData: Parameters<typeof updateToken>[1] = {}
     if (name !== undefined) {
       updateData.name = name.trim()
     }
@@ -53,6 +60,13 @@ api.put('/', async (request: Request, response: Response) => {
     }
     if (enable !== undefined) {
       updateData.enable = enable === 0 ? 0 : 1
+    }
+    if (permissions !== undefined) {
+      updateData.permissions = typeof permissions === 'string' && permissions.trim() !== ''
+        ? permissions.split(',').map(p => p.trim()).filter((p): p is OpenApiResourceType =>
+            OPEN_API_RESOURCE_TYPES.includes(p as OpenApiResourceType),
+          )
+        : []
     }
     const token = await updateToken(Number(id), updateData)
     response.send(API_STATUS_CODE.okData(token))

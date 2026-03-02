@@ -3,6 +3,18 @@ import { APP_FILE_PATH } from '../core/type'
 import type { ComboEnvsGroupModel, envsModel } from '../db'
 
 /**
+ * 校验环境变量名
+ */
+export function validateEnvName(name: string): void {
+  if (!name || typeof name !== 'string') {
+    throw new Error('名称不能为空')
+  }
+  if (!/^[A-Z_]\w*$/i.test(name)) {
+    throw new Error(`非法名称："${name}"（只允许字母、数字和下划线，且不能以数字开头）`)
+  }
+}
+
+/**
  * 任务队列状态管理
  */
 interface QueueState {

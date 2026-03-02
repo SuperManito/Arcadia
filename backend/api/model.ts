@@ -61,6 +61,10 @@ export default {
       code: 4403,
       message: '认证失败',
     },
+    PERMISSION_DENIED: {
+      code: 4405,
+      message: '权限不足（令牌无权访问该类型接口）',
+    },
     NOT_FOUND: {
       code: 4404,
       message: '应用程序接口不存在，请查阅官方文档',

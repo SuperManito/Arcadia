@@ -12,7 +12,7 @@ import type {
   PageResult,
 } from '../db'
 import db, { flattenEnvsGroupPageResult, flattenIncludeRelationCount } from '../db'
-import { generateEnvSh } from '../utils/envUtil'
+import { generateEnvSh, validateEnvName } from '../utils/envUtil'
 import type { ValidateObjectParamType } from '../utils'
 import {
   cleanProperties,
@@ -432,6 +432,10 @@ apiOpen.get('/v1/queryById', async (request, response) => {
 api.post('/save', async (request, response) => {
   try {
     const env = request.body
+    // 校验变量名合法性
+    if (env.type) {
+      validateEnvName(env.type)
+    }
     // 新增判断是否重复添加
     if (!env.id) {
       await checkVaribleExsit(env.type)
@@ -455,6 +459,10 @@ api.post('/saveItem', async (request, response) => {
     const env = request.body
     if (!env.group_id) {
       env.group_id = 0
+    }
+    // 校验变量名合法性
+    if (env.type && env.group_id === 0) {
+      validateEnvName(env.type)
     }
     // 新增判断是否重复添加（不考虑添加复合变量关联值）
     if (!env.id && env.group_id === 0) {
@@ -485,7 +493,8 @@ api.post('/create', async (request, response) => {
     }
     const formatData: envsGroupModel[] = []
     for (const obj of data) {
-      // 检查变量重名
+      // 检查变量合法性与重名
+      validateEnvName(obj.type)
       await checkVaribleExsit(obj.type)
       formatData.push(obj)
     }
@@ -509,8 +518,9 @@ api.post('/createItem', async (request, response) => {
     }
     const formatData: envsModel[] = []
     for (const obj of data) {
-      // 检查变量重名
+      // 检查变量合法性与重名
       if (obj.type) {
+        validateEnvName(obj.type)
         await checkVaribleExsit(obj.type)
       }
       formatData.push(obj)
@@ -582,8 +592,9 @@ apiOpen.post('/v1/create', async (request, response) => {
       validateObject(obj, validateRules)
       // clean
       obj = cleanProperties(obj, fields)
-      // 检查变量重名
+      // 检查变量合法性与重名
       if ([EnvTypes.ORDINARY, EnvTypes.COMPOSITE].includes(category)) {
+        validateEnvName(obj.type)
         await checkVaribleExsit(obj.type)
       }
       // 补齐参数

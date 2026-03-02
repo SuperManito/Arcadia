@@ -4,7 +4,8 @@ import { API_STATUS_CODE } from '../utils/httpUtil'
 import { logger } from '../utils/logger'
 import fs from 'node:fs'
 import { APP_FILE_PATH } from '../core/type'
-import { verifyToken } from './openApi'
+import { hasPermission, OPEN_API_RESOURCE_TYPES, verifyToken } from './openApi'
+import type { OpenApiResourceType } from './openApi'
 
 const api: Express = express()
 
@@ -31,6 +32,20 @@ if (fs.existsSync(extraServer)) {
 }
 
 /**
+ * 从请求路径中提取资源类型
+ * 返回 null 表示该路径不属于受限资源类型（不做权限校验）
+ */
+function extractResourceType(req: Request): OpenApiResourceType | null {
+  const path = req.path
+  for (const type of OPEN_API_RESOURCE_TYPES) {
+    if (path === `/${type}` || path.startsWith(`/${type}/`)) {
+      return type
+    }
+  }
+  return null
+}
+
+/**
  * 鉴权
  */
 async function tokenChecker(req: Request) {
@@ -45,6 +60,11 @@ async function tokenChecker(req: Request) {
     }
     const record = await verifyToken(token)
     if (record) {
+      // 权限检查
+      const resourceType = extractResourceType(req)
+      if (resourceType && !hasPermission(record, resourceType)) {
+        return API_STATUS_CODE.OPEN_API.PERMISSION_DENIED
+      }
       return null // 认证通过
     }
   }

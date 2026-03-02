@@ -4,8 +4,8 @@ import { API_STATUS_CODE, getClientIP, ip2Address } from '../utils/httpUtil'
 import { logger } from '../utils/logger'
 import jwt from 'jsonwebtoken'
 import { dateToString, randomString } from '../utils'
-import { getRuntimeConfigValue, getUserModuleConfig, updateUserConfigValue } from '../core/config'
-import { resetUserCredentials, saveUserCredentials, updateLoginInfo } from '../core/config/user'
+import { getRuntimeConfigValue, getUserModuleConfig, rotateJwtSecret, updateUserConfigValue } from '../core/config'
+import { hashPassword, resetUserCredentials, saveUserCredentials, updateLoginInfo, verifyPassword } from '../core/config/user'
 import {
   disableTOTP,
   enableTOTP,
@@ -63,9 +63,19 @@ async function validateCredentials(username: string, password: string, userConfi
   if (!username || !password) {
     return { valid: false, message: '请输入用户名密码！' }
   }
-  if (username !== userConfig.username || password !== userConfig.password) {
+  if (username !== userConfig.username) {
     incrementAuthError(curTime.getTime())
     return { valid: false, message: '错误的用户名或密码，请重试' }
+  }
+  const verifyResult = verifyPassword(password, userConfig.password)
+  if (!verifyResult.valid) {
+    incrementAuthError(curTime.getTime())
+    return { valid: false, message: '错误的用户名或密码，请重试' }
+  }
+  // 迁移旧版，替换为哈希存储
+  if (verifyResult.needsMigration) {
+    await updateUserConfigValue(ConfigKeyUser.PASSWORD, hashPassword(password))
+    logger.info('用户密码已自动从明文格式迁移至哈希存储')
   }
   return { valid: true, message: '' }
 }
@@ -106,7 +116,7 @@ async function completeLogin(username: string, password: string, request: Reques
     const newPassword = randomString(16)
     logger.info('检测到首次登录，已将密码设置为一个随机的字符串')
     result.newPwd = newPassword
-    await updateUserConfigValue(ConfigKeyUser.PASSWORD, newPassword)
+    await updateUserConfigValue(ConfigKeyUser.PASSWORD, hashPassword(newPassword))
   }
 
   // 记录本次登录信息
@@ -277,6 +287,8 @@ api.post('/changePwd', async (request, response) => {
   const password = request.body.password
   if (username && password) {
     await saveUserCredentials({ username, password })
+    // 轮换 JWT Secret，使所有已签发的 Token 立即失效
+    await rotateJwtSecret()
     logger.info('用户更改了认证信息')
     response.send(API_STATUS_CODE.ok('修改成功！'))
   }
@@ -293,6 +305,19 @@ api.get('/logout', (_request, response) => {
 })
 
 /**
+ * 注销所有令牌（所有已登录设备的立即失效）
+ */
+api.post('/revokeAllTokens', async (_request, response) => {
+  try {
+    await rotateJwtSecret()
+    response.send(API_STATUS_CODE.ok('已注销所有令牌'))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || '注销失败'))
+  }
+})
+
+/**
  * 获取用户信息
  */
 apiInner.get('/info', async (_request, response) => {
@@ -300,8 +325,6 @@ apiInner.get('/info', async (_request, response) => {
     const userConfig = await getUserModuleConfig()
 
     response.send(API_STATUS_CODE.okData({
-      username: userConfig.username,
-      password: userConfig.password,
       lastLoginInfo: userConfig.lastLoginInfo || {},
       curLoginInfo: userConfig.curLoginInfo || {},
     }))

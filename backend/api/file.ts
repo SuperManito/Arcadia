@@ -8,6 +8,8 @@ import multer from 'multer'
 import nodePath from 'node:path'
 import type { FileTreeParams } from '../server/fileCore'
 import {
+  checkPathAccess,
+  checkPathBoundary,
   fileCreate,
   fileDelete,
   fileDownload,
@@ -17,8 +19,6 @@ import {
   getFile,
   getFileList,
   getFileTree,
-  pathCheck,
-  rootPathCheck,
   saveFile,
 } from '../server/fileCore'
 import { APP_DIR_PATH, APP_DIR_TYPE, APP_ROOT_DIR } from '../core/type'
@@ -38,7 +38,7 @@ interface Request extends ExpressRequest {
 api.get('/list', (request, response) => {
   try {
     const path = request.query.path as string || APP_ROOT_DIR
-    pathCheck(path)
+    checkPathAccess(path)
     response.send(API_STATUS_CODE.okData(getFileList(path)))
   }
   catch (e: any) {
@@ -54,7 +54,7 @@ apiOpen.get('/v1/list', (request, response) => {
       ] as const,
     })
     const path = params.query.path || APP_ROOT_DIR
-    pathCheck(path)
+    checkPathAccess(path, true)
     response.send(API_STATUS_CODE.okData(getFileList(path)))
   }
   catch (e: any) {
@@ -113,7 +113,7 @@ api.get('/tree/:type', (request, response) => {
 api.get('/content', (request, response) => {
   try {
     const path = request.query.path as string
-    pathCheck(path)
+    checkPathAccess(path)
     response.send(API_STATUS_CODE.okData(getFile(path)))
   }
   catch (e: any) {
@@ -129,7 +129,7 @@ apiOpen.get('/v1/content', (request, response) => {
       ] as const,
     })
     const { path } = params.query
-    pathCheck(path)
+    checkPathAccess(path, true)
     response.send(API_STATUS_CODE.okData(getFile(path)))
   }
   catch (e: any) {
@@ -143,7 +143,7 @@ apiOpen.get('/v1/content', (request, response) => {
 api.post('/content', (request, response) => {
   try {
     const { path, content } = request.body
-    pathCheck(path)
+    checkPathAccess(path)
     saveFile(path, content)
     response.send(API_STATUS_CODE.ok())
   }
@@ -162,7 +162,7 @@ apiOpen.post('/v1/content', (request, response) => {
       ] as const,
     })
     const { path, content } = params.body
-    pathCheck(path)
+    checkPathAccess(path, true)
     saveFile(path, content)
     response.send(API_STATUS_CODE.ok())
   }
@@ -178,7 +178,7 @@ apiOpen.post('/v1/content', (request, response) => {
 api.get('/info', (request, response) => {
   try {
     const path = request.query.path as string
-    pathCheck(path)
+    checkPathAccess(path)
     response.send(API_STATUS_CODE.okData(fileInfo(path)))
   }
   catch (e: any) {
@@ -194,7 +194,7 @@ apiOpen.get('/v1/info', (request, response) => {
       ] as const,
     })
     const { path } = params.query
-    pathCheck(path)
+    checkPathAccess(path, true)
     response.send(API_STATUS_CODE.okData(fileInfo(path)))
   }
   catch (e: any) {
@@ -208,7 +208,7 @@ apiOpen.get('/v1/info', (request, response) => {
 api.post('/rename', (request, response) => {
   try {
     const { path, name } = request.body
-    pathCheck(path)
+    checkPathAccess(path)
     fileRename(path, name)
     response.send(API_STATUS_CODE.ok())
   }
@@ -227,7 +227,7 @@ apiOpen.post('/v1/rename', (request, response) => {
       ] as const,
     })
     const { path, name } = params.body
-    pathCheck(path)
+    checkPathAccess(path, true)
     fileRename(path, name)
     response.send(API_STATUS_CODE.ok())
     logger.info('[OpenAPI · File]', '文件或目录重命名', path, name)
@@ -244,8 +244,8 @@ apiOpen.post('/v1/rename', (request, response) => {
 api.post('/move', (request, response) => {
   try {
     const { path: oldPath, newPath } = request.body
-    pathCheck(oldPath)
-    rootPathCheck(newPath)
+    checkPathAccess(oldPath)
+    checkPathBoundary(newPath)
     fileMove(oldPath, newPath)
     response.send(API_STATUS_CODE.ok())
   }
@@ -258,8 +258,8 @@ api.post('/move', (request, response) => {
 apiOpen.post('/v1/move', (request, response) => {
   try {
     const { path: oldPath, newPath } = request.body
-    pathCheck(oldPath)
-    rootPathCheck(newPath)
+    checkPathAccess(oldPath, true)
+    checkPathBoundary(newPath, true)
     fileMove(oldPath, newPath)
     response.send(API_STATUS_CODE.ok())
     logger.info('[OpenAPI · File]', '文件或目录移动', oldPath, newPath)
@@ -276,7 +276,7 @@ apiOpen.post('/v1/move', (request, response) => {
 api.post('/create', (request, response) => {
   try {
     const { path, name, type } = request.body
-    rootPathCheck(path)
+    checkPathBoundary(path)
     response.send(API_STATUS_CODE.okData(fileCreate(path, name, type)))
   }
   catch (e: any) {
@@ -295,7 +295,7 @@ apiOpen.post('/v1/create', (request, response) => {
       ] as const,
     })
     const { path, name, type } = params.body
-    rootPathCheck(path)
+    checkPathBoundary(path, true)
     response.send(API_STATUS_CODE.okData(fileCreate(path, name, type)))
   }
   catch (e: any) {
@@ -319,7 +319,7 @@ api.delete('/delete', (request, response) => {
     }
     for (const filePath of files) {
       logger.info('删除文件', filePath)
-      pathCheck(filePath)
+      checkPathAccess(filePath)
       fileDelete(filePath)
     }
     response.send(API_STATUS_CODE.ok())
@@ -347,7 +347,7 @@ apiOpen.delete('/v1/delete', (request, response) => {
     }
     for (const filePath of files) {
       logger.info('[OpenAPI · File]', '删除文件', filePath)
-      pathCheck(filePath)
+      checkPathAccess(filePath, true)
       fileDelete(filePath)
     }
     response.send(API_STATUS_CODE.ok())
@@ -364,7 +364,7 @@ apiOpen.delete('/v1/delete', (request, response) => {
 api.get('/download', (request, response) => {
   try {
     const path = request.query.path as string
-    pathCheck(path)
+    checkPathAccess(path)
     fileDownload(path, response)
   }
   catch (e: any) {
@@ -381,7 +381,7 @@ apiOpen.get('/v1/download', (request, response) => {
       ] as const,
     })
     const { path } = params.query
-    pathCheck(path)
+    checkPathAccess(path, true)
     fileDownload(path, response)
     logger.info('[OpenAPI · File]', '文件或目录下载', path)
   }
@@ -402,7 +402,7 @@ const upload = multer({
       let resolvedPath: string
       try {
         resolvedPath = nodePath.resolve(savePath)
-        rootPathCheck(resolvedPath)
+        checkPathBoundary(resolvedPath)
       }
       catch (err) {
         return cb(err as Error, savePath)
