@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-02-20
+## Modified: 2026-03-03
 
 ## 清空定时任务关联代码文件清单内容
 function clean_list_scripts() {
@@ -99,7 +99,7 @@ function command_update_main() {
         fi
         ;;
     *)
-        ## 判断传入参数
+        ## 判断传入参数是否为有效路径，否则视为配置文件名称
         local path_content
         echo $1 | grep "\/" -q
         if [ $? -eq 0 ]; then
@@ -116,17 +116,11 @@ function command_update_main() {
         if [[ "${path_content}" ]]; then
             ## 转换为绝对路径
             local path="$(get_absolute_path "${path_content}")"
-            ## 判定是否存在仓库
-            if [ ! -d "${path}/.git" ]; then
-                if [ -d "${path}" ]; then
-                    output_error "未检测到 ${BLUE}${path}${PLAIN} 路径下存在任何仓库，请重新确认！"
-                else
-                    output_error "路径 ${BLUE}${path}${PLAIN} 不存在，请重新确认！"
-                fi
-            fi
             import update/repo
-            update_designated_repo "$1"
+            update_designated_repo "${path}"
         else
+            ## 清空定时任务关联代码文件清单内容
+            clean_list_scripts
             ## 更新特定名称的配置
             if [[ "$(is_config_name_exist "$1" "repo")" == true ]]; then
                 print_title_start "designated"
@@ -139,6 +133,9 @@ function command_update_main() {
             else
                 output_command_error 1 # 命令错误
             fi
+            ## 更新定时任务
+            import update/cron
+            update_cron
         fi
         ;;
     esac

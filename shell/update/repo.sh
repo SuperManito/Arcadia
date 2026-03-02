@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-01-12
+## Modified: 2026-03-03
 
 ## 更新所有代码仓库
 # update repo
@@ -95,9 +95,17 @@ function update_repo() {
 # update <path>
 function update_designated_repo() {
     local repo_path="$1"
-    ## 更新源代码
-    if [[ "${repo_path}" = "$RootDir" ]]; then
-        echo -e "\n$WARN 请使用 ${GREEN}${ArcadiaCmd} update${PLAIN} 命令更新项目"
+    ## 判定是否存在仓库
+    if [ ! -d "${repo_path}/.git" ]; then
+        if [ -d "${repo_path}" ]; then
+            output_error "未检测到 ${BLUE}${repo_path}${PLAIN} 路径下存在任何仓库，请重新确认！"
+        else
+            output_error "路径 ${BLUE}${repo_path}${PLAIN} 不存在，请重新确认！"
+        fi
+    fi
+    ## 如果是项目源码仓库
+    if [[ "${repo_path}" = "${RootDir}" ]]; then
+        echo -e "\n$WARN 请使用 ${GREEN}${ArcadiaCmd} upgrade${PLAIN} 命令更新源代码"
         return
     fi
     ## 更新仓库
@@ -111,7 +119,6 @@ function update_designated_repo() {
     clean_list_scripts
 
     ## 判断仓库是否在配置文件中
-    # 根据目标仓库是否为已配置的仓库
     local is_configured_repo="false" # 是否为已配置的仓库
     local name url branch path
     local authSettings authSettings_alias authSettings_hostName authSettings_privateKeyPath authSettings_username authSettings_password

@@ -39,15 +39,27 @@ export function verifyPassword(plaintext: string, stored: string): { valid: bool
     if (parts.length !== 4) {
       return { valid: false, needsMigration: false }
     }
-    const iterations = Number.parseInt(parts[1])
-    const salt = CryptoJS.enc.Hex.parse(parts[2])
+    const iterations = Number.parseInt(parts[1], 10)
+    if (!Number.isSafeInteger(iterations) || iterations <= 0) {
+      return { valid: false, needsMigration: false }
+    }
+    const saltHex = parts[2]
+    if (!/^[0-9a-f]+$/i.test(saltHex)) {
+      return { valid: false, needsMigration: false }
+    }
     const expectedHash = parts[3]
-    const actualHash = CryptoJS.PBKDF2(plaintext, salt, {
-      keySize: PBKDF2_KEY_SIZE,
-      iterations,
-      hasher: CryptoJS.algo.SHA256,
-    }).toString()
-    return { valid: actualHash === expectedHash, needsMigration: false }
+    try {
+      const salt = CryptoJS.enc.Hex.parse(saltHex)
+      const actualHash = CryptoJS.PBKDF2(plaintext, salt, {
+        keySize: PBKDF2_KEY_SIZE,
+        iterations,
+        hasher: CryptoJS.algo.SHA256,
+      }).toString()
+      return { valid: actualHash === expectedHash, needsMigration: false }
+    }
+    catch {
+      return { valid: false, needsMigration: false }
+    }
   }
   else {
     return { valid: plaintext === stored, needsMigration: true }
