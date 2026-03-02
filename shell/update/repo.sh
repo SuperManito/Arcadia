@@ -95,6 +95,11 @@ function update_repo() {
 # update <path>
 function update_designated_repo() {
     local repo_path="$1"
+    ## 如果是项目源码仓库
+    if [[ "${repo_path}" == "${SrcDir}" ]]; then
+        echo -e "\n$WARN 请使用 ${GREEN}${ArcadiaCmd} upgrade${PLAIN} 命令更新源代码"
+        return
+    fi
     ## 判定是否存在仓库
     if [ ! -d "${repo_path}/.git" ]; then
         if [ -d "${repo_path}" ]; then
@@ -102,11 +107,6 @@ function update_designated_repo() {
         else
             output_error "路径 ${BLUE}${repo_path}${PLAIN} 不存在，请重新确认！"
         fi
-    fi
-    ## 如果是项目源码仓库
-    if [[ "${repo_path}" = "${RootDir}" ]]; then
-        echo -e "\n$WARN 请使用 ${GREEN}${ArcadiaCmd} upgrade${PLAIN} 命令更新源代码"
-        return
     fi
     ## 更新仓库
     import core/sync
