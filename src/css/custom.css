@@ -52,8 +52,8 @@
   --ifm-color-primary-lighter: #4696f3;
   --ifm-color-primary-lightest: #6cacf5;
   --ifm-color-primary-sub: #2080f01a;
-  --ifm-navbar-background-color: #ffffff;
-  --ifm-custom-navbar-background-color: #ffffff;
+  --ifm-navbar-background-color: #ffffff54;
+  --ifm-custom-navbar-background-color: #ffffff54;
   --docusaurus-highlighted-code-line-bg: #00000019;
 }
 
@@ -69,8 +69,8 @@
   --ifm-color-primary-sub: #56b8f51a;
   --ifm-background-color: #1e1e20;
   --ifm-custom-background-color: #1e1e20;
-  --ifm-navbar-background-color: #1e1e20;
-  --ifm-custom-navbar-background-color: #1e1e20;
+  --ifm-navbar-background-color: #1e1e2054;
+  --ifm-custom-navbar-background-color: #1e1e2054;
   --docusaurus-highlighted-code-line-bg: #D4D4D41a;
 }
 
@@ -85,16 +85,7 @@
 }
 
 /* 移动端 */
-@media screen and (min-width: 996px) {
-  /* 导航栏背景 */
-  [data-theme='light'] {
-    --ifm-navbar-background-color: #ffffff54;
-    --ifm-custom-navbar-background-color: #ffffff54;
-  }
-  [data-theme='dark'] {
-    --ifm-navbar-background-color: #1e1e2054;
-    --ifm-custom-navbar-background-color: #1e1e2054;
-  }
+@media screen and (max-width: 996px) {
   .navbar.navbar--fixed-top {
     background-color: var(--ifm-custom-navbar-background-color);
   }

@@ -53,6 +53,14 @@ export default async function createConfigAsync (): Promise<DocusaurusConfig> {
           } satisfies DocsOptions,
           pages: {
             remarkPlugins: [npm2yarn],
+            exclude: [
+              '**/_*.{js,jsx,ts,tsx,md,mdx}',
+              '**/_*/**',
+              '**/*.test.{js,jsx,ts,tsx}',
+              '**/__tests__/**',
+              '**/components/**',
+              '**/hooks/**',
+            ],
           } satisfies PageOptions,
           blog: {
             showReadingTime: true,
