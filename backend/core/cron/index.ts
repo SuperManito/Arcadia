@@ -13,54 +13,52 @@ export { runCronTask, runningTasks, stopCronTask } from './taskRunner'
  *
  * @description 从数据库中读取任务并初始化（应用数据库中配置的定时任务）
  */
-export function initCronJob() {
-  setTimeout(async () => {
-    logger.log('定时任务初始化 - 开始')
-    for (const task of (await db.taskCore.findMany())) {
-      const taskCoreId = task.id
-      const tasksId = Number.parseInt(taskCoreId.substring(2))
-      const cronExpression = task.cron.trim()
+export async function initCronJob() {
+  logger.log('定时任务初始化 - 开始')
+  for (const task of (await db.taskCore.findMany())) {
+    const taskCoreId = task.id
+    const tasksId = Number.parseInt(taskCoreId.substring(2))
+    const cronExpression = task.cron.trim()
 
-      // 高危操作
-      // 删除不存在的定时任务（处理不符合预期未被移除的非正常任务）
-      if (!(await db.tasks.$getById(tasksId))) {
-        await db.taskCore.$deleteById(taskCoreId)
-        // logger.warn(`定时任务 ${tasksId} 不存在，已删除`)
-      }
+    // 高危操作
+    // 删除不存在的定时任务（处理不符合预期未被移除的非正常任务）
+    if (!(await db.tasks.$getById(tasksId))) {
+      await db.taskCore.$deleteById(taskCoreId)
+      // logger.warn(`定时任务 ${tasksId} 不存在，已删除`)
+    }
 
-      // 定时表达式格式校验
-      const cronParams = cronExpression.split(' ')
-      if (cronParams.length < 5 || cronParams.length > 6) {
-        logger.error(`设置定时任务 ${tasksId} 失败 => ${cronExpression} (格式错误)`)
-        continue
-      }
-      try {
-        validateCronExpression(cronExpression)
-      }
-      catch (error: any) {
-        logger.error(`设置定时任务 ${tasksId} 失败 => ${cronExpression} (${error})`)
-        continue
-      }
-      // 设置定时
-      try {
-        setTask(taskCoreId, cronExpression, () => onCron(task))
-        // logger.log(`设置定时任务 ${tasksId} 成功 => ${cronExpression}`)
-      }
-      catch (e: any) {
-        logger.error(`设置定时任务 ${tasksId} 失败 => ${cronExpression} ${e.message || e}`)
-      }
+    // 定时表达式格式校验
+    const cronParams = cronExpression.split(' ')
+    if (cronParams.length < 5 || cronParams.length > 6) {
+      logger.error(`设置定时任务 ${tasksId} 失败 => ${cronExpression} (格式错误)`)
+      continue
     }
-    // 应用未正常设置的定时任务
-    const ids = (await db.taskCore.findMany()).map((task) => task.id.substring(2))
-    for (const task of (await db.tasks.findMany())) {
-      if (ids.includes(String(task.id))) {
-        continue
-      }
-      await applyCron(task.id)
+    try {
+      validateCronExpression(cronExpression)
     }
-    // logger.log('任务总数', taskCoreCurd.list().length)
-    logger.log('定时任务初始化 - 结束')
-  }, 1000)
+    catch (error: any) {
+      logger.error(`设置定时任务 ${tasksId} 失败 => ${cronExpression} (${error})`)
+      continue
+    }
+    // 设置定时
+    try {
+      setTask(taskCoreId, cronExpression, () => onCron(task))
+      // logger.log(`设置定时任务 ${tasksId} 成功 => ${cronExpression}`)
+    }
+    catch (e: any) {
+      logger.error(`设置定时任务 ${tasksId} 失败 => ${cronExpression} ${e.message || e}`)
+    }
+  }
+  // 应用未正常设置的定时任务
+  const ids = (await db.taskCore.findMany()).map((task) => task.id.substring(2))
+  for (const task of (await db.tasks.findMany())) {
+    if (ids.includes(String(task.id))) {
+      continue
+    }
+    await applyCron(task.id)
+  }
+  // logger.log('任务总数', taskCoreCurd.list().length)
+  logger.log('定时任务初始化 - 结束')
 }
 /**
  * 定时任务回调

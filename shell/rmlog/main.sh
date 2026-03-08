@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-01-12
+## Modified: 2026-03-08
 
 ## 删除日志功能
 # rmlog [days]
@@ -37,6 +37,12 @@ function command_rmlog_main() {
             fi
         done
     }
+    ## 清理后端系统日志
+    function rm_sys_log() {
+        local data='{"days": '"${RmDays}"'}'
+        local response=$(curl -s -X POST -H "Content-Type: application/json" -d "${data}" "http://127.0.0.1:5678/api/inner/log/clean")
+        echo "${response}"
+    }
 
     case $# in
     0)
@@ -57,6 +63,7 @@ function command_rmlog_main() {
         rm_empty_dir "$LogDir"                                   # 删除日志目录下的空文件夹
         [ -d "$ConfigDir/bak" ] && rm_empty_dir "$ConfigDir/bak" # 删除备份配置文件目录下的空文件夹
         [ -f $RootDir/core ] && rm -rf $RootDir/core             # 删除缓存
+        rm_sys_log                                               # 清理后端系统日志
         echo -e "\n$COMPLETE 运行结束\n"
     fi
     cd $current_dir

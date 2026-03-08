@@ -1,8 +1,8 @@
 #!/bin/bash
-## Modified: 2026-02-28
+## Modified: 2026-03-08
 
 ## 后端服务控制
-# service start/restart/stop/info/respwd
+# service start/restart/stop/respwd
 function service_manage() {
 
     ## 安装网页终端
@@ -129,32 +129,6 @@ function service_manage() {
         else
             echo -e "\n$ERROR 服务不存在！\n"
         fi
-        ;;
-    ## 登录信息
-    info)
-        local res="$(curl -s -X GET "http://127.0.0.1:5678/api/inner/user/info")"
-        if [[ "$(echo "${res}" | jq -r '.code')" != "1" ]]; then
-            echo -e "\n$ERROR 获取用户信息失败 => $(echo "${res}" | jq -r '.message')\n"
-            return
-        fi
-        local result="$(echo "${res}" | jq -rc '.result')"
-        local lastLoginIp="$(echo "${result}" | jq -r ".lastLoginInfo.loginIp")"
-        local lastLoginAddress="$(echo "${result}" | jq -r ".lastLoginInfo.loginAddress")"
-        local lastLoginTime="$(echo "${result}" | jq -r ".lastLoginInfo.loginTime")"
-        local curLoginIp="$(echo "${result}" | jq -r ".curLoginInfo.loginIp")"
-        local curLoginAddress="$(echo "${result}" | jq -r ".curLoginInfo.loginAddress")"
-        local curLoginTime="$(echo "${result}" | jq -r ".curLoginInfo.loginTime")"
-
-        echo ''
-        echo "最近登录"
-        [ -n "${lastLoginIp}" ] && echo "  I P 地址 ${lastLoginIp}"
-        [ -n "${lastLoginAddress}" ] && echo "  地理位置 ${lastLoginAddress}"
-        [ -n "${lastLoginTime}" ] && echo "  登录时间 ${lastLoginTime}"
-        echo "当前登录"
-        [ -n "${curLoginIp}" ] && echo "  I P 地址 ${curLoginIp}"
-        [ -n "${curLoginAddress}" ] && echo "  地理位置 ${curLoginAddress}"
-        [ -n "${curLoginTime}" ] && echo "  登录时间 ${curLoginTime}"
-        echo ''
         ;;
     ## 重置密码
     respwd)

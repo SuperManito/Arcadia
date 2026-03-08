@@ -12,8 +12,6 @@ export enum ConfigModule {
 export enum ConfigKeyUser {
   USERNAME = 'username',
   PASSWORD = 'password',
-  LAST_LOGIN_INFO = 'lastLoginInfo',
-  CUR_LOGIN_INFO = 'curLoginInfo',
   TOTP_SECRET = 'totpSecret',
   TOTP_ENABLED = 'totpEnabled',
   CRON_TASK_HISTORY_DAYS = 'cronTaskHistoryDays',
@@ -32,27 +30,11 @@ export enum ConfigKeyRuntime {
 export type ConfigKey = ConfigKeyUser | ConfigKeyRuntime
 
 /**
- * 登录信息
- */
-export enum UserLoginInfoDataKey {
-  LOGIN_IP = 'loginIp',
-  LOGIN_ADDRESS = 'loginAddress',
-  LOGIN_TIME = 'loginTime',
-}
-export interface UserLoginInfo {
-  loginIp: string
-  loginAddress: string
-  loginTime: string
-}
-
-/**
  * 配置数据
  */
 export interface ConfigDataUser {
   username: string
   password: string
-  lastLoginInfo?: UserLoginInfo // 上次登录信息
-  curLoginInfo?: UserLoginInfo // 当前登录信息
   totpSecret: string // TOTP 密钥（Base32 编码）
   totpEnabled: boolean // 是否启用双重认证
   cronTaskHistoryDays: number // 仪表板数据保留天数
@@ -71,8 +53,6 @@ export interface ConfigData {
 export const DEFAULT_USER_CONFIG_VALUES: Record<ConfigKeyUser, string> = {
   [ConfigKeyUser.USERNAME]: 'useradmin',
   [ConfigKeyUser.PASSWORD]: 'passwd',
-  [ConfigKeyUser.LAST_LOGIN_INFO]: '{}',
-  [ConfigKeyUser.CUR_LOGIN_INFO]: '{}',
   [ConfigKeyUser.TOTP_SECRET]: '',
   [ConfigKeyUser.TOTP_ENABLED]: 'false',
   [ConfigKeyUser.CRON_TASK_HISTORY_DAYS]: '7',

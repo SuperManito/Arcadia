@@ -1,5 +1,5 @@
 import type { configModel } from '../../db'
-import type { ConfigDataRuntime, ConfigDataUser, ConfigKey, UserLoginInfo } from '../type/config'
+import type { ConfigDataRuntime, ConfigDataUser, ConfigKey } from '../type/config'
 import db from '../../db'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -10,7 +10,6 @@ import {
   ConfigKeyUser,
   ConfigModule,
   DEFAULT_CONFIG_VALUES,
-  UserLoginInfoDataKey,
 } from '../type/config'
 import { isNotEmpty, randomString } from '../../utils'
 import { logger } from '../../utils/logger'
@@ -137,10 +136,6 @@ async function getModuleConfigMap(module: ConfigModule): Promise<Record<string, 
 export async function getUserModuleConfig() {
   const map = await getModuleConfigMap(ConfigModule.USER)
   const result = {} as ConfigDataUser
-  const loginInfoTemplate = Object.values(UserLoginInfoDataKey).reduce((acc, key) => {
-    acc[key] = ''
-    return acc
-  }, {} as UserLoginInfo)
 
   // 处理默认值并转换数据类型
   for (const key of Object.values(ConfigKeyUser)) {
@@ -148,15 +143,6 @@ export async function getUserModuleConfig() {
     switch (key) {
       case ConfigKeyUser.CRON_TASK_HISTORY_DAYS:
         result[key] = Number(value)
-        break
-      case ConfigKeyUser.LAST_LOGIN_INFO:
-      case ConfigKeyUser.CUR_LOGIN_INFO:
-        try {
-          result[key] = Object.assign({}, loginInfoTemplate, JSON.parse(value))
-        }
-        catch {
-          result[key] = Object.assign({}, loginInfoTemplate)
-        }
         break
       case ConfigKeyUser.TOTP_ENABLED:
         result[key] = value === 'true'

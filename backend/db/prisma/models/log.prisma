@@ -1,0 +1,22 @@
+// 操作日志
+model serverLog {
+  id      Int      @id @default(autoincrement())
+  time    DateTime @default(now())
+  content String
+  type    String   // trace, debug, info, warn, error, fatal
+
+  @@index([time])
+  @@index([type])
+}
+
+// 登录日志
+model loginLog {
+  id      Int      @id @default(autoincrement())
+  time    DateTime @default(now())
+  address String   @default("")
+  ip      String   @default("")
+  result  Int      // 1=成功 0=失败
+
+  @@index([time])
+  @@index([result])
+}

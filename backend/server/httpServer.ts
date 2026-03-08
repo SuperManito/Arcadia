@@ -20,6 +20,7 @@ import { API as ApiMisc } from '../api/misc'
 import { API as ApiUser, InnerAPI as InnerApiUser } from '../api/user'
 import { API as ApiOpenApi, systemApi } from '../api/system'
 import { API as ApiAlert } from '../api/alert'
+import { API as ApiLog, InnerAPI as InnerApiLog } from '../api/log'
 
 function getToken(req: Request) {
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
@@ -208,6 +209,7 @@ export function registerApp(apiAuthentication: RequestHandler) {
   apiRouter.use('/system', systemApi)
   apiRouter.use('/token', ApiOpenApi)
   apiRouter.use('/alert', ApiAlert)
+  apiRouter.use('/log', ApiLog)
   app.use('/api', apiAuthentication, handleAuthenticationError, apiRouter)
 
   /**
@@ -227,6 +229,7 @@ export function registerApp(apiAuthentication: RequestHandler) {
   const innerRouter: Router = express.Router()
   innerRouter.use('/cron', InnerApiCron)
   innerRouter.use('/user', InnerApiUser)
+  innerRouter.use('/log', InnerApiLog)
   app.use('/api/inner', innerIpWhitelist, innerRouter)
 
   /**
