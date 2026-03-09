@@ -2,6 +2,7 @@ import antfu from '@antfu/eslint-config'
 
 export default antfu({
   typescript: true,
+  e18e: false,
   ignores: [
     'node_modules',
     'lib',
