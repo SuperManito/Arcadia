@@ -21,31 +21,12 @@ export async function addServerLog(type: string, content: string) {
 }
 
 /**
- * 分页查询操作日志，支持类型过滤与内容搜索
- */
-export async function getServerLogs(page: number, size: number, type?: string, search?: string) {
-  const where: Record<string, any> = {}
-  if (type && type.trim())
-    where.type = type.trim()
-  if (search && search.trim())
-    where.content = { contains: search.trim() }
-  return await db.serverLog.$page({ page, size, where, orderBy: { time: 'desc' } })
-}
-
-/**
  * 写入登录日志
  */
 export async function addLoginLog(data: { ip: string, address: string, result: number }) {
   if (!data.ip && !data.address)
     return
   await db.loginLog.create({ data })
-}
-
-/**
- * 分页查询登录日志
- */
-export async function getLoginLogs(page: number, size: number) {
-  return await db.loginLog.$page({ page, size, where: {}, orderBy: { time: 'desc' } })
 }
 
 /**
@@ -57,7 +38,11 @@ export async function getLastLoginInfo() {
     orderBy: { time: 'desc' },
     take: 2,
   })
-  return records[1] ?? null
+  if (records[1]) {
+    const { ip, address, time } = records[1]
+    return { ip, address, time }
+  }
+  return null
 }
 
 /**
