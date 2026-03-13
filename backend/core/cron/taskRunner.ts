@@ -3,6 +3,7 @@ import { db } from '../../db'
 import type { ChildProcess } from 'node:child_process'
 import { logger } from '../../utils/logger'
 import { execShell } from '../../utils/cmdUtil'
+import { APP_ROOT_DIR } from '../type'
 
 export interface taskRunInfo {
   startTime: number
@@ -57,13 +58,21 @@ export async function runCronTask(taskId: number, manual: boolean = false) {
     // logger.log("触发定时任务", task.shell, "（PASS，原因：已被禁用）")
     return
   }
-  // 解析高级配置中的 allow_concurrency 字段
+  // 解析高级配置
   let allow_concurrency = false // 默认不允许并发
+  let before_task_shell = ''
+  let after_task_shell = ''
   if (task.config) {
     try {
       const config = JSON.parse(task.config)
       if (typeof config.allow_concurrency === 'boolean') {
         allow_concurrency = config.allow_concurrency
+      }
+      if (typeof config.before_task_shell === 'string') {
+        before_task_shell = config.before_task_shell
+      }
+      if (typeof config.after_task_shell === 'string') {
+        after_task_shell = config.after_task_shell
       }
     }
     catch {}
@@ -72,6 +81,13 @@ export async function runCronTask(taskId: number, manual: boolean = false) {
     // 跳过正在运行的任务
     // logger.log('触发定时任务', task.shell, '（PASS，原因：正在运行）')
     return
+  }
+  // 运行前/后命令
+  if (before_task_shell) {
+    task.shell = `bash -c "cd ${APP_ROOT_DIR} ; ${before_task_shell}" ; ${task.shell}`
+  }
+  if (after_task_shell) {
+    task.shell = `${task.shell} ; bash -c "cd ${APP_ROOT_DIR} ; ${after_task_shell}"`
   }
   runningTasks[taskId] = task // 将任务添加到正在运行的列表
   runningTasksInsts[taskId] = runTaskModel(task)
