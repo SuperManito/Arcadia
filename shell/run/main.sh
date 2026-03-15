@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-02-13
+## Modified: 2026-03-15
 
 ## 随机延迟
 function random_delay() {
@@ -374,7 +374,9 @@ function run_script_main() {
     # 进入脚本所在目录
     cd ${FileDir}
     # 创建日志存储目录
-    make_dir ${LogPath}
+    if [[ "${RUN_OPTION_NO_LOG}" != "true" ]]; then
+        make_dir "${LogPath}"
+    fi
     # 定义运行次数
     local run_times=1 # 注：使用并发时必定为1
     # 循环运行（命令选项）
