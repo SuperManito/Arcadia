@@ -80,7 +80,7 @@ api.put('/config', async (request, response) => {
     const config = Object.assign({}, request.body)
 
     if (!config.id) {
-      response.send(API_STATUS_CODE.fail('缺少必要参数 id'))
+      response.send(API_STATUS_CODE.fail('缺少必要的参数 id'))
       return
     }
 
@@ -103,7 +103,7 @@ api.delete('/config', async (request, response) => {
     const id = request.body.id
 
     if (!id) {
-      response.send(API_STATUS_CODE.fail('缺少必要参数 id'))
+      response.send(API_STATUS_CODE.fail('缺少必要的参数 id'))
       return
     }
 
@@ -185,7 +185,7 @@ api.put('/rule', async (request, response) => {
     const rule = Object.assign({}, request.body)
 
     if (!rule.id) {
-      response.send(API_STATUS_CODE.fail('缺少必要参数 id'))
+      response.send(API_STATUS_CODE.fail('缺少必要的参数 id'))
       return
     }
 
@@ -208,7 +208,7 @@ api.delete('/rule', async (request, response) => {
     const id = request.body.id
 
     if (!id) {
-      response.send(API_STATUS_CODE.fail('缺少必要参数 id'))
+      response.send(API_STATUS_CODE.fail('缺少必要的参数 id'))
       return
     }
 
@@ -290,7 +290,7 @@ api.put('/notify', async (request, response) => {
     const notify = Object.assign({}, request.body)
 
     if (!notify.id) {
-      response.send(API_STATUS_CODE.fail('缺少必要参数 id'))
+      response.send(API_STATUS_CODE.fail('缺少必要的参数 id'))
       return
     }
 
@@ -313,7 +313,7 @@ api.delete('/notify', async (request, response) => {
     const id = request.body.id
 
     if (!id) {
-      response.send(API_STATUS_CODE.fail('缺少必要参数 id'))
+      response.send(API_STATUS_CODE.fail('缺少必要的参数 id'))
       return
     }
 

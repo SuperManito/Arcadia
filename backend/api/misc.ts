@@ -1,6 +1,5 @@
 import type { Express } from 'express'
 import express from 'express'
-import { logger } from '../utils/logger'
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import { randomString, validateRequestParams } from '../utils'
 import svgCaptcha from 'svg-captcha'
@@ -21,8 +20,7 @@ api.get('/captcha/flag', async (_request, response) => {
   try {
     response.send(API_STATUS_CODE.okData({ showCaptcha: shouldShowCaptcha() }))
   }
-  catch (err) {
-    logger.error('Error checking captcha flag:', err)
+  catch {
     response.send(API_STATUS_CODE.okData({ showCaptcha: false }))
   }
 })

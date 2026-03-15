@@ -103,8 +103,8 @@ api.get('/', async (request, response) => {
       orderBy: [
         { [orderBy]: desc ? 'desc' : 'asc' },
       ],
-      page: request.query.page as unknown as string,
-      size: request.query.size as unknown as string,
+      page: String(request.query.page),
+      size: String(request.query.size),
     })
     // 格式化数据
     tasks.data.forEach((task) => {
@@ -207,8 +207,8 @@ apiOpen.get('/v1/page', async (request, response) => {
       orderBy: [
         { [orderBy]: desc ? 'desc' : 'asc' },
       ],
-      page: request.query.page as unknown as string,
-      size: request.query.size as unknown as string,
+      page: String(request.query.page),
+      size: String(request.query.size),
     })
     // 格式化数据
     tasks.data.forEach((task) => {

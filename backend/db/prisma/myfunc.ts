@@ -55,6 +55,7 @@ export function withMyFunc() {
     return client.$extends({
       model: {
         $allModels: {
+
           $create<T, A extends Prisma.Args<T, 'create'> = Prisma.Args<T, 'create'>, R = Prisma.Result<T, A, 'create'> | Prisma.Result<T, A, 'createMany'>>(
             this: T,
             data: A['data'] | A['data'][],
@@ -66,7 +67,7 @@ export function withMyFunc() {
               }
               else {
                 const args = opts ? { data, ...opts } : { data }
-                return (this as any).createMany(args) as Promise<any>
+                return (this as any).createMany(args) as Promise<R>
               }
             }
             const args = opts ? { data, ...opts } : { data }
@@ -194,6 +195,7 @@ export function withMyFunc() {
               throw e
             }
           },
+
           async $page<T, A extends Prisma.Args<T, 'findMany'> = Prisma.Args<T, 'findMany'>, D = Prisma.Result<T, A, 'findMany'>>(
             this: T,
             args: A & { page?: number | string, size?: number | string, searchCount?: boolean },
