@@ -18,7 +18,7 @@ import {
 } from '../core/type'
 
 // 底层Shell已适配可执行代码文件类型的后缀
-const canRunCodeFileExtList = [
+export const canRunCodeFileExtList = [
   'js',
   'mjs',
   'cjs',
@@ -445,6 +445,50 @@ export function saveFile(filePath: string, content: string) {
     content = content.replace(/\r\n/g, '\n')
   }
   fs.writeFileSync(filePath, content)
+}
+
+/**
+ * 创建调试运行临时文件
+ *
+ * @param originalFilePath 原始文件路径
+ * @param runId 唯一运行 ID
+ * @param content 待调试的文件内容
+ * @returns 临时文件绝对路径
+ */
+export function createDebugTempFile(originalFilePath: string, runId: string, content: string): string {
+  const resolvedOriginal = nodePath.resolve(originalFilePath)
+  const dir = nodePath.dirname(resolvedOriginal)
+  const ext = nodePath.extname(resolvedOriginal).slice(1)
+  const baseName = nodePath.basename(resolvedOriginal, `.${ext}`)
+  const tempFileName = `${baseName}_debug_${runId}.${ext}`
+  const tempFilePath = nodePath.join(dir, tempFileName)
+  checkPathBoundary(tempFilePath)
+  fs.writeFileSync(tempFilePath, content.replace(/\r\n/g, '\n'))
+  return tempFilePath
+}
+
+/**
+ * 清理调试运行产生的临时文件
+ *
+ * @param tempFilePath 临时文件绝对路径
+ */
+export function cleanDebugTempFile(tempFilePath: string): void {
+  const resolvedPath = nodePath.resolve(tempFilePath)
+  try {
+    if (fs.existsSync(resolvedPath)) {
+      fs.unlinkSync(resolvedPath)
+    }
+  }
+  catch {}
+  // 删除部分语言在编译后生成同名无后缀可执行文件
+  try {
+    const ext = nodePath.extname(resolvedPath).slice(1)
+    const binaryPath = resolvedPath.slice(0, -(ext.length + 1))
+    if (fs.existsSync(binaryPath)) {
+      fs.unlinkSync(binaryPath)
+    }
+  }
+  catch {}
 }
 
 /**
