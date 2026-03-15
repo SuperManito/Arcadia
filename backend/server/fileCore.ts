@@ -37,8 +37,10 @@ export const canRunCodeFileExtList = [
 // 受保护的文件路径
 const protectedPaths = [APP_FILE_PATH.DB]
 const openApiProtectedPaths = [APP_FILE_PATH.ENV]
-
-const excludeRegExp = /(user\.session)|(\.cache$)|(\.check$)|(\.git$)|(\.tmp$)|(__pycache__$)|(node_modules)|(Cargo\.lock$)|(go\.sum$)|(\.gem$)|(\.bundle\/)|(\.cargo\/)|(__MACOSX\/)|(\.rbc$)|(\.so$)|(\.luac$)|(\.o$)|(\.a$)|(\.dll$)|(\.exe$)|(\.out$)|(\.pyc$)|(\.class$)|(\.elc$)|(\.beam$)|(\.hi$)|(\.dSYM\/)|(\.ipynb_checkpoints\/)|(\.rustup\/)|(\.cargo-cache\/)|(\.luarocks\/)|(\.rbenv\/)|(\.rvm\/)|(\.cabal\/)|(\.stack-work\/)|(\.perl\/)/ // 全局过滤正则
+// 默认过滤的文件路径
+const defaultFilterPaths = [APP_FILE_PATH.DB]
+// 全局过滤正则
+const excludeRegExp = /(user\.session)|(\.cache$)|(\.check$)|(\.git$)|(\.tmp$)|(__pycache__$)|(node_modules)|(Cargo\.lock$)|(go\.sum$)|(\.gem$)|(\.bundle\/)|(\.cargo\/)|(__MACOSX\/)|(\.rbc$)|(\.so$)|(\.luac$)|(\.o$)|(\.a$)|(\.dll$)|(\.exe$)|(\.out$)|(\.pyc$)|(\.class$)|(\.elc$)|(\.beam$)|(\.hi$)|(\.dSYM\/)|(\.ipynb_checkpoints\/)|(\.rustup\/)|(\.cargo-cache\/)|(\.luarocks\/)|(\.rbenv\/)|(\.rvm\/)|(\.cabal\/)|(\.stack-work\/)|(\.perl\/)/
 
 interface FileList {
   title: string // 目录名
@@ -110,9 +112,7 @@ export function getFileList(dirPath: string): FileList {
   }
   result.children = sortFilesAndFolders(
     files
-      .filter((item) => {
-        return !excludeRegExp.test(item)
-      })
+      .filter(file => !excludeRegExp.test(file))
       .map((file) => {
         const subPath = nodePath.join(dirPath, file)
         const stats = fs.statSync(subPath)
@@ -123,14 +123,15 @@ export function getFileList(dirPath: string): FileList {
           updated_at: stats.mtime,
           created_at: stats.birthtime,
         }
-      }) as FileListItem[],
+      })
+      .filter(item => !defaultFilterPaths.includes(item.path)) as FileListItem[],
     true,
   )
   return result
 }
 
 /**
- * 目录树（递归）
+ * 获取文件树（递归）
  *
  * @param {string} type - 类型 APP_DIR_TYPE
  * @param {string} dirPath - 目录路径
@@ -142,7 +143,7 @@ export function getFileTree(type: APP_DIR_TYPE, dirPath: string, params: FileTre
     return []
   }
   const parentDir = dirPath
-  const filterPaths = [APP_FILE_PATH.DB] // 默认过滤的文件路径
+  const filterPaths = [...defaultFilterPaths]
 
   const options = (({ search = '', startTime = '', endTime = '', onlyDir = false, type = APP_DIR_TYPE.ALL }: FileTreeParams) => {
     if (type === APP_DIR_TYPE.LOG) {
@@ -195,9 +196,7 @@ export function getFileTree(type: APP_DIR_TYPE, dirPath: string, params: FileTre
             created_at: stats.birthtime,
           }
         })
-        .filter((item) => {
-          return handleFilterParams(parentDir, item, options) && !filterPaths.includes(item.path)
-        }) as (FileTree | FileTreeItem)[],
+        .filter(item => handleFilterParams(parentDir, item, options)) as (FileTree | FileTreeItem)[],
       true,
     )
     if (type === APP_DIR_TYPE.LOG) {
