@@ -459,7 +459,7 @@ export function createDebugTempFile(originalFilePath: string, runId: string, con
   const dir = nodePath.dirname(resolvedOriginal)
   const ext = nodePath.extname(resolvedOriginal).slice(1)
   const baseName = nodePath.basename(resolvedOriginal, `.${ext}`)
-  const tempFileName = `${baseName}_debug_${runId}.${ext}`
+  const tempFileName = `${baseName.startsWith('.') ? baseName : `.${baseName}`}_debug_${runId}.${ext}`
   const tempFilePath = nodePath.join(dir, tempFileName)
   checkPathBoundary(tempFilePath)
   fs.writeFileSync(tempFilePath, content.replace(/\r\n/g, '\n'))
@@ -500,13 +500,13 @@ export function checkPathBoundary(checkPath: string, isOpenApi: boolean = false)
   const resolvedPath = nodePath.resolve(checkPath)
   const normalizedRootDir = nodePath.resolve(APP_ROOT_DIR)
   if (!resolvedPath.startsWith(normalizedRootDir + nodePath.sep) && resolvedPath !== normalizedRootDir) {
-    throw new Error('非法操作：路径超出允许范围')
+    throw new Error('非法操作（路径超出允许范围）')
   }
   if (protectedPaths.includes(resolvedPath)) {
-    throw new Error('非法操作：禁止访问受保护的文件')
+    throw new Error('非法操作（禁止访问受保护的文件）')
   }
   if (isOpenApi && openApiProtectedPaths.includes(resolvedPath)) {
-    throw new Error('非法操作：禁止访问受保护的文件')
+    throw new Error('非法操作（禁止访问受保护的文件）')
   }
 }
 
@@ -533,7 +533,7 @@ export function checkPathAccess(checkPath: string, isOpenApi: boolean = false) {
 export function fileRename(filePath: string, name: string) {
   // 防止文件名包含路径遍历字符
   if (name.includes('/') || name.includes('\\') || name.includes('..')) {
-    throw new Error('非法操作：文件名不能包含路径分隔符或相对路径')
+    throw new Error('非法操作（文件名不能包含路径分隔符或相对路径）')
   }
   const parentPath = nodePath.join(filePath, '../')
   const newPath = nodePath.join(parentPath, name)

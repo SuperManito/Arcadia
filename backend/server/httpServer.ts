@@ -16,7 +16,8 @@ import { API as ApiFile, OpenAPI as OpenApiFile } from '../api/file'
 import { API as ApiEnv, OpenAPI as OpenApiEnv } from '../api/env'
 import { API as ApiCron, InnerAPI as InnerApiCron, OpenAPI as OpenApiCron } from '../api/cron'
 import { API as ApiMessage } from '../api/message'
-import { API as ApiMisc } from '../api/misc'
+import { API as ApiCaptcha } from '../api/captcha'
+import { API as ApiExec, OpenAPI as OpenApiExec } from '../api/exec'
 import { API as ApiUser, InnerAPI as InnerApiUser } from '../api/user'
 import { API as ApiOpenApi, systemApi } from '../api/system'
 import { API as ApiAlert } from '../api/alert'
@@ -60,6 +61,10 @@ export function registerApp(apiAuthentication: RequestHandler) {
 
   function shouldCompress(req: Request, res: Response) {
     if (req.headers['x-no-compression']) {
+      return false
+    }
+    // SSE 响应不可压缩
+    if (res.getHeader('Content-Type') === 'text/event-stream') {
       return false
     }
     return compression.filter(req, res)
@@ -149,6 +154,7 @@ export function registerApp(apiAuthentication: RequestHandler) {
   openApiRouter.use('/file', OpenApiFile)
   openApiRouter.use('/env', OpenApiEnv)
   openApiRouter.use('/cron', OpenApiCron)
+  openApiRouter.use('/exec', OpenApiExec)
   openApiRouter.use('/message', ApiMessage)
   openApiRouter.use('/alert', ApiAlert)
   app.use('/api/open', OpenAPIAuthentication, openApiRouter)
@@ -200,7 +206,8 @@ export function registerApp(apiAuthentication: RequestHandler) {
     }
   }
   const apiRouter: Router = express.Router()
-  apiRouter.use('/', ApiMisc)
+  apiRouter.use('/captcha', ApiCaptcha)
+  apiRouter.use('/exec', ApiExec)
   apiRouter.use('/user', ApiUser)
   apiRouter.use('/file', ApiFile)
   apiRouter.use('/env', ApiEnv)

@@ -22,6 +22,7 @@
     "@prisma/client": "^7.4.2",
     "archiver": "^7.0.1",
     "axios": "^1.13.6",
+    "better-sse": "^0.16.1",
     "body-parser": "^2.2.2",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
