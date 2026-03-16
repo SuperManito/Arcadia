@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-02-13
+## Modified: 2026-03-16
 
 ## 查找代码文件
 # 通过各种判断将得到的必要信息传给接下来运行的函数或命令
@@ -85,7 +85,6 @@ function find_script() {
             else
                 LogPath="${LogDir}/${FileName}"
             fi
-            make_dir "${LogPath}"
         else
             output_error "在 ${BLUE}${absolute_path%/*}${PLAIN} 目录下未检测到 ${BLUE}${absolute_path##*/}${PLAIN} 代码文件的存在，请重新确认！"
         fi
@@ -202,8 +201,7 @@ function find_script() {
             ## 添加依赖文件
             check_modules $FileDir
             ## 定义日志路径
-            LogPath="$LogDir/${FileName}"
-            make_dir ${LogPath}
+            LogPath="${LogDir}/${FileName}"
             RUN_REMOTE="true"
         else
             echo ''
