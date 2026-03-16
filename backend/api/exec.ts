@@ -1,13 +1,11 @@
 import type { Express, Request, Response } from 'express'
 import express from 'express'
 import { execFile } from 'node:child_process'
-import nodePath from 'node:path'
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import { randomString, validateObject, validateRequestParams } from '../utils'
 import { validateEnvName } from '../utils/envUtil'
 import { socketCommon } from '../server/socket'
 import {
-  canRunCodeFileExtList,
   checkPathAccess,
   checkPathBoundary,
   cleanDebugTempFile,
@@ -211,11 +209,6 @@ api.post('/file', (request, response) => {
     })
     const { path } = params.body
     checkPathAccess(path)
-    const ext = nodePath.extname(path).slice(1)
-    if (!canRunCodeFileExtList.includes(ext)) {
-      response.send(API_STATUS_CODE.fail('不支持的文件类型'))
-      return
-    }
     const options = parseOptions(request.body.options)
     const envs = parseEnvs(request.body.envs)
     const runId = runCodeFile(path, options, envs, makeRunCallbacks())
@@ -240,11 +233,6 @@ apiOpen.post('/v1/run', (request, response) => {
     })
     const { path } = params.body
     checkPathAccess(path)
-    const ext = nodePath.extname(path).slice(1)
-    if (!canRunCodeFileExtList.includes(ext)) {
-      response.send(API_STATUS_CODE.fail('不支持的文件类型'))
-      return
-    }
     const options = parseOptions(request.body.options)
     const envs = parseEnvs(request.body.envs)
     const runId = runCodeFile(path, options, envs, makeRunCallbacks(true))
@@ -259,8 +247,6 @@ apiOpen.post('/v1/run', (request, response) => {
  * 运行代码文件（SSE 流式推送日志）
  */
 apiOpen.post('/v1/runStream', async (request, response) => {
-  const session = await createSseSession(request, response)
-  let runId: string | undefined
   try {
     const params = validateRequestParams(request, {
       body: [
@@ -271,31 +257,32 @@ apiOpen.post('/v1/runStream', async (request, response) => {
     })
     const { path } = params.body
     checkPathAccess(path)
-    const ext = nodePath.extname(path).slice(1)
-    if (!canRunCodeFileExtList.includes(ext)) {
-      session.push({ type: 'error', log: '不支持的文件类型' })
-      response.end()
-      return
-    }
     const options = parseOptions(request.body.options)
     const envs = parseEnvs(request.body.envs)
-    runId = runCodeFile(path, options, envs, {
-      onStdout(_id, data) { session.push({ type: 'log', stream: 'stdout', log: data }) },
-      onStderr(_id, data) { session.push({ type: 'log', stream: 'stderr', log: data }) },
-      async onError(id, err) {
-        session.push({ runId: id, type: 'error', log: err.message })
-        response.end()
-      },
-      async onExit(_id) {
-        session.push({ type: 'exit' })
-        response.end()
-      },
-    })
-    session.push({ runId, type: 'start' })
+
+    const session = await createSseSession(request, response)
+    try {
+      const runId = runCodeFile(path, options, envs, {
+        onStdout(_id, data) { session.push({ type: 'log', stream: 'stdout', log: data }) },
+        onStderr(_id, data) { session.push({ type: 'log', stream: 'stderr', log: data }) },
+        async onError(id, err) {
+          session.push({ runId: id, type: 'error', log: err.message })
+          response.end()
+        },
+        async onExit(_id) {
+          session.push({ type: 'exit' })
+          response.end()
+        },
+      })
+      session.push({ runId, type: 'start' })
+    }
+    catch (e: any) {
+      session.push({ type: 'error', log: e?.message || '执行失败' })
+      response.end()
+    }
   }
   catch (e: any) {
-    session.push({ runId, type: 'error', log: e?.message || '执行失败' })
-    response.end()
+    response.send(API_STATUS_CODE.fail(e?.message || '执行失败'))
   }
 })
 
@@ -303,31 +290,36 @@ apiOpen.post('/v1/runStream', async (request, response) => {
  * 执行 Shell 命令（SSE 流式推送日志）
  */
 apiOpen.post('/v1/cmdStream', async (request, response) => {
-  const session = await createSseSession(request, response)
-  let runId: string | undefined
   try {
     const params = validateRequestParams(request, {
       body: [
         ['cmd', [true, 'string']],
       ] as const,
     })
-    runId = runShellCmd(params.body.cmd, {
-      onStdout(_id, data) { session.push({ type: 'log', stream: 'stdout', log: data }) },
-      onStderr(_id, data) { session.push({ type: 'log', stream: 'stderr', log: data }) },
-      async onError(id, err) {
-        session.push({ runId: id, type: 'error', log: err.message })
-        response.end()
-      },
-      async onExit(_id) {
-        session.push({ type: 'exit' })
-        response.end()
-      },
-    })
-    session.push({ runId, type: 'start' })
+
+    const session = await createSseSession(request, response)
+    try {
+      const runId = runShellCmd(params.body.cmd, {
+        onStdout(_id, data) { session.push({ type: 'log', stream: 'stdout', log: data }) },
+        onStderr(_id, data) { session.push({ type: 'log', stream: 'stderr', log: data }) },
+        async onError(id, err) {
+          session.push({ runId: id, type: 'error', log: err.message })
+          response.end()
+        },
+        async onExit(_id) {
+          session.push({ type: 'exit' })
+          response.end()
+        },
+      })
+      session.push({ runId, type: 'start' })
+    }
+    catch (e: any) {
+      session.push({ type: 'error', log: e?.message || '执行失败' })
+      response.end()
+    }
   }
   catch (e: any) {
-    session.push({ runId, type: 'error', log: e?.message || '执行失败' })
-    response.end()
+    response.send(API_STATUS_CODE.fail(e?.message || '执行失败'))
   }
 })
 
@@ -354,11 +346,6 @@ api.post('/file/debug', (request, response) => {
     })
     const { path, content } = params.body
     checkPathAccess(path)
-    const ext = nodePath.extname(path).slice(1)
-    if (!canRunCodeFileExtList.includes(ext)) {
-      response.send(API_STATUS_CODE.fail('不支持的文件类型'))
-      return
-    }
     const options = [{ key: '--no-log', value: '' }, ...parseOptions(request.body.options)]
     const envs = parseEnvs(request.body.envs)
     const runId = randomString(16)
