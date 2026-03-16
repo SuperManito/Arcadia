@@ -237,7 +237,7 @@ export function validateRequestParams<
     }
     paramList.forEach(([paramName, options = []]) => {
       const [required = false, type = 'string', allowEmptyString = false] = options
-      const params = req[paramType]
+      const params = req[paramType] ?? {}
 
       if (!Object.prototype.hasOwnProperty.call(params, paramName)) {
         if (required) {

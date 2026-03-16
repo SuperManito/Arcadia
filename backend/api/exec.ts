@@ -280,14 +280,14 @@ apiOpen.post('/v1/runStream', async (request, response) => {
     const options = parseOptions(request.body.options)
     const envs = parseEnvs(request.body.envs)
     runId = runCodeFile(path, options, envs, {
-      onStdout(id, data) { session.push({ runId: id, type: 'log', stream: 'stdout', log: data }) },
-      onStderr(id, data) { session.push({ runId: id, type: 'log', stream: 'stderr', log: data }) },
+      onStdout(_id, data) { session.push({ type: 'log', stream: 'stdout', log: data }) },
+      onStderr(_id, data) { session.push({ type: 'log', stream: 'stderr', log: data }) },
       async onError(id, err) {
         session.push({ runId: id, type: 'error', log: err.message })
         response.end()
       },
-      async onExit(id) {
-        session.push({ runId: id, type: 'exit' })
+      async onExit(_id) {
+        session.push({ type: 'exit' })
         response.end()
       },
     })
@@ -312,14 +312,14 @@ apiOpen.post('/v1/cmdStream', async (request, response) => {
       ] as const,
     })
     runId = runShellCmd(params.body.cmd, {
-      onStdout(id, data) { session.push({ runId: id, type: 'log', stream: 'stdout', log: data }) },
-      onStderr(id, data) { session.push({ runId: id, type: 'log', stream: 'stderr', log: data }) },
+      onStdout(_id, data) { session.push({ type: 'log', stream: 'stdout', log: data }) },
+      onStderr(_id, data) { session.push({ type: 'log', stream: 'stderr', log: data }) },
       async onError(id, err) {
         session.push({ runId: id, type: 'error', log: err.message })
         response.end()
       },
-      async onExit(id) {
-        session.push({ runId: id, type: 'exit' })
+      async onExit(_id) {
+        session.push({ type: 'exit' })
         response.end()
       },
     })
