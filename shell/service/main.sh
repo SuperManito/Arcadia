@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-03-08
+## Modified: 2026-03-19
 
 ## 后端服务控制
 # service start/restart/stop/respwd
@@ -58,7 +58,7 @@ function service_manage() {
                 pm2 delete arcadia_server
                 install_dependencies
                 cd $SrcDir
-                pm2 start ecosystem.config.js && sleep 3
+                pm2 start ecosystem.config.cjs && sleep 3
                 pm2_list_all_services
                 local ServiceNewStatus=$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')
                 if [[ "${ServiceNewStatus}" == "online" ]]; then
@@ -71,7 +71,7 @@ function service_manage() {
         else
             install_dependencies
             cd $SrcDir
-            pm2 start ecosystem.config.js && sleep 1
+            pm2 start ecosystem.config.cjs && sleep 1
             pm2_list_all_services
             local ServiceStatus=$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')
             if [[ ${ServiceStatus} == "online" ]]; then

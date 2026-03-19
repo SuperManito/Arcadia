@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-02-22
+## Modified: 2026-03-19
 
 function print_arcadia_logo() {
   echo ''
@@ -20,7 +20,7 @@ function arcadia_init() {
   [ ! -x /usr/bin/npm ] && apt-get install -y --no-install-recommends nodejs npm >/dev/null 2>&1
   npm install --omit=dev
   cd $SrcDir
-  pm2 start ecosystem.config.js
+  pm2 start ecosystem.config.cjs
   cd $RootDir
   [ ! -x /usr/bin/ttyd ] && wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.$(arch) -q -O /usr/local/bin/ttyd && chmod 777 /usr/local/bin/ttyd
   pm2 start ttyd --name "arcadia_ttyd" --log-date-format "YYYY-MM-DD HH:mm:ss" -- \
