@@ -769,7 +769,7 @@ apiInner.post('/updateAll', async (request, response) => {
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
-    logger.error('批量更新定时任务失败', e)
+    logger.error('批量更新定时任务失败', e.message || e)
   }
 })
 
@@ -787,7 +787,7 @@ api.get('/dashboard/stats', async (request, response) => {
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
-    logger.error('[定时任务监控] 获取统计指标异常', e)
+    logger.error('[定时任务监控] 获取统计指标异常', e.message || e)
   }
 })
 
@@ -810,7 +810,7 @@ api.get('/dashboard/trend', async (request, response) => {
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
-    logger.error('[定时任务监控] 获取趋势数据异常', e)
+    logger.error('[定时任务监控] 获取趋势数据异常', e.message || e)
   }
 })
 
@@ -828,7 +828,7 @@ api.get('/dashboard/running', async (request, response) => {
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
-    logger.error('[定时任务监控] 获取运行中任务异常', e)
+    logger.error('[定时任务监控] 获取运行中任务异常', e.message || e)
   }
 })
 

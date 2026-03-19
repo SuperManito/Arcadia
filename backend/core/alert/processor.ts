@@ -104,8 +104,8 @@ async function matchSingleRule(msg: messageModel, rule: alertConfigRuleModel): P
         const regExp = new RegExp(data)
         return regExp.test(fieldValue)
       }
-      catch (e) {
-        logger.warn('Invalid regex pattern:', data, e)
+      catch (e: any) {
+        logger.warn('Invalid regex pattern:', data, e.message || e)
         return false
       }
 

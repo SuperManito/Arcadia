@@ -41,8 +41,8 @@ export async function sendMessage(data: MessageData, info: messageInfo = {}) {
       ['category', [false, ['info', 'error', 'warn']]],
     ])
   }
-  catch (e) {
-    logger.error('发送消息参数错误:', e)
+  catch (e: any) {
+    logger.error('发送消息参数错误:', e.message || e)
     return false
   }
   if (info.taskId) {

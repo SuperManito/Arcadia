@@ -97,7 +97,7 @@ export async function ip2Address(ip: string) {
     }
   }
   catch (e: any) {
-    logger.error('IP地理位置查询失败', e)
+    logger.error('IP地理位置查询失败', e.message || e)
   }
   return {
     ip,

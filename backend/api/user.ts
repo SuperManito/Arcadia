@@ -336,7 +336,7 @@ apiInner.post('/resetPwd', async (_request, response) => {
     response.send(API_STATUS_CODE.okData(data))
   }
   catch (e: any) {
-    logger.error('重置密码失败', e)
+    logger.error('重置密码失败', e.message || e)
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -358,7 +358,7 @@ api.post('/twoFactorAuth/setup', async (request, response) => {
     }))
   }
   catch (e: any) {
-    logger.error('生成 TOTP 失败', e)
+    logger.error('生成 TOTP 失败', e.message || e)
     response.send(API_STATUS_CODE.fail(e.message || '生成失败'))
   }
 })
@@ -397,7 +397,7 @@ api.post('/twoFactorAuth/enable', async (request, response) => {
     response.send(API_STATUS_CODE.ok('双重认证已启用'))
   }
   catch (e: any) {
-    logger.error('启用 TOTP 失败', e)
+    logger.error('启用 TOTP 失败', e.message || e)
     response.send(API_STATUS_CODE.fail(e.message || '启用失败'))
   }
 })
@@ -420,7 +420,7 @@ api.post('/twoFactorAuth/disable', async (_request, response) => {
     response.send(API_STATUS_CODE.ok('双重认证已关闭'))
   }
   catch (e: any) {
-    logger.error('关闭 TOTP 失败', e)
+    logger.error('关闭 TOTP 失败', e.message || e)
     response.send(API_STATUS_CODE.fail(e.message || '关闭失败'))
   }
 })
@@ -434,7 +434,7 @@ api.get('/twoFactorAuth/status', async (_request, response) => {
     response.send(API_STATUS_CODE.okData(enabled))
   }
   catch (e: any) {
-    logger.error('获取 TOTP 状态失败', e)
+    logger.error('获取 TOTP 状态失败', e.message || e)
     response.send(API_STATUS_CODE.fail(e.message || '获取失败'))
   }
 })

@@ -768,7 +768,7 @@ export async function codeFileResolve(filePath: string): Promise<CodeFileResolve
         resolve(JSON.parse(result[result.length - 1]))
       }
       catch (e: any) {
-        logger.error('解析代码文件失败', filePath, '=>', e)
+        logger.error('解析代码文件失败', filePath, '=>', e.message || e)
         const parseError = new Error(`解析代码文件失败：${e.message}`)
         parseError.cause = e
         reject(parseError)
