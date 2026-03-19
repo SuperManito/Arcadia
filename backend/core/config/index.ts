@@ -247,8 +247,8 @@ async function initUserConfig() {
           logger.info(`旧版本用户认证信息已成功迁移至新配置系统，建议手动删除 ${oldAuthFilePath} 文件`)
         }
       }
-      catch (error) {
-        logger.error('迁移旧版本认证配置失败', error)
+      catch (e: any) {
+        logger.error('迁移旧版本认证配置失败', e.message || e)
       }
       finally {
         // 重新初始化

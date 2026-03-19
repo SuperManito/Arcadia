@@ -28,7 +28,7 @@ export async function sendWebNotification(msg: messageModel, notification: alert
       logger.error(`Failed to send Web notification to ${target}: ${title}, status: ${response.status}`)
     }
   }
-  catch (error) {
-    logger.error(`Error sending Web notification to ${notification.target}: ${msg.title}`, error)
+  catch (e: any) {
+    logger.error(`Error sending Web notification to ${notification.target}: ${msg.title}`, e.message || e)
   }
 }

@@ -87,8 +87,8 @@ export async function getDashboardStats(taskType: TasksFilterType = TasksTypeEnu
       }
     }
   }
-  catch (error) {
-    logger.warn('[定时任务监控] 获取任务统计失败', error)
+  catch (e: any) {
+    logger.warn('[定时任务监控] 获取任务统计失败', e.message || e)
   }
 
   let todaySuccessCount = 0
@@ -111,8 +111,8 @@ export async function getDashboardStats(taskType: TasksFilterType = TasksTypeEnu
     yesterdaySuccessCount = yesterdayCounts.successCount
     yesterdayFailureCount = yesterdayCounts.failureCount
   }
-  catch (error) {
-    logger.warn('[定时任务监控] 获取执行统计失败', error)
+  catch (e: any) {
+    logger.warn('[定时任务监控] 获取执行统计失败', e.message || e)
   }
 
   const runningCount = Object.values(runningTasks)
@@ -165,8 +165,8 @@ export async function getDashboardTrend(
       success: record.success === 1,
     }))
   }
-  catch (error) {
-    logger.warn('[定时任务监控] 获取任务趋势数据失败', error)
+  catch (e: any) {
+    logger.warn('[定时任务监控] 获取任务趋势数据失败', e.message || e)
     return []
   }
 }

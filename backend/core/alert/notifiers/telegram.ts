@@ -34,7 +34,7 @@ export async function sendTelegramNotification(msg: messageModel, notification: 
       logger.error(`Failed to send Telegram notification: ${title}, error: ${JSON.stringify(response.data)}`)
     }
   }
-  catch (error) {
-    logger.error(`Error sending Telegram notification to ${notification.target}: ${msg.title}`, error)
+  catch (e: any) {
+    logger.error(`Error sending Telegram notification to ${notification.target}: ${msg.title}`, e.message || e)
   }
 }

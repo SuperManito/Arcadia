@@ -29,7 +29,7 @@ export async function sendServerchanNotification(msg: messageModel, notification
       logger.error(`Failed to send ServerChan notification: ${title}, error: ${JSON.stringify(data)}`)
     }
   }
-  catch (error) {
-    logger.error(`Error sending ServerChan notification to ${notification.target}: ${msg.title}`, error)
+  catch (e: any) {
+    logger.error(`Error sending ServerChan notification to ${notification.target}: ${msg.title}`, e.message || e)
   }
 }

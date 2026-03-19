@@ -22,7 +22,7 @@ export async function sendBarkNotification(msg: messageModel, notification: aler
       logger.error(`Failed to send Bark notification to ${target}: ${title}, status: ${response.status}`)
     }
   }
-  catch (error) {
-    logger.error(`Error sending Bark notification to ${notification.target}: ${msg.title}`, error)
+  catch (e: any) {
+    logger.error(`Error sending Bark notification to ${notification.target}: ${msg.title}`, e.message || e)
   }
 }

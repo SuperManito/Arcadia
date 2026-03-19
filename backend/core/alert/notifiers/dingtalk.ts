@@ -42,7 +42,7 @@ export async function sendDingtalkNotification(msg: messageModel, notification: 
       logger.error(`Failed to send DingTalk notification: ${title}, error: ${response.data.errmsg}`)
     }
   }
-  catch (error) {
-    logger.error(`Error sending DingTalk notification to ${notification.target}: ${msg.title}`, error)
+  catch (e: any) {
+    logger.error(`Error sending DingTalk notification to ${notification.target}: ${msg.title}`, e.message || e)
   }
 }

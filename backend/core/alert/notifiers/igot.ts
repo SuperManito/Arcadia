@@ -45,7 +45,7 @@ export async function sendIgotNotification(msg: messageModel, notification: aler
       logger.error(`Failed to send iGot notification: ${title}, error: ${data.errMsg}`)
     }
   }
-  catch (error) {
-    logger.error(`Error sending iGot notification to ${notification.target}: ${msg.title}`, error)
+  catch (e: any) {
+    logger.error(e.message || e)
   }
 }

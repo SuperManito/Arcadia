@@ -757,8 +757,8 @@ function getDirectorySize(dirPath: string): number {
 export async function codeFileResolve(filePath: string): Promise<CodeFileResolveResult> {
   return new Promise((resolve, reject) => execFile('bash', [APP_FILE_PATH.RESOLVE_SCRIPT, filePath], { encoding: 'utf8' }, (error, stdout) => {
     if (error) {
-      logger.error('解析代码文件失败', filePath, '=>', error)
-      const enhancedError = new Error(`解析代码文件失败：${error.message}`)
+      logger.error('解析代码文件失败', filePath, '=>', error?.message || error)
+      const enhancedError = new Error(`解析代码文件失败：${error?.message}`)
       enhancedError.cause = error
       reject(enhancedError)
     }

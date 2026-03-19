@@ -107,8 +107,8 @@ export class MessageListener {
       fs.rmSync(file, { force: true })
       logger.debug(`已处理消息 #${messageId}: ${type} = ${message}`)
     }
-    catch (error) {
-      logger.warn(`处理消息文件失败 (#${messageId}): `, error)
+    catch (e: any) {
+      logger.warn(`处理消息文件失败 (#${messageId}): `, e.message || e)
     }
   }
 }

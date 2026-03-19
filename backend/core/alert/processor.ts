@@ -144,8 +144,8 @@ async function sendAlertNotifications(
       // 使用动态注册的通知发送器发送通知
       await sendNotification(msg, notification)
     }
-    catch (error) {
-      logger.error('Failed to send notification:', error)
+    catch (e: any) {
+      logger.error('Failed to send notification:', e.message || e)
     }
   }
 }

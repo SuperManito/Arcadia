@@ -54,7 +54,7 @@ export async function sendWxPusherNotification(msg: messageModel, notification: 
       logger.error(`Failed to send WxPusher notification: ${title}, error: ${response.data.message}`)
     }
   }
-  catch (error) {
-    logger.error(`Error sending WxPusher notification to ${notification.target}: ${msg.title}`, error)
+  catch (e: any) {
+    logger.error(`Error sending WxPusher notification to ${notification.target}: ${msg.title}`, e.message || e)
   }
 }
