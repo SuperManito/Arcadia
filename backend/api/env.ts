@@ -12,7 +12,22 @@ import type {
   PageResult,
 } from '../db'
 import db, { flattenEnvsGroupPageResult, flattenIncludeRelationCount } from '../db'
-import { generateEnvSh, validateEnvName } from '../utils/envUtil'
+import type { EnvTag, TypeCategory } from '../core/env'
+import {
+  checkVaribleExsit,
+  convertToCLIExport,
+  EnvTypes,
+  fixItemOrder,
+  fixOrder,
+  getCurrentMaxSortValue,
+  getTagsList,
+  getTagsListItem,
+  isComposite,
+  tagLabelContainsFilter,
+  updateItemSortById,
+  updateSortById,
+} from '../core/env'
+import { validateEnvName } from '../utils/envUtil'
 import type { ValidateObjectParamType } from '../utils'
 import {
   cleanProperties,
@@ -24,21 +39,8 @@ import {
 const api: Express = express()
 const apiOpen: Express = express()
 
-enum EnvTypes {
-  ORDINARY = 'ordinary',
-  COMPOSITE = 'composite',
-  COMPOSITE_VALUE = 'composite_value',
-}
-type TypeCategory = EnvTypes
-function isComposite(data: envsModel | envsGroupModel, i?: boolean): data is envsGroupModel {
-  if (typeof i === 'boolean') {
-    return i
-  }
-  return !('group_id' in data)
-}
-
 // 数据更新回调
-async function onChange(isItem?: boolean) {
+async function onChange(isItem: boolean) {
   if (typeof isItem === 'boolean') {
     if (isItem) {
       await fixItemOrder()
@@ -51,24 +53,8 @@ async function onChange(isItem?: boolean) {
     await fixOrder()
     await fixItemOrder()
   }
-  // 生成本地 env.sh
-  const envsGroupResult = await db.envsGroup.$list(
-    {
-      id: { not: 0 },
-    },
-    {
-      sort: 'asc', // 升序
-    },
-    {
-      include: {
-        envs: true,
-      },
-    },
-  )
-  const envsResult = await db.envs.$list({
-    group_id: 0,
-  })
-  generateEnvSh(envsGroupResult, envsResult)
+  // 生成用于 CLI 的批量声明脚本
+  await convertToCLIExport()
 }
 
 // 初始化
@@ -79,7 +65,7 @@ async function onChange(isItem?: boolean) {
     enable: 0,
     sort: 99999,
   })
-  await onChange()
+  await onChange(false)
 }())
 
 api.get('/page', async (request, response) => {
@@ -96,14 +82,22 @@ api.get('/page', async (request, response) => {
     }
     // 过滤掉特殊记录
     where.id = { not: 0 }
-    // 搜索过滤
+    // 搜索 + tag_list 过滤
+    const andConditionsPage: envsGroupWhereInput[] = []
     if (request.query.search) {
-      where.AND = {
+      andConditionsPage.push({
         OR: [
           { type: { contains: String(request.query.search) } },
           { description: { contains: String(request.query.search) } },
         ],
-      }
+      })
+    }
+    const tagsPage = request.query.tags
+      ? (request.query.tags as string).split(',').filter(Boolean)
+      : []
+    tagsPage.forEach(tag => andConditionsPage.push(tagLabelContainsFilter(tag) as envsGroupWhereInput))
+    if (andConditionsPage.length > 0) {
+      where.AND = andConditionsPage
     }
     // 排序
     const orderBy = request.query.orderBy as string || 'sort'
@@ -140,14 +134,18 @@ api.get('/pageItem', async (request, response) => {
       })
       where.OR = or
     }
-    // 默认值
+    // group_id
     if (request.query.group_id) {
       where.group_id = { equals: Number.parseInt(request.query.group_id as string) }
     }
-    // 搜索过滤
+    else {
+      where.group_id = { equals: 0 } // 默认值
+    }
+    // 搜索 + tag_list 过滤
+    const andConditionsPageItem: envsWhereInput[] = []
     if (request.query.search) {
       const search = request.query.search as string
-      where.AND = {
+      andConditionsPageItem.push({
         OR: request.query.group_id === '0'
           ? [
               { type: { contains: search } },
@@ -158,7 +156,14 @@ api.get('/pageItem', async (request, response) => {
               { value: { contains: search } },
               { remark: { contains: search } },
             ],
-      }
+      })
+    }
+    const tagsPageItem = request.query.tags
+      ? (request.query.tags as string).split(',').filter(Boolean)
+      : []
+    tagsPageItem.forEach(tag => andConditionsPageItem.push(tagLabelContainsFilter(tag) as envsWhereInput))
+    if (andConditionsPageItem.length > 0) {
+      where.AND = andConditionsPageItem
     }
     // 排序
     const orderBy = request.query.orderBy as string || 'sort'
@@ -192,36 +197,50 @@ apiOpen.get('/v1/page', async (request, response) => {
     })
     const where: envsGroupWhereInput & envsWhereInput = {}
     const { category, compositeId } = params.query
+    const search = request.query.search as string
+    const tags = request.query.tags
+      ? (request.query.tags as string).split(',').filter(Boolean)
+      : []
     switch (category) {
-      case EnvTypes.ORDINARY:
+      case EnvTypes.ORDINARY: {
         // 默认值
         where.group_id = { equals: 0 }
-        // 搜索过滤
-        if (request.query.search) {
-          const search = request.query.search as string
-          where.AND = {
+        // 搜索 + tag_list 过滤
+        const andOrdinary: envsWhereInput[] = []
+        if (search) {
+          andOrdinary.push({
             OR: [
               { type: { contains: search } },
               { value: { contains: search } },
               { description: { contains: search } },
             ],
-          }
+          })
+        }
+        tags.forEach(tag => andOrdinary.push(tagLabelContainsFilter(tag) as envsWhereInput))
+        if (andOrdinary.length > 0) {
+          where.AND = andOrdinary
         }
         break
-      case EnvTypes.COMPOSITE:
+      }
+      case EnvTypes.COMPOSITE: {
         // 过滤掉特殊记录
         where.id = { not: 0 }
-        // 搜索过滤
-        if (request.query.search) {
-          const search = request.query.search as string
-          where.AND = {
+        // 搜索 + tag_list 过滤
+        const andComposite: envsGroupWhereInput[] = []
+        if (search) {
+          andComposite.push({
             OR: [
               { type: { contains: search } },
               { description: { contains: search } },
             ],
-          }
+          })
+        }
+        tags.forEach(tag => andComposite.push(tagLabelContainsFilter(tag) as envsGroupWhereInput))
+        if (andComposite.length > 0) {
+          where.AND = andComposite
         }
         break
+      }
       case EnvTypes.COMPOSITE_VALUE: {
         if (typeof compositeId === 'undefined') {
           throw new Error('需要提供 compositeId 参数')
@@ -230,15 +249,19 @@ apiOpen.get('/v1/page', async (request, response) => {
           throw new Error('参数 compositeId 无效（参数值类型错误）')
         }
         where.group_id = { equals: Number.parseInt(compositeId) }
-        // 搜索过滤
-        if (request.query.search) {
-          const search = request.query.search as string
-          where.AND = {
+        // 搜索 + tag_list 过滤
+        const andCompositeValue: envsWhereInput[] = []
+        if (search) {
+          andCompositeValue.push({
             OR: [
               { value: { contains: search } },
               { remark: { contains: search } },
             ],
-          }
+          })
+        }
+        tags.forEach(tag => andCompositeValue.push(tagLabelContainsFilter(tag) as envsWhereInput))
+        if (andCompositeValue.length > 0) {
+          where.AND = andCompositeValue
         }
         break
       }
@@ -343,7 +366,9 @@ apiOpen.get('/v1/query', async (request, response) => {
       const datas = filteredData.map((data) => {
         let category: TypeCategory
         if (Object.keys(data).includes('group_id')) {
-          category = (data as envsModel).group_id === 0 ? EnvTypes.ORDINARY : EnvTypes.COMPOSITE_VALUE
+          category = (data as envsModel).group_id === 0
+            ? EnvTypes.ORDINARY
+            : EnvTypes.COMPOSITE_VALUE
         }
         else {
           category = EnvTypes.COMPOSITE
@@ -411,7 +436,9 @@ apiOpen.get('/v1/queryById', async (request, response) => {
     }
     let record: envsModel | ComboEnvsGroupWithCount | null = null
     if (category === EnvTypes.COMPOSITE) {
-      const envsGroupResult = await db.envsGroup.$getById(String(id), undefined, { include: { _count: { select: { envs: true } } } })
+      const envsGroupResult = await db.envsGroup.$getById(String(id), undefined, {
+        include: { _count: { select: { envs: true } } },
+      })
       if (envsGroupResult) {
         record = flattenIncludeRelationCount(envsGroupResult)
       }
@@ -1065,117 +1092,72 @@ apiOpen.post('/v1/order', async (request, response) => {
   }
 })
 
-async function getCurrentMaxSortValue(isEnvsGroup: boolean) {
-  const result = isEnvsGroup
-    ? await db.envsGroup.$page(
-        { where: { id: { not: 0 } }, orderBy: [{ sort: 'desc' }], page: 1, size: 1 },
-      )
-    : await db.envs.$page(
-        { orderBy: [{ sort: 'desc' }], page: 1, size: 1 },
-      )
-  const sort = result.data[0]?.sort
-  if (!sort && sort !== 0) {
-    throw new Error('未找到最大排序值')
+api.get('/tagsItem', async (request, response) => {
+  try {
+    const params = validateRequestParams(request, {
+      query: [
+        ['group_id', [false, 'string']],
+      ] as const,
+    })
+    const { group_id } = params.query
+    let compositeId: number
+    if (group_id) {
+      if (!/^\d+$/.test(group_id) || Number.parseInt(group_id) < 0) {
+        throw new Error('参数 group_id 无效（参数值类型错误）')
+      }
+      compositeId = Number.parseInt(group_id)
+    }
+    else {
+      compositeId = 0
+    }
+    const tags = await getTagsListItem(compositeId)
+    response.send(API_STATUS_CODE.okData(tags))
   }
-  return sort
-}
-
-async function fixOrder() {
-  await db.$executeRaw`
-      UPDATE envsGroup
-      SET sort = t.row_num
-      FROM (SELECT rowid, id, row_number() over ( order by sort) as row_num
-            FROM envsGroup
-            WHERE id != 0) t
-      WHERE t.id = envsGroup.id`
-}
-
-async function updateSortById(id: number, newOrder: number) {
-  const oldRecord = await db.envsGroup.$getById(id) as envsGroupModel
-  if (newOrder === oldRecord.sort) {
-    return true
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
   }
-  const args = newOrder > oldRecord.sort
-    ? [oldRecord.sort, newOrder, -1, oldRecord.sort + 1, newOrder]
-    : [oldRecord.sort, newOrder, 1, newOrder, oldRecord.sort - 1]
+})
 
-  await db.$executeRaw`BEGIN TRANSACTION;`
-  if (newOrder > oldRecord.sort) {
-    await db.$executeRaw`UPDATE envsGroup
-                         SET sort = sort + ${args[2]}
-                         WHERE sort > ${oldRecord.sort}
-                           AND sort <= ${newOrder}
-                           AND id != 0`
+api.get('/tags', async (_request, response) => {
+  try {
+    const tags = await getTagsList()
+    response.send(API_STATUS_CODE.okData(tags))
   }
-  if (newOrder < oldRecord.sort) {
-    await db.$executeRaw`UPDATE envsGroup
-                         SET sort = sort + ${args[2]}
-                         WHERE sort >= ${newOrder}
-                           AND sort < ${oldRecord.sort}
-                           AND id != 0`
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
   }
-  await db.$executeRaw`UPDATE envsGroup
-                       SET sort = ${newOrder}
-                       WHERE id = ${id}`
-  await db.$executeRaw`COMMIT;`
+})
 
-  return true
-}
-
-async function fixItemOrder() {
-  await db.$executeRaw`
-      UPDATE envs
-      SET sort = t.row_num
-      FROM (SELECT id, row_number() over (PARTITION BY group_id order by sort) as row_num
-            FROM envs) t
-      WHERE t.id = envs.id`
-}
-
-async function updateItemSortById(id: number, newOrder: number) {
-  const oldRecord = await db.envs.$getById(id) as envsModel
-  if (newOrder === oldRecord.sort) {
-    return true
+apiOpen.get('/v1/tags', async (request, response) => {
+  try {
+    const params = validateRequestParams(request, {
+      query: [
+        ['category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
+        ['compositeId', [false, 'string']],
+      ] as const,
+    })
+    const { category, compositeId } = params.query
+    let result: EnvTag[]
+    if (category === EnvTypes.COMPOSITE) {
+      result = await getTagsList()
+    }
+    else {
+      let group_id: number = 0
+      if (typeof compositeId === 'undefined') {
+        throw new Error('需要提供 compositeId 参数')
+      }
+      if (!/^\d+$/.test(compositeId) || Number.parseInt(compositeId) < 0) {
+        throw new Error('参数 compositeId 无效（参数值类型错误）')
+      }
+      group_id = Number.parseInt(compositeId)
+      result = await getTagsListItem(group_id)
+    }
+    response.send(API_STATUS_CODE.okData(result))
   }
-  const args = newOrder > oldRecord.sort
-    ? [oldRecord.sort, newOrder, -1, oldRecord.sort + 1, newOrder, oldRecord.group_id]
-    : [oldRecord.sort, newOrder, 1, newOrder, oldRecord.sort - 1, oldRecord.group_id]
-
-  await db.$executeRaw`BEGIN TRANSACTION;`
-  if (newOrder > oldRecord.sort) {
-    await db.$executeRaw`UPDATE envs
-                         SET sort = sort + ${args[2]}
-                         WHERE sort > ${oldRecord.sort}
-                           AND sort <= ${newOrder}
-                           AND group_id = ${args[5]}`
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
   }
-  if (newOrder < oldRecord.sort) {
-    await db.$executeRaw`UPDATE envs
-                         SET sort = sort + ${args[2]}
-                         WHERE sort >= ${newOrder}
-                           AND sort < ${oldRecord.sort}
-                           AND group_id = ${args[5]}`
-  }
-  await db.$executeRaw`UPDATE envs
-                       SET sort = ${newOrder}
-                       WHERE id = ${id}`
-  await db.$executeRaw`COMMIT;`
-
-  return true
-}
-
-async function checkVaribleExsit(name: string) {
-  if (((await db.envsGroup.$list({
-    id: { not: 0 },
-    type: name,
-  })) || []).length > 0) {
-    throw new Error(`已存在复合变量 ${name}`)
-  }
-  if (((await db.envs.$list({
-    type: name,
-  })) || []).length > 0) {
-    throw new Error(`已存在普通变量 ${name}`)
-  }
-}
+})
 
 export {
   api as API,
