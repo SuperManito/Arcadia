@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prismaGeneratedModel/client'
+import { PrismaClient } from './generated/prisma/client'
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import { withMyFunc } from './myfunc'
 import { APP_FILE_PATH } from '../../core/type'

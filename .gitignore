@@ -2,6 +2,7 @@ node_modules
 *-lock.*
 *.lock
 dist/
+/backend/db/prisma/generated
 
 /config/
 /log/

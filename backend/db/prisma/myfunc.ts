@@ -1,4 +1,4 @@
-import { Prisma } from '@prismaGeneratedModel/client'
+import { Prisma } from './generated/prisma/client'
 
 export interface PageResult<T> { data: T, total?: number, page: number, size: number }
 

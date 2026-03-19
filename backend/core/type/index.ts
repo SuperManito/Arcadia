@@ -1,7 +1,7 @@
 import path from 'node:path'
 
-export const APP_ROOT_DIR = path.resolve(__dirname, '../../../../') // 根目录 /arcadia
-export const APP_SOURCE_DIR = path.join(__dirname, '../../../') // 源码目录 /arcadia/src
+export const APP_ROOT_DIR = path.resolve(import.meta.dirname, '../../../../') // 根目录 /arcadia
+export const APP_SOURCE_DIR = path.join(import.meta.dirname, '../../../') // 源码目录 /arcadia/src
 export const APP_PUBLIC_DIR = path.join(APP_SOURCE_DIR, 'public') // 静态文件目录 /arcadia/src/public
 
 export enum APP_FILE_TYPE {
