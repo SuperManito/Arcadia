@@ -92,10 +92,10 @@ api.get('/page', async (request, response) => {
         ],
       })
     }
-    const tagsPage = request.query.tags
+    const tags = request.query.tags
       ? (request.query.tags as string).split(',').filter(Boolean)
       : []
-    tagsPage.forEach(tag => andConditionsPage.push(tagLabelContainsFilter(tag) as envsGroupWhereInput))
+    tags.forEach(tag => andConditionsPage.push(tagLabelContainsFilter(tag) as envsGroupWhereInput))
     if (andConditionsPage.length > 0) {
       where.AND = andConditionsPage
     }
@@ -158,10 +158,10 @@ api.get('/pageItem', async (request, response) => {
             ],
       })
     }
-    const tagsPageItem = request.query.tags
+    const tags = request.query.tags
       ? (request.query.tags as string).split(',').filter(Boolean)
       : []
-    tagsPageItem.forEach(tag => andConditionsPageItem.push(tagLabelContainsFilter(tag) as envsWhereInput))
+    tags.forEach(tag => andConditionsPageItem.push(tagLabelContainsFilter(tag) as envsWhereInput))
     if (andConditionsPageItem.length > 0) {
       where.AND = andConditionsPageItem
     }
@@ -192,6 +192,7 @@ apiOpen.get('/v1/page', async (request, response) => {
       query: [
         ['category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
         ['enable', [false, ['1', '0', '1,0', '0,1']]],
+        ['tags', [false, 'string']],
         ['compositeId', [false, 'string']],
       ] as const,
     })
