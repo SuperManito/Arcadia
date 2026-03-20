@@ -172,7 +172,7 @@ api.post('/cmd', (request, response) => {
 })
 
 /**
- * 执行 Shell 命令（OpenAPI，返回 runId，无 Socket 推送）
+ * 执行 Shell 命令（返回 runId，无 Socket 推送）
  */
 apiOpen.post('/v1/cmd', (request, response) => {
   try {
@@ -183,6 +183,43 @@ apiOpen.post('/v1/cmd', (request, response) => {
     })
     const runId = runShellCmd(params.body.cmd, makeRunCallbacks(true))
     response.send(API_STATUS_CODE.okData(runId))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e?.message || '执行失败'))
+  }
+})
+
+/**
+ * 执行 Shell 命令（SSE 流式推送日志）
+ */
+apiOpen.post('/v1/cmd/stream', async (request, response) => {
+  try {
+    const params = validateRequestParams(request, {
+      body: [
+        ['cmd', [true, 'string']],
+      ] as const,
+    })
+
+    const session = await createSseSession(request, response)
+    try {
+      const runId = runShellCmd(params.body.cmd, {
+        onStdout(_id, data) { session.push({ type: 'log', stream: 'stdout', log: data }) },
+        onStderr(_id, data) { session.push({ type: 'log', stream: 'stderr', log: data }) },
+        async onError(id, err) {
+          session.push({ runId: id, type: 'error', log: err.message })
+          response.end()
+        },
+        async onExit(_id) {
+          session.push({ type: 'exit' })
+          response.end()
+        },
+      })
+      session.push({ runId, type: 'start' })
+    }
+    catch (e: any) {
+      session.push({ type: 'error', log: e?.message || '执行失败' })
+      response.end()
+    }
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e?.message || '执行失败'))
@@ -213,110 +250,6 @@ api.post('/file', (request, response) => {
     const envs = parseEnvs(request.body.envs)
     const runId = runCodeFile(path, options, envs, makeRunCallbacks())
     response.send(API_STATUS_CODE.okData(runId))
-  }
-  catch (e: any) {
-    response.send(API_STATUS_CODE.fail(e?.message || '执行失败'))
-  }
-})
-
-/**
- * 运行代码文件（OpenAPI，返回 runId，无 Socket 推送）
- */
-apiOpen.post('/v1/run', (request, response) => {
-  try {
-    const params = validateRequestParams(request, {
-      body: [
-        ['path', [true, 'string']],
-        ['options', [false, 'object']],
-        ['envs', [false, 'object']],
-      ] as const,
-    })
-    const { path } = params.body
-    checkPathAccess(path)
-    const options = parseOptions(request.body.options)
-    const envs = parseEnvs(request.body.envs)
-    const runId = runCodeFile(path, options, envs, makeRunCallbacks(true))
-    response.send(API_STATUS_CODE.okData(runId))
-  }
-  catch (e: any) {
-    response.send(API_STATUS_CODE.fail(e?.message || '执行失败'))
-  }
-})
-
-/**
- * 运行代码文件（SSE 流式推送日志）
- */
-apiOpen.post('/v1/runStream', async (request, response) => {
-  try {
-    const params = validateRequestParams(request, {
-      body: [
-        ['path', [true, 'string']],
-        ['options', [false, 'object']],
-        ['envs', [false, 'object']],
-      ] as const,
-    })
-    const { path } = params.body
-    checkPathAccess(path)
-    const options = parseOptions(request.body.options)
-    const envs = parseEnvs(request.body.envs)
-
-    const session = await createSseSession(request, response)
-    try {
-      const runId = runCodeFile(path, options, envs, {
-        onStdout(_id, data) { session.push({ type: 'log', stream: 'stdout', log: data }) },
-        onStderr(_id, data) { session.push({ type: 'log', stream: 'stderr', log: data }) },
-        async onError(id, err) {
-          session.push({ runId: id, type: 'error', log: err.message })
-          response.end()
-        },
-        async onExit(_id) {
-          session.push({ type: 'exit' })
-          response.end()
-        },
-      })
-      session.push({ runId, type: 'start' })
-    }
-    catch (e: any) {
-      session.push({ type: 'error', log: e?.message || '执行失败' })
-      response.end()
-    }
-  }
-  catch (e: any) {
-    response.send(API_STATUS_CODE.fail(e?.message || '执行失败'))
-  }
-})
-
-/**
- * 执行 Shell 命令（SSE 流式推送日志）
- */
-apiOpen.post('/v1/cmdStream', async (request, response) => {
-  try {
-    const params = validateRequestParams(request, {
-      body: [
-        ['cmd', [true, 'string']],
-      ] as const,
-    })
-
-    const session = await createSseSession(request, response)
-    try {
-      const runId = runShellCmd(params.body.cmd, {
-        onStdout(_id, data) { session.push({ type: 'log', stream: 'stdout', log: data }) },
-        onStderr(_id, data) { session.push({ type: 'log', stream: 'stderr', log: data }) },
-        async onError(id, err) {
-          session.push({ runId: id, type: 'error', log: err.message })
-          response.end()
-        },
-        async onExit(_id) {
-          session.push({ type: 'exit' })
-          response.end()
-        },
-      })
-      session.push({ runId, type: 'start' })
-    }
-    catch (e: any) {
-      session.push({ type: 'error', log: e?.message || '执行失败' })
-      response.end()
-    }
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e?.message || '执行失败'))
@@ -371,10 +304,77 @@ api.post('/file/debug', (request, response) => {
 })
 
 /**
+ * 运行代码文件（返回 runId，无 Socket 推送）
+ */
+apiOpen.post('/v1/file', (request, response) => {
+  try {
+    const params = validateRequestParams(request, {
+      body: [
+        ['path', [true, 'string']],
+        ['options', [false, 'object']],
+        ['envs', [false, 'object']],
+      ] as const,
+    })
+    const { path } = params.body
+    checkPathAccess(path)
+    const options = parseOptions(request.body.options)
+    const envs = parseEnvs(request.body.envs)
+    const runId = runCodeFile(path, options, envs, makeRunCallbacks(true))
+    response.send(API_STATUS_CODE.okData(runId))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e?.message || '执行失败'))
+  }
+})
+
+/**
+ * 运行代码文件（SSE 流式推送日志）
+ */
+apiOpen.post('/v1/file/stream', async (request, response) => {
+  try {
+    const params = validateRequestParams(request, {
+      body: [
+        ['path', [true, 'string']],
+        ['options', [false, 'object']],
+        ['envs', [false, 'object']],
+      ] as const,
+    })
+    const { path } = params.body
+    checkPathAccess(path)
+    const options = parseOptions(request.body.options)
+    const envs = parseEnvs(request.body.envs)
+
+    const session = await createSseSession(request, response)
+    try {
+      const runId = runCodeFile(path, options, envs, {
+        onStdout(_id, data) { session.push({ type: 'log', stream: 'stdout', log: data }) },
+        onStderr(_id, data) { session.push({ type: 'log', stream: 'stderr', log: data }) },
+        async onError(id, err) {
+          session.push({ runId: id, type: 'error', log: err.message })
+          response.end()
+        },
+        async onExit(_id) {
+          session.push({ type: 'exit' })
+          response.end()
+        },
+      })
+      session.push({ runId, type: 'start' })
+    }
+    catch (e: any) {
+      session.push({ type: 'error', log: e?.message || '执行失败' })
+      response.end()
+    }
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e?.message || '执行失败'))
+  }
+})
+
+/**
  * 停止运行中的任务
  */
 api.post('/file/stop', execFileStopHandler)
-apiOpen.post('/v1/stopRun', execFileStopHandler)
+apiOpen.post('/v1/file/stop', execFileStopHandler)
 
 export {
   api as API,

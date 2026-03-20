@@ -14,9 +14,8 @@ export type PermissionKey
     | 'file:read' // 读取文件内容（读取、下载）[危险 - 默认禁用]
     | 'file:write' // 写入文件系统（创建、修改、删除、移动）[危险 - 默认禁用]
     | 'exec:cmd' // 执行 Shell 命令（任意 Shell 指令）[危险 - 默认禁用]
-    | 'exec:run' // 运行代码文件（指定路径的代码文件）[危险 - 默认禁用]
+    | 'exec:file' // 运行代码文件（指定路径的代码文件）[危险 - 默认禁用]
     | 'exec:status' // 查询执行状态（命令/代码文件运行状态）[危险 - 默认禁用]
-    | 'exec:stop' // 终止运行（终止运行中的命令/代码文件）[危险 - 默认禁用]
 
 export type PermissionGroup = 'cron' | 'env' | 'file' | 'exec'
 
@@ -38,9 +37,8 @@ export const PERMISSION_META: Record<PermissionKey, PermissionMeta> = {
   'file:read': { group: 'file', label: '读取文件内容', desc: '允许读取任意文件的内容及下载文件', dangerous: true },
   'file:write': { group: 'file', label: '写入文件系统', desc: '允许创建、修改、重命名、移动、删除文件', dangerous: true },
   'exec:cmd': { group: 'exec', label: '执行 Shell 命令', desc: '允许执行 Shell 命令', dangerous: true },
-  'exec:run': { group: 'exec', label: '运行代码文件', desc: '允许运行指定路径的代码文件', dangerous: true },
+  'exec:file': { group: 'exec', label: '运行代码文件', desc: '允许运行指定路径的代码文件', dangerous: true },
   'exec:status': { group: 'exec', label: '查询执行状态', desc: '允许查询命令或代码文件的当前运行状态', dangerous: true },
-  'exec:stop': { group: 'exec', label: '终止运行', desc: '允许终止正在执行中的命令或代码文件', dangerous: true },
 }
 
 // 创建令牌时默认启用的权限（不含危险权限）
@@ -79,10 +77,9 @@ const ROUTE_PERM_RULES: RoutePermRule[] = [
   { pattern: /^\/file\/v1\/content$/, methods: ['POST'], permission: 'file:write' },
   { pattern: /^\/file\/v1\/(rename|move|create|delete|upload)$/, permission: 'file:write' },
   // Exec
-  { pattern: /^\/exec\/v1\/(cmd|cmdStream)$/, permission: 'exec:cmd' },
-  { pattern: /^\/exec\/v1\/(run|runStream)$/, permission: 'exec:run' },
+  { pattern: /^\/exec\/v1\/(cmd|cmd\/stream)$/, permission: 'exec:cmd' },
+  { pattern: /^\/exec\/v1\/(file|file\/stream|file\/stop)$/, permission: 'exec:file' },
   { pattern: /^\/exec\/v1\/status$/, permission: 'exec:status' },
-  { pattern: /^\/exec\/v1\/stopRun$/, permission: 'exec:stop' },
 ]
 
 /**
