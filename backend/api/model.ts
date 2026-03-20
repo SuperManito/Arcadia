@@ -63,7 +63,7 @@ export default {
     },
     PERMISSION_DENIED: {
       code: 4405,
-      message: '权限不足（令牌无权访问该类型接口）',
+      message: '权限不足',
     },
     NOT_FOUND: {
       code: 4404,
