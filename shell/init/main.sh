@@ -41,8 +41,8 @@ function arcadia_init() {
   echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- ➁ 启动核心服务结束 -----\n"
 
   # ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ 第 三 区 域 ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ #
-  if [[ -f $FileConfUser ]] && [[ -f $FileInitExtra ]]; then
-    cat $FileConfUser | grep -Eq "^EnableInitExtra=[\"\']true[\"\']"
+  if [[ -f $FileCliConf ]] && [[ -f $FileInitExtra ]]; then
+    cat $FileCliConf | grep -Eq "^CLI_CONFIG_ENABLE_INIT_EXTRA=[\"\']true[\"\']"
     if [ $? -eq 0 ]; then
       echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- ➂ 自定义初始化脚本开始 -----\n"
       source $FileInitExtra

@@ -22,6 +22,7 @@ import { API as ApiUser, InnerAPI as InnerApiUser } from '../api/user'
 import { API as ApiOpenApi, systemApi } from '../api/system'
 import { API as ApiAlert } from '../api/alert'
 import { API as ApiLog, InnerAPI as InnerApiLog } from '../api/log'
+import { API as ApiConfig } from '../api/config'
 
 function getToken(req: Request) {
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
@@ -217,6 +218,7 @@ export function registerApp(apiAuthentication: RequestHandler) {
   apiRouter.use('/token', ApiOpenApi)
   apiRouter.use('/alert', ApiAlert)
   apiRouter.use('/log', ApiLog)
+  apiRouter.use('/config', ApiConfig)
   app.use('/api', apiAuthentication, handleAuthenticationError, apiRouter)
 
   /**

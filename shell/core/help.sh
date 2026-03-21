@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-03-08
+## Modified: 2026-03-21
 
 function _print_help_title() {
   if [ "$1" ]; then
@@ -94,7 +94,7 @@ function _print_help_run() {
     ${BLUE}-w${PLAIN}, ${BLUE}--wait${PLAIN}                  推迟执行 - 等待指定时间后再运行任务，选项后需跟时间值
     ${BLUE}-D${PLAIN}, ${BLUE}--delay${PLAIN}                 延迟执行 - 随机倒数一定秒数后再执行代码文件
     ${BLUE}-d${PLAIN}, ${BLUE}--daemon${PLAIN}                守护进程 - 将代码文件设置为守护进程保持在后台运行，期间中断或结束会自动重新运行
-    ${BLUE}-a${PLAIN}, ${BLUE}--agent${PLAIN}                 网络代理 - 使代码文件的 HTTP/HTTPS 网络请求通过全局代理进行，仅支持 Node.js 和 ts-node
+    ${BLUE}-a${PLAIN}, ${BLUE}--agent${PLAIN}                 网络代理 - 为 JavaScript 和 TypeScript 代码文件启用全局 HTTP/HTTPS 代理，配置方法详见文档
     ${BLUE}-T${PLAIN}, ${BLUE}--timeout${PLAIN}               运行超时 - 设置运行任务超时机制，选项后需跟 timeout 指令的参数作为选项值
     ${BLUE}-N${PLAIN}, ${BLUE}--no-log${PLAIN}                不记录日志 - 不存储代码运行日志到本地
     ${BLUE}-p${PLAIN}, ${BLUE}--proxy${PLAIN}                 启用下载代理 - 仅适用于执行位于 GitHub 仓库的代码文件，代理固定为 jsDelivr CDN

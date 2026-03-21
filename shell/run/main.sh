@@ -1,10 +1,10 @@
 #!/bin/bash
-## Modified: 2026-03-15
+## Modified: 2026-03-21
 
 ## 随机延迟
 function random_delay() {
-    if [[ -n ${RandomDelay} ]] && [[ ${RandomDelay} -gt 0 ]]; then
-        local current_delay=$((${RANDOM} % ${RandomDelay} + 1))
+    if [[ -n ${CLI_CONFIG_RUN_DELAY_MAX_SECONDS} ]] && [[ ${CLI_CONFIG_RUN_DELAY_MAX_SECONDS} -gt 0 ]]; then
+        local current_delay=$((${RANDOM} % ${CLI_CONFIG_RUN_DELAY_MAX_SECONDS} + 1))
         echo -en "\n$WORKING 已启用随机延迟，此任务将在 ${BLUE}${current_delay}${PLAIN} 秒后开始运行..."
         sleep ${current_delay}
     fi
@@ -151,7 +151,7 @@ function define_base_command() {
     local run_target="${FileName}.${FileSuffix}"
     # 脚本 global-agent 代理（命令选项）
     local global_proxy_option_cmd=""
-    [[ "${RUN_OPTION_AGENT}" == "true" || "${EnableGlobalProxy}" == "true" ]] && global_proxy_option_cmd="-r 'global-agent/bootstrap'"
+    [[ "${RUN_OPTION_AGENT}" == "true" ]] && global_proxy_option_cmd="-r 'global-agent/bootstrap'"
     # 传递给代码文件执行器的参数
     local interpreter_args=""
     if [[ "${RUN_OPTION_EXECUTOR_ARGS}" ]]; then
@@ -505,7 +505,7 @@ function run_script_main() {
     fi
 
     # 判断远程脚本执行后是否删除
-    if [[ "${RUN_REMOTE}" == "true" && "${AutoDelRawFiles}" == "true" ]]; then
+    if [[ "${RUN_REMOTE}" == "true" && "${CLI_CONFIG_ENABLE_AUTO_DELETE_REMOTE_FILE}" == "true" ]]; then
         rm -rf "${FileDir}/${FileName}.${FileSuffix}"
     fi
 }
@@ -551,14 +551,14 @@ function command_run_main() {
     fi
 
     # 执行用户自定义执行前脚本
-    if [[ "${EnableTaskBeforeExtra}" == "true" ]] && [[ -f $FileTaskBeforeExtra ]]; then
+    if [[ "${CLI_CONFIG_ENABLE_TASK_BEFORE_EXTRA}" == "true" ]] && [[ -f $FileTaskBeforeExtra ]]; then
         source $FileTaskBeforeExtra
     fi
 
     run_script_main
 
     # 执行用户自定义执行后脚本
-    if [[ "${EnableTaskAfterExtra}" == "true" ]] && [[ -f $FileTaskAfterExtra ]]; then
+    if [[ "${CLI_CONFIG_ENABLE_TASK_AFTER_EXTRA}" == "true" ]] && [[ -f $FileTaskAfterExtra ]]; then
         source $FileTaskAfterExtra
     fi
 }

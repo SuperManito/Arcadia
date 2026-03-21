@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-03-16
+## Modified: 2026-03-21
 
 ## 查找代码文件
 # 通过各种判断将得到的必要信息传给接下来运行的函数或命令
@@ -221,7 +221,7 @@ function find_script() {
             done
             ## 拷贝推送通知模块
             import_config_not_check
-            if [[ "${EnableCustomNotify}" == "true" ]] && [ -s $FileSendNotifyUser ]; then
+            if [[ "${CLI_CONFIG_ENABLE_CUSTOM_NOTIFY}" == "true" ]] && [ -s $FileSendNotifyUser ]; then
                 cp -rf $FileSendNotifyUser $work_dir
             else
                 cp -rf $FileSendNotify $work_dir

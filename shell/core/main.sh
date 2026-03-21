@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-02-13
+## Modified: 2026-03-21
 
 ## 目录
 RootDir=${ARCADIA_DIR}
@@ -22,6 +22,7 @@ BotLogDir=$LogDir/TelegramBot
 ## 文件
 FileConfUser=$ConfigDir/config.sh
 FileConfSample=$SampleDir/config.sh
+FileCliConf=$ConfigDir/.arcadia_cli_config.sh
 FileEnvUser=$ConfigDir/env.sh
 FileSyncConfUser=$ConfigDir/sync.yml
 FileSyncConfSample=$SampleDir/sync.yml
@@ -88,10 +89,16 @@ function import_config() {
         echo -e "\n$ERROR 配置文件 $FileConfUser 不存在，请检查是否移动过该文件！\n"
         exit
     fi
+    if [ -f $FileCliConf ]; then
+        source $FileCliConf >/dev/null 2>&1
+    fi
 }
 function import_config_not_check() {
     if [ -f $FileConfUser ]; then
         source $FileConfUser >/dev/null 2>&1
+    fi
+    if [ -f $FileCliConf ]; then
+        source $FileCliConf >/dev/null 2>&1
     fi
 }
 
@@ -135,7 +142,7 @@ function send_notify() {
     local title=$(echo "$1" | sed "s|-|_|g")
     local msg="$(echo -e "$2")"
     import_config_not_check
-    if [[ "${EnableCustomNotify}" == true ]] && [ -s $FileSendNotifyUser ]; then
+    if [[ "${CLI_CONFIG_ENABLE_CUSTOM_NOTIFY}" == "true" ]] && [ -s $FileSendNotifyUser ]; then
         node $FileNotify "$title" "$msg" "true"
     else
         node $FileNotify "$title" "$msg"

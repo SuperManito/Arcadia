@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-03-08
+## Modified: 2026-03-21
 
 ## 删除日志功能
 # rmlog [days]
@@ -47,7 +47,7 @@ function command_rmlog_main() {
     case $# in
     0)
         import_config_not_check
-        local RmDays=${RmLogDaysAgo}
+        local RmDays="${CLI_CONFIG_REMOVE_LOG_DAYS_AGO}"
         ;;
     1)
         local RmDays=$1
