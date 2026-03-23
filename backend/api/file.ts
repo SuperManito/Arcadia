@@ -38,8 +38,10 @@ interface Request extends ExpressRequest {
 api.get('/list', (request, response) => {
   try {
     const path = request.query.path as string || APP_ROOT_DIR
+    const showCount = request.query.showCount as string || '0'
     checkPathAccess(path)
-    response.send(API_STATUS_CODE.okData(getFileList(path)))
+    const includeCount = showCount === '1'
+    response.send(API_STATUS_CODE.okData(getFileList(path, includeCount)))
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -51,11 +53,14 @@ apiOpen.get('/v1/list', (request, response) => {
     const params = validateRequestParams(request, {
       query: [
         ['path', [false, 'string']],
+        ['showCount', [false, ['1', '0']]],
       ] as const,
     })
     const path = params.query.path || APP_ROOT_DIR
+    const { showCount } = params.query
+    const includeCount = showCount === '1'
     checkPathAccess(path, true)
-    response.send(API_STATUS_CODE.okData(getFileList(path)))
+    response.send(API_STATUS_CODE.okData(getFileList(path, includeCount)))
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))

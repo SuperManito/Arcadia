@@ -48,6 +48,7 @@ interface FileList {
   type: APP_FILE_TYPES // 文件类型
   updated_at: Date // 修改时间
   created_at: Date // 创建时间
+  count?: number // 目录子项数量（仅在 showCount 选项开启时存在）
   children: FileListItem[]
 }
 
@@ -57,6 +58,7 @@ interface FileListItem {
   type: APP_FILE_TYPES // 文件类型
   updated_at: Date // 修改时间
   created_at: Date // 创建时间
+  count?: number // 目录子项数量（仅 type 为 folder 时存在，由 showCount 选项控制）
 }
 
 interface FileTree {
@@ -96,9 +98,10 @@ export interface CodeFileResolveResult {
  * 获取文件列表（仅一层，非递归）
  *
  * @param {string} dirPath - 目录路径
+ * @param {number} [showCount] - 传入 1 时返回目录子项数量（count 字段），仅 type 为 folder 的条目包含该字段
  * @returns {object}
  */
-export function getFileList(dirPath: string): FileList {
+export function getFileList(dirPath: string, showCount: boolean = false): FileList {
   const files = fs.readdirSync(dirPath)
   const dirStats = fs.statSync(dirPath)
   const result: FileList = {
@@ -116,17 +119,30 @@ export function getFileList(dirPath: string): FileList {
       .map((file) => {
         const subPath = nodePath.join(dirPath, file)
         const stats = fs.statSync(subPath)
-        return {
+        const item: FileListItem = {
           path: subPath,
           name: file,
           type: stats.isDirectory() ? APP_FILE_TYPES.FOLDER : APP_FILE_TYPES.FILE,
           updated_at: stats.mtime,
           created_at: stats.birthtime,
         }
+        if (showCount && item.type === APP_FILE_TYPES.FOLDER) {
+          try {
+            const subFiles = fs.readdirSync(subPath).filter(f => !excludeRegExp.test(f))
+            item.count = subFiles.length
+          }
+          catch {
+            item.count = 0
+          }
+        }
+        return item
       })
       .filter(item => !defaultFilterPaths.includes(item.path)) as FileListItem[],
     true,
   )
+  if (showCount) {
+    result.count = result.children.length
+  }
   return result
 }
 
