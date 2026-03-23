@@ -7,6 +7,7 @@ import { initConfig } from './core/config'
 import { initTokenCache as initOpenApiAccessKeyCache } from './api/openApi'
 import { initDashboardMonitor } from './core/dashboard'
 import { initLog } from './core/log'
+import { initTerminalServer } from './server/terminal'
 
 async function startServer() {
   // 初始化操作日志持久化
@@ -33,7 +34,11 @@ async function startServer() {
   // 注册应用服务
   const app = registerApp(apiAuthentication)
   const server = createServer(app)
-  socketCommon.setSocket(initSocketServer(server))
+  const io = initSocketServer(server)
+  socketCommon.setSocket(io)
+
+  // 初始化终端命名空间（复用 Socket.IO 认证）
+  await initTerminalServer(io)
 
   // 启动服务
   server.listen(5678, '0.0.0.0', async () => {

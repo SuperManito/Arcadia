@@ -21,20 +21,6 @@ function arcadia_init() {
   npm install --omit=dev
   cd $SrcDir
   pm2 start ecosystem.config.cjs
-  cd $RootDir
-  [ ! -x /usr/bin/ttyd ] && wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.$(arch) -q -O /usr/local/bin/ttyd && chmod 777 /usr/local/bin/ttyd
-  pm2 start ttyd --name "arcadia_ttyd" --log-date-format "YYYY-MM-DD HH:mm:ss" -- \
-    -p 7685 \
-    -i lo \
-    --writable \
-    -t fontFamily='SF-Mono, SF Mono, Monaspace Neno, JetBrains Mono, Consolas, Courier New, monospace' \
-    -t fontSize=14 \
-    -t lineHeight=1.5 \
-    -t disableLeaveAlert=true \
-    -t disableResizeOverlay=true \
-    -t macOptionIsMeta=true \
-    -t macOptionClickForcesSelection=true \
-    bash
   if [[ -z $(grep -E "123456789" ${ConfigDir}/bot.json) ]]; then
     $ArcadiaCmd tgbot start
   fi

@@ -5,24 +5,6 @@
 # service start/restart/stop/respwd
 function service_manage() {
 
-    ## 安装网页终端
-    function install_ttyd() {
-        [ ! -x /usr/bin/ttyd ] && wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.$(arch) -q -O /usr/local/bin/ttyd && chmod 777 /usr/local/bin/ttyd
-        ## 增加环境变量
-        pm2 start ttyd --name "arcadia_ttyd" --log-date-format "YYYY-MM-DD HH:mm:ss" -- \
-            -p 7685 \
-            -i lo \
-            --writable \
-            -t fontFamily='SF-Mono, SF Mono, Monaspace Neno, JetBrains Mono, Consolas, Courier New, monospace' \
-            -t fontSize=14 \
-            -t lineHeight=1.5 \
-            -t disableLeaveAlert=true \
-            -t disableResizeOverlay=true \
-            -t macOptionIsMeta=true \
-            -t macOptionClickForcesSelection=true \
-            bash
-    }
-
     ## 安装后端依赖
     function install_dependencies() {
         cd $BackendDir
@@ -33,15 +15,13 @@ function service_manage() {
     pm2_list_all_services
     cat $FilePm2List | awk -F '|' '{print$3}' | grep "arcadia_server" -wq
     local ExitStatusSERVER=$?
-    cat $FilePm2List | awk -F '|' '{print$3}' | grep "arcadia_ttyd" -wq
-    local ExitStatusTTYD=$?
     case $1 in
     ## 开启/重启服务
     start | restart)
         ## 禁用 Core Dump
         ulimit -c 0 >/dev/null 2>&1
         ## 删除日志
-        rm -rf /root/.pm2/logs/arcadia_server-*.log /root/.pm2/logs/arcadia_ttyd-*.log
+        rm -rf /root/.pm2/logs/arcadia_server-*.log
         if [[ ${ExitStatusSERVER} -eq 0 ]]; then
             local ServiceStatus=$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')
             case ${ServiceStatus} in
@@ -80,52 +60,13 @@ function service_manage() {
                 echo -e "\n$FAIL 后台管理面板启动失败，请检查原因后重试！\n"
             fi
         fi
-        if [[ ${ExitStatusTTYD} -eq 0 ]]; then
-            ServiceStatus=$(pm2 describe arcadia_ttyd | grep status | awk '{print $4}')
-            case ${ServiceStatus} in
-            online)
-                pm2 restart arcadia_ttyd
-                echo -e "\n$COMPLETE 网页终端已重启\n"
-                ;;
-            stopped)
-                pm2 start arcadia_ttyd
-                echo -e "\n$COMPLETE 网页终端已重新启动\n"
-                ;;
-            errored)
-                echo -e "\n$WARN 检测到服务状态异常，开始尝试修复...\n"
-                pm2 delete arcadia_ttyd
-                cd $RootDir
-                install_ttyd && sleep 3
-                pm2_list_all_services
-                local ServiceNewStatus=$(cat $FilePm2List | grep "arcadia_ttyd" -w | awk -F '|' '{print$10}')
-                if [[ "${ServiceNewStatus}" == "online" ]]; then
-                    echo -e "\n$SUCCESS 已修复错误，服务恢复正常运行！\n"
-                else
-                    echo -e "\n$FAIL 未能自动修复错误，请检查原因后重试！\n"
-                fi
-                ;;
-            esac
-        else
-            cd $RootDir
-            install_ttyd && sleep 1
-            pm2_list_all_services
-            local ServiceStatus=$(cat $FilePm2List | grep "arcadia_ttyd" -w | awk -F '|' '{print$10}')
-            if [[ ${ServiceStatus} == "online" ]]; then
-                echo -e "\n$SUCCESS 网页终端已启动\n"
-            else
-                echo -e "\n$FAIL 网页终端启动失败，请检查原因后重试！\n"
-            fi
-        fi
         ;;
     ## 关闭服务
     stop)
         if [[ ${ExitStatusSERVER} -eq 0 ]]; then
             pm2 stop arcadia_server >/dev/null 2>&1
-            if [[ ${ExitStatusTTYD} -eq 0 ]]; then
-                pm2 stop arcadia_ttyd >/dev/null 2>&1
-            fi
             pm2 list
-            echo -e "\n$COMPLETE 后台管理面板和网页终端已关闭\n"
+            echo -e "\n$COMPLETE 后台管理服务已关闭\n"
         else
             echo -e "\n$ERROR 服务不存在！\n"
         fi
@@ -157,7 +98,7 @@ function service_status() {
     pm2 list
     echo ''
     pm2_list_all_services
-    Services="arcadia_server arcadia_ttyd tgbot"
+    Services="arcadia_server tgbot"
     for Name in ${Services}; do
         ServiceName=''
         StatusJudge=''
@@ -194,9 +135,6 @@ function service_status() {
         case ${Name} in
         arcadia_server)
             ServiceName="[后  端  服  务]"
-            ;;
-        arcadia_ttyd)
-            ServiceName="[网ㅤ页ㅤ终ㅤ端]"
             ;;
         tgbot)
             ServiceName="[ Telegram Bot ]"

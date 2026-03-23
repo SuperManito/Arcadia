@@ -2,11 +2,8 @@ import type { ErrorRequestHandler, Express, Request, RequestHandler, Response, R
 import express from 'express'
 import cors from 'cors'
 import compression from 'compression'
-import type { VerifyCallback } from 'jsonwebtoken'
-import jwt from 'jsonwebtoken'
 import { expressjwt } from 'express-jwt'
 import bodyParser from 'body-parser'
-import { legacyCreateProxyMiddleware } from 'http-proxy-middleware'
 
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import { APP_PUBLIC_DIR } from '../core/type'
@@ -109,43 +106,6 @@ export function registerApp(apiAuthentication: RequestHandler) {
 
   // 设置静态文件目录（前端）
   app.use(express.static(APP_PUBLIC_DIR))
-
-  /**
-   * ttyd 服务映射（需要JWT认证）
-   */
-  app.use(
-    '/api/shell',
-    legacyCreateProxyMiddleware({
-      target: 'http://127.0.0.1:7685',
-      ws: true,
-      changeOrigin: true,
-      pathRewrite: {
-        '^/api/shell': '/',
-      },
-      on: {
-        proxyReq: (proxyReq, req: Request, res: Response) => {
-          const token = req.query && req.query.token ? (req.query.token as string) : null
-          if (token) {
-            jwt.verify(token, getJwtSecretSync(), ((err, _decoded) => {
-              if (err) {
-                // JWT 认证失败
-                const { message, code } = API_STATUS_CODE.API.AUTH_FAIL
-                res.send(API_STATUS_CODE.fail(message, code))
-              }
-              else {
-                // JWT 认证成功
-                proxyReq.setHeader('Authorization', token) // 将 token 传递给目标服务器
-              }
-            }) as VerifyCallback)
-          }
-          else {
-            const { message, code } = API_STATUS_CODE.API.NO_AUTH
-            res.send(API_STATUS_CODE.fail(message, code))
-          }
-        },
-      },
-    }),
-  )
 
   /**
    * OpenAPI
