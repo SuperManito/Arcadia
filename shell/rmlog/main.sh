@@ -1,5 +1,5 @@
 #!/bin/bash
-## Modified: 2026-03-21
+## Modified: 2026-03-23
 
 ## 删除日志功能
 # rmlog [days]
@@ -40,8 +40,16 @@ function command_rmlog_main() {
     ## 清理后端系统日志
     function rm_sys_log() {
         local data='{"days": '"${RmDays}"'}'
-        local response=$(curl -s -X POST -H "Content-Type: application/json" -d "${data}" "http://127.0.0.1:5678/api/inner/log/clean")
-        echo "${response}"
+        local res=$(curl -s -X POST -H "Content-Type: application/json" -d "${data}" "http://127.0.0.1:5678/api/inner/log/clean")
+        local result="$(echo "${res}" | jq -rc '.result')"
+        local serverLog="$(echo "${result}" | jq -r ".serverLog")"
+        local loginLog="$(echo "${result}" | jq -r ".loginLog")"
+        if [[ "${loginLog}" -gt 0 ]]; then
+            echo -e "已清理 ${BLUE}${loginLog}${PLAIN} 条系统登录日志"
+        fi
+        if [[ "${serverLog}" -gt 0 ]]; then
+            echo -e "已清理 ${BLUE}${serverLog}${PLAIN} 条系统操作日志"
+        fi
     }
 
     case $# in
@@ -55,7 +63,7 @@ function command_rmlog_main() {
     esac
 
     if [ -n "${RmDays}" ]; then
-        echo -e "\n$WORKING 开始检索并删除超过 ${BLUE}${RmDays}${PLAIN} 天的日志...\n"
+        echo -e "\n$WORKING 开始检索并删除超过 ${BLUE}${RmDays}${PLAIN} 天的日志文件...\n"
         rm_script_log                                            # 删除代码运行日志
         rm_log_universal "$LogDir/server.log"                    # 删除后端服务日志
         rm_log_universal "$LogDir/update.log"                    # 删除 update 的运行日志
