@@ -1,0 +1,33 @@
+name: 🐞 错误报告
+description: Report bug
+labels: [untriaged]
+body:
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: 处理器架构
+      options:
+        - x86_64 / amd64
+        - aarch64 / armv8l
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: 描述错误
+      placeholder: 错误描述
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 补充说明（可选）
