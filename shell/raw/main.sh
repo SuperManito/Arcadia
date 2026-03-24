@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-01-12
 
 ## 一键添加代码文件配置
 # repo <name> <url> [--options]

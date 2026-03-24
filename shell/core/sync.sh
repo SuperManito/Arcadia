@@ -1,5 +1,4 @@
-#!/bin/bash
-## Modified: 2026-01-12
+
 
 ## 统计代码仓库数量
 function count_reposum() {

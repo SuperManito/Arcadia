@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2025-12-06
 
 ## 打印表格（基于 table-printer-cli）
 # output_table_data '{ "列名1": "data1", "列名2": "data2" }'

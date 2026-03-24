@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-03-03
 
 ## 更新所有代码仓库
 # update repo

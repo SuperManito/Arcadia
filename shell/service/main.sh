@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-03-19
 
 ## 后端服务控制
 # service start/restart/stop/respwd

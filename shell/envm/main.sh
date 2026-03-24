@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2025-09-01
 
 ## 添加
 function add_environment_variable() {

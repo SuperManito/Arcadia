@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-01-12
 
 ## 更新所有 Raw 代码文件
 # update raw

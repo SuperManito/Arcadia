@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2025-08-31
 
 ## 一键添加代码仓库配置
 # repo <name> <url> <branch> [--options]

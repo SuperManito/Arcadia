@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2024-04-20
 
 ## 定时算法 - 解析代码文件内预设的定时（规则）表达式
 function get_cron() {

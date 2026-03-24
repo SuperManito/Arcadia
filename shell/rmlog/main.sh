@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-03-23
 
 ## 删除日志功能
 # rmlog [days]

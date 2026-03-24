@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-03-21
 
 ## 目录
 RootDir=${ARCADIA_DIR}

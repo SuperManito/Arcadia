@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-03-21
 
 function _print_help_title() {
   if [ "$1" ]; then

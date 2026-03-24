@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-03-22
 
 ## 更新项目
 function command_upgrade() {

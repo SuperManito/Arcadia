@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-02-13
 
 ## 列出本地代码文件清单功能
 # list <path>

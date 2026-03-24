@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-03-25
 
 function print_logo() {
   echo '

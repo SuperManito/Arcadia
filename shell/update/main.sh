@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-03-22
 
 ## 清空定时任务关联代码文件清单内容
 function clean_list_scripts() {

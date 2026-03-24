@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-03-21
 
 ## 自定义更新脚本
 # update extra
