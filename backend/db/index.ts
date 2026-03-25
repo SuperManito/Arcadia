@@ -1,7 +1,6 @@
 import type { PageResult } from './prisma/myfunc'
 import { prisma } from './prisma/db'
-import type { envsGroupModel } from '@prismaGeneratedModel/models/envsGroup'
-import type { envsModel } from '@prismaGeneratedModel/models/envs'
+import type { envsGroupModel, envsModel } from './prisma/db'
 
 export type * from './prisma/db'
 
