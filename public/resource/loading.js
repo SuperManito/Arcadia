@@ -8,6 +8,7 @@ try {
   const themeState = localStorage.getItem('THEME__STATE') || 'light'
   const isMobile = window.matchMedia('(max-width: 996px)').matches
   const metaThemeColor = document.querySelector('meta[name=theme-color]')
+  const metaColorScheme = document.querySelector('meta[name="color-scheme"]')
   let loadingBackgroundStyle
   if (!isMobile) {
     loadingBackgroundStyle
@@ -36,6 +37,13 @@ try {
     '--app-loading-page-icon-color',
     themeState === 'light' ? '#333639ff' : '#ffffffe6',
   )
+  // 浏览器主题（color-scheme）
+  if (metaColorScheme) {
+    metaColorScheme.setAttribute(
+      'content',
+      themeState === 'light' ? 'light' : 'dark',
+    )
+  }
   // 浏览器导航栏主题色（移动端）
   if (metaThemeColor) {
     metaThemeColor.setAttribute(
