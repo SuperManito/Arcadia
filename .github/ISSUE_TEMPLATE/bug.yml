@@ -28,6 +28,6 @@ body:
       required: true
 
   - type: textarea
-    id: steps
+    id: other
     attributes:
       label: 补充说明（可选）
