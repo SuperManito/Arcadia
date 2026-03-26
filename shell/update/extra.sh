@@ -1,14 +1,13 @@
 #!/bin/bash
-## Modified: 2023-05-27
 
 ## 自定义更新脚本
 # update extra
 function update_extra() {
     echo ''
     ## 同步
-    if [[ "${EnableUpdateExtraSync}" == true ]] && [[ $UpdateExtraSyncUrl ]]; then
-        echo -e "$WORKING 开始同步自定义更新脚本：$UpdateExtraSyncUrl\n"
-        wget -q --no-check-certificate $UpdateExtraSyncUrl -O $FileUpdateExtra.new -T 20
+    if [[ "${CLI_CONFIG_ENABLE_UPDATE_EXTRA_SYNC_FILE}" == "true" ]] && [[ $CLI_CONFIG_UPDATE_EXTRA_SYNC_FILE_URL ]]; then
+        echo -e "$WORKING 开始同步自定义更新脚本：$CLI_CONFIG_UPDATE_EXTRA_SYNC_FILE_URL\n"
+        wget -q --no-check-certificate $CLI_CONFIG_UPDATE_EXTRA_SYNC_FILE_URL -O $FileUpdateExtra.new -T 20
         if [ $? -eq 0 ]; then
             mv -f "$FileUpdateExtra.new" "$FileUpdateExtra"
             echo -e "$COMPLETE 自定义更新脚本同步完成\n"
@@ -24,7 +23,7 @@ function update_extra() {
         [ -f "$FileUpdateExtra.new" ] && rm -rf "$FileUpdateExtra.new"
     fi
     ## 执行
-    if [[ "${EnableUpdateExtra}" == true ]]; then
+    if [[ "${CLI_CONFIG_ENABLE_UPDATE_EXTRA}" == "true" ]]; then
         if [ -f $FileUpdateExtra ]; then
             echo -e "$WORKING 开始执行自定义更新脚本：$FileUpdateExtra\n"
             source $FileUpdateExtra

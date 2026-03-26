@@ -33,7 +33,7 @@ export async function sendWechatNotification(msg: messageModel, notification: al
     // 其他微信通知方式需要根据具体实现处理
     logger.log(`WeChat notification processed: ${title} (specific implementation depends on target configuration)`)
   }
-  catch (error) {
-    logger.error(`Error sending WeChat notification to ${notification.target}: ${msg.title}`, error)
+  catch (e: any) {
+    logger.error(`Error sending WeChat notification to ${notification.target}: ${msg.title}`, e.message || e)
   }
 }

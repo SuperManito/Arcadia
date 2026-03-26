@@ -2,11 +2,8 @@ import type { ErrorRequestHandler, Express, Request, RequestHandler, Response, R
 import express from 'express'
 import cors from 'cors'
 import compression from 'compression'
-import type { VerifyCallback } from 'jsonwebtoken'
-import jwt from 'jsonwebtoken'
 import { expressjwt } from 'express-jwt'
 import bodyParser from 'body-parser'
-import { legacyCreateProxyMiddleware } from 'http-proxy-middleware'
 
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import { APP_PUBLIC_DIR } from '../core/type'
@@ -16,10 +13,13 @@ import { API as ApiFile, OpenAPI as OpenApiFile } from '../api/file'
 import { API as ApiEnv, OpenAPI as OpenApiEnv } from '../api/env'
 import { API as ApiCron, InnerAPI as InnerApiCron, OpenAPI as OpenApiCron } from '../api/cron'
 import { API as ApiMessage } from '../api/message'
-import { API as ApiMisc } from '../api/misc'
+import { API as ApiCaptcha } from '../api/captcha'
+import { API as ApiExec, OpenAPI as OpenApiExec } from '../api/exec'
 import { API as ApiUser, InnerAPI as InnerApiUser } from '../api/user'
 import { API as ApiOpenApi, systemApi } from '../api/system'
 import { API as ApiAlert } from '../api/alert'
+import { API as ApiLog, InnerAPI as InnerApiLog } from '../api/log'
+import { API as ApiConfig } from '../api/config'
 
 function getToken(req: Request) {
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
@@ -59,6 +59,10 @@ export function registerApp(apiAuthentication: RequestHandler) {
 
   function shouldCompress(req: Request, res: Response) {
     if (req.headers['x-no-compression']) {
+      return false
+    }
+    // SSE 响应不可压缩
+    if (res.getHeader('Content-Type') === 'text/event-stream') {
       return false
     }
     return compression.filter(req, res)
@@ -104,43 +108,6 @@ export function registerApp(apiAuthentication: RequestHandler) {
   app.use(express.static(APP_PUBLIC_DIR))
 
   /**
-   * ttyd 服务映射（需要JWT认证）
-   */
-  app.use(
-    '/api/shell',
-    legacyCreateProxyMiddleware({
-      target: 'http://127.0.0.1:7685',
-      ws: true,
-      changeOrigin: true,
-      pathRewrite: {
-        '^/api/shell': '/',
-      },
-      on: {
-        proxyReq: (proxyReq, req: Request, res: Response) => {
-          const token = req.query && req.query.token ? (req.query.token as string) : null
-          if (token) {
-            jwt.verify(token, getJwtSecretSync(), ((err, _decoded) => {
-              if (err) {
-                // JWT 认证失败
-                const { message, code } = API_STATUS_CODE.API.AUTH_FAIL
-                res.send(API_STATUS_CODE.fail(message, code))
-              }
-              else {
-                // JWT 认证成功
-                proxyReq.setHeader('Authorization', token) // 将 token 传递给目标服务器
-              }
-            }) as VerifyCallback)
-          }
-          else {
-            const { message, code } = API_STATUS_CODE.API.NO_AUTH
-            res.send(API_STATUS_CODE.fail(message, code))
-          }
-        },
-      },
-    }),
-  )
-
-  /**
    * OpenAPI
    */
   const openApiRouter: Router = express.Router()
@@ -148,6 +115,7 @@ export function registerApp(apiAuthentication: RequestHandler) {
   openApiRouter.use('/file', OpenApiFile)
   openApiRouter.use('/env', OpenApiEnv)
   openApiRouter.use('/cron', OpenApiCron)
+  openApiRouter.use('/exec', OpenApiExec)
   openApiRouter.use('/message', ApiMessage)
   openApiRouter.use('/alert', ApiAlert)
   app.use('/api/open', OpenAPIAuthentication, openApiRouter)
@@ -199,7 +167,8 @@ export function registerApp(apiAuthentication: RequestHandler) {
     }
   }
   const apiRouter: Router = express.Router()
-  apiRouter.use('/', ApiMisc)
+  apiRouter.use('/captcha', ApiCaptcha)
+  apiRouter.use('/exec', ApiExec)
   apiRouter.use('/user', ApiUser)
   apiRouter.use('/file', ApiFile)
   apiRouter.use('/env', ApiEnv)
@@ -208,6 +177,8 @@ export function registerApp(apiAuthentication: RequestHandler) {
   apiRouter.use('/system', systemApi)
   apiRouter.use('/token', ApiOpenApi)
   apiRouter.use('/alert', ApiAlert)
+  apiRouter.use('/log', ApiLog)
+  apiRouter.use('/config', ApiConfig)
   app.use('/api', apiAuthentication, handleAuthenticationError, apiRouter)
 
   /**
@@ -227,6 +198,7 @@ export function registerApp(apiAuthentication: RequestHandler) {
   const innerRouter: Router = express.Router()
   innerRouter.use('/cron', InnerApiCron)
   innerRouter.use('/user', InnerApiUser)
+  innerRouter.use('/log', InnerApiLog)
   app.use('/api/inner', innerIpWhitelist, innerRouter)
 
   /**

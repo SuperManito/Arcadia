@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-02-13
 
 ## 通过进程树终止任务
 function _kill_process_tree() {

@@ -3,9 +3,9 @@ import express from 'express'
 import { API_STATUS_CODE, getClientIP, ip2Address } from '../utils/httpUtil'
 import { logger } from '../utils/logger'
 import jwt from 'jsonwebtoken'
-import { dateToString, randomString } from '../utils'
+import { randomString } from '../utils'
 import { getRuntimeConfigValue, getUserModuleConfig, rotateJwtSecret, updateUserConfigValue } from '../core/config'
-import { hashPassword, resetUserCredentials, saveUserCredentials, updateLoginInfo, verifyPassword } from '../core/config/user'
+import { hashPassword, resetUserCredentials, saveUserCredentials, verifyPassword } from '../core/config/user'
 import {
   disableTOTP,
   enableTOTP,
@@ -25,6 +25,7 @@ import {
   resetAuthError,
   shouldShowCaptcha,
 } from '../core/config/session'
+import { addLoginLog, getLastLoginInfo } from '../core/log'
 
 const api: Express = express()
 const apiInner: Express = express()
@@ -103,11 +104,10 @@ function checkTOTPCodeFormat(totpCode: string):
 }
 
 /**
- * 完成登录：生成 JWT Token 并记录登录信息
+ * 完成登录：生成 JWT Token 并记录登录日志
  */
 async function completeLogin(username: string, password: string, request: Request) {
   const result = { token: '', newPwd: '' }
-  const curTime = new Date()
 
   // 检查是否为默认密码，自动生成新密码
   const isDefaultUsername = username === DEFAULT_USER_CONFIG_VALUES[ConfigKeyUser.USERNAME]
@@ -119,17 +119,14 @@ async function completeLogin(username: string, password: string, request: Reques
     await updateUserConfigValue(ConfigKeyUser.PASSWORD, hashPassword(newPassword))
   }
 
-  // 记录本次登录信息
-  await ip2Address(getClientIP(request)).then(async ({ ip, address }) => {
-    await updateLoginInfo({
-      loginIp: ip,
-      loginAddress: address,
-      loginTime: dateToString(curTime),
-    })
+  // 记录本次登录日志
+  const clientIP = getClientIP(request)
+  void ip2Address(clientIP).then(({ ip, address }) => {
+    void addLoginLog({ ip, address, result: 1 })
     if (ip !== '127.0.0.1' && ip !== 'localhost') {
       logger.info(`用户 ${username} 已登录，登录地址：${ip} ${address}`)
     }
-  })
+  }).catch(() => {})
 
   // 生成 JWT Token
   const jwtSecret = await getRuntimeConfigValue(ConfigKeyRuntime.JWT_SECRET)
@@ -176,6 +173,8 @@ api.post('/auth', async (request, response) => {
   const credentialsCheck = await validateCredentials(username, password, userConfig, curTime)
   if (!credentialsCheck.valid) {
     logger.warn('登录认证失败', { username, ip: clientIP, reason: credentialsCheck.message, attemptCount: getAuthErrorCount() })
+    // 记录登录失败日志
+    void ip2Address(clientIP).then(({ ip, address }) => addLoginLog({ ip, address, result: 0 })).catch(() => {})
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData(credentialsCheck.message, responseData))
   }
@@ -232,6 +231,8 @@ api.post('/auth/twoFactor', async (request, response) => {
   const credentialsCheck = await validateCredentials(username, password, userConfig, curTime)
   if (!credentialsCheck.valid) {
     logger.warn('登录认证失败 (双重认证)', { username, ip: clientIP, reason: credentialsCheck.message, attemptCount: getAuthErrorCount() + 1 })
+    // 记录登录失败日志
+    void ip2Address(clientIP).then(({ ip, address }) => addLoginLog({ ip, address, result: 0 })).catch(() => {})
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData(credentialsCheck.message, responseData))
   }
@@ -258,6 +259,8 @@ api.post('/auth/twoFactor', async (request, response) => {
   if (!isValid) {
     incrementAuthError(curTime.getTime())
     logger.warn('2FA 双重认证失败', { username, ip: clientIP, attemptCount: getAuthErrorCount() })
+    // 记录登录失败日志
+    void ip2Address(clientIP).then(({ ip, address }) => addLoginLog({ ip, address, result: 0 })).catch(() => {})
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData('动态验证码无效', responseData))
   }
@@ -276,7 +279,8 @@ api.post('/auth/twoFactor', async (request, response) => {
  */
 api.get('/info', async (_request, response) => {
   const userConfig = await getUserModuleConfig()
-  response.send(API_STATUS_CODE.okData({ username: userConfig.username, lastLoginInfo: userConfig.lastLoginInfo || {} }))
+  const lastLoginInfo = await getLastLoginInfo()
+  response.send(API_STATUS_CODE.okData({ username: userConfig.username, lastLoginInfo: lastLoginInfo ?? {} }))
 })
 
 /**
@@ -318,24 +322,6 @@ api.post('/revokeAllTokens', async (_request, response) => {
 })
 
 /**
- * 获取用户信息
- */
-apiInner.get('/info', async (_request, response) => {
-  try {
-    const userConfig = await getUserModuleConfig()
-
-    response.send(API_STATUS_CODE.okData({
-      lastLoginInfo: userConfig.lastLoginInfo || {},
-      curLoginInfo: userConfig.curLoginInfo || {},
-    }))
-  }
-  catch (e: any) {
-    logger.error('获取用户信息失败', e)
-    response.send(API_STATUS_CODE.fail(e.message || e))
-  }
-})
-
-/**
  * 重置密码
  */
 apiInner.post('/resetPwd', async (_request, response) => {
@@ -350,7 +336,7 @@ apiInner.post('/resetPwd', async (_request, response) => {
     response.send(API_STATUS_CODE.okData(data))
   }
   catch (e: any) {
-    logger.error('重置密码失败', e)
+    logger.error('重置密码失败', e.message || e)
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -372,7 +358,7 @@ api.post('/twoFactorAuth/setup', async (request, response) => {
     }))
   }
   catch (e: any) {
-    logger.error('生成 TOTP 失败', e)
+    logger.error('生成 TOTP 失败', e.message || e)
     response.send(API_STATUS_CODE.fail(e.message || '生成失败'))
   }
 })
@@ -411,7 +397,7 @@ api.post('/twoFactorAuth/enable', async (request, response) => {
     response.send(API_STATUS_CODE.ok('双重认证已启用'))
   }
   catch (e: any) {
-    logger.error('启用 TOTP 失败', e)
+    logger.error('启用 TOTP 失败', e.message || e)
     response.send(API_STATUS_CODE.fail(e.message || '启用失败'))
   }
 })
@@ -434,7 +420,7 @@ api.post('/twoFactorAuth/disable', async (_request, response) => {
     response.send(API_STATUS_CODE.ok('双重认证已关闭'))
   }
   catch (e: any) {
-    logger.error('关闭 TOTP 失败', e)
+    logger.error('关闭 TOTP 失败', e.message || e)
     response.send(API_STATUS_CODE.fail(e.message || '关闭失败'))
   }
 })
@@ -448,7 +434,7 @@ api.get('/twoFactorAuth/status', async (_request, response) => {
     response.send(API_STATUS_CODE.okData(enabled))
   }
   catch (e: any) {
-    logger.error('获取 TOTP 状态失败', e)
+    logger.error('获取 TOTP 状态失败', e.message || e)
     response.send(API_STATUS_CODE.fail(e.message || '获取失败'))
   }
 })

@@ -2,6 +2,7 @@ import antfu from '@antfu/eslint-config'
 
 export default antfu({
   typescript: true,
+  e18e: false,
   ignores: [
     'node_modules',
     'lib',
@@ -46,5 +47,6 @@ export default antfu({
     'regexp/no-unused-capturing-group': 'off', // 关闭未使用的捕获组规则
     'node/prefer-global/process': 'off', // 关闭优先使用全局 process 对象的规则
     'unicorn/prefer-type-error': 'off', // 允许使用非 TypeError 抛出错误
+    'unused-imports/no-unused-vars': 'off', // 关闭未使用变量的规则
   },
 })

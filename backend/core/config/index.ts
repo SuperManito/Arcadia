@@ -1,17 +1,18 @@
 import type { configModel } from '../../db'
-import type { ConfigDataRuntime, ConfigDataUser, ConfigKey, UserLoginInfo } from '../type/config'
+import type { ConfigDataCli, ConfigDataRuntime, ConfigDataUser, ConfigKey } from '../type/config'
 import db from '../../db'
 import path from 'node:path'
 import fs from 'node:fs'
 import { getJsonFile } from '../../server/fileCore'
 import { APP_DIR_PATH } from '../type'
 import {
+  ConfigKeyCli,
   ConfigKeyRuntime,
   ConfigKeyUser,
   ConfigModule,
   DEFAULT_CONFIG_VALUES,
-  UserLoginInfoDataKey,
 } from '../type/config'
+import { generateCliConfigSh } from './cli'
 import { isNotEmpty, randomString } from '../../utils'
 import { logger } from '../../utils/logger'
 
@@ -26,6 +27,9 @@ function validateConfigFieldKey(key: string, module: ConfigModule): void {
       break
     case ConfigModule.USER:
       validKeys = Object.values(ConfigKeyUser)
+      break
+    case ConfigModule.CLI:
+      validKeys = Object.values(ConfigKeyCli)
       break
   }
   if (!validKeys.includes(key as any)) {
@@ -137,10 +141,6 @@ async function getModuleConfigMap(module: ConfigModule): Promise<Record<string, 
 export async function getUserModuleConfig() {
   const map = await getModuleConfigMap(ConfigModule.USER)
   const result = {} as ConfigDataUser
-  const loginInfoTemplate = Object.values(UserLoginInfoDataKey).reduce((acc, key) => {
-    acc[key] = ''
-    return acc
-  }, {} as UserLoginInfo)
 
   // 处理默认值并转换数据类型
   for (const key of Object.values(ConfigKeyUser)) {
@@ -148,15 +148,6 @@ export async function getUserModuleConfig() {
     switch (key) {
       case ConfigKeyUser.CRON_TASK_HISTORY_DAYS:
         result[key] = Number(value)
-        break
-      case ConfigKeyUser.LAST_LOGIN_INFO:
-      case ConfigKeyUser.CUR_LOGIN_INFO:
-        try {
-          result[key] = Object.assign({}, loginInfoTemplate, JSON.parse(value))
-        }
-        catch {
-          result[key] = Object.assign({}, loginInfoTemplate)
-        }
         break
       case ConfigKeyUser.TOTP_ENABLED:
         result[key] = value === 'true'
@@ -180,18 +171,31 @@ export async function getRuntimeModuleConfig() {
   }
   return result
 }
+export async function getCliModuleConfig() {
+  const map = await getModuleConfigMap(ConfigModule.CLI)
+  const result = {} as ConfigDataCli
+
+  for (const key of Object.values(ConfigKeyCli)) {
+    const value = map[key] ?? DEFAULT_CONFIG_VALUES[ConfigModule.CLI][key]
+    result[key] = value
+  }
+  return result
+}
 export async function getModuleConfig(module: ConfigModule) {
   switch (module) {
     case ConfigModule.RUNTIME:
       return await getRuntimeModuleConfig()
     case ConfigModule.USER:
       return await getUserModuleConfig()
+    case ConfigModule.CLI:
+      return await getCliModuleConfig()
   }
 }
 export async function getFullConfig() {
   return {
     [ConfigModule.RUNTIME]: await getRuntimeModuleConfig(),
     [ConfigModule.USER]: await getUserModuleConfig(),
+    [ConfigModule.CLI]: await getCliModuleConfig(),
   }
 }
 
@@ -261,8 +265,8 @@ async function initUserConfig() {
           logger.info(`旧版本用户认证信息已成功迁移至新配置系统，建议手动删除 ${oldAuthFilePath} 文件`)
         }
       }
-      catch (error) {
-        logger.error('迁移旧版本认证配置失败', error)
+      catch (e: any) {
+        logger.error('迁移旧版本认证配置失败', e.message || e)
       }
       finally {
         // 重新初始化
@@ -306,6 +310,14 @@ async function initRuntimeConfig() {
 }
 
 /**
+ * 初始化 CLI 功能配置
+ */
+async function initCliConfig() {
+  await getCliModuleConfig()
+  await generateCliConfigSh()
+}
+
+/**
  * 初始化应用配置
  *
  * @description 清理无效的 module 和 key，初始化所有必需配置，返回完整配置对象
@@ -317,6 +329,8 @@ export async function initConfig() {
   await initUserConfig()
   // 初始化运行时配置
   await initRuntimeConfig()
+  // 初始化 CLI 配置
+  await initCliConfig()
   // 重新查询并返回完整配置对象
   logger.log('初始化应用配置完成')
   return await getFullConfig()

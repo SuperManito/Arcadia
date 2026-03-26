@@ -72,8 +72,8 @@ async function persistTaskExecution(task: tasksModel, duration: number, success:
   try {
     await db.tasksExecutionStats.create({ data: record })
   }
-  catch (error) {
-    logger.warn('[定时任务监控] 持久化失败，已加入重试队列', error)
+  catch (e: any) {
+    logger.warn('[定时任务监控] 持久化失败，已加入重试队列', e.message || e)
     pendingWrites.push({ ...record, retryCount: 0 })
   }
 }
@@ -119,8 +119,8 @@ async function cleanupOldData() {
       },
     })
   }
-  catch (error) {
-    logger.error('[定时任务监控] 数据清理异常', error)
+  catch (e: any) {
+    logger.error('[定时任务监控] 数据清理异常', e.message || e)
   }
 }
 

@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2024-04-27
 
 ## 重组环境变量（复合）的值
 function recombine_composite_env_values {

@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-03-03
 
 ## 清空定时任务关联代码文件清单内容
 function clean_list_scripts() {
@@ -90,12 +89,12 @@ function command_update_main() {
         update_sync "raw"
         ;;
     extra)
-        if [[ $EnableUpdateExtraSync == true ]] || [[ $EnableUpdateExtra == true ]]; then
+        if [[ "${CLI_CONFIG_ENABLE_UPDATE_EXTRA_SYNC_FILE}" == "true" ]] || [[ "${CLI_CONFIG_ENABLE_UPDATE_EXTRA}" == "true" ]]; then
             print_title_start $1
             import update/extra
             update_extra
         else
-            echo -e "\n$ERROR 请先在 $FileConfUser 中启用关于自定义更新脚本的相关变量！\n"
+            echo -e "\n$ERROR 请先在 CLI 配置中启用关于自定义更新脚本的相关变量！\n"
         fi
         ;;
     *)

@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-02-13
 
 function _print_help_title() {
   if [ "$1" ]; then
@@ -50,7 +49,6 @@ function _print_help_service() {
     ${BLUE}start${PLAIN}    开启或重启
     ${BLUE}stop${PLAIN}     停止（项目依赖后端持续运行，请不要长时间关闭）
     ${BLUE}status${PLAIN}   查看各服务状态
-    ${BLUE}info${PLAIN}     查看登录信息
     ${BLUE}respwd${PLAIN}   重置密码
 
   命令帮助：
@@ -95,7 +93,7 @@ function _print_help_run() {
     ${BLUE}-w${PLAIN}, ${BLUE}--wait${PLAIN}                  推迟执行 - 等待指定时间后再运行任务，选项后需跟时间值
     ${BLUE}-D${PLAIN}, ${BLUE}--delay${PLAIN}                 延迟执行 - 随机倒数一定秒数后再执行代码文件
     ${BLUE}-d${PLAIN}, ${BLUE}--daemon${PLAIN}                守护进程 - 将代码文件设置为守护进程保持在后台运行，期间中断或结束会自动重新运行
-    ${BLUE}-a${PLAIN}, ${BLUE}--agent${PLAIN}                 网络代理 - 使代码文件的 HTTP/HTTPS 网络请求通过全局代理进行，仅支持 Node.js 和 ts-node
+    ${BLUE}-a${PLAIN}, ${BLUE}--agent${PLAIN}                 网络代理 - 为 JavaScript 和 TypeScript 代码文件启用全局 HTTP/HTTPS 代理，配置方法详见文档
     ${BLUE}-T${PLAIN}, ${BLUE}--timeout${PLAIN}               运行超时 - 设置运行任务超时机制，选项后需跟 timeout 指令的参数作为选项值
     ${BLUE}-N${PLAIN}, ${BLUE}--no-log${PLAIN}                不记录日志 - 不存储代码运行日志到本地
     ${BLUE}-p${PLAIN}, ${BLUE}--proxy${PLAIN}                 启用下载代理 - 仅适用于执行位于 GitHub 仓库的代码文件，代理固定为 jsDelivr CDN
@@ -110,9 +108,11 @@ function _print_help_run() {
     ${BLUE}-E${PLAIN}, ${BLUE}--exec-args${PLAIN}             执行参数 - 将该选项后面的内容作为参数传递给代码执行器
     ${BLUE}--${PLAIN}                          传递选项，将该选项后面的所有内容都作为选项参数传递给代码文件
 
-    ${BLUE}--deno${PLAIN}，${BLUE}--use-deno${PLAIN}          使用 Deno 作为 JavaScript 和 TypeScript 的运行时环境
-    ${BLUE}--bun${PLAIN}，${BLUE}--use-bun${PLAIN}            使用 Bun 作为 JavaScript 和 TypeScript 的运行时环境
-    ${BLUE}--ts-node${PLAIN}，${BLUE}--use-ts-node${PLAIN}    使用 ts-node 作为 TypeScript 的执行器
+    ${BLUE}--deno${PLAIN}，${BLUE}--use-deno${PLAIN}          使用 Deno 运行时
+    ${BLUE}--bun${PLAIN}，${BLUE}--use-bun${PLAIN}            使用 Bun 运行时
+    ${BLUE}--node${PLAIN}，${BLUE}--use-node${PLAIN}          使用 Node.js 运行时
+    ${BLUE}--tsx${PLAIN}，${BLUE}--use-tsx${PLAIN}            使用 tsx 执行
+    ${BLUE}--ts-node${PLAIN}，${BLUE}--use-ts-node${PLAIN}    使用 ts-node 执行
 
   命令帮助：
 

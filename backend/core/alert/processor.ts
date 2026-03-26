@@ -104,8 +104,8 @@ async function matchSingleRule(msg: messageModel, rule: alertConfigRuleModel): P
         const regExp = new RegExp(data)
         return regExp.test(fieldValue)
       }
-      catch (e) {
-        logger.warn('Invalid regex pattern:', data, e)
+      catch (e: any) {
+        logger.warn('Invalid regex pattern:', data, e.message || e)
         return false
       }
 
@@ -144,8 +144,8 @@ async function sendAlertNotifications(
       // 使用动态注册的通知发送器发送通知
       await sendNotification(msg, notification)
     }
-    catch (error) {
-      logger.error('Failed to send notification:', error)
+    catch (e: any) {
+      logger.error('Failed to send notification:', e.message || e)
     }
   }
 }

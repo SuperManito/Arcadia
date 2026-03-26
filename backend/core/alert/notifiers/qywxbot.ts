@@ -28,7 +28,7 @@ export async function sendQywxBotNotification(msg: messageModel, notification: a
       logger.error(`Failed to send QYWX Bot notification: ${title}, error: ${response.data.errmsg}`)
     }
   }
-  catch (error) {
-    logger.error(`Error sending QYWX Bot notification to ${notification.target}: ${msg.title}`, error)
+  catch (e: any) {
+    logger.error(`Error sending QYWX Bot notification to ${notification.target}: ${msg.title}`, e.message || e)
   }
 }

@@ -38,8 +38,10 @@ interface Request extends ExpressRequest {
 api.get('/list', (request, response) => {
   try {
     const path = request.query.path as string || APP_ROOT_DIR
+    const showCount = request.query.showCount as string || '0'
     checkPathAccess(path)
-    response.send(API_STATUS_CODE.okData(getFileList(path)))
+    const includeCount = showCount === '1'
+    response.send(API_STATUS_CODE.okData(getFileList(path, includeCount)))
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -51,11 +53,14 @@ apiOpen.get('/v1/list', (request, response) => {
     const params = validateRequestParams(request, {
       query: [
         ['path', [false, 'string']],
+        ['showCount', [false, ['1', '0']]],
       ] as const,
     })
     const path = params.query.path || APP_ROOT_DIR
+    const { showCount } = params.query
+    const includeCount = showCount === '1'
     checkPathAccess(path, true)
-    response.send(API_STATUS_CODE.okData(getFileList(path)))
+    response.send(API_STATUS_CODE.okData(getFileList(path, includeCount)))
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -148,7 +153,7 @@ api.post('/content', (request, response) => {
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
-    logger.error('文件保存失败', e)
+    logger.error('文件保存失败', e.message || e)
     response.send(API_STATUS_CODE.fail(`保存失败：${e.message}`))
   }
 })
@@ -167,7 +172,7 @@ apiOpen.post('/v1/content', (request, response) => {
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
-    logger.error('文件保存失败', e)
+    logger.error('文件保存失败', e.message || e)
     response.send(API_STATUS_CODE.fail(`保存失败：${e.message}`))
   }
 })
@@ -213,7 +218,7 @@ api.post('/rename', (request, response) => {
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
-    logger.error('文件或目录重命名失败', e)
+    logger.error('文件或目录重命名失败', e.message || e)
     response.send(API_STATUS_CODE.fail(`重命名失败：${e.message || e}`))
   }
 })
@@ -233,7 +238,7 @@ apiOpen.post('/v1/rename', (request, response) => {
     logger.info('[OpenAPI · File]', '文件或目录重命名', path, name)
   }
   catch (e: any) {
-    logger.error('文件或目录重命名失败', e)
+    logger.error('文件或目录重命名失败', e.message || e)
     response.send(API_STATUS_CODE.fail(`重命名失败：${e.message || e}`))
   }
 })
@@ -250,7 +255,7 @@ api.post('/move', (request, response) => {
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
-    logger.error('文件或目录移动失败', e)
+    logger.error('文件或目录移动失败', e.message || e)
     response.send(API_STATUS_CODE.fail(`移动失败：${e.message || e}`))
   }
 })
@@ -265,7 +270,7 @@ apiOpen.post('/v1/move', (request, response) => {
     logger.info('[OpenAPI · File]', '文件或目录移动', oldPath, newPath)
   }
   catch (e: any) {
-    logger.error('文件或目录移动失败', e)
+    logger.error('文件或目录移动失败', e.message || e)
     response.send(API_STATUS_CODE.fail(`移动失败：${e.message || e}`))
   }
 })
@@ -280,7 +285,7 @@ api.post('/create', (request, response) => {
     response.send(API_STATUS_CODE.okData(fileCreate(path, name, type)))
   }
   catch (e: any) {
-    logger.error('文件或目录创建失败', e)
+    logger.error('文件或目录创建失败', e.message || e)
     response.send(API_STATUS_CODE.fail(`创建失败：${e.message || e}`))
   }
 })
@@ -299,7 +304,7 @@ apiOpen.post('/v1/create', (request, response) => {
     response.send(API_STATUS_CODE.okData(fileCreate(path, name, type)))
   }
   catch (e: any) {
-    logger.error('文件或目录创建失败', e)
+    logger.error('文件或目录创建失败', e.message || e)
     response.send(API_STATUS_CODE.fail(`创建失败：${e.message || e}`))
   }
 })
@@ -325,7 +330,7 @@ api.delete('/delete', (request, response) => {
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
-    logger.error('文件或目录删除失败', e)
+    logger.error('文件或目录删除失败', e.message || e)
     response.send(API_STATUS_CODE.fail(`删除失败：${e.message || e}`))
   }
 })
@@ -353,7 +358,7 @@ apiOpen.delete('/v1/delete', (request, response) => {
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
-    logger.error('件或目录删除失败', e)
+    logger.error('件或目录删除失败', e.message || e)
     response.send(API_STATUS_CODE.fail(`删除失败：${e.message || e}`))
   }
 })
@@ -368,7 +373,7 @@ api.get('/download', (request, response) => {
     fileDownload(path, response)
   }
   catch (e: any) {
-    logger.error('文件或目录下载失败', e)
+    logger.error('文件或目录下载失败', e.message || e)
     response.send(API_STATUS_CODE.fail(`下载失败：${e.message || e}`))
   }
 })
@@ -386,7 +391,7 @@ apiOpen.get('/v1/download', (request, response) => {
     logger.info('[OpenAPI · File]', '文件或目录下载', path)
   }
   catch (e: any) {
-    logger.error('文件或目录下载失败', e)
+    logger.error('文件或目录下载失败', e.message || e)
     response.send(API_STATUS_CODE.fail(`下载失败：${e.message || e}`))
   }
 })

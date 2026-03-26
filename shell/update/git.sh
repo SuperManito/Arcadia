@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2024-04-27
 
 ## 克隆仓库
 function git_clone() {

@@ -16,5 +16,5 @@ npm run generate
 ## 启动服务
 
 ```bash
-pm2 start ../ecosystem.config.js
+pm2 start ../ecosystem.config.cjs
 ```

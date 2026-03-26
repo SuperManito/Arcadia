@@ -110,7 +110,7 @@ api.put('/', async (request, response) => {
   try {
     const message = Object.assign({}, request.body)
     if (!message.id) {
-      response.send(API_STATUS_CODE.fail('缺少必要参数 id'))
+      response.send(API_STATUS_CODE.fail('缺少必要的参数 id'))
       return
     }
     const updatedMessage = await db.message.update({

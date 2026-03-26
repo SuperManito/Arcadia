@@ -1,10 +1,9 @@
 #!/bin/bash
-## Modified: 2026-02-13
 
 ## 随机延迟
 function random_delay() {
-    if [[ -n ${RandomDelay} ]] && [[ ${RandomDelay} -gt 0 ]]; then
-        local current_delay=$((${RANDOM} % ${RandomDelay} + 1))
+    if [[ -n ${CLI_CONFIG_RUN_DELAY_MAX_SECONDS} ]] && [[ ${CLI_CONFIG_RUN_DELAY_MAX_SECONDS} -gt 0 ]]; then
+        local current_delay=$((${RANDOM} % ${CLI_CONFIG_RUN_DELAY_MAX_SECONDS} + 1))
         echo -en "\n$WORKING 已启用随机延迟，此任务将在 ${BLUE}${current_delay}${PLAIN} 秒后开始运行..."
         sleep ${current_delay}
     fi
@@ -149,13 +148,10 @@ function _concurrent_dispatch() {
 function define_base_command() {
     local pm2_base_cmd="pm2 start --name \"${FileName}\" --log <LogFilePath> --restart-delay 0 --max-restarts 9999999999"
     local run_target="${FileName}.${FileSuffix}"
-    # 脚本 global-agent 代理（命令选项）
-    local global_proxy_option_cmd=""
-    [[ "${RUN_OPTION_AGENT}" == "true" || "${EnableGlobalProxy}" == "true" ]] && global_proxy_option_cmd="-r 'global-agent/bootstrap'"
     # 传递给代码文件执行器的参数
     local interpreter_args=""
     if [[ "${RUN_OPTION_EXECUTOR_ARGS}" ]]; then
-        interpreter_args=" ${RUN_OPTION_EXECUTOR_ARGS}"
+        interpreter_args="${RUN_OPTION_EXECUTOR_ARGS}"
     fi
     # 传递给代码文件的参数
     local script_args=""
@@ -167,38 +163,43 @@ function define_base_command() {
     if [[ "${RUN_OPTION_DAEMON}" == "true" ]]; then
         case "${FileType}" in
         JavaScript | TypeScript)
-            if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
-                interpreter_args="run --no-code-cache --no-prompt --allow-env --allow-read=$(pwd) --allow-write=$(pwd) --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I)${interpreter_args}"
-                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which deno)"
-            elif [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which bun)"
-            else
-                case "${FileType}" in
-                JavaScript)
-                    if [[ "${global_proxy_option_cmd}" ]]; then
-                        interpreter_args="${global_proxy_option_cmd}${interpreter_args}"
-                    fi
-                    base_cmd="${pm2_base_cmd} \"${run_target}\""
-                    ;;
-                TypeScript)
-                    if [[ "${RUN_OPTION_USE_TS_NODE}" == "true" ]]; then
-                        if [[ "${global_proxy_option_cmd}" ]]; then
-                            interpreter_args="-T -O '{\"target\":\"esnext\"}'${global_proxy_option_cmd}${interpreter_args}"
-                        fi
-                        base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which ts-node)"
-                    else
-                        if [[ "${global_proxy_option_cmd}" ]]; then
-                            interpreter_args="${global_proxy_option_cmd}${interpreter_args}"
-                        fi
-                        base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which tsx)"
-                    fi
-                    ;;
-                esac
+            # 网络代理（命令选项）
+            if [[ "${RUN_OPTION_AGENT}" == "true" ]]; then
+                # 注：该选项在 Bun 和 Deno 中通用
+                interpreter_args="-r 'global-agent/bootstrap'${interpreter_args:+" ${interpreter_args}"}"
             fi
+            case "${JS_AND_TS_EXECUTE_METHOD}" in
+            node)
+                if [[ "${FileType}" == "TypeScript" ]]; then
+                    interpreter_args="--experimental-strip-types${interpreter_args:+" ${interpreter_args}"}"
+                fi
+                base_cmd="${pm2_base_cmd} \"${run_target}\""
+                ;;
+            tsx)
+                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which tsx)"
+                ;;
+            bun)
+                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which bun)"
+                ;;
+            deno)
+                interpreter_args="run --no-code-cache --no-prompt --allow-env --allow-read=$(pwd) --allow-write=$(pwd) --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I)${interpreter_args:+" ${interpreter_args}"}"
+                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which deno)"
+                ;;
+            ts-node)
+                interpreter_args="-T -O '{\"target\":\"esnext\"}'${interpreter_args:+" ${interpreter_args}"}"
+                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which ts-node)"
+                ;;
+            esac
             ;;
         Python)
-            interpreter_args="-u${interpreter_args}"
-            base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which python3)"
+            if [[ "${CLI_CONFIG_ENABLE_PYTHON_UV}" == "true" ]]; then
+                # pm2：uv run script.py，不传 -- -u 避免 pm2 追加 -- script_args 时产生双重 --
+                interpreter_args="run${interpreter_args:+" ${interpreter_args}"}"
+                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which uv)"
+            else
+                interpreter_args="-u${interpreter_args:+" ${interpreter_args}"}"
+                base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which python3)"
+            fi
             ;;
         Go)
             base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which go)"
@@ -210,7 +211,7 @@ function define_base_command() {
             base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which ruby)"
             ;;
         Rust)
-            interpreter_args="script${interpreter_args}"
+            interpreter_args="script${interpreter_args:+" ${interpreter_args}"}"
             base_cmd="${pm2_base_cmd} \"${run_target}\" --interpreter $(which cargo)"
             ;;
         Perl)
@@ -233,61 +234,61 @@ function define_base_command() {
     else
         case "${FileType}" in
         JavaScript | TypeScript)
-            if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
-                interpreter_args=" --no-code-cache --no-prompt --allow-env --allow-read=./ --allow-write=./ --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I)${interpreter_args}"
-                base_cmd="deno run${interpreter_args} ${run_target}"
-            elif [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-                base_cmd="bun${interpreter_args} ${run_target}"
-            else
-                case "${FileType}" in
-                JavaScript)
-                    if [[ "${global_proxy_option_cmd}" ]]; then
-                        interpreter_args=" ${global_proxy_option_cmd}${interpreter_args}"
-                    fi
-                    base_cmd="node${interpreter_args} ${run_target}"
-                    ;;
-                TypeScript)
-                    if [[ "${RUN_OPTION_USE_TS_NODE}" == "true" ]]; then
-                        if [[ "${global_proxy_option_cmd}" ]]; then
-                            interpreter_args=" -T -O '{\"target\":\"esnext\"}' ${global_proxy_option_cmd}${interpreter_args}"
-                        else
-                            interpreter_args=" -T -O '{\"target\":\"esnext\"}'${interpreter_args}"
-                        fi
-                        base_cmd="ts-node${interpreter_args} ${run_target}"
-                    else
-                        if [[ "${global_proxy_option_cmd}" ]]; then
-                            interpreter_args=" ${global_proxy_option_cmd}${interpreter_args}"
-                        fi
-                        base_cmd="tsx${interpreter_args} ${run_target}"
-                    fi
-                    ;;
-                esac
+            # 网络代理（命令选项）
+            if [[ "${RUN_OPTION_AGENT}" == "true" ]]; then
+                # 注：该选项在 Bun 和 Deno 中通用
+                interpreter_args="-r 'global-agent/bootstrap'${interpreter_args:+" ${interpreter_args}"}"
             fi
+            case "${JS_AND_TS_EXECUTE_METHOD}" in
+            node)
+                if [[ "${FileType}" == "TypeScript" ]]; then
+                    interpreter_args="--experimental-strip-types${interpreter_args:+" ${interpreter_args}"}"
+                fi
+                base_cmd="node${interpreter_args:+" ${interpreter_args}"} ${run_target}"
+                ;;
+            tsx | *)
+                base_cmd="tsx${interpreter_args:+" ${interpreter_args}"} ${run_target}"
+                ;;
+            bun)
+                base_cmd="bun${interpreter_args:+" ${interpreter_args}"} ${run_target}"
+                ;;
+            deno)
+                interpreter_args="--no-code-cache --no-prompt --allow-env --allow-read=./ --allow-write=./ --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I)${interpreter_args:+" ${interpreter_args}"}"
+                base_cmd="deno run${interpreter_args:+" ${interpreter_args}"} ${run_target}"
+                ;;
+            ts-node)
+                interpreter_args="-T -O '{\"target\":\"esnext\"}'${interpreter_args:+" ${interpreter_args}"}"
+                base_cmd="ts-node${interpreter_args:+" ${interpreter_args}"} ${run_target}"
+                ;;
+            esac
             ;;
         Python)
-            interpreter_args=" -u${interpreter_args}"
-            base_cmd="python3${interpreter_args} ${run_target}"
+            if [[ "${CLI_CONFIG_ENABLE_PYTHON_UV}" == "true" ]]; then
+                base_cmd="uv run -- -u${interpreter_args:+" ${interpreter_args}"} ${run_target}"
+            else
+                base_cmd="python3 -u${interpreter_args:+" ${interpreter_args}"} ${run_target}"
+            fi
             ;;
         Go)
-            base_cmd="go run${interpreter_args} ${run_target}"
+            base_cmd="go run${interpreter_args:+" ${interpreter_args}"} ${run_target}"
             ;;
         Lua)
-            base_cmd="lua${interpreter_args} ${run_target}"
+            base_cmd="lua${interpreter_args:+" ${interpreter_args}"} ${run_target}"
             ;;
         Ruby)
-            base_cmd="ruby${interpreter_args} ${run_target}"
+            base_cmd="ruby${interpreter_args:+" ${interpreter_args}"} ${run_target}"
             ;;
         Rust)
-            base_cmd="cargo script${interpreter_args} ${run_target}"
+            base_cmd="cargo script${interpreter_args:+" ${interpreter_args}"} ${run_target}"
             ;;
         Perl)
-            base_cmd="perl${interpreter_args} ${run_target}"
+            base_cmd="perl${interpreter_args:+" ${interpreter_args}"} ${run_target}"
             ;;
         C)
-            base_cmd="gcc -o ${FileName}${interpreter_args} ${run_target} && ./${FileName}"
+            base_cmd="gcc -o ${FileName}${interpreter_args:+" ${interpreter_args}"} ${run_target} && ./${FileName}"
             ;;
         Shell)
-            base_cmd="bash${interpreter_args} ${run_target}"
+            base_cmd="bash${interpreter_args:+" ${interpreter_args}"} ${run_target}"
             ;;
         esac
         if [[ "${script_args}" ]]; then
@@ -374,7 +375,9 @@ function run_script_main() {
     # 进入脚本所在目录
     cd ${FileDir}
     # 创建日志存储目录
-    make_dir ${LogPath}
+    if [[ "${RUN_OPTION_NO_LOG}" != "true" ]]; then
+        make_dir "${LogPath}"
+    fi
     # 定义运行次数
     local run_times=1 # 注：使用并发时必定为1
     # 循环运行（命令选项）
@@ -503,7 +506,7 @@ function run_script_main() {
     fi
 
     # 判断远程脚本执行后是否删除
-    if [[ "${RUN_REMOTE}" == "true" && "${AutoDelRawFiles}" == "true" ]]; then
+    if [[ "${RUN_REMOTE}" == "true" && "${CLI_CONFIG_ENABLE_AUTO_DELETE_REMOTE_FILE}" == "true" ]]; then
         rm -rf "${FileDir}/${FileName}.${FileSuffix}"
     fi
 }
@@ -516,15 +519,7 @@ function command_run_main() {
     if [[ "${FileType}" != "JavaScript" && "${FileType}" != "TypeScript" ]]; then
         # 判断脚本代理
         if [[ "${RUN_OPTION_AGENT}" == "true" ]]; then
-            output_error "检测到无效参数 ${BLUE}--agent${PLAIN} ，仅支持运行 ${BLUE}JavaScript${PLAIN} 和 ${BLUE}TypeScript${PLAIN} 代码文件！"
-        fi
-        # 判断 Deno 运行环境
-        if [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
-            output_error "检测到无效参数 ${BLUE}--use-deno${PLAIN} ，${BLUE}Deno${PLAIN} 仅支持运行 ${BLUE}JavaScript${PLAIN} 和 ${BLUE}TypeScript${PLAIN} 代码文件！"
-        fi
-        # 判断 Bun 运行环境
-        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-            output_error "检测到无效参数 ${BLUE}--use-bun${PLAIN} ，${BLUE}Bun${PLAIN} 仅支持运行 ${BLUE}JavaScript${PLAIN} 和 ${BLUE}TypeScript${PLAIN} 代码文件！"
+            output_error "检测到无效参数 ${BLUE}--agent${PLAIN} ，仅支持运行 ${BLUE}JavaScript${PLAIN} 与 ${BLUE}TypeScript${PLAIN} 代码文件！"
         fi
     fi
 
@@ -533,6 +528,9 @@ function command_run_main() {
     load_user_env
     # 配置文件
     import_config ${FileName}
+
+    ## 检查运行环境
+    ensure_runtime_available
 
     # 静默运行（命令选项）
     [[ "${RUN_OPTION_SILENT}" == "true" ]] && no_send_notify
@@ -549,14 +547,14 @@ function command_run_main() {
     fi
 
     # 执行用户自定义执行前脚本
-    if [[ "${EnableTaskBeforeExtra}" == "true" ]] && [[ -f $FileTaskBeforeExtra ]]; then
+    if [[ "${CLI_CONFIG_ENABLE_TASK_BEFORE_EXTRA}" == "true" ]] && [[ -f $FileTaskBeforeExtra ]]; then
         source $FileTaskBeforeExtra
     fi
 
     run_script_main
 
     # 执行用户自定义执行后脚本
-    if [[ "${EnableTaskAfterExtra}" == "true" ]] && [[ -f $FileTaskAfterExtra ]]; then
+    if [[ "${CLI_CONFIG_ENABLE_TASK_AFTER_EXTRA}" == "true" ]] && [[ -f $FileTaskAfterExtra ]]; then
         source $FileTaskAfterExtra
     fi
 }
@@ -595,18 +593,12 @@ function command_run_check_options() {
     check_usability "RUN_OPTION_DAEMON" "RUN_OPTION_BACKGROUND" "--daemon" "--background"
     # 守护进程 & 循环运行（无意义）
     check_usability "RUN_OPTION_DAEMON" "RUN_OPTION_LOOP" "--daemon" "--loop"
-    ## 检测无意义的并发
+    # 无意义的并发
     if [[ "${RUN_OPTION_CONCURRENT}" == "true" ]] && [[ $RUN_OPTION_CONCURRENT_TASKS -eq 1 ]]; then
         if [[ -z "${RUN_OPTION_RECOMBINE_ENV_GROUP}" ]] && [[ -z "${RUN_OPTION_SPLIT_ENV}" ]]; then
             output_error "无意义的并发，请使用后台运行命令选项或指定并发任务数量！"
         fi
     fi
-    # 使用 Deno & 使用 Bun（功能冲突）
-    check_usability "RUN_OPTION_USE_DENO" "RUN_OPTION_USE_BUN" "--deno" "--bun"
-    # 使用 ts-node & 使用 Deno（功能冲突）
-    check_usability "RUN_OPTION_USE_TS_NODE" "RUN_OPTION_USE_DENO" "--ts-node" "--deno"
-    # 使用 ts-node & 使用 Bun（功能冲突）
-    check_usability "RUN_OPTION_USE_TS_NODE" "RUN_OPTION_USE_BUN" "--ts-node" "--bun"
     # 线程数控制必须配合并发使用
     if [[ "${RUN_OPTION_THREAD}" == "true" ]] && [[ "${RUN_OPTION_CONCURRENT}" != "true" ]]; then
         output_error "检测到无效参数 ${BLUE}--thread${PLAIN} ，该命令选项仅适用于并发运行模式，请配合 ${BLUE}--concurrent${PLAIN} 使用！"
@@ -651,6 +643,8 @@ function command_run() {
     RUN_OPTION_USE_DENO=""
     RUN_OPTION_USE_BUN=""
     RUN_OPTION_USE_TS_NODE=""
+    RUN_OPTION_USE_NODE=""
+    RUN_OPTION_USE_TSX=""
 
     case $# in
     0)
@@ -821,6 +815,12 @@ function command_run() {
                 ;;
             --ts-node | --use-ts-node)
                 RUN_OPTION_USE_TS_NODE="true"
+                ;;
+            --node | --use-node)
+                RUN_OPTION_USE_NODE="true"
+                ;;
+            --tsx | --use-tsx)
+                RUN_OPTION_USE_TSX="true"
                 ;;
             *)
                 output_error "命令选项 ${BLUE}$1${PLAIN} 错误，字段名称不存在！"

@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2025-05-05
 
 function get_request() {
     local url=$1

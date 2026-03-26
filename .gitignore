@@ -2,12 +2,15 @@ node_modules
 *-lock.*
 *.lock
 dist/
+/backend/db/prisma/generated
 
-log/
-logs/
 /config/
-tgbot/
-src/
+/log/
+/raw/
+/repo/
+/scripts/
+/src/
+/tgbot/
 sessions
 send_mark
 bot.session

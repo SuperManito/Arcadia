@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2026-02-13
 
 ## 查找代码文件
 # 通过各种判断将得到的必要信息传给接下来运行的函数或命令
@@ -85,7 +84,6 @@ function find_script() {
             else
                 LogPath="${LogDir}/${FileName}"
             fi
-            make_dir "${LogPath}"
         else
             output_error "在 ${BLUE}${absolute_path%/*}${PLAIN} 目录下未检测到 ${BLUE}${absolute_path##*/}${PLAIN} 代码文件的存在，请重新确认！"
         fi
@@ -168,42 +166,26 @@ function find_script() {
             if [ $? -eq 0 ]; then
                 local repo_branch=$(echo "${input_content}" | sed "s/https:\/\/raw\.githubusercontent\.com\///g" | awk -F '/' '{print$3}')
                 input_content=$(echo "${input_content}" | sed "s|raw\.githubusercontent\.com|cdn\.jsdelivr\.net\/gh|g; s|\/${repo_branch}\/|\@${repo_branch}\/|g")
-                tmp_title="使用代理"
+                tmp_title="使用 CDN "
             else
                 output_error "下载代理命令选项仅支持位于 GitHub 仓库的文件！"
             fi
-        else
-            input_content="${Tmp}"
-            tmp_title=""
         fi
-
         ## 拉取代码文件
-        echo -en "\n$WORKING 正在从远程仓库${tmp_title}下载 ${BLUE}${tmp_file_name}${PLAIN} 代码文件..."
+        echo -en "\n$WORKING 正在${tmp_title}下载 ${BLUE}${tmp_file_name}${PLAIN} ..."
         wget -q --no-check-certificate "${input_content}" -O "$ScriptsDir/${tmp_file_name}.new" -T 30
-
         ## 判定拉取结果
         if [[ $? -eq 0 ]]; then
             echo ''
             mv -f "$ScriptsDir/${tmp_file_name}.new" "$ScriptsDir/${tmp_file_name}"
             echo ''
-            ## 等待动画
-            local spin=('.   ' '..  ' '... ' '....')
-            local n=0
-            tput civis
-            while (true); do
-                ((n++))
-                echo -en "$COMPLETE 下载完毕，倒计时 3 秒后开始执行${spin[$((n % 4))]}${PLAIN}" "\r"
-                sleep 0.3
-                [ $n = 10 ] && echo -e "\033[?25h\n${PLAIN}" && break
-            done
-            tput cnorm
+            echo -e "$COMPLETE 下载完毕，开始执行\n"
             FileName=${tmp_file_name%.*}
             FileDir=$ScriptsDir
             ## 添加依赖文件
             check_modules $FileDir
             ## 定义日志路径
-            LogPath="$LogDir/${FileName}"
-            make_dir ${LogPath}
+            LogPath="${LogDir}/${FileName}"
             RUN_REMOTE="true"
         else
             echo ''
@@ -216,14 +198,9 @@ function find_script() {
     function check_modules() {
         local work_dir=$1
         if [[ "${FileType}" == "JavaScript" || "${FileType}" == "TypeScript" ]]; then
-            ## 拷贝核心组件
-            local core_files=""
-            for file in ${core_files}; do
-                [ ! -f $work_dir/$file ] && cp -rf $UtilsDir/$file $work_dir
-            done
             ## 拷贝推送通知模块
             import_config_not_check
-            if [[ "${EnableCustomNotify}" == "true" ]] && [ -s $FileSendNotifyUser ]; then
+            if [[ "${CLI_CONFIG_ENABLE_CUSTOM_NOTIFY}" == "true" ]] && [ -s $FileSendNotifyUser ]; then
                 cp -rf $FileSendNotifyUser $work_dir
             else
                 cp -rf $FileSendNotify $work_dir
@@ -244,34 +221,92 @@ function find_script() {
     else
         match_scripts_file
     fi
+}
 
+function ensure_runtime_available() {
     function _check_interpreter_exist {
         local interpreter_type="$1"
         local interpreter_name="$2"
         if ! command -v "${interpreter_type}" &>/dev/null; then
-            output_error "当前未安装 ${BLUE}${interpreter_name}${PLAIN} 运行环境！"
+            output_error "当前尚未安装 ${BLUE}${interpreter_name}${PLAIN}！\n\n详见文档：https://arcadia.cool/docs/environment#安装语言环境"
         fi
     }
 
+    # 运行时选项互斥检测（这些选项中最多只能指定一个）
+    # function check_mutex_vars() {
+    #     local count=0
+    #     local selected=()
+    #     while [ $# -gt 0 ]; do
+    #         local varname="$1"
+    #         shift
+    #         local optname="$1"
+    #         shift
+    #         if [[ "${!varname}" == "true" ]]; then
+    #             ((count++))
+    #             selected+=("${optname}")
+    #         fi
+    #     done
+    #     if [[ ${count} -gt 1 ]]; then
+    #         local joined=""
+    #         for i in "${!selected[@]}"; do
+    #             if [[ ${i} -eq 0 ]]; then
+    #                 joined="${BLUE}${selected[$i]}${PLAIN}"
+    #             else
+    #                 joined="${joined}，${BLUE}${selected[$i]}${PLAIN}"
+    #             fi
+    #         done
+    #         output_error "命令选项 ${joined} 不可同时使用！"
+    #     fi
+    # }
+    # check_mutex_vars \
+    #     "RUN_OPTION_USE_DENO" "--deno" \
+    #     "RUN_OPTION_USE_BUN" "--bun" \
+    #     "RUN_OPTION_USE_TS_NODE" "--ts-node" \
+    #     "RUN_OPTION_USE_NODE" "--node" \
+    #     "RUN_OPTION_USE_TSX" "--tsx"
+
     ## 检测代码文件运行环境
     case "${FileType}" in
-    "JavaScript")
-        if [[ "${RUN_OPTION_USE_DENO}" == "true" || "${RUN_OPTION_USE_BUN}" == "true" ]]; then
-            [[ "${RUN_OPTION_USE_DENO}" == "true" ]] && _check_interpreter_exist "deno" "Deno"
-            [[ "${RUN_OPTION_USE_BUN}" == "true" ]] && _check_interpreter_exist "bun" "Bun"
-        fi
-        ;;
-    "TypeScript")
-        if [[ "${RUN_OPTION_USE_DENO}" == "true" || "${RUN_OPTION_USE_BUN}" == "true" || "${RUN_OPTION_USE_TS_NODE}" == "true" ]]; then
-            [[ "${RUN_OPTION_USE_DENO}" == "true" ]] && _check_interpreter_exist "deno" "Deno"
-            [[ "${RUN_OPTION_USE_BUN}" == "true" ]] && _check_interpreter_exist "bun" "Bun"
-            [[ "${RUN_OPTION_USE_TS_NODE}" == "true" ]] && _check_interpreter_exist "ts-node" "TypeScript（ts-node）"
+    "JavaScript" | "TypeScript")
+        # 确定 JS/TS 执行方式（命令选项优先级高于 CLI 配置）
+        JS_AND_TS_EXECUTE_METHOD=""
+        if [[ "${RUN_OPTION_USE_BUN}" == "true" ]]; then
+            JS_AND_TS_EXECUTE_METHOD="bun"
+        elif [[ "${RUN_OPTION_USE_DENO}" == "true" ]]; then
+            JS_AND_TS_EXECUTE_METHOD="deno"
+        elif [[ "${RUN_OPTION_USE_TSX}" == "true" ]]; then
+            JS_AND_TS_EXECUTE_METHOD="tsx"
+        elif [[ "${RUN_OPTION_USE_TS_NODE}" == "true" ]]; then
+            JS_AND_TS_EXECUTE_METHOD="ts-node"
+        elif [[ "${RUN_OPTION_USE_NODE}" == "true" ]]; then
+            JS_AND_TS_EXECUTE_METHOD="node"
         else
-            _check_interpreter_exist "tsx" "TypeScript（tsx）"
+            if [[ "${FileType}" == "JavaScript" ]]; then
+                if [[ "${CLI_CONFIG_DEFAULT_JS_RUNTIME}" =~ ^(node|deno|bun|tsx|ts-node)$ ]]; then
+                    JS_AND_TS_EXECUTE_METHOD="${CLI_CONFIG_DEFAULT_JS_RUNTIME}"
+                else
+                    JS_AND_TS_EXECUTE_METHOD="node" # 默认
+                fi
+            elif [[ "${FileType}" == "TypeScript" ]]; then
+                if [[ "${CLI_CONFIG_DEFAULT_TS_RUNTIME}" =~ ^(node|deno|bun|tsx|ts-node)$ ]]; then
+                    JS_AND_TS_EXECUTE_METHOD="${CLI_CONFIG_DEFAULT_TS_RUNTIME}"
+                else
+                    JS_AND_TS_EXECUTE_METHOD="tsx" # 默认
+                fi
+            fi
         fi
+        [[ "${JS_AND_TS_EXECUTE_METHOD}" == "deno" ]] && _check_interpreter_exist "deno" "Deno 运行时"
+        [[ "${JS_AND_TS_EXECUTE_METHOD}" == "bun" ]] && _check_interpreter_exist "bun" "Bun 运行时"
+        [[ "${JS_AND_TS_EXECUTE_METHOD}" == "ts-node" ]] && _check_interpreter_exist "ts-node" "ts-node"
+        [[ "${JS_AND_TS_EXECUTE_METHOD}" == "tsx" ]] && _check_interpreter_exist "tsx" "TypeScript Execute (tsx)"
+        # [[ "${RUN_OPTION_USE_NODE}" == "true" ]] && _check_interpreter_exist "node" "Node.js" # 当前默认安装，不做检查
         ;;
     "Python")
-        _check_interpreter_exist "python3" "Python 3"
+        if [[ "${CLI_CONFIG_ENABLE_PYTHON_UV}" == "true" ]]; then
+            _check_interpreter_exist "uv" "uv"
+        else
+            _check_interpreter_exist "python3" "Python 3"
+        fi
         ;;
     "Go")
         _check_interpreter_exist "go" "Go"
@@ -284,10 +319,8 @@ function find_script() {
         ;;
     "Rust")
         if ! command -v rustc &>/dev/null || ! command -v cargo &>/dev/null; then
-            output_error "当前未安装 ${BLUE}Rust${PLAIN} 运行环境！"
+            output_error "当前未安装 ${BLUE}Rust${PLAIN}！"
         fi
-        _check_interpreter_exist "rustc" "Rust"
-        _check_interpreter_exist "cargo" "Rust"
         ;;
     "C")
         _check_interpreter_exist "gcc" "C"

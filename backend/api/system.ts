@@ -1,8 +1,8 @@
 import type { Express, Request, Response } from 'express'
 import express from 'express'
 import { API_STATUS_CODE } from '../utils/httpUtil'
-import { createToken, deleteToken, listTokens, OPEN_API_RESOURCE_TYPES, updateToken } from './openApi'
-import type { OpenApiResourceType } from './openApi'
+import { ALL_PERMISSION_KEYS, createToken, deleteToken, listTokens, updateToken } from './openApi'
+import type { PermissionKey } from './openApi'
 
 const api: Express = express()
 
@@ -12,11 +12,11 @@ const api: Express = express()
 api.post('/', async (request: Request, response: Response) => {
   try {
     const { name, expire_time, permissions } = request.body
-    const validPermissions: OpenApiResourceType[] = typeof permissions === 'string' && permissions.trim() !== ''
-      ? permissions.split(',').map(p => p.trim()).filter((p): p is OpenApiResourceType =>
-          OPEN_API_RESOURCE_TYPES.includes(p as OpenApiResourceType),
-        )
-      : []
+    const validPermissions: PermissionKey[] = Array.isArray(permissions)
+      ? (permissions as string[]).filter((p): p is PermissionKey => ALL_PERMISSION_KEYS.includes(p as PermissionKey))
+      : typeof permissions === 'string' && permissions.trim() !== ''
+        ? permissions.split(',').map(p => p.trim()).filter((p): p is PermissionKey => ALL_PERMISSION_KEYS.includes(p as PermissionKey))
+        : []
     const token = await createToken({
       name: name?.trim(),
       expire_time: expire_time ? new Date(expire_time) : null,
@@ -62,11 +62,11 @@ api.put('/', async (request: Request, response: Response) => {
       updateData.enable = enable === 0 ? 0 : 1
     }
     if (permissions !== undefined) {
-      updateData.permissions = typeof permissions === 'string' && permissions.trim() !== ''
-        ? permissions.split(',').map(p => p.trim()).filter((p): p is OpenApiResourceType =>
-            OPEN_API_RESOURCE_TYPES.includes(p as OpenApiResourceType),
-          )
-        : []
+      updateData.permissions = Array.isArray(permissions)
+        ? (permissions as string[]).filter((p): p is PermissionKey => ALL_PERMISSION_KEYS.includes(p as PermissionKey))
+        : typeof permissions === 'string' && permissions.trim() !== ''
+          ? permissions.split(',').map(p => p.trim()).filter((p): p is PermissionKey => ALL_PERMISSION_KEYS.includes(p as PermissionKey))
+          : []
     }
     const token = await updateToken(Number(id), updateData)
     response.send(API_STATUS_CODE.okData(token))

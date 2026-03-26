@@ -1,11 +1,11 @@
-import { PrismaClient } from '@prismaGeneratedModel/client'
+import { PrismaClient } from './generated/prisma/client'
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import { withMyFunc } from './myfunc'
 import { APP_FILE_PATH } from '../../core/type'
 import { logger } from '../../utils/logger'
 
+export type * from './generated/prisma/models'
 export type * from './myfunc'
-export type * from '@prismaGeneratedModel/models'
 
 const debug = process.env.ARCADIA_SQL_DEBUG === 'true'
 const _prisma = new PrismaClient({

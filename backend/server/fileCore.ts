@@ -18,7 +18,7 @@ import {
 } from '../core/type'
 
 // 底层Shell已适配可执行代码文件类型的后缀
-const canRunCodeFileExtList = [
+export const canRunCodeFileExtList = [
   'js',
   'mjs',
   'cjs',
@@ -37,8 +37,10 @@ const canRunCodeFileExtList = [
 // 受保护的文件路径
 const protectedPaths = [APP_FILE_PATH.DB]
 const openApiProtectedPaths = [APP_FILE_PATH.ENV]
-
-const excludeRegExp = /(user\.session)|(\.cache$)|(\.check$)|(\.git$)|(\.tmp$)|(__pycache__$)|(node_modules)|(Cargo\.lock$)|(go\.sum$)|(\.gem$)|(\.bundle\/)|(\.cargo\/)|(__MACOSX\/)|(\.rbc$)|(\.so$)|(\.luac$)|(\.o$)|(\.a$)|(\.dll$)|(\.exe$)|(\.out$)|(\.pyc$)|(\.class$)|(\.elc$)|(\.beam$)|(\.hi$)|(\.dSYM\/)|(\.ipynb_checkpoints\/)|(\.rustup\/)|(\.cargo-cache\/)|(\.luarocks\/)|(\.rbenv\/)|(\.rvm\/)|(\.cabal\/)|(\.stack-work\/)|(\.perl\/)/ // 全局过滤正则
+// 默认过滤的文件路径
+const defaultFilterPaths = [APP_FILE_PATH.DB]
+// 全局过滤正则
+const excludeRegExp = /(user\.session)|(\.cache$)|(\.check$)|(\.git$)|(\.tmp$)|(__pycache__$)|(node_modules)|(Cargo\.lock$)|(go\.sum$)|(\.gem$)|(\.bundle\/)|(\.cargo\/)|(__MACOSX\/)|(\.rbc$)|(\.so$)|(\.luac$)|(\.o$)|(\.a$)|(\.dll$)|(\.exe$)|(\.out$)|(\.pyc$)|(\.class$)|(\.elc$)|(\.beam$)|(\.hi$)|(\.dSYM\/)|(\.ipynb_checkpoints\/)|(\.rustup\/)|(\.cargo-cache\/)|(\.luarocks\/)|(\.rbenv\/)|(\.rvm\/)|(\.cabal\/)|(\.stack-work\/)|(\.perl\/)/
 
 interface FileList {
   title: string // 目录名
@@ -46,6 +48,7 @@ interface FileList {
   type: APP_FILE_TYPES // 文件类型
   updated_at: Date // 修改时间
   created_at: Date // 创建时间
+  count?: number // 目录子项数量（仅在 showCount 选项开启时存在）
   children: FileListItem[]
 }
 
@@ -55,6 +58,7 @@ interface FileListItem {
   type: APP_FILE_TYPES // 文件类型
   updated_at: Date // 修改时间
   created_at: Date // 创建时间
+  count?: number // 目录子项数量（仅 type 为 folder 时存在，由 showCount 选项控制）
 }
 
 interface FileTree {
@@ -94,9 +98,10 @@ export interface CodeFileResolveResult {
  * 获取文件列表（仅一层，非递归）
  *
  * @param {string} dirPath - 目录路径
+ * @param {number} [showCount] - 传入 1 时返回目录子项数量（count 字段），仅 type 为 folder 的条目包含该字段
  * @returns {object}
  */
-export function getFileList(dirPath: string): FileList {
+export function getFileList(dirPath: string, showCount: boolean = false): FileList {
   const files = fs.readdirSync(dirPath)
   const dirStats = fs.statSync(dirPath)
   const result: FileList = {
@@ -110,27 +115,39 @@ export function getFileList(dirPath: string): FileList {
   }
   result.children = sortFilesAndFolders(
     files
-      .filter((item) => {
-        return !excludeRegExp.test(item)
-      })
+      .filter(file => !excludeRegExp.test(file))
       .map((file) => {
         const subPath = nodePath.join(dirPath, file)
         const stats = fs.statSync(subPath)
-        return {
+        const item: FileListItem = {
           path: subPath,
           name: file,
           type: stats.isDirectory() ? APP_FILE_TYPES.FOLDER : APP_FILE_TYPES.FILE,
           updated_at: stats.mtime,
           created_at: stats.birthtime,
         }
-      }) as FileListItem[],
+        if (showCount && item.type === APP_FILE_TYPES.FOLDER) {
+          try {
+            const subFiles = fs.readdirSync(subPath).filter(f => !excludeRegExp.test(f))
+            item.count = subFiles.length
+          }
+          catch {
+            item.count = 0
+          }
+        }
+        return item
+      })
+      .filter(item => !defaultFilterPaths.includes(item.path)) as FileListItem[],
     true,
   )
+  if (showCount) {
+    result.count = result.children.length
+  }
   return result
 }
 
 /**
- * 目录树（递归）
+ * 获取文件树（递归）
  *
  * @param {string} type - 类型 APP_DIR_TYPE
  * @param {string} dirPath - 目录路径
@@ -142,7 +159,7 @@ export function getFileTree(type: APP_DIR_TYPE, dirPath: string, params: FileTre
     return []
   }
   const parentDir = dirPath
-  const filterPaths = [APP_FILE_PATH.DB] // 默认过滤的文件路径
+  const filterPaths = [...defaultFilterPaths]
 
   const options = (({ search = '', startTime = '', endTime = '', onlyDir = false, type = APP_DIR_TYPE.ALL }: FileTreeParams) => {
     if (type === APP_DIR_TYPE.LOG) {
@@ -195,9 +212,7 @@ export function getFileTree(type: APP_DIR_TYPE, dirPath: string, params: FileTre
             created_at: stats.birthtime,
           }
         })
-        .filter((item) => {
-          return handleFilterParams(parentDir, item, options) && !filterPaths.includes(item.path)
-        }) as (FileTree | FileTreeItem)[],
+        .filter(item => handleFilterParams(parentDir, item, options)) as (FileTree | FileTreeItem)[],
       true,
     )
     if (type === APP_DIR_TYPE.LOG) {
@@ -292,10 +307,10 @@ export function getNeatContent(content: string): string {
  */
 export function initAppFileSystem() {
   // 检查配置文件是否存在
-  if (!fs.existsSync(APP_FILE_PATH.CONFIG)) {
-    console.error(`服务启动失败，${APP_FILE_NAME.CONFIG} 文件不存在！`)
-    process.exit(1)
-  }
+  // if (!fs.existsSync(APP_FILE_PATH.CONFIG)) {
+  //   console.error(`服务启动失败，${APP_FILE_NAME.CONFIG} 文件不存在！`)
+  //   process.exit(1)
+  // }
   // 创建目录
   if (!fs.existsSync(APP_DIR_PATH.SCRIPTS)) {
     fs.mkdirSync(APP_DIR_PATH.SCRIPTS)
@@ -448,6 +463,50 @@ export function saveFile(filePath: string, content: string) {
 }
 
 /**
+ * 创建调试运行临时文件
+ *
+ * @param originalFilePath 原始文件路径
+ * @param runId 唯一运行 ID
+ * @param content 待调试的文件内容
+ * @returns 临时文件绝对路径
+ */
+export function createDebugTempFile(originalFilePath: string, runId: string, content: string): string {
+  const resolvedOriginal = nodePath.resolve(originalFilePath)
+  const dir = nodePath.dirname(resolvedOriginal)
+  const ext = nodePath.extname(resolvedOriginal).slice(1)
+  const baseName = nodePath.basename(resolvedOriginal, `.${ext}`)
+  const tempFileName = `${baseName.startsWith('.') ? baseName : `.${baseName}`}_debug_${runId}.${ext}`
+  const tempFilePath = nodePath.join(dir, tempFileName)
+  checkPathBoundary(tempFilePath)
+  fs.writeFileSync(tempFilePath, content.replace(/\r\n/g, '\n'))
+  return tempFilePath
+}
+
+/**
+ * 清理调试运行产生的临时文件
+ *
+ * @param tempFilePath 临时文件绝对路径
+ */
+export function cleanDebugTempFile(tempFilePath: string): void {
+  const resolvedPath = nodePath.resolve(tempFilePath)
+  try {
+    if (fs.existsSync(resolvedPath)) {
+      fs.unlinkSync(resolvedPath)
+    }
+  }
+  catch {}
+  // 删除部分语言在编译后生成同名无后缀可执行文件
+  try {
+    const ext = nodePath.extname(resolvedPath).slice(1)
+    const binaryPath = resolvedPath.slice(0, -(ext.length + 1))
+    if (fs.existsSync(binaryPath)) {
+      fs.unlinkSync(binaryPath)
+    }
+  }
+  catch {}
+}
+
+/**
  * 目录参数检查
  *
  * @param checkPath
@@ -457,13 +516,13 @@ export function checkPathBoundary(checkPath: string, isOpenApi: boolean = false)
   const resolvedPath = nodePath.resolve(checkPath)
   const normalizedRootDir = nodePath.resolve(APP_ROOT_DIR)
   if (!resolvedPath.startsWith(normalizedRootDir + nodePath.sep) && resolvedPath !== normalizedRootDir) {
-    throw new Error('非法操作：路径超出允许范围')
+    throw new Error('非法操作（路径超出允许范围）')
   }
   if (protectedPaths.includes(resolvedPath)) {
-    throw new Error('非法操作：禁止访问受保护的文件')
+    throw new Error('非法操作（禁止访问受保护的文件）')
   }
   if (isOpenApi && openApiProtectedPaths.includes(resolvedPath)) {
-    throw new Error('非法操作：禁止访问受保护的文件')
+    throw new Error('非法操作（禁止访问受保护的文件）')
   }
 }
 
@@ -490,7 +549,7 @@ export function checkPathAccess(checkPath: string, isOpenApi: boolean = false) {
 export function fileRename(filePath: string, name: string) {
   // 防止文件名包含路径遍历字符
   if (name.includes('/') || name.includes('\\') || name.includes('..')) {
-    throw new Error('非法操作：文件名不能包含路径分隔符或相对路径')
+    throw new Error('非法操作（文件名不能包含路径分隔符或相对路径）')
   }
   const parentPath = nodePath.join(filePath, '../')
   const newPath = nodePath.join(parentPath, name)
@@ -714,8 +773,8 @@ function getDirectorySize(dirPath: string): number {
 export async function codeFileResolve(filePath: string): Promise<CodeFileResolveResult> {
   return new Promise((resolve, reject) => execFile('bash', [APP_FILE_PATH.RESOLVE_SCRIPT, filePath], { encoding: 'utf8' }, (error, stdout) => {
     if (error) {
-      logger.error('解析代码文件失败', filePath, '=>', error)
-      const enhancedError = new Error(`解析代码文件失败：${error.message}`)
+      logger.error('解析代码文件失败', filePath, '=>', error?.message || error)
+      const enhancedError = new Error(`解析代码文件失败：${error?.message}`)
       enhancedError.cause = error
       reject(enhancedError)
     }
@@ -725,7 +784,7 @@ export async function codeFileResolve(filePath: string): Promise<CodeFileResolve
         resolve(JSON.parse(result[result.length - 1]))
       }
       catch (e: any) {
-        logger.error('解析代码文件失败', filePath, '=>', e)
+        logger.error('解析代码文件失败', filePath, '=>', e.message || e)
         const parseError = new Error(`解析代码文件失败：${e.message}`)
         parseError.cause = e
         reject(parseError)

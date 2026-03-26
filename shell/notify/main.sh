@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2024-04-18
 
 function command_notify() {
     case $# in

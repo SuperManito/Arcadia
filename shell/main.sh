@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2024-04-27
 
 function main() {
     case $# in

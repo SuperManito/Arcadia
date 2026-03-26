@@ -1,5 +1,4 @@
 #!/bin/bash
-## Modified: 2024-04-28
 
 ## Telegram Bot 服务管理
 # tgbot start/stop/logs/update

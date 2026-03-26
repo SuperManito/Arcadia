@@ -26,7 +26,7 @@ export async function sendPushplusNotification(msg: messageModel, notification: 
       logger.error(`Failed to send PushPlus notification: ${title}, error: ${response.data.msg}`)
     }
   }
-  catch (error) {
-    logger.error(`Error sending PushPlus notification to ${notification.target}: ${msg.title}`, error)
+  catch (e: any) {
+    logger.error(`Error sending PushPlus notification to ${notification.target}: ${msg.title}`, e.message || e)
   }
 }

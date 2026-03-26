@@ -1,7 +1,7 @@
 import path from 'node:path'
 
-export const APP_ROOT_DIR = path.resolve(__dirname, '../../../../') // 根目录 /arcadia
-export const APP_SOURCE_DIR = path.join(__dirname, '../../../') // 源码目录 /arcadia/src
+export const APP_ROOT_DIR = path.resolve(import.meta.dirname, '../../../../') // 根目录 /arcadia
+export const APP_SOURCE_DIR = path.join(import.meta.dirname, '../../../') // 源码目录 /arcadia/src
 export const APP_PUBLIC_DIR = path.join(APP_SOURCE_DIR, 'public') // 静态文件目录 /arcadia/src/public
 
 export enum APP_FILE_TYPE {
@@ -12,6 +12,7 @@ export enum APP_FILE_NAME {
   DB = 'config.db',
   CONFIG = 'config.sh',
   ENV = 'env.sh',
+  CLI_CONFIG = '.arcadia_cli_config.sh',
   EXTRA_SERVER = 'extra_server.js',
 }
 
@@ -46,6 +47,7 @@ export const APP_FILE_PATH = {
   DB: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.DB), // config.db 文件路径
   CONFIG: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.CONFIG), // config.sh 文件路径
   ENV: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.ENV), // env.sh 文件路径
+  CLI_CONFIG: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.CLI_CONFIG), // .arcadia_cli_config.sh 文件路径
   EXTRA_SERVER: path.join(APP_DIR_PATH.CONFIG, APP_FILE_NAME.EXTRA_SERVER), // extra_server.js 文件路径
   RESOLVE_SCRIPT: path.join(APP_DIR_PATH.SHELL, 'utils/resolve.sh'), // resolve.sh 文件路径
 }

@@ -1,0 +1,1 @@
+var e=function(e){return e.ALL=`all`,e.ROOT=`arcadia`,e.SRC=`src`,e.CONFIG=`config`,e.SAMPLE=`sample`,e.SCRIPTS=`scripts`,e.SHELL=`shell`,e.LOG=`log`,e.REPO=`repo`,e.RAW=`raw`,e.CONFIG_BAK=`bak`,e}({}),t=function(e){return e.SYNC=`sync.yml`,e}({}),n=function(e){return e.FOLDER=`folder`,e.FILE=`file`,e}({});export{e as n,n as r,t};
