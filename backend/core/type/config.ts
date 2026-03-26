@@ -39,6 +39,9 @@ export enum ConfigKeyCli {
   ENABLE_AUTO_DELETE_REMOTE_FILE = 'ENABLE_AUTO_DELETE_REMOTE_FILE',
   ENABLE_CUSTOM_NOTIFY = 'ENABLE_CUSTOM_NOTIFY',
   RUN_DELAY_MAX_SECONDS = 'RUN_DELAY_MAX_SECONDS',
+  DEFAULT_JS_RUNTIME = 'DEFAULT_JS_RUNTIME',
+  DEFAULT_TS_RUNTIME = 'DEFAULT_TS_RUNTIME',
+  ENABLE_PYTHON_UV = 'ENABLE_PYTHON_UV',
 }
 
 /**
@@ -70,6 +73,9 @@ export interface ConfigDataCli {
   ENABLE_AUTO_DELETE_REMOTE_FILE: string
   ENABLE_CUSTOM_NOTIFY: string
   RUN_DELAY_MAX_SECONDS: string
+  DEFAULT_JS_RUNTIME: string
+  DEFAULT_TS_RUNTIME: string
+  ENABLE_PYTHON_UV: string
 }
 export interface ConfigData {
   [ConfigModule.RUNTIME]: ConfigDataRuntime
@@ -101,6 +107,9 @@ export const DEFAULT_CLI_CONFIG_VALUES: Record<ConfigKeyCli, string> = {
   [ConfigKeyCli.ENABLE_AUTO_DELETE_REMOTE_FILE]: '',
   [ConfigKeyCli.ENABLE_CUSTOM_NOTIFY]: '',
   [ConfigKeyCli.RUN_DELAY_MAX_SECONDS]: '300',
+  [ConfigKeyCli.DEFAULT_JS_RUNTIME]: 'node',
+  [ConfigKeyCli.DEFAULT_TS_RUNTIME]: 'tsx',
+  [ConfigKeyCli.ENABLE_PYTHON_UV]: '',
 }
 export const DEFAULT_CONFIG_VALUES: {
   [ConfigModule.RUNTIME]: Record<ConfigKeyRuntime, string>

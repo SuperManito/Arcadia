@@ -108,9 +108,11 @@ function _print_help_run() {
     ${BLUE}-E${PLAIN}, ${BLUE}--exec-args${PLAIN}             执行参数 - 将该选项后面的内容作为参数传递给代码执行器
     ${BLUE}--${PLAIN}                          传递选项，将该选项后面的所有内容都作为选项参数传递给代码文件
 
-    ${BLUE}--deno${PLAIN}，${BLUE}--use-deno${PLAIN}          使用 Deno 作为 JavaScript 和 TypeScript 的运行时环境
-    ${BLUE}--bun${PLAIN}，${BLUE}--use-bun${PLAIN}            使用 Bun 作为 JavaScript 和 TypeScript 的运行时环境
-    ${BLUE}--ts-node${PLAIN}，${BLUE}--use-ts-node${PLAIN}    使用 ts-node 作为 TypeScript 的执行器
+    ${BLUE}--deno${PLAIN}，${BLUE}--use-deno${PLAIN}          使用 Deno 运行时
+    ${BLUE}--bun${PLAIN}，${BLUE}--use-bun${PLAIN}            使用 Bun 运行时
+    ${BLUE}--node${PLAIN}，${BLUE}--use-node${PLAIN}          使用 Node.js 运行时
+    ${BLUE}--tsx${PLAIN}，${BLUE}--use-tsx${PLAIN}            使用 tsx 执行
+    ${BLUE}--ts-node${PLAIN}，${BLUE}--use-ts-node${PLAIN}    使用 ts-node 执行
 
   命令帮助：
 
