@@ -38,7 +38,7 @@ function arcadia_init() {
 
   # extra_init.sh
   if [[ -f $FileCliConf ]] && [[ -f $FileInitExtra ]]; then
-    cat $FileCliConf | grep -Eq "^CLI_CONFIG_ENABLE_INIT_EXTRA=[\"\']true[\"\']"
+    grep -Eq "^CLI_CONFIG_ENABLE_INIT_EXTRA=[\"\']true[\"\']" $FileCliConf
     if [ $? -eq 0 ]; then
       echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- 自定义初始化脚本开始 -----\n"
       source $FileInitExtra
