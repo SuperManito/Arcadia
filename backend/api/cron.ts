@@ -363,7 +363,7 @@ api.put('/', async (request, response) => {
       }
       try {
         const res = await db.tasks.update({ data: task, where: { id: task.id } })
-        logger.info('修改定时任务', JSON.stringify(res))
+        logger.info('修改定时任务', res.name, JSON.stringify(res))
         // 定时规则变更，重新加载定时任务
         if (task && task.cron && originTask.cron !== task.cron) {
           needFixCronIds.push(task.id)
@@ -430,7 +430,7 @@ apiOpen.post('/v1/update', async (request, response) => {
     // 操作数据库
     const res = await db.tasks.update({ data: task, where: { id } })
     response.send(API_STATUS_CODE.okData(res))
-    logger.info('[OpenAPI · Cron]', '修改定时任务', JSON.stringify(task))
+    logger.info('[OpenAPI · Cron]', '修改定时任务', res.name, JSON.stringify(task))
     // 定时规则变更，重新加载定时任务
     if (record.cron !== cron) {
       await applyCron(id)

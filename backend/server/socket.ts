@@ -3,7 +3,6 @@ import type { Server as HttpServer } from 'node:http'
 import { Server } from 'socket.io'
 import type { JwtPayload, VerifyCallback } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
-import { logger } from '../utils/logger'
 import { addAfterTaskRun, addBeforeTaskRun } from '../core/cron/taskRunner'
 import { getJwtSecretSync } from '../core/config'
 
@@ -55,7 +54,7 @@ export function initSocketServer(server: HttpServer) {
 
   io.on('connection', (_socket) => {
     // const user = socket.request.user
-    logger.info('用户已建立 WebSocket 连接')
+    // logger.info('用户已建立 WebSocket 连接')
   })
   return io
 }
