@@ -105,6 +105,6 @@ export function generateEnvSh(group: ComboEnvsGroupModel[], items: envsModel[]) 
         lines.push(`export ${g.type}=''`)
       }
     })
-    fs.writeFileSync(APP_FILE_PATH.ENV, lines.join('\n'))
+    fs.writeFileSync(APP_FILE_PATH.ENV, `${lines.join('\n')}\n`)
   })
 }

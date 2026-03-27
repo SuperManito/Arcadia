@@ -32,5 +32,5 @@ export async function generateCliConfigSh(): Promise<void> {
     lines.push(`${varName}='${escapedValue}'`)
   }
 
-  fs.writeFileSync(APP_FILE_PATH.CLI_CONFIG, lines.join('\n'))
+  fs.writeFileSync(APP_FILE_PATH.CLI_CONFIG, `${lines.join('\n')}\n`)
 }
