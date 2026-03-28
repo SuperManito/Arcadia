@@ -81,6 +81,12 @@ function import() {
 }
 
 ## 导入配置文件
+function import_cli_config() {
+    # 文件由后端自动生成
+    if [ -f $FileCliConf ]; then
+        source $FileCliConf >/dev/null 2>&1
+    fi
+}
 function import_config() {
     if [ -f $FileConfUser ]; then
         source $FileConfUser
@@ -88,22 +94,17 @@ function import_config() {
         echo -e "\n$ERROR 配置文件 $FileConfUser 不存在，请检查是否移动过该文件！\n"
         exit
     fi
-    if [ -f $FileCliConf ]; then
-        source $FileCliConf >/dev/null 2>&1
-    fi
+    import_cli_config
 }
 function import_config_not_check() {
     if [ -f $FileConfUser ]; then
         source $FileConfUser >/dev/null 2>&1
     fi
-    if [ -f $FileCliConf ]; then
-        source $FileCliConf >/dev/null 2>&1
-    fi
+    import_cli_config
 }
 
-## 加载数据库内的用户环境变量
+## 加载数据库内的用户环境变量（文件由后端自动生成）
 function load_user_env() {
-    # 此脚本在每次操作数据库后由后端自动生成
     if [ -f $FileEnvUser ]; then
         source $FileEnvUser >/dev/null 2>&1
     fi

@@ -14,7 +14,6 @@ export { runCronTask, runningTasks, stopCronTask } from './taskRunner'
  * @description 从数据库中读取任务并初始化（应用数据库中配置的定时任务）
  */
 export async function initCronJob() {
-  logger.log('定时任务初始化 - 开始')
   for (const task of (await db.taskCore.findMany())) {
     const taskCoreId = task.id
     const tasksId = Number.parseInt(taskCoreId.substring(2))
@@ -58,7 +57,7 @@ export async function initCronJob() {
     await applyCron(task.id)
   }
   // logger.log('任务总数', taskCoreCurd.list().length)
-  logger.log('定时任务初始化 - 结束')
+  logger.log('定时任务初始化完毕')
 }
 /**
  * 定时任务回调

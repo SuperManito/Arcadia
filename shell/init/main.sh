@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function print_logo() {
-  echo '
+  echo -e '
 \033[38;5;158m  █\033[38;5;157m████╗  ███\033[38;5;156m█\033[38;5;192m██╗   \033[38;5;156m████\033[38;5;150m██\033[38;5;114m╗\033[38;5;115m  ██\033[38;5;79m██\033[38;5;73m█╗ \033[38;5;37m ███\033[38;5;38m███╗  ██╗  █████╗ \033[39m
 \033[38;5;158m ██\033[38;5;157m╔══██╗ ██╔\033[38;5;156m═\033[38;5;192m═██╗ █\033[38;5;156m█╔══\033[38;5;150m══\033[38;5;114m╝\033[38;5;115m ██╔\033[38;5;79m══\033[38;5;73m██╗\033[38;5;37m ██╔\033[38;5;38m══██╗ ██║ ██╔══██╗\033[39m
 \033[38;5;158m ██\033[38;5;157m█████║ ███\033[38;5;156m█\033[38;5;192m██╔╝ █\033[38;5;156m█║  \033[38;5;150m  \033[38;5;114m \033[38;5;115m ███\033[38;5;79m██\033[38;5;73m██║\033[38;5;37m ██║\033[38;5;38m  ██║ ██║ ███████║\033[39m
@@ -15,7 +15,7 @@ function arcadia_init() {
   print_logo
 
   # 检测配置文件是否存在，不存在则复制一份
-  make_dir $ConfigDir
+  [ ! -d "$ConfigDir" ] && mkdir -p "$ConfigDir"
   config_files="config.sh bot.json sync.yml"
   for file in $config_files; do
     if [ ! -s "$ConfigDir/$file" ]; then
@@ -23,7 +23,7 @@ function arcadia_init() {
     fi
   done
 
-  echo -e "\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- 启动核心服务开始 -----\n"
+  # echo -e "\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} 开始启动核心服务"
   cd $BackendDir
   if [ ! -x /usr/bin/npm ]; then
     apt-get install -y --no-install-recommends nodejs npm >/dev/null 2>&1
@@ -34,17 +34,15 @@ function arcadia_init() {
   if [[ -z $(grep -E "123456789" ${ConfigDir}/bot.json) ]]; then
     $ArcadiaCmd tgbot start
   fi
-  echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- 启动核心服务结束 -----\n"
+  # echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} 启动核心服务结束"
 
   # extra_init.sh
-  if [[ -f $FileCliConf ]] && [[ -f $FileInitExtra ]]; then
-    cat $FileCliConf | grep -Eq "^CLI_CONFIG_ENABLE_INIT_EXTRA=[\"\']true[\"\']"
-    if [ $? -eq 0 ]; then
-      echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- 自定义初始化脚本开始 -----\n"
-      source $FileInitExtra
-      echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- 自定义初始化脚本结束 -----\n"
+  if [ -f "$FileCliConf" ] && [ -s "$FileInitExtra" ]; then
+    if grep -Eq "^CLI_CONFIG_ENABLE_INIT_EXTRA=[\"\']true[\"\']" "$FileCliConf"; then
+      echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} 运行自定义初始化脚本"
+      source "$FileInitExtra"
     fi
   fi
 
-  echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} \033[1;32mArcadia service is working...${PLAIN}\n"
+  echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} \033[1;32mArcadia service is ready${PLAIN}"
 }

@@ -471,8 +471,9 @@ api.post('/save', async (request, response) => {
     if (!env.sort) {
       env.sort = 99999
     }
-    await db.envsGroup.$upsertById(env)
-    response.send(API_STATUS_CODE.ok())
+    const result = await db.envsGroup.$upsertById(env)
+    response.send(API_STATUS_CODE.okData(result))
+    logger.info('修改环境变量（复合）', `${result.type || ''}`, JSON.stringify(result))
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -499,8 +500,14 @@ api.post('/saveItem', async (request, response) => {
     if (!env.sort) {
       env.sort = 99999
     }
-    await db.envs.$upsertById(env)
-    response.send(API_STATUS_CODE.ok())
+    const result = await db.envs.$upsertById(env)
+    if (env.group_id === 0) {
+      logger.info('修改环境变量', `${result.type || ''}`, JSON.stringify(result))
+    }
+    else {
+      logger.info('修改环境变量', JSON.stringify(result))
+    }
+    response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
@@ -767,7 +774,7 @@ apiOpen.post('/v1/update', async (request, response) => {
       }
     }
     response.send(API_STATUS_CODE.okData(result))
-    logger.info('[OpenAPI · Env]', '更新环境变量', JSON.stringify(data.length === 1 ? formatData[0] : formatData))
+    logger.info('[OpenAPI · Env]', '修改环境变量', JSON.stringify(data.length === 1 ? formatData[0] : formatData))
     await onChange(category !== EnvTypes.COMPOSITE)
   }
   catch (e: any) {
@@ -889,6 +896,7 @@ api.delete('/delete', async (request, response) => {
     })
     await db.envs.$deleteById(ids, 'group_id')
     await db.envsGroup.$deleteById(ids)
+    logger.info('删除环境变量（复合）', ids.join(','))
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -915,6 +923,7 @@ api.delete('/deleteItem', async (request, response) => {
       }
     })
     await db.envs.$deleteById(ids)
+    logger.info('删除环境变量', ids.join(','))
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
