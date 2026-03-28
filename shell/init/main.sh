@@ -15,7 +15,7 @@ function arcadia_init() {
   print_logo
 
   # 检测配置文件是否存在，不存在则复制一份
-  make_dir $ConfigDir
+  [ ! -d "$ConfigDir" ] && mkdir -p "$ConfigDir"
   config_files="config.sh bot.json sync.yml"
   for file in $config_files; do
     if [ ! -s "$ConfigDir/$file" ]; then
@@ -37,11 +37,10 @@ function arcadia_init() {
   echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- 启动核心服务结束 -----\n"
 
   # extra_init.sh
-  if [[ -f $FileCliConf ]] && [[ -f $FileInitExtra ]]; then
-    grep -Eq "^CLI_CONFIG_ENABLE_INIT_EXTRA=[\"\']true[\"\']" $FileCliConf
-    if [ $? -eq 0 ]; then
+  if [ -f "$FileCliConf" ] && [ -s "$FileInitExtra" ]; then
+    if grep -Eq "^CLI_CONFIG_ENABLE_INIT_EXTRA=[\"\']true[\"\']" "$FileCliConf"; then
       echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- 自定义初始化脚本开始 -----\n"
-      source $FileInitExtra
+      source "$FileInitExtra"
       echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- 自定义初始化脚本结束 -----\n"
     fi
   fi
