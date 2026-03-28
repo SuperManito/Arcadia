@@ -23,7 +23,7 @@ function arcadia_init() {
     fi
   done
 
-  echo -e "\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- 启动核心服务开始 -----\n"
+  # echo -e "\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} 开始启动核心服务"
   cd $BackendDir
   if [ ! -x /usr/bin/npm ]; then
     apt-get install -y --no-install-recommends nodejs npm >/dev/null 2>&1
@@ -34,16 +34,15 @@ function arcadia_init() {
   if [[ -z $(grep -E "123456789" ${ConfigDir}/bot.json) ]]; then
     $ArcadiaCmd tgbot start
   fi
-  echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- 启动核心服务结束 -----\n"
+  # echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} 启动核心服务结束"
 
   # extra_init.sh
   if [ -f "$FileCliConf" ] && [ -s "$FileInitExtra" ]; then
     if grep -Eq "^CLI_CONFIG_ENABLE_INIT_EXTRA=[\"\']true[\"\']" "$FileCliConf"; then
-      echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- 自定义初始化脚本开始 -----\n"
+      echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} 运行自定义初始化脚本"
       source "$FileInitExtra"
-      echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} ----- 自定义初始化脚本结束 -----\n"
     fi
   fi
 
-  echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} \033[1;32mArcadia service is working...${PLAIN}\n"
+  echo -e "\n\033[1;34m$(date "+%Y-%m-%d %T")${PLAIN} \033[1;32mArcadia service is ready${PLAIN}"
 }
