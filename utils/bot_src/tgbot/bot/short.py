@@ -57,7 +57,7 @@ async def my_b(event):
 @tgbot.on(events.NewMessage(from_users=chat_id, pattern=r'^/clearboard$'))
 async def my_clear(event):
     try:
-        await tgbot.send_message(chat_id, '已清空您的keyboard',buttons=Button.clear())
+        await tgbot.send_message(chat_id, '已清空您的keyboard', buttons=Button.clear())
     except Exception as e:
         await tgbot.send_message(chat_id, f'something wrong,I\'m sorry\n{str(e)}')
         logger.error(f'something wrong,I\'m sorry\n{str(e)}')
@@ -65,4 +65,5 @@ async def my_clear(event):
 if ch_name:
     tgbot.add_event_handler(my_a, events.NewMessage(
         from_users=chat_id, pattern=BOT_SET['命令别名']['a']))
-    tgbot.add_event_handler(my_b, events.NewMessage(from_users=chat_id, pattern=BOT_SET['命令别名']['b']))
+    tgbot.add_event_handler(my_b, events.NewMessage(
+        from_users=chat_id, pattern=BOT_SET['命令别名']['b']))

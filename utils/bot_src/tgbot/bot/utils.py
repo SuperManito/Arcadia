@@ -1,10 +1,20 @@
-import re,os,datetime,asyncio
+import re
+import os
+import datetime
+import asyncio
 from telethon import events, Button
+import re
 from .. import tgbot, chat_id, LOG_DIR, logger, ARCADIA_DIR, CONFIG_DIR, BOT_SET
 
 row = int(BOT_SET['每页列数'])
 CONFIG_SH_FILE = f'{CONFIG_DIR}/config.sh'
 ARCADIA_CMD = 'arcadia'
+
+
+def strip_ansi(text: str) -> str:
+    if not text:
+        return text
+    return re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])').sub('', text)
 
 
 def split_list(datas, n, row: bool = True):
@@ -34,23 +44,26 @@ def backup_file(file):
 def press_event(user_id):
     return events.CallbackQuery(func=lambda e: e.sender_id == user_id)
 
+
 def reContent_INVALID(text):
     replaceArr = ['_', '*', '~']
     for i in replaceArr:
         t = ''
         for a in range(5):
             t += i
-        text = re.sub('\%s{6,}' % i, t, text)
+        pattern = re.escape(i) + r'{6,}'
+        text = re.sub(pattern, t, text)
     return text
 
-async def cmd(cmdtext, FotmatCode = False):
+
+async def cmd(cmdtext, FotmatCode=False):
     '''定义执行cmd命令'''
     try:
         msg = await tgbot.send_message(chat_id, '开始执行命令')
-        p = await asyncio.create_subprocess_shell(
-            cmdtext + "| sed 's/\[3[0-9]m//g; s/\[4[0-9]\;3[0-9]m//g; s/\[[0-1]\;3[0-9]m//g; s/\[[0-1]m//g; s/\[[0-1][0-1]m//g'" + ' 2>&1', stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        p = await asyncio.create_subprocess_shell(cmdtext + ' 2>&1', stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         res_bytes, res_err = await p.communicate()
         res = res_bytes.decode('utf-8')
+        res = strip_ansi(res)  # 去除ansi转义字符
         res = reContent_INVALID(res)
         if len(res) == 0:
             await tgbot.edit_message(msg, '❌ 已执行命令但返回值为空，可能遇到了某些错误～')
@@ -106,9 +119,9 @@ def get_ch_names(path, dir):
 async def log_btn(conv, sender, path, msg, page, files_list):
     '''定义log日志按钮'''
     buttons = [
-        Button.inline("上一页", data="up"), 
-        Button.inline("下一页", data="next"), 
-        Button.inline("上级", data="updir"), 
+        Button.inline("上一页", data="up"),
+        Button.inline("下一页", data="next"),
+        Button.inline("上级", data="updir"),
         Button.inline("取消", data="cancel")
     ]
     try:
@@ -181,7 +194,7 @@ async def log_btn(conv, sender, path, msg, page, files_list):
 
 
 async def run_btn(conv, sender, path, msg, page, files_list):
-    '''定义scripts脚本按钮'''
+    '''定义 scripts 代码文件按钮'''
     buttons = [
         Button.inline('上一页', data='up'),
         Button.inline('下一页', data='next'),
@@ -201,7 +214,7 @@ async def run_btn(conv, sender, path, msg, page, files_list):
 
             dir.sort()
             markup = [Button.inline(file.split('--->')[0], data=str(file.split('--->')[-1]))
-                      for file in dir if os.path.isdir(f'{path}/{file}') or file.endswith(('.js', '.py', '.ts', '.sh')) and not re.match(r'sendNotify\.|\.bak\b', file, re.S) ]
+                      for file in dir if os.path.isdir(f'{path}/{file}') or file.endswith(('.js', '.py', '.ts', '.sh')) and not re.match(r'sendNotify\.|\.bak\b', file, re.S)]
             markup = split_list(markup, row)
             if len(markup) > 30:
                 markup = split_list(markup, 30)
@@ -238,7 +251,7 @@ async def run_btn(conv, sender, path, msg, page, files_list):
             return path, msg, page, None
         elif os.path.isfile(f'{path}/{res}'):
             conv.cancel()
-            logger.info(f'{path}/{res} 脚本即将在后台运行')
+            logger.info(f'{path}/{res} 代码文件即将在后台运行')
             msg = await tgbot.edit_message(msg, f'{res} 已部署后台任务')
             cmdtext = f'{ARCADIA_CMD} run {path}/{res} -b'
             return None, None, None, f'CMD-->{cmdtext}'

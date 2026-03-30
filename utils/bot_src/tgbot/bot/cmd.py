@@ -6,7 +6,7 @@ from .utils import cmd, ARCADIA_CMD
 @tgbot.on(events.NewMessage(from_users=chat_id, pattern='/cmd'))
 async def my_cmd(event):
     """接收/cmd命令后执行程序"""
-    logger.info('开始执行 ' +  event.raw_text.split('\n')[0] + ' 命令')
+    logger.info('开始执行 ' + event.raw_text.split('\n')[0] + ' 命令')
     msg_text = event.raw_text.split(' ')
     try:
         if isinstance(msg_text, list):
