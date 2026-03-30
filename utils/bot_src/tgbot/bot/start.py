@@ -1,5 +1,5 @@
 from telethon import events
-from .. import tgbot, chat_id,ch_name
+from .. import tgbot, chat_id, ch_name
 from .utils import ARCADIA_CMD
 
 
@@ -25,4 +25,5 @@ async def bot_start(event):
     await tgbot.send_message(chat_id, msg)
 
 if ch_name:
-    tgbot.add_event_handler(bot_start,events.NewMessage(from_users=chat_id, pattern='开始'))
+    tgbot.add_event_handler(bot_start, events.NewMessage(
+        from_users=chat_id, pattern='开始'))

@@ -3,11 +3,12 @@ from asyncio import exceptions
 from .. import tgbot, chat_id, SCRIPTS_DIR, CONFIG_DIR, logger
 from .utils import press_event, backup_file, cmd, ARCADIA_CMD
 
+
 @tgbot.on(events.NewMessage(from_users=chat_id))
 async def bot_get_file(event):
     '''定义文件操作'''
     try:
-        btn = [[Button.inline('放入config', data=CONFIG_DIR), Button.inline('放入scripts', data=SCRIPTS_DIR)], [
+        btn = [[Button.inline('放入config', data=CONFIG_DIR), Button.inline('放入 scripts', data=SCRIPTS_DIR)], [
             Button.inline('放入scripts并运行', data='node'), Button.inline('取消', data='cancel')]]
         SENDER = event.sender_id
         if event.message.file:
@@ -35,7 +36,7 @@ async def bot_get_file(event):
                         with open(f'{SCRIPTS_DIR}/{filename}', 'r', encoding='utf-8') as f:
                             resp = f.read()
                         cmdtext = f'{ARCADIA_CMD} run {SCRIPTS_DIR}/{filename}'
-                        await tgbot.edit_message(msg, '脚本已保存到scripts文件夹，并成功运行')
+                        await tgbot.edit_message(msg, '代码文件已保存到 scripts 文件夹，并成功运行')
                         conv.cancel()
                     else:
                         backup_file(f'{res}/{filename}')

@@ -4,12 +4,13 @@ from asyncio import exceptions
 from .. import tgbot, chat_id, logger, SCRIPTS_DIR, CONFIG_DIR, logger, BOT_SET, ch_name
 from .utils import press_event, backup_file, ARCADIA_CMD, cmd
 
+
 @tgbot.on(events.NewMessage(from_users=chat_id, pattern=r'^/dl'))
 async def bot_url_file(event):
     '''接收github链接后执行程序'''
     msg_text = event.raw_text.split(' ')
     try:
-        if isinstance(msg_text,list) and len(msg_text) == 2:
+        if isinstance(msg_text, list) and len(msg_text) == 2:
             url = msg_text[-1]
         else:
             url = None
@@ -23,8 +24,8 @@ async def bot_url_file(event):
             url = f'{str(BOT_SET["下载代理"])}/{url}'
         file_name = url.split('/')[-1]
         resp = requests.get(url).text
-        btn = [[Button.inline('放入config', data=CONFIG_DIR), Button.inline('放入scripts', data=SCRIPTS_DIR)], [
-            Button.inline('放入scripts并运行', data='node'), Button.inline('取消', data='cancel')]]
+        btn = [[Button.inline('放入config', data=CONFIG_DIR), Button.inline('放入 scripts', data=SCRIPTS_DIR)], [
+            Button.inline('放入 scripts 并运行', data='node'), Button.inline('取消', data='cancel')]]
         if resp:
             cmdtext = None
             markup = []
@@ -49,13 +50,13 @@ async def bot_url_file(event):
                         with open(f'{SCRIPTS_DIR}/{file_name}', 'w+', encoding='utf-8') as f:
                             f.write(resp)
                         cmdtext = f'{ARCADIA_CMD} run {SCRIPTS_DIR}/{file_name}'
-                        await tgbot.edit_message(msg, '脚本已保存到scripts文件夹，并成功运行')
+                        await tgbot.edit_message(msg, '代码文件已保存到 scripts 文件夹，并成功运行')
                         conv.cancel()
                     else:
                         backup_file(f'{res}/{file_name}')
                         with open(f'{res}/{file_name}', 'w+', encoding='utf-8') as f:
                             f.write(resp)
-                        await tgbot.edit_message(msg, f'{file_name}已保存到{res}文件夹')
+                        await tgbot.edit_message(msg, f'{file_name}已保存到 {res} 文件夹')
             if cmdtext:
                 await cmd(cmdtext)
     except exceptions.TimeoutError:

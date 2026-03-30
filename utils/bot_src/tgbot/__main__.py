@@ -21,9 +21,10 @@ load_module('diy', BOT_D_DIR)
 logger.info('loading user module...')
 load_module('user', BOT_U_DIR)
 
+
 async def new_ver():
     text = f"🔔 叮咚~  机器人上线了✅\n\n获取帮助以快速开始使用 /start\n\n服务控制指令（在终端执行）\n启动/重启： `{ARCADIA_CMD} tgbot start`\n关闭/停止： `{ARCADIA_CMD} tgbot stop`\n更新/重装： `{ARCADIA_CMD} tgbot update`\n\n💪 [Powered by Arcadia](https://github.com/SuperManito/Arcadia)"
-    document_url = 'https://arcadia.cool/docs/configuration/TelegramBot'
+    document_url = 'https://arcadia.cool/docs/tgbot'
     if os.path.exists(BOT_UP_LOG):
         is_new = False
         with open(BOT_UP_LOG, 'r', encoding='utf-8') as f:
@@ -39,7 +40,6 @@ async def new_ver():
         with open(BOT_UP_LOG, 'w+', encoding='utf-8') as f:
             f.writelines([version, botlog])
         await tgbot.send_message(chat_id, text, buttons=[Button.url("📖 使用教程", document_url)], link_preview=False)
-
 
 
 async def bot_set_init():

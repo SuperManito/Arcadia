@@ -1,6 +1,7 @@
 node_modules
 *-lock.*
 *.lock
+.venv
 dist/
 /backend/db/prisma/generated
 
