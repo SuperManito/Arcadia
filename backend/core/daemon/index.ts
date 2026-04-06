@@ -43,16 +43,6 @@ function pm2Stop(name: string): Promise<void> {
   })
 }
 
-function pm2Restart(name: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    pm2.restart(name, (err) => {
-      if (err)
-        reject(err)
-      else resolve()
-    })
-  })
-}
-
 function pm2Delete(name: string): Promise<void> {
   return new Promise((resolve, reject) => {
     pm2.delete(name, (err) => {
@@ -103,6 +93,15 @@ function formatMemoryStr(bytes?: number): string | undefined {
 export function getDaemonLogFilePath(task: { log_dir: string, log_name: string }): string {
   const logDir = task.log_dir || APP_DIR_PATH.LOG
   return path.join(logDir, `${task.log_name}.log`)
+}
+
+export async function deleteProcessByName(name: string): Promise<void> {
+  try {
+    await withPm2(() => pm2Delete(name))
+  }
+  catch {
+    // 进程可能不存在
+  }
 }
 
 export function isSystemProcessName(name: string): boolean {
@@ -271,27 +270,9 @@ export async function restartDaemonTask(id: number): Promise<void> {
   if (!task)
     throw new Error('任务不存在')
 
-  // 重启前裁剪日志
-  if (task.log_max_lines > 0 && task.log_name) {
-    try {
-      trimLogFile(getDaemonLogFilePath({ log_dir: task.log_dir, log_name: task.log_name }), task.log_max_lines)
-    }
-    catch (e: any) {
-      logger.warn(`守护任务 "${task.name}" 日志裁剪失败: ${e.message}`)
-    }
-  }
-
-  try {
-    const list = await withPm2(() => pm2Describe(task.name))
-    if (!list.length) {
-      await startDaemonTask(id)
-      return
-    }
-    await withPm2(() => pm2Restart(task.name))
-  }
-  catch {
-    await startDaemonTask(id)
-  }
+  // 先删除旧进程，再用最新 DB 配置重新启动（确保配置变更生效）
+  await deleteProcessByName(task.name)
+  await startDaemonTask(id)
 }
 
 export async function deleteDaemonTask(id: number): Promise<void> {

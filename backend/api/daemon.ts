@@ -5,6 +5,7 @@ import { validateCronExpression } from '../core/cron/engine'
 import {
   checkNameAvailable,
   deleteDaemonTask,
+  deleteProcessByName,
   flushDaemonTaskLog,
   getDaemonLogFilePath,
   getDaemonTaskLog,
@@ -130,6 +131,16 @@ API.post('/save', async (request: Request, response: Response) => {
       }
 
       const record = await db.daemonTask.update({ where: { id }, data })
+
+      // 名称变更时清理旧 PM2 进程，防止孤儿进程
+      if (data.name && data.name !== existing.name) {
+        const oldStatus = await getProcessStatus(existing.name)
+        await deleteProcessByName(existing.name)
+        // 如果旧进程正在运行，以新名称自动重启
+        if (oldStatus.status === 'online' || oldStatus.status === 'launching') {
+          await startDaemonTask(id).catch(() => {})
+        }
+      }
 
       // 更新定时重启
       if (record.active === 1 && record.restart_cron) {
