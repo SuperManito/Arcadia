@@ -6,6 +6,8 @@
 export enum CLI_CMD {
   /** arcadia run <filePath> [options] — 运行代码文件 */
   RUN = 'arcadia run',
+  /** arcadia rund <filePath> [options] — 运行代码文件（守护进程） */
+  RUND = 'arcadia rund',
   /** arcadia stop <filePath> — 停止运行中的任务 */
   STOP = 'arcadia stop',
   /** arcadia envm edit <key> <value> — 设置环境变量 */

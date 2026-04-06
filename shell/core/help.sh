@@ -12,7 +12,8 @@ function _print_help_main() {
   _print_help_title
   echo -e "
   运行代码相关
-  ${BLUE}run <args>${PLAIN}      执行代码文件（脚本）
+  ${BLUE}run <args>${PLAIN}      运行代码文件
+  ${BLUE}rund <args>${PLAIN}     运行代码文件（守护进程）
   ${BLUE}stop <args>${PLAIN}     终止运行中的代码程序（脚本）
   ${BLUE}list <args>${PLAIN}     列出指定目录下可执行的代码文件清单
   ${BLUE}ps${PLAIN}              查看资源消耗和运行中的代码进程
@@ -80,7 +81,7 @@ function _print_help_tgbot() {
 }
 
 function _print_help_run() {
-  _print_help_title "执行代码文件"
+  _print_help_title "运行代码文件"
   echo -e "
   使用方法：
 
@@ -92,7 +93,6 @@ function _print_help_run() {
     ${BLUE}-s${PLAIN}, ${BLUE}--silent${PLAIN}                静默运行 - 不推送任何通知消息
     ${BLUE}-w${PLAIN}, ${BLUE}--wait${PLAIN}                  推迟执行 - 等待指定时间后再运行任务，选项后需跟时间值
     ${BLUE}-D${PLAIN}, ${BLUE}--delay${PLAIN}                 延迟执行 - 随机倒数一定秒数后再执行代码文件
-    ${BLUE}-d${PLAIN}, ${BLUE}--daemon${PLAIN}                守护进程 - 将代码文件设置为守护进程保持在后台运行，期间中断或结束会自动重新运行
     ${BLUE}-a${PLAIN}, ${BLUE}--agent${PLAIN}                 网络代理 - 为 JavaScript 和 TypeScript 代码文件启用全局 HTTP/HTTPS 代理，配置方法详见文档
     ${BLUE}-T${PLAIN}, ${BLUE}--timeout${PLAIN}               运行超时 - 设置运行任务超时机制，选项后需跟 timeout 指令的参数作为选项值
     ${BLUE}-N${PLAIN}, ${BLUE}--no-log${PLAIN}                不记录日志 - 不存储代码运行日志到本地
@@ -106,7 +106,7 @@ function _print_help_run() {
     ${BLUE}-S${PLAIN}, ${BLUE}--split-env${PLAIN}             拆分运行 - 将复合变量的值拆分后为每个值声明变量并单独运行代码文件，选项后需跟需要拆分的变量名称、分隔符
 
     ${BLUE}-E${PLAIN}, ${BLUE}--exec-args${PLAIN}             执行参数 - 将该选项后面的内容作为参数传递给代码执行器
-    ${BLUE}--${PLAIN}                          传递选项，将该选项后面的所有内容都作为选项参数传递给代码文件
+    ${BLUE}--${PLAIN}                          传递选项 - 将该选项后面的所有内容都作为选项参数传递给代码文件
 
     ${BLUE}--deno${PLAIN}，${BLUE}--use-deno${PLAIN}          使用 Deno 运行时
     ${BLUE}--bun${PLAIN}，${BLUE}--use-bun${PLAIN}            使用 Bun 运行时
@@ -117,6 +117,47 @@ function _print_help_run() {
   命令帮助：
 
     ${BLUE}<name>${PLAIN} 文件名(仅scripts目录)  ${BLUE}<path>${PLAIN} 相对路径或绝对路径  ${BLUE}<url>${PLAIN} 链接地址  ${BLUE}[--options]${PLAIN} 命令选项
+"
+}
+
+function _print_help_rund() {
+  _print_help_title "运行代码文件（守护进程）"
+  echo -e "
+  使用方法：
+
+    ${BLUE}$ArcadiaCmd rund <name/path> [--options]${PLAIN}
+
+  专属命令选项：
+
+    ${BLUE}--name${PLAIN}                          指定任务名称
+    ${BLUE}--max-restarts${PLAIN}                  指定最大重启次数
+    ${BLUE}--restart-delay${PLAIN}                 指定重启延迟毫秒数
+    ${BLUE}--log-file${PLAIN}                      指定日志文件路径
+    ${BLUE}--restart-cron${PLAIN}                  指定重启计划任务
+    ${BLUE}--no-autorestart${PLAIN}                禁用进程崩溃后的自动重启
+    ${BLUE}--max-memory-restart${PLAIN}            内存超出指定值时自动重启（例如 200M）
+    ${BLUE}--stop-exit-codes${PLAIN}               指定不触发自动重启的退出码
+    ${BLUE}--exp-backoff-restart-delay${PLAIN}     启用指数退避重启，指定初始延迟毫秒数
+
+  通用命令选项：
+
+    ${BLUE}-s${PLAIN}, ${BLUE}--silent${PLAIN}                静默运行 - 不推送任何通知消息
+    ${BLUE}-a${PLAIN}, ${BLUE}--agent${PLAIN}                 网络代理 - 为 JavaScript 和 TypeScript 代码文件启用全局 HTTP/HTTPS 代理，配置方法详见文档
+    ${BLUE}-r${PLAIN}, ${BLUE}--recombine-env${PLAIN}         变量重组 - 按照指定顺序重新组合复合变量的值，选项后需跟变量名称、分隔符、重组表达式
+                                           表达式语法：多个值用 \",\" 隔开，值区间用 \"-\" 连接，可以用 \"%\" 表示值的总数
+
+    ${BLUE}-E${PLAIN}, ${BLUE}--exec-args${PLAIN}             执行参数 - 将该选项后面的内容作为参数传递给代码执行器
+    ${BLUE}--${PLAIN}                          传递选项，将该选项后面的所有内容都作为选项参数传递给代码文件
+
+    ${BLUE}--deno${PLAIN}，${BLUE}--use-deno${PLAIN}          使用 Deno 运行时
+    ${BLUE}--bun${PLAIN}，${BLUE}--use-bun${PLAIN}            使用 Bun 运行时
+    ${BLUE}--node${PLAIN}，${BLUE}--use-node${PLAIN}          使用 Node.js 运行时
+    ${BLUE}--tsx${PLAIN}，${BLUE}--use-tsx${PLAIN}            使用 tsx 执行
+    ${BLUE}--ts-node${PLAIN}，${BLUE}--use-ts-node${PLAIN}    使用 ts-node 执行
+
+  命令帮助：
+
+    ${BLUE}<name>${PLAIN} 文件名(仅scripts目录)  ${BLUE}<path>${PLAIN} 相对路径或绝对路径  ${BLUE}[--options]${PLAIN} 命令选项
 "
 }
 
@@ -263,6 +304,9 @@ function print_help() {
     ;;
   run)
     _print_help_run
+    ;;
+  rund)
+    _print_help_rund
     ;;
   service)
     _print_help_service
