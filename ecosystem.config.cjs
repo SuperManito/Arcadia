@@ -18,9 +18,7 @@ module.exports = {
         'public',
         'sessions',
         '.vscode',
-        '.vscode',
         'db/prisma/generated',
-        "prisma/generated",
       ],
       log_date_format: 'YYYY-MM-DD HH:mm:ss',
       watch_options: {
