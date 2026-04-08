@@ -1,10 +1,6 @@
 import type { configModel } from '../../db'
 import type { ConfigDataCli, ConfigDataRuntime, ConfigDataUser, ConfigKey } from '../type/config'
 import db from '../../db'
-import path from 'node:path'
-import fs from 'node:fs'
-import { getJsonFile } from '../../server/fileCore'
-import { APP_DIR_PATH } from '../type'
 import {
   ConfigKeyCli,
   ConfigKeyRuntime,
@@ -14,7 +10,6 @@ import {
 } from '../type/config'
 import { generateCliConfigSh } from './cli'
 import { isNotEmpty, randomString } from '../../utils'
-import { logger } from '../../utils/logger'
 
 /**
  * 验证配置键是否有效
@@ -248,34 +243,6 @@ async function initUserConfig() {
   const updates: Promise<configModel>[] = []
   const defaultUsername = DEFAULT_CONFIG_VALUES[ConfigModule.USER][ConfigKeyUser.USERNAME]
   const defaultPassword = DEFAULT_CONFIG_VALUES[ConfigModule.USER][ConfigKeyUser.PASSWORD]
-
-  // 旧版本认证信息迁移（临时措施，一段时间后移除）
-  if (config.username === defaultUsername && config.password === defaultPassword) {
-    const oldAuthFilePath = path.join(APP_DIR_PATH.CONFIG, 'auth.json')
-    const existsOldAuthFile = fs.existsSync(oldAuthFilePath)
-    if (existsOldAuthFile) {
-      logger.info('检测到旧版认证配置，尝试迁移用户认证信息')
-      try {
-        const { user: originalUsername, password: originalPassword } = getJsonFile(oldAuthFilePath)
-        const isDefinedUsername = isNotEmpty(originalUsername) && originalUsername !== defaultUsername
-        const isDefinedPassword = isNotEmpty(originalPassword) && originalPassword !== defaultPassword
-        if (isDefinedUsername || isDefinedPassword) {
-          await updateUserConfigValue(ConfigKeyUser.USERNAME, originalUsername)
-          await updateUserConfigValue(ConfigKeyUser.PASSWORD, originalPassword)
-          logger.info(`旧版本用户认证信息已成功迁移至新配置系统，建议手动删除 ${oldAuthFilePath} 文件`)
-        }
-      }
-      catch (e: any) {
-        logger.error('迁移旧版本认证配置失败', e.message || e)
-      }
-      finally {
-        // 重新初始化
-        await initUserConfig()
-        // eslint-disable-next-line no-unsafe-finally
-        return
-      }
-    }
-  }
 
   // 认证信息为空，设置默认的用户名和密码（新装环境）
   if (!isNotEmpty(config.username)) {

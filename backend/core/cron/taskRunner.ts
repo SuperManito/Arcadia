@@ -19,6 +19,8 @@ export const runningTasksInsts: { [key: string]: ChildProcess | undefined } = {}
 const beforeTaskRun: Array<{ order: number, fn: (task: tasksModel) => any }> = []
 const afterTaskRun: Array<{ order: number, fn: (info: taskRunInfo) => any }> = []
 
+export const liveLogRegistered = new Set<number>() // 已注册实时日志监听器的任务集合（key: taskId）
+
 /**
  * 添加任务执行前的回调函数
  * @param fn

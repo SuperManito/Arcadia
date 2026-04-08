@@ -7,8 +7,7 @@ function main() {
         ;;
     *)
         case $1 in
-        run)
-            shift
+        run | rund)
             import run
             command_run "$@"
             ;;

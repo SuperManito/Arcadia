@@ -3,10 +3,42 @@ import type { tasksModel } from '../../db'
 import db from '../../db'
 import type { TaskInstance } from './type'
 import { logger } from '../../utils/logger'
-import { addAfterTaskRun, addBeforeTaskRun, runCronTask, runningTasks, runningTasksInsts } from './taskRunner'
+import { addAfterTaskRun, addBeforeTaskRun, liveLogRegistered, runCronTask, runningTasks, runningTasksInsts } from './taskRunner'
 import { APP_ROOT_DIR } from '../type'
+import { API_STATUS_CODE } from '../../utils/httpUtil'
+import { socketCommon } from '../../server/socket'
 
 export { runCronTask, runningTasks, stopCronTask } from './taskRunner'
+
+/**
+ * 注册实时日志事件
+ */
+export function registerLiveLogEvent(taskId: number) {
+  try {
+    const child = runningTasksInsts[taskId]
+    if (!child) {
+      return { running: false, runId: '' }
+    }
+    const runId = `tasks_${taskId}`
+    if (!liveLogRegistered.has(taskId)) {
+      liveLogRegistered.add(taskId)
+      child.stdout?.on('data', (data: { toString: () => string }) => {
+        socketCommon.emit('runLog', API_STATUS_CODE.okData({ runId, log: data.toString(), over: false }))
+      })
+      child.stderr?.on('data', (data: { toString: () => string }) => {
+        socketCommon.emit('runLog', API_STATUS_CODE.failData('error output', { runId, log: data.toString(), over: false }))
+      })
+      child.once('exit', () => {
+        liveLogRegistered.delete(taskId)
+        socketCommon.emit('runLog', API_STATUS_CODE.ok('run over', { runId, over: true }))
+      })
+    }
+    return { running: true, runId }
+  }
+  catch {
+    return { running: false, runId: '' }
+  }
+}
 
 /**
  * 任务初始化

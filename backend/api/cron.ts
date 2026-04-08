@@ -7,6 +7,7 @@ import {
   applyCron,
   fixOrder,
   getBindGroup,
+  registerLiveLogEvent,
   runCronTask,
   runningTasks,
   stopCronTask,
@@ -829,6 +830,24 @@ api.get('/dashboard/running', async (request, response) => {
   catch (e: any) {
     response.send(API_STATUS_CODE.fail(e.message || e))
     logger.error('[定时任务监控] 获取运行中任务异常', e.message || e)
+  }
+})
+
+/**
+ * 获取实时日志
+ */
+api.get('/liveLog', async (request, response) => {
+  try {
+    const idStr = request.query.id as string
+    if (!idStr || !/^\d+$/.test(idStr) || Number.parseInt(idStr) <= 0) {
+      return response.send(API_STATUS_CODE.fail('参数 id 无效'))
+    }
+    const taskId = Number.parseInt(idStr)
+    const liveLog = registerLiveLogEvent(taskId)
+    response.send(API_STATUS_CODE.okData(liveLog))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
 

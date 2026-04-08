@@ -1,0 +1,22 @@
+model daemonTask {
+  id                       Int      @id @default(autoincrement())
+  name                     String   @unique /// 任务名称，同时作为 PM2 进程名
+  file_path                String /// 代码文件路径
+  description              String   @default("") /// 备注
+  boot_start               Int      @default(1) /// 后端启动时自动拉起（1:是 0:否）
+  max_restarts             Int      @default(-1) /// 最大自动重启次数（-1 表示无限）
+  restart_delay            Int      @default(0) /// 崩溃重启延迟（毫秒）
+  restart_cron             String   @default("") /// 定时重启 cron 表达式（空则不启用）
+  autorestart              Int      @default(1) /// 是否自动重启（1:是 0:否）
+  max_memory_restart       Int      @default(0) /// 内存限制重启（MB，0=不启用）
+  stop_exit_codes          Int      @default(-1) /// 故障重启：-1=不启用，0=退出码0时停止
+  exp_backoff_restart_delay Int     @default(0) /// 指数式延迟重启（ms，0=不启用）
+  envs                     String   @default("[]") /// 环境变量 JSON 数组 [{key,value}]
+  options                  String   @default("[]") /// 命令选项 JSON 数组 [{key,value}]
+  log_dir                  String   @default("") /// 日志存放目录
+  log_name                 String   @default("") /// 日志文件名称
+  log_max_lines            Int      @default(0) /// 日志最大保留行数（0=不裁剪）
+  active                   Int      @default(1) /// 是否启用（1:是 0:否）
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+}

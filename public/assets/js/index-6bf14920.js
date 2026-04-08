@@ -1,1 +1,0 @@
-var e=`https://github.com/SuperManito/Arcadia`,t=`https://arcadia.cool`,n=`https://arcadia.cool`,r=`/arcadia`,i=`${r}/log`;export{n as a,e as i,r as n,t as r,i as t};

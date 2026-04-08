@@ -214,6 +214,9 @@ function find_script() {
         ## 判定传入的是路径还是URL
         echo ${input_content} | grep -Eq "^https?:"
         if [ $? -eq 0 ]; then
+            if [[ "${RUN_OPTION_DAEMON}" == "true" ]]; then
+                output_error "守护进程模式不支持运行远程文件，请先自行下载到本地后再运行！"
+            fi
             match_remote_file
         else
             match_path_file
