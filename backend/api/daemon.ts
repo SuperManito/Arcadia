@@ -7,6 +7,7 @@ import {
   deleteDaemonTask,
   deleteProcessByName,
   flushDaemonTaskLog,
+  getAllProcessStatuses,
   getDaemonLogFilePath,
   getDaemonTaskLog,
   getProcessStatus,
@@ -48,8 +49,9 @@ const DAEMON_TASK_FIELDS = [
 API.get('/', async (_request: Request, response: Response) => {
   try {
     const tasks = await db.daemonTask.findMany({ orderBy: { id: 'asc' } })
-    const result = await Promise.all(tasks.map(async (task) => {
-      const pm2Status = await getProcessStatus(task.name)
+    const statusMap = await getAllProcessStatuses(tasks.map(t => t.name))
+    const result = tasks.map((task) => {
+      const pm2Status = statusMap.get(task.name) ?? { status: 'not-started' as const }
       return {
         ...task,
         created_at: new Date(task.created_at),
@@ -61,7 +63,7 @@ API.get('/', async (_request: Request, response: Response) => {
         memory: pm2Status.memory,
         log_path: task.log_name ? getDaemonLogFilePath({ log_dir: task.log_dir, log_name: task.log_name }) : '',
       }
-    }))
+    })
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {

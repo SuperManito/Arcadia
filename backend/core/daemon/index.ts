@@ -157,6 +157,44 @@ export async function getProcessStatus(name: string): Promise<DaemonProcessStatu
   }
 }
 
+/**
+ * 批量获取多个进程状态，在单次 PM2 连接内并发查询，避免并发 connect/disconnect 竞态
+ */
+export async function getAllProcessStatuses(names: string[]): Promise<Map<string, DaemonProcessStatus>> {
+  const result = new Map<string, DaemonProcessStatus>()
+  if (!names.length)
+    return result
+  try {
+    await withPm2(async () => {
+      await Promise.all(names.map(async (name) => {
+        try {
+          const list = await pm2Describe(name)
+          if (!list.length) {
+            result.set(name, { status: 'not-started' })
+            return
+          }
+          const proc = list[0]
+          const env = proc.pm2_env as any
+          result.set(name, {
+            status: (env?.status || 'not-started') as DaemonProcessStatus['status'],
+            pid: proc.pid,
+            pm_uptime: env?.pm_uptime,
+            restart_time: env?.restart_time,
+            memory: formatMemoryStr(proc.monit?.memory),
+          })
+        }
+        catch {
+          result.set(name, { status: 'not-started' })
+        }
+      }))
+    })
+  }
+  catch {
+    names.forEach(name => result.set(name, { status: 'not-started' }))
+  }
+  return result
+}
+
 export async function startDaemonTask(id: number): Promise<void> {
   const task = await db.daemonTask.findFirst({ where: { id } })
   if (!task)
