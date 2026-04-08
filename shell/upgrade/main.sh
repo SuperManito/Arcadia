@@ -23,12 +23,12 @@ function command_upgrade() {
         echo -e "\n$FAIL 更新失败，请检查原因...\n"
     fi
     ## 检测依赖变动
-    [ -f "${BackendDir}/package.json" ] && project_depend_new=$(cat "${BackendDir}/package.json")
+    [ -f "${BackendDir}/package.json" ] && project_depend_new="$(cat "${BackendDir}/package.json")"
     if [[ "${project_depend_old}" != "${project_depend_new}" ]]; then
         # node-pty build dependency
-        cat "${project_depend_old}" | grep "node-pty" -q
+        echo "${project_depend_old}" | grep "node-pty" -q
         local ExitStatusPty=$?
-        cat "${project_depend_new}" | grep "node-pty" -q
+        echo "${project_depend_new}" | grep "node-pty" -q
         local ExitStatusPtyNew=$?
         if [[ ${ExitStatusPty} -ne 0 ]] && [[ ${ExitStatusPtyNew} -eq 0 ]]; then
             apt-get install -y make build-essential
