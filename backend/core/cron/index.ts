@@ -4,9 +4,8 @@ import db from '../../db'
 import type { TaskInstance } from './type'
 import { logger } from '../../utils/logger'
 import { addAfterTaskRun, addBeforeTaskRun, liveLogRegistered, runCronTask, runningTasks, runningTasksInsts } from './taskRunner'
+import { makeSocketRunCallbacks } from '../runner'
 import { APP_ROOT_DIR } from '../type'
-import { API_STATUS_CODE } from '../../utils/httpUtil'
-import { socketCommon } from '../../server/socket'
 
 export { runCronTask, runningTasks, stopCronTask } from './taskRunner'
 
@@ -22,15 +21,16 @@ export function registerLiveLogEvent(taskId: number) {
     const runId = `tasks_${taskId}`
     if (!liveLogRegistered.has(taskId)) {
       liveLogRegistered.add(taskId)
+      const callbacks = makeSocketRunCallbacks()
       child.stdout?.on('data', (data: { toString: () => string }) => {
-        socketCommon.emit('runLog', API_STATUS_CODE.okData({ runId, log: data.toString(), over: false }))
+        callbacks.onStdout(runId, data.toString())
       })
       child.stderr?.on('data', (data: { toString: () => string }) => {
-        socketCommon.emit('runLog', API_STATUS_CODE.failData('error output', { runId, log: data.toString(), over: false }))
+        callbacks.onStderr(runId, data.toString())
       })
       child.once('exit', () => {
         liveLogRegistered.delete(taskId)
-        socketCommon.emit('runLog', API_STATUS_CODE.ok('run over', { runId, over: true }))
+        callbacks.onExit(runId)
       })
     }
     return { running: true, runId }

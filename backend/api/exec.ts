@@ -4,7 +4,6 @@ import { execFile } from 'node:child_process'
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import { randomString, validateObject, validateRequestParams } from '../utils'
 import { validateEnvName } from '../utils/envUtil'
-import { socketCommon } from '../server/socket'
 import {
   checkPathAccess,
   checkPathBoundary,
@@ -14,7 +13,7 @@ import {
 } from '../server/fileCore'
 import { APP_ROOT_DIR } from '../core/type'
 import { CLI_CMD } from '../core/type/cli'
-import { runCodeFile, runningExecTasks, runShellCmd } from '../core/runner'
+import { makeNoopRunCallbacks, makeSocketRunCallbacks, runCodeFile, runningExecTasks, runShellCmd } from '../core/runner'
 import type { RunEnv, RunOption } from '../core/runner'
 import { createSession } from 'better-sse'
 
@@ -112,37 +111,6 @@ function parseEnvs(raw: RunEnv[]): RunEnv[] {
 }
 
 /**
- * 构造 runLog Socket 事件回调
- *
- * @param silent 为 true 时跳过 Socket 推送（OpenAPI 专用：调用方无 WebSocket 连接，推送无意义）
- */
-function makeRunCallbacks(silent = false) {
-  const name = 'runLog'
-  return {
-    onStdout(runId: string, data: string) {
-      if (!silent) {
-        socketCommon.emit(name, API_STATUS_CODE.okData({ runId, log: data, over: false }))
-      }
-    },
-    onStderr(runId: string, data: string) {
-      if (!silent) {
-        socketCommon.emit(name, API_STATUS_CODE.failData('error output', { runId, log: data, over: false }))
-      }
-    },
-    onError(runId: string, err: Error) {
-      if (!silent) {
-        socketCommon.emit(name, API_STATUS_CODE.failData('run fail', { runId, log: err.message, over: true }))
-      }
-    },
-    onExit(runId: string) {
-      if (!silent) {
-        socketCommon.emit(name, API_STATUS_CODE.ok('run over', { runId, over: true }))
-      }
-    },
-  }
-}
-
-/**
  * 创建 SSE 会话
  */
 async function createSseSession(request: Request, response: Response) {
@@ -163,7 +131,7 @@ api.post('/cmd', (request, response) => {
       ] as const,
     })
     const { cmd } = params.body
-    const runId = runShellCmd(cmd, makeRunCallbacks())
+    const runId = runShellCmd(cmd, makeSocketRunCallbacks())
     response.send(API_STATUS_CODE.okData(runId))
   }
   catch (e: any) {
@@ -181,7 +149,7 @@ apiOpen.post('/v1/cmd', (request, response) => {
         ['cmd', [true, 'string']],
       ] as const,
     })
-    const runId = runShellCmd(params.body.cmd, makeRunCallbacks(true))
+    const runId = runShellCmd(params.body.cmd, makeNoopRunCallbacks())
     response.send(API_STATUS_CODE.okData(runId))
   }
   catch (e: any) {
@@ -248,7 +216,7 @@ api.post('/file', (request, response) => {
     checkPathAccess(path)
     const options = parseOptions(request.body.options)
     const envs = parseEnvs(request.body.envs)
-    const runId = runCodeFile(path, options, envs, makeRunCallbacks())
+    const runId = runCodeFile(path, options, envs, makeSocketRunCallbacks())
     response.send(API_STATUS_CODE.okData(runId))
   }
   catch (e: any) {
@@ -283,7 +251,7 @@ api.post('/file/debug', (request, response) => {
     const envs = parseEnvs(request.body.envs)
     const runId = randomString(16)
     tempFilePath = createDebugTempFile(path, runId, content)
-    const callbacks = makeRunCallbacks()
+    const callbacks = makeSocketRunCallbacks()
     runCodeFile(tempFilePath, options, envs, {
       ...callbacks,
       onError(id, err) {
@@ -319,7 +287,7 @@ apiOpen.post('/v1/file', (request, response) => {
     checkPathAccess(path)
     const options = parseOptions(request.body.options)
     const envs = parseEnvs(request.body.envs)
-    const runId = runCodeFile(path, options, envs, makeRunCallbacks(true))
+    const runId = runCodeFile(path, options, envs, makeNoopRunCallbacks())
     response.send(API_STATUS_CODE.okData(runId))
   }
   catch (e: any) {

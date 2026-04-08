@@ -1,6 +1,8 @@
 import { exec, execFile } from 'node:child_process'
 import { getNeatContent } from '../../server/fileCore'
+import { socketCommon } from '../../server/socket'
 import { randomString } from '../../utils'
+import { API_STATUS_CODE } from '../../utils/httpUtil'
 import { APP_ROOT_DIR } from '../type'
 import { CLI_CMD } from '../type/cli'
 
@@ -75,7 +77,7 @@ export function runShellCmd(cmd: string, callbacks: RunnerCallbacks): string {
     delete runningExecTasks[runId]
     callbacks.onError(runId, err)
   })
-  child.on('exit', () => {
+  child.on('close', () => {
     if (done)
       return
     done = true
@@ -124,7 +126,7 @@ export function runCodeFile(
     delete runningExecTasks[runId]
     callbacks.onError(runId, err)
   })
-  child.on('exit', () => {
+  child.on('close', () => {
     if (done)
       return
     done = true
@@ -132,4 +134,32 @@ export function runCodeFile(
     callbacks.onExit(runId)
   })
   return runId
+}
+
+/**
+ * 构造空 runLog 回调（不推送任何 Socket 事件）
+ */
+export function makeNoopRunCallbacks(): RunnerCallbacks {
+  return { onStdout() {}, onStderr() {}, onError() {}, onExit() {} }
+}
+
+/**
+ * 构造 Socket runLog 事件回调
+ */
+export function makeSocketRunCallbacks(): RunnerCallbacks {
+  const name = 'runLog'
+  return {
+    onStdout(runId, data) {
+      socketCommon.emit(name, API_STATUS_CODE.okData({ runId, log: data, stream: 'stdout', over: false }))
+    },
+    onStderr(runId, data) {
+      socketCommon.emit(name, API_STATUS_CODE.okData({ runId, log: data, stream: 'stderr', over: false }))
+    },
+    onError(runId, err) {
+      socketCommon.emit(name, API_STATUS_CODE.okData({ runId, log: err.message, stream: 'stderr', over: true }))
+    },
+    onExit(runId) {
+      socketCommon.emit(name, API_STATUS_CODE.ok('run over', { runId, over: true }))
+    },
+  }
 }
