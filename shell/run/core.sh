@@ -345,8 +345,6 @@ function run_script_core() {
         pm2 stop "${RUN_OPTION_DAEMON_NAME:-$FileName}" >/dev/null 2>&1
         pm2 flush "${RUN_OPTION_DAEMON_NAME:-$FileName}" >/dev/null 2>&1
         pm2 delete "${RUN_OPTION_DAEMON_NAME:-$FileName}" >/dev/null 2>&1
-        # 记录执行开始时间
-        _record_log_start_title "守护进程启动"
         # 启动（此处特殊，需要替换命令中的日志标记）
         run_cmd="${run_cmd//<LogFilePath>/${LogFilePath}}"
         # echo "${run_cmd}"
