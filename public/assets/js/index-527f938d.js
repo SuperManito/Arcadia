@@ -1,0 +1,1 @@
+import{n as e}from"./index-1474c67a.js";function t(t){let n=e();return{prefixCls:`${n.prefixCls}-${t}`,prefixVar:n.prefixCls}}export{t};

@@ -1,0 +1,1 @@
+import{Ua as e}from"./index-2e8f3fb0.js";import{_ as t}from"./index-601023f9.js";function n(){return{getEnableTransition:e(()=>t.transitionSetting.enable),getOpenNProgress:e(()=>t.transitionSetting.openNProgress),getOpenPageLoading:e(()=>!!t.transitionSetting.openPageLoading),getBasicTransition:e(()=>t.transitionSetting.basicTransition)}}export{n as t};
