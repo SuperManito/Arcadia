@@ -6,6 +6,9 @@ import { Buffer } from 'node:buffer'
 import db from '../db'
 import { getDaemonLogFilePath } from '../core/daemon'
 
+// 单次推送最大字节数，超出时只读最新部分
+const MAX_EMIT_BYTES = 1 * 1024 * 1024 // 1 MB
+
 interface LogWatchState {
   taskId: number
   filePath: string
@@ -49,10 +52,12 @@ function startWatching(socket: Socket, taskId: number, filePath: string): void {
         }
         const newSize = statSync(filePath).size
         if (newSize > lastSize) {
-          const len = newSize - lastSize
+          const total = newSize - lastSize
+          const len = Math.min(total, MAX_EMIT_BYTES)
+          const offset = newSize - len
           const buf = Buffer.alloc(len)
           const fd = openSync(filePath, 'r')
-          readSync(fd, buf, 0, len, lastSize)
+          readSync(fd, buf, 0, len, offset)
           closeSync(fd)
           lastSize = newSize
           socket.emit('daemon:log:data', buf.toString('utf-8'))
