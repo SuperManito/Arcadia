@@ -1,5 +1,4 @@
-import type { Server } from 'socket.io'
-import type { Socket } from 'socket.io/dist/socket'
+import type { Server, Socket } from 'socket.io'
 import { closeSync, existsSync, openSync, readSync, statSync, watch } from 'node:fs'
 import type { FSWatcher } from 'node:fs'
 import { Buffer } from 'node:buffer'

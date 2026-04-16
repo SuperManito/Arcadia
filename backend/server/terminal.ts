@@ -1,5 +1,4 @@
-import type { Server } from 'socket.io'
-import type { Socket } from 'socket.io/dist/socket'
+import type { Server, Socket } from 'socket.io'
 import { APP_ROOT_DIR } from '../core/type'
 // import { logger } from '../utils/logger'
 
