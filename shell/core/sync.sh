@@ -1,4 +1,4 @@
-
+#!/bin/bash
 
 ## 统计代码仓库数量
 function count_reposum() {
@@ -27,7 +27,7 @@ function get_conf() {
 
 ## 生成用户代码仓库配置信息数组
 # 代码仓库名称 Array_Repo_name
-# 代码仓库远程地址 Array_Repo_url
+# 代码仓库链接地址 Array_Repo_url
 # 代码仓库分支名称 Array_Repo_branch
 # 代码仓库启用状态 Array_Repo_enable
 # 代码仓库本地存放目录名称 Array_Repo_dir
@@ -72,20 +72,20 @@ function gen_repoconf_array() {
         ## 代码仓库地址（如若未定义或格式错误则跳过视为无效配置）
         tmp_url="$(get_config_wrapper "url")"
         if [[ -z "${tmp_url}" ]]; then
-            # echo -e "$WARN 未检测到第$(($arr_index + 1))个仓库配置的远程地址，跳过..."
+            # echo -e "$WARN 未检测到第$(($arr_index + 1))个仓库配置的链接地址，跳过..."
             continue
         fi
         # 判断仓库地址格式
         echo "${tmp_url}" | grep -Eq "\.git$" # 链接必须以.git结尾
         if [ $? -ne 0 ]; then
-            echo -e "$WARN 检测到第$(($conf_index + 1))个仓库配置的远程地址无效，跳过..."
+            echo -e "$WARN 检测到第$(($conf_index + 1))个仓库配置的链接地址无效，跳过..."
             continue
         fi
         echo "${tmp_url}" | grep -Eq "https?:"
         if [ $? -ne 0 ]; then
             echo "${tmp_url}" | grep -Eq "^git\@"
             if [ $? -ne 0 ]; then
-                echo -e "$WARN 检测到第$(($conf_index + 1))个仓库配置的远程地址无效"
+                echo -e "$WARN 检测到第$(($conf_index + 1))个仓库配置的链接地址无效"
                 continue
             fi
         fi
@@ -97,7 +97,7 @@ function gen_repoconf_array() {
         fi
         Array_Repo_url[$conf_index]="${tmp_url}"
         Array_Repo_branch[$conf_index]="${tmp_branch}"
-        ## 代码仓库名称（如若未定义则采用远程地址中的仓库名称）
+        ## 代码仓库名称（如若未定义则采用链接地址中的仓库名称）
         Array_Repo_name[$conf_index]="$(get_config_wrapper "name")"
         if [[ -z "${Array_Repo_name[conf_index]}" ]]; then
             Array_Repo_name[$conf_index]="$(echo ${Array_Repo_url[conf_index]} | sed "s|\.git||g" | awk -F "/|:" '{print$NF}')"
@@ -228,7 +228,7 @@ function gen_repoconf_array() {
 ## 生成用户代码文件配置信息数组
 # 代码文件名称（用户定义） Array_Raw_name
 # 代码文件名称（文件名） Array_Raw_fileName
-# 代码文件远程地址 Array_Raw_url
+# 代码文件链接地址 Array_Raw_url
 # 代码文件路径 Array_Raw_path
 # 代码文件启用状态 Array_Raw_enable
 # 代码文件定时设置 - 定时任务启用状态 Array_Raw_cronSettings_updateTaskList
@@ -260,11 +260,10 @@ function gen_rawconf_array() {
         ## 代码文件地址（如若未定义或格式错误则跳过视为无效配置）
         tmp_url="$(get_config_wrapper "url")"
         if [[ -z "${tmp_url}" ]]; then
-            # echo -e "$ERROR 未检测到第$(($arr_index + 1))个代码文件配置的远程地址，跳过..."
+            # echo -e "$ERROR 未检测到第$(($arr_index + 1))个代码文件配置的链接地址，跳过..."
             continue
         fi
         Array_Raw_url[$conf_index]="${tmp_url}"
-        Array_Raw_path[$conf_index]="${RawDir}/${Array_Raw_url[conf_index]##*/}"
         ## 代码文件启用状态（默认启用）
         if [[ "$(get_config_wrapper_bool "enable" "true")" == "false" ]]; then
             Array_Raw_enable[$conf_index]="false"
@@ -275,13 +274,22 @@ function gen_rawconf_array() {
         if [[ "$(get_correct_raw_url "${Array_Raw_url[conf_index]}")" ]]; then
             Array_Raw_url[$conf_index]="$(get_correct_raw_url "${Array_Raw_url[conf_index]}")"
         fi
-        ## 代码文件名称（如若未定义则采用远程地址中的代码文件名称）
-        Array_Raw_fileName[$conf_index]="${Array_Raw_url[conf_index]##*/}"
+        ## 代码文件名称
+        local _raw_custom_fileName="$(get_config_wrapper "fileName")"
+        if [[ -n "${_raw_custom_fileName}" ]]; then
+            # 自定义名称
+            Array_Raw_fileName[$conf_index]="${_raw_custom_fileName}"
+        else
+            Array_Raw_fileName[$conf_index]="${Array_Raw_url[conf_index]##*/}"
+        fi
+        Array_Raw_path[$conf_index]="${RawDir}/${Array_Raw_fileName[conf_index]}"
         if [[ -z "$(get_config_wrapper "name")" ]]; then
             Array_Raw_name[$conf_index]="${Array_Raw_fileName[conf_index]}"
         else
             Array_Raw_name[$conf_index]="$(get_config_wrapper "name")"
         fi
+        ## 代码文件路径
+        Array_Raw_path[$conf_index]="${RawDir}/${Array_Raw_fileName[conf_index]}"
         # 定时启用状态（默认禁用）
         if [[ "$(get_config_wrapper_bool "cronSettings.updateTaskList")" == "true" ]]; then
             Array_Raw_cronSettings_updateTaskList[$conf_index]="true"

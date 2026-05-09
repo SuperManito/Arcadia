@@ -3,7 +3,7 @@
 ## 一键添加代码文件配置
 # repo <name> <url> [--options]
 function command_raw() {
-    local name url enable updateTaskList
+    local name url enable updateTaskList fileName
     # 定义临时文件
     local tmp_file="${RootDir}/.raw.yml"
 
@@ -62,6 +62,10 @@ function command_raw() {
                         output_error "检测到无效命令选项值 ${BLUE}$2${PLAIN} ，请输入布尔值！"
                     fi
                     ;;
+                --fileName)
+                    fileName="$2"
+                    shift
+                    ;;
                 *)
                     output_error "检测到 ${BLUE}$1${PLAIN} 为无效命令选项，请确认后重新输入！"
                     ;;
@@ -74,13 +78,14 @@ function command_raw() {
 
     # 生成配置文件模板
     function create_template() {
-        echo '{ "name": "'"${name}"'", "url": "'"${url}"'", "enable": true, "cronSettings": { "updateTaskList": false } }' | jq | yq -y >$tmp_file
+        echo '{ "name": "'"${name}"'", "url": "'"${url}"'", "fileName": "", "enable": true, "cronSettings": { "updateTaskList": false } }' | jq | yq -y >$tmp_file
         # 插入缩进空格
         local line_sum="$(cat $tmp_file | grep "" -c)"
         for ((i = 1; i <= $line_sum; i++)); do
             [ $i -eq 1 ] && sed -i "1s/^/  - /g" $tmp_file || sed -i "${i}s/^/    /g" $tmp_file
         done
         # 替换用户配置
+        [ "${fileName}" ] && sed -i "s|fileName: ''|fileName: \'${fileName}\'|g" $tmp_file
         [ "${enable}" ] && sed -i "s|enable: true|enable: ${enable}|g" $tmp_file
         [ "${updateTaskList}" ] && sed -i "s|updateTaskList: false|updateTaskList: ${updateTaskList}|g" $tmp_file
         echo -e "\n$TIP 自动生成的配置内容如下：\n"

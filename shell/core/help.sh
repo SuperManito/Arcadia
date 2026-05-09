@@ -1,16 +1,16 @@
 #!/bin/bash
 
 function _print_help_title() {
-  if [ "$1" ]; then
-    echo -e "\n❖ Arcadia CLI - $1"
-  else
-    echo -e "\n❖ Arcadia CLI"
-  fi
+    if [ "$1" ]; then
+        echo -e "\n❖ Arcadia CLI - $1"
+    else
+        echo -e "\n❖ Arcadia CLI"
+    fi
 }
 
 function _print_help_main() {
-  _print_help_title
-  echo -e "
+    _print_help_title
+    echo -e "
   运行代码相关
   ${BLUE}run <args>${PLAIN}      运行代码文件
   ${BLUE}rund <args>${PLAIN}     运行代码文件（守护进程）
@@ -39,8 +39,8 @@ function _print_help_main() {
 }
 
 function _print_help_service() {
-  _print_help_title "后端服务管理"
-  echo -e "
+    _print_help_title "后端服务管理"
+    echo -e "
   使用方法：
 
     ${BLUE}$ArcadiaCmd service <args>${PLAIN}
@@ -59,8 +59,8 @@ function _print_help_service() {
 }
 
 function _print_help_tgbot() {
-  _print_help_title "电报机器人服务管理"
-  echo -e "
+    _print_help_title "电报机器人服务管理"
+    echo -e "
   使用方法：
 
     ${BLUE}$ArcadiaCmd tgbot <args>${PLAIN}
@@ -81,8 +81,8 @@ function _print_help_tgbot() {
 }
 
 function _print_help_run() {
-  _print_help_title "运行代码文件"
-  echo -e "
+    _print_help_title "运行代码文件"
+    echo -e "
   使用方法：
 
     ${BLUE}$ArcadiaCmd run <name/path/url> [--options]${PLAIN}
@@ -121,8 +121,8 @@ function _print_help_run() {
 }
 
 function _print_help_rund() {
-  _print_help_title "运行代码文件（守护进程）"
-  echo -e "
+    _print_help_title "运行代码文件（守护进程）"
+    echo -e "
   使用方法：
 
     ${BLUE}$ArcadiaCmd rund <name/path> [--options]${PLAIN}
@@ -162,8 +162,8 @@ function _print_help_rund() {
 }
 
 function _print_help_repo() {
-  _print_help_title "导入代码仓库配置"
-  echo -e "
+    _print_help_title "导入代码仓库配置"
+    echo -e "
   使用方法：
 
     ${BLUE}$ArcadiaCmd repo <name> <url> <branch> [--options]${PLAIN}
@@ -194,14 +194,15 @@ function _print_help_repo() {
 "
 }
 function _print_help_raw() {
-  _print_help_title "导入代码文件配置"
-  echo -e "
+    _print_help_title "导入代码文件配置"
+    echo -e "
   使用方法：
 
     ${BLUE}$ArcadiaCmd raw <name> <url> [--options]${PLAIN}
 
   命令选项：
 
+	${BLUE}--fileName${PLAIN}           指定文件名称
     ${BLUE}--enable${PLAIN}             是否启用该配置
     ${BLUE}--updateTaskList${PLAIN}     是否更新定时任务
     ${BLUE}--help${PLAIN}               查看此命令帮助
@@ -213,8 +214,8 @@ function _print_help_raw() {
 
 }
 function _print_help_update() {
-  _print_help_title "代码同步更新"
-  echo -e "
+    _print_help_title "代码同步更新"
+    echo -e "
   使用方法：
 
     ${BLUE}$ArcadiaCmd update <args>${PLAIN}
@@ -233,8 +234,8 @@ function _print_help_update() {
 "
 }
 function _print_help_envm() {
-  _print_help_title "用户环境变量管理"
-  echo -e "
+    _print_help_title "用户环境变量管理"
+    echo -e "
   使用方法：
 
     ${BLUE}$ArcadiaCmd envm <args> [...]${PLAIN}
@@ -258,8 +259,8 @@ function _print_help_envm() {
 }
 
 function _print_help_notify() {
-  _print_help_title "自定义推送通知提醒"
-  echo -e "
+    _print_help_title "自定义推送通知提醒"
+    echo -e "
   使用方法：
 
     ${BLUE}$ArcadiaCmd notify <title> <content>${PLAIN}
@@ -271,8 +272,8 @@ function _print_help_notify() {
 }
 
 function _print_help_list() {
-  _print_help_title "列出代码文件清单"
-  echo -e "
+    _print_help_title "列出代码文件清单"
+    echo -e "
   使用方法：
 
     ${BLUE}$ArcadiaCmd list <path>${PLAIN}
@@ -284,8 +285,8 @@ function _print_help_list() {
 }
 
 function _print_help_stop() {
-  _print_help_title "终止运行中的代码程序"
-  echo -e "
+    _print_help_title "终止运行中的代码程序"
+    echo -e "
   使用方法：
 
     ${BLUE}$ArcadiaCmd stop <name/path>${PLAIN}
@@ -298,42 +299,42 @@ function _print_help_stop() {
 
 ## 命令帮助
 function print_help() {
-  case "$1" in
-  "${ArcadiaCmd}")
-    _print_help_main
-    ;;
-  run)
-    _print_help_run
-    ;;
-  rund)
-    _print_help_rund
-    ;;
-  service)
-    _print_help_service
-    ;;
-  tgbot)
-    _print_help_tgbot
-    ;;
-  repo)
-    _print_help_repo
-    ;;
-  raw)
-    _print_help_raw
-    ;;
-  update)
-    _print_help_update
-    ;;
-  envm)
-    _print_help_envm
-    ;;
-  notify)
-    _print_help_notify
-    ;;
-  list)
-    _print_help_list
-    ;;
-  stop)
-    _print_help_stop
-    ;;
-  esac
+    case "$1" in
+    "${ArcadiaCmd}")
+        _print_help_main
+        ;;
+    run)
+        _print_help_run
+        ;;
+    rund)
+        _print_help_rund
+        ;;
+    service)
+        _print_help_service
+        ;;
+    tgbot)
+        _print_help_tgbot
+        ;;
+    repo)
+        _print_help_repo
+        ;;
+    raw)
+        _print_help_raw
+        ;;
+    update)
+        _print_help_update
+        ;;
+    envm)
+        _print_help_envm
+        ;;
+    notify)
+        _print_help_notify
+        ;;
+    list)
+        _print_help_list
+        ;;
+    stop)
+        _print_help_stop
+        ;;
+    esac
 }

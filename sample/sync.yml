@@ -1,9 +1,9 @@
-## 更新日期: 2025-05-05
+## 更新日期: 2026-05-09
 # 代码仓库配置
 # 官网教程：https://arcadia.cool/docs/configuration/script/repo/config
 repo:
   - name: "" # 代码仓库名称
-    url: "" # 代码仓库远程地址
+    url: "" # 代码仓库链接地址
     branch: "" # 分支名称
     enable: true # 是否启用该配置
     isPrivate: false # 是否为私有仓库
@@ -33,7 +33,8 @@ repo:
 # 官网教程：https://arcadia.cool/docs/configuration/script/raw/config
 raw:
   - name: "" # 远程文件名称
-    url: "" # 远程文件地址
+    url: "" # 远程文件链接地址
+    fileName: "" # 指定文件名称（需要包含后缀格式，不填则自动截取链接地址中的文件名）
     enable: true # 是否启用该配置
     cronSettings:
       updateTaskList: false # 是否为该配置涉及到的代码文件启用定时任务
