@@ -617,7 +617,7 @@ export function fileDownload(fileOrFolderPath: string, response: Response) {
   if (file.isDirectory()) {
     const archive = new ZipArchive({})
     archive.on('error', (err) => {
-      logger.error('Archive error:', err.message)
+      logger.error(`压缩归档出错: ${err?.message ?? err}`)
       if (!response.headersSent) {
         response.send(API_STATUS_CODE.fail(err.message))
       }
@@ -625,14 +625,12 @@ export function fileDownload(fileOrFolderPath: string, response: Response) {
         response.end()
       }
     })
-    archive.on('end', () => {
-      logger.info('Archive wrote %d bytes', archive.pointer())
-    })
+    // logger.info(`开始生成压缩包：${fileName}.zip`)
     response.attachment(`${fileName}.zip`)
     archive.pipe(response)
     archive.directory(fileOrFolderPath, fileName, entry => excludeRegExp.test(entry.name) ? false : entry)
     archive.finalize().catch((err: Error) => {
-      logger.error('Archive finalize error:', err.message)
+      logger.error(`压缩归档完成失败: ${err?.message ?? err}`)
       if (!response.headersSent) {
         response.send(API_STATUS_CODE.fail(err.message))
       }
@@ -645,7 +643,7 @@ export function fileDownload(fileOrFolderPath: string, response: Response) {
     response.attachment(fileName)
     fs.createReadStream(fileOrFolderPath)
       .on('error', (err) => {
-        logger.error('File stream error:', err.message)
+        logger.error(`文件读取出错: ${err?.message ?? err}`)
         if (!response.headersSent) {
           response.send(API_STATUS_CODE.fail(err.message))
         }
