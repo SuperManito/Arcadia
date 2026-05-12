@@ -43,7 +43,6 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^9.0.0",
-    "@types/archiver": "^7.0.0",
     "@types/compression": "^1.8.1",
     "@types/crypto-js": "^4.2.2",
     "@types/express": "^5.0.6",

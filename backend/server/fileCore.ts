@@ -5,7 +5,7 @@ import { logger } from '../utils/logger'
 import nodePath from 'node:path'
 import fs from 'node:fs'
 import os from 'node:os'
-import archiver from 'archiver'
+import { ZipArchive } from 'archiver'
 import { execFile, execSync } from 'node:child_process'
 import {
   APP_DIR_PATH,
@@ -615,26 +615,43 @@ export function fileDownload(fileOrFolderPath: string, response: Response) {
   const file = fs.statSync(fileOrFolderPath)
   const fileName = nodePath.basename(fileOrFolderPath)
   if (file.isDirectory()) {
-    const archive = archiver('zip', {})
-    archive.on('error', (err: any) => {
-      response.send(API_STATUS_CODE.fail(err.message))
+    const archive = new ZipArchive({})
+    archive.on('error', (err) => {
+      logger.error('Archive error:', err.message)
+      if (!response.headersSent) {
+        response.send(API_STATUS_CODE.fail(err.message))
+      }
+      else {
+        response.end()
+      }
     })
     archive.on('end', () => {
       logger.info('Archive wrote %d bytes', archive.pointer())
     })
     response.attachment(`${fileName}.zip`)
     archive.pipe(response)
-    archive.directory(fileOrFolderPath, fileName)
-    archive.finalize().then()
+    archive.directory(fileOrFolderPath, fileName, entry => excludeRegExp.test(entry.name) ? false : entry)
+    archive.finalize().catch((err: Error) => {
+      logger.error('Archive finalize error:', err.message)
+      if (!response.headersSent) {
+        response.send(API_STATUS_CODE.fail(err.message))
+      }
+      else {
+        response.end()
+      }
+    })
   }
   else {
-    response.writeHead(200, {
-      'Content-Type': 'application/octet-stream', // 告诉浏览器这是一个二进制文件
-      'Content-Disposition': `attachment; filename=${encodeURIComponent(fileName)}`, // 告诉浏览器这是一个需要下载的文件
-    })
+    response.attachment(fileName)
     fs.createReadStream(fileOrFolderPath)
       .on('error', (err) => {
-        response.send(API_STATUS_CODE.fail(err.message))
+        logger.error('File stream error:', err.message)
+        if (!response.headersSent) {
+          response.send(API_STATUS_CODE.fail(err.message))
+        }
+        else {
+          response.end()
+        }
       })
       .pipe(response)
   }
