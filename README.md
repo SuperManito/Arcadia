@@ -10,7 +10,8 @@
 
 <p>
     <strong>
-        <a href="https://arcadia.cool" style="text-decoration: none;">官方网站</a>
+        <a href="https://arcadia.cool" style="text-decoration: none;">官方网站</a> |
+        <a href="https://arcadia.cool/docs/changelog" style="text-decoration: none;">更新日志</a>
     </strong>
 </p>
 </div>
@@ -26,6 +27,8 @@ Arcadia 平台主要面向于脚本语言编程与运维，支持定时任务调
 > 更多内容详见官网
 
 ## 安装方法
+
+详见[快速开始](https://arcadia.cool/docs/quick-start)
 
 ```bash
 docker run -dit \
