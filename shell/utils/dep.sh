@@ -379,7 +379,7 @@ function pip_dep_install() {
         echo "[dep.sh] ERROR: pip3 is not installed" >&2
         return 1
     }
-    pip3 install --no-cache-dir --break-system-packages "${pkg}"
+    pip3 install --no-cache-dir --break-system-packages --ignore-installed "${pkg}"
 }
 
 function pip_dep_uninstall() {

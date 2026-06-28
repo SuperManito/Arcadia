@@ -45,7 +45,7 @@ function git_clone_with_http_auth() {
     if [[ "${url}" == http*://* ]] && [[ "${url}" != http*://*:*@* ]]; then
         local protocol=$(echo $url | awk -F/ '{print $1}')
         local baseurl=$(echo $url | awk -F/ '{print $3}')
-        url="${protocol}//${username}:${password}@${url#"$protocol"//"$baseurl"}"
+        url="${protocol}//${username}:${password}@${baseurl}${url#"$protocol"//"$baseurl"}"
     fi
 
     git_clone "${url}" "${dir}" "${branch}" "${text}"
@@ -109,7 +109,7 @@ function reset_romote_url_with_http_auth() {
     if [[ "${url}" == http*://* ]] && [[ "${url}" != http*://*:*@* ]]; then
         local protocol=$(echo $url | awk -F/ '{print $1}')
         local baseurl=$(echo $url | awk -F/ '{print $3}')
-        url="${protocol}//${username}:${password}@${url#"$protocol"//"$baseurl"}"
+        url="${protocol}//${username}:${password}@${baseurl}${url#"$protocol"//"$baseurl"}"
     fi
 
     reset_romote_url "${work_dir}" "${url}"

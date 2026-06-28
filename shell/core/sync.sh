@@ -75,11 +75,10 @@ function gen_repoconf_array() {
             # echo -e "$WARN 未检测到第$(($arr_index + 1))个仓库配置的链接地址，跳过..."
             continue
         fi
-        # 判断仓库地址格式
+        # 判断仓库地址格式，没有 .git 后缀则自动补上
         echo "${tmp_url}" | grep -Eq "\.git$" # 链接必须以.git结尾
         if [ $? -ne 0 ]; then
-            echo -e "$WARN 检测到第$(($conf_index + 1))个仓库配置的链接地址无效，跳过..."
-            continue
+            tmp_url="${tmp_url}.git"
         fi
         echo "${tmp_url}" | grep -Eq "https?:"
         if [ $? -ne 0 ]; then
@@ -100,10 +99,10 @@ function gen_repoconf_array() {
         ## 代码仓库名称（如若未定义则采用链接地址中的仓库名称）
         Array_Repo_name[$conf_index]="$(get_config_wrapper "name")"
         if [[ -z "${Array_Repo_name[conf_index]}" ]]; then
-            Array_Repo_name[$conf_index]="$(echo ${Array_Repo_url[conf_index]} | sed "s|\.git||g" | awk -F "/|:" '{print$NF}')"
+            Array_Repo_name[$conf_index]="$(echo ${Array_Repo_url[conf_index]} | awk -F "/|:" '{print$NF}')"
         fi
         ## 代码仓库路径
-        Array_Repo_dir[$conf_index]="$(echo "${Array_Repo_url[conf_index]}" | sed "s|\.git||g" | awk -F "/|:" '{print $((NF - 1)) "_" $NF}')"
+        Array_Repo_dir[$conf_index]="$(echo "${Array_Repo_url[conf_index]}" | awk -F "/|:" '{print $((NF - 1)) "_" $NF}')"
         Array_Repo_path[$conf_index]="$RepoDir/${Array_Repo_dir[conf_index]}"
         ## 代码仓库启用状态（默认启用）
         if [[ "$(get_config_wrapper_bool "enable" "true")" == "false" ]]; then
