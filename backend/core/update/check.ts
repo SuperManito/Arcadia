@@ -123,7 +123,7 @@ async function runCheckAndPersist(source: UpdateCheckSource): Promise<UpdateChec
     if (source === 'auto' && notified !== 'true') {
       const content = result.target.changelog?.trim() || '检测到新版本，请前往版本更新页面查看更多细节'
       await sendMessage({
-        title: '发现新版本',
+        title: `发现 Arcadia 新版本 ${result.target.versionTag ?? ''}`,
         content,
         category: 'system',
         type: 'info',
