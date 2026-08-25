@@ -1,0 +1,12 @@
+// 通知渠道：在个人设置中独立管理，可被多条告警规则引用
+model alertChannel {
+  id          Int                @id @default(autoincrement())
+  name        String // 渠道名称，后端保证唯一（DB 不设 unique）
+  type        String // 渠道类型唯一键
+  config      String             @default("{}") // JSON 字符串，存该渠道除 type 外的全部参数
+  create_time DateTime           @default(now())
+  update_time DateTime           @default(now()) @updatedAt
+  rules       alertRuleChannel[]
+
+  @@index([type])
+}

@@ -1,0 +1,17 @@
+// 告警规则：描述“什么消息需要告警”以及“告警到哪里”
+model alertRule {
+  id          Int                  @id @default(autoincrement())
+  name        String // 规则名称，后端保证唯一（DB 不设 unique）
+  scope       String               @default("message") // 业务范围，仅 "message"
+  enabled     Int                  @default(1) // 1 启用 / 0 禁用
+  logic       String               @default("and") // 条件组合逻辑："and" | "or"
+  categories  String               @default("") // 消息分类多选，逗号分隔，空=全部
+  types       String               @default("") // 消息级别多选，逗号分隔，空=全部
+  create_time DateTime             @default(now())
+  update_time DateTime             @default(now()) @updatedAt
+  conditions  alertRuleCondition[]
+  channels    alertRuleChannel[]
+
+  @@index([scope, enabled])
+  @@index([name])
+}

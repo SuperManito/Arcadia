@@ -1,0 +1,13 @@
+// 匹配条件：一条规则可包含多条，按 sort 排序展示与求值
+model alertRuleCondition {
+  id          Int       @id @default(autoincrement())
+  alertRuleId Int
+  alertRule   alertRule @relation(fields: [alertRuleId], references: [id])
+  mode        String    @default("simple") // "simple" 简易 | "regex" 正则
+  field       String // 匹配字段："title" | "content"
+  operator    String // 匹配运算符，见设计文档 5.4
+  value       String    @default("") // 匹配值；empty / not_empty 时忽略
+  sort        Int       @default(0) // 数组下标，0 起
+
+  @@index([alertRuleId])
+}

@@ -1,0 +1,1 @@
+export { processMessageAlert } from './processor'

@@ -1,8 +1,10 @@
 import type { messageWhereInput } from '../../db'
 import { createHash } from 'node:crypto'
 import { db } from '../../db'
+import { logger } from '../../utils/logger'
 import { validateObject } from '../../utils'
 import type { MessageData } from '../type/message'
+import { processMessageAlert } from '../alert'
 import { socketCommon } from '../../server/socketCommon'
 
 // 消息去重缓存（FIFO 淘汰）
@@ -78,6 +80,11 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
 
   // 注册去重缓存
   registerDedup(fingerprint)
+
+  // 监控告警：非阻塞触发，外部渠道延迟不影响消息写入路径
+  void processMessageAlert(msg).catch((e: any) => {
+    logger.error('[监控告警] 触发异常', e?.message ?? e)
+  })
 
   // 通过 WebSocket 推送新消息
   socketCommon.emit('message:new', {
