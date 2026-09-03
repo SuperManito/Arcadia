@@ -337,7 +337,7 @@ export function searchFileTree(params: SearchFileTreeParams): (FileTree | FileTr
         })
         .filter((item) => {
           if (item.type === APP_FILE_TYPES.FOLDER) {
-            // 目录名称匹配时直接保留（含全部子项），否则仅保留有匹配后代的目录
+            // 目录名称匹配时直接保留（含匹配后代），否则仅保留有匹配后代的目录
             return matchesSearch((item as FileTree).title) || (item as FileTree).children.length > 0
           }
           return matchesSearch((item as FileTreeItem).name)
@@ -418,11 +418,8 @@ export function searchLogFileTree(params: SearchLogFileTreeParams): (FileTree | 
         })
         .filter((item) => {
           if (item.type === APP_FILE_TYPES.FOLDER) {
-            // 目录名称匹配时直接保留（含全部子项），否则仅保留有匹配后代的目录
-            if (matchesSearch((item as FileTree).title)) {
-              return true
-            }
-            return (item as FileTree).children.length > 0
+            // 目录名称匹配时直接保留（含匹配后代），否则仅保留有匹配后代的目录
+            return matchesSearch((item as FileTree).title) || (item as FileTree).children.length > 0
           }
           return matchesSearch((item as FileTreeItem).name) && matchesFileFilter(item as FileTreeItem)
         }) as (FileTree | FileTreeItem)[],
