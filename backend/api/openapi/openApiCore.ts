@@ -1,7 +1,7 @@
+import { createHash, randomBytes } from 'node:crypto'
 import type { RequestHandler, Response } from 'express'
 import type { openApiAccessKeyModel } from '../../db'
 import db from '../../db'
-import { randomString } from '../../utils'
 import { resolveErrorMessage } from '../../utils/errorUtil'
 import { logger } from '../../utils/logger'
 import { API_STATUS_CODE, getClientIP, ip2AddressCached, parseUserAgent } from '../../utils/httpUtil'
@@ -181,7 +181,7 @@ function invalidateCache(token: string) {
 }
 
 export function generateToken() {
-  return randomString(32)
+  return createHash('md5').update(randomBytes(32)).digest('hex')
 }
 
 export async function verifyToken(token: string) {
