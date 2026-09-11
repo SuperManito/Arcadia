@@ -60,7 +60,9 @@ export enum ConfigKeySystem {
   PIP_INDEX_URL = 'pipIndexUrl',
   APT_MIRROR_URL = 'aptMirrorUrl',
   GEM_REGISTRY = 'gemRegistry',
-  LOG_RETENTION_DAYS = 'logRetentionDays',
+  SERVER_LOG_RETENTION_DAYS = 'serverLogRetentionDays',
+  LOGIN_LOG_RETENTION_DAYS = 'loginLogRetentionDays',
+  OPEN_API_LOG_RETENTION_DAYS = 'openApiLogRetentionDays',
   MESSAGE_RETENTION_DAYS = 'messageRetentionDays',
   TASK_HISTORY_RETENTION_DAYS = 'taskHistoryRetentionDays',
   CLEANUP_CRON_EXPRESSION = 'cleanupCronExpression',
@@ -112,7 +114,9 @@ export interface ConfigDataSystem {
   pipIndexUrl: string
   aptMirrorUrl: string
   gemRegistry: string
-  logRetentionDays: string
+  serverLogRetentionDays: string
+  loginLogRetentionDays: string
+  openApiLogRetentionDays: string
   messageRetentionDays: string
   taskHistoryRetentionDays: string
   cleanupCronExpression: string
@@ -174,7 +178,9 @@ export const DEFAULT_CONFIG_VALUES: DefaultConfigValues = {
     [ConfigKeySystem.PIP_INDEX_URL]: '',
     [ConfigKeySystem.APT_MIRROR_URL]: '',
     [ConfigKeySystem.GEM_REGISTRY]: '',
-    [ConfigKeySystem.LOG_RETENTION_DAYS]: '7',
+    [ConfigKeySystem.SERVER_LOG_RETENTION_DAYS]: '7',
+    [ConfigKeySystem.LOGIN_LOG_RETENTION_DAYS]: '180',
+    [ConfigKeySystem.OPEN_API_LOG_RETENTION_DAYS]: '7',
     [ConfigKeySystem.MESSAGE_RETENTION_DAYS]: '7',
     [ConfigKeySystem.TASK_HISTORY_RETENTION_DAYS]: '7',
     [ConfigKeySystem.CLEANUP_CRON_EXPRESSION]: '',
