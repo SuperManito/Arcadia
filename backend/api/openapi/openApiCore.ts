@@ -23,8 +23,9 @@ export type PermissionKey
     | 'message:query' // 查询消息（分页、获取未读消息计数、详情）
     | 'message:push' // 推送消息（向消息中心发送用户消息）
     | 'message:manage' // 管理消息（标记已读、删除）
+    | 'extra:use' // 调用编程接口（extra_server.js 自定义封装的接口）[危险 - 默认禁用]
 
-export type PermissionGroup = 'cron' | 'env' | 'file' | 'exec' | 'message'
+export type PermissionGroup = 'cron' | 'env' | 'file' | 'exec' | 'message' | 'extra'
 
 export interface PermissionMeta {
   group: PermissionGroup
@@ -49,6 +50,7 @@ export const PERMISSION_META: Record<PermissionKey, PermissionMeta> = {
   'message:query': { group: 'message', label: '查询消息', desc: '允许分页查询、获取未读消息计数和消息详情', dangerous: false },
   'message:push': { group: 'message', label: '推送消息', desc: '允许向消息中心推送用户消息', dangerous: false },
   'message:manage': { group: 'message', label: '管理消息', desc: '允许标记消息已读和删除消息', dangerous: false },
+  'extra:use': { group: 'extra', label: '调用编程接口', desc: '允许调用用户通过 extra_server.js 自定义封装的接口', dangerous: true },
 }
 
 // 创建令牌时默认启用的权限（不含危险权限）
@@ -95,11 +97,13 @@ const ROUTE_PERM_RULES: RoutePermRule[] = [
   { pattern: /^\/message\/v1\/create$/, permission: 'message:push' },
   { pattern: /^\/message\/v1\/(list|unreadCount|detail)$/, permission: 'message:query' },
   { pattern: /^\/message\/v1\/(readStatus|readAll|delete)$/, permission: 'message:manage' },
+  // Extra
+  { pattern: /^\/extra(\/|$)/, permission: 'extra:use' },
 ]
 
 /**
  * 根据请求方法和路径解析所需权限。
- * 返回 null 表示该路径无需权限校验（如 alert、extra 路由）。
+ * 返回 null 表示该路径无需权限校验。
  */
 export function resolveRoutePermission(method: string, path: string): PermissionKey | null {
   const upperMethod = method.toUpperCase()
