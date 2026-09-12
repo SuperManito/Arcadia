@@ -1,17 +1,20 @@
-import type { PushPayload, WxpusherConfig } from './types'
-import { request } from '../../utils/httpUtil'
+import type { WxPusherConfig } from '../config/wxpusher'
+import type { PushPayload } from '../types'
+import { request } from '../../../utils/httpUtil'
 
 /**
- * wxpusher 渠道推送器
+ * WxPusher 渠道推送器
  *
  * @param config.appToken 应用 Token
- * @param config.uids 用户 ID 列表（可选）
- * @param config.topicIds 主题 ID 列表（可选）
- * @param config.url 跳转URL（可选）
+ * @param config.uids 用户 ID 列表
+ * @param config.topicIds 主题 ID 列表
+ * @param config.url 跳转URL
  */
-export function cleanConfig(config: Record<string, unknown>): Record<string, unknown> {
+export default async function pushWxPusher(config: WxPusherConfig, payload: PushPayload) {
+  const uids = config.uids ?? []
+  // topicIds 允许字符串或数字，统一转为正整数并去重后提交
   const topicIds: number[] = []
-  for (const item of config.topicIds as Array<string | number>) {
+  for (const item of config.topicIds ?? []) {
     const id = Number(item)
     if (!Number.isSafeInteger(id) || id <= 0) {
       throw new Error('topicIds 元素必须是正整数')
@@ -20,16 +23,6 @@ export function cleanConfig(config: Record<string, unknown>): Record<string, unk
       topicIds.push(id)
     }
   }
-  const uids = config.uids as string[]
-  if (uids.length === 0 && topicIds.length === 0) {
-    throw new Error('uids 与 topicIds 至少提供一组')
-  }
-  return { ...config, topicIds }
-}
-
-export default async function pushWxpusher(config: WxpusherConfig, payload: PushPayload) {
-  const uids = config.uids ?? []
-  const topicIds = config.topicIds ?? []
   if (uids.length === 0 && topicIds.length === 0) {
     throw new Error('uids 与 topicIds 不能同时为空')
   }
@@ -49,7 +42,7 @@ export default async function pushWxpusher(config: WxpusherConfig, payload: Push
   const result = await request({
     method: 'POST',
     url: 'https://wxpusher.zjiecode.com/api/send/message',
-    body,
+    data: body,
     headers: {
       'Content-Type': 'application/json',
     },

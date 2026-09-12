@@ -75,6 +75,29 @@ export async function updateRuntimeConfigValue(key: ConfigKeyRuntime, value: str
 }
 
 /**
+ * 当前版本标签
+ */
+let _currentVersionTag = ''
+
+/**
+ * 获取当前版本标签
+ *
+ * @description 内存为空时回源数据库读取一次并缓存
+ */
+export async function getVersionTag(): Promise<string> {
+  if (!_currentVersionTag)
+    _currentVersionTag = await getConfigValue(ConfigKeyRuntime.UPDATE_CURRENT_TAG, ConfigModule.RUNTIME) || ''
+  return _currentVersionTag
+}
+
+/**
+ * 设置当前版本标签
+ */
+export function setVersionTagSync(tag: string): void {
+  _currentVersionTag = tag
+}
+
+/**
  * JWT 密钥
  */
 let _jwtSecret = ''
@@ -290,6 +313,7 @@ async function initRuntimeConfig() {
   }
   // 将密钥加载到内存
   _jwtSecret = config.jwtSecret
+  _currentVersionTag = config.updateCurrentTag || ''
 }
 
 /**

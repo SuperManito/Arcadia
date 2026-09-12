@@ -1,7 +1,7 @@
 import type { Buffer } from 'node:buffer'
 import { spawn } from 'node:child_process'
 import type { ChildProcessWithoutNullStreams } from 'node:child_process'
-import { getConfigValue, updateRuntimeConfigValue, updateRuntimeConfigValues } from '../config'
+import { getConfigValue, setVersionTagSync, updateRuntimeConfigValue, updateRuntimeConfigValues } from '../config'
 import { APP_DIR_PATH, APP_FILE_PATH, APP_SOURCE_DIR } from '../type'
 import { ConfigKeyRuntime, ConfigModule } from '../type/config'
 import { updateConstants } from './constants'
@@ -168,6 +168,7 @@ export class UpdateCore {
     if (!tag)
       return this.getCachedVersionTag()
     await updateRuntimeConfigValue(ConfigKeyRuntime.UPDATE_CURRENT_TAG, tag)
+    setVersionTagSync(tag)
     return tag
   }
 
@@ -182,8 +183,10 @@ export class UpdateCore {
       getConfigValue(ConfigKeyRuntime.UPDATE_CURRENT_COMMIT, ConfigModule.RUNTIME),
     ])
     const entries: Array<{ key: ConfigKeyRuntime, value: string }> = []
-    if (cachedTag !== (tag ?? ''))
+    if (cachedTag !== (tag ?? '')) {
       entries.push({ key: ConfigKeyRuntime.UPDATE_CURRENT_TAG, value: tag ?? '' })
+      setVersionTagSync(tag ?? '')
+    }
     if (cachedCommit !== fullCommit)
       entries.push({ key: ConfigKeyRuntime.UPDATE_CURRENT_COMMIT, value: fullCommit })
     if (entries.length > 0)

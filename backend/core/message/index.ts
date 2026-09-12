@@ -82,9 +82,11 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
   registerDedup(fingerprint)
 
   // 监控告警：非阻塞触发，外部渠道延迟不影响消息写入路径
-  void processMessageAlert(msg).catch((e: any) => {
-    logger.error('[监控告警] 触发异常', e?.message ?? e)
-  })
+  if (!data.skipAlert) {
+    void processMessageAlert(msg).catch((e: any) => {
+      logger.error('[监控告警] 触发异常', e?.message ?? e)
+    })
+  }
 
   // 通过 WebSocket 推送新消息
   socketCommon.emit('message:new', {

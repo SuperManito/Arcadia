@@ -3,6 +3,7 @@ import { db } from '../../db'
 import { logger } from '../../utils/logger'
 import { matchRule } from './matcher'
 import { dispatch } from '../push'
+import { sendMessage } from '../message'
 
 export async function processMessageAlert(msg: messageModel) {
   const rules = await db.alertRule.findMany({
@@ -55,6 +56,13 @@ export async function processMessageAlert(msg: messageModel) {
           channelType: link.alertChannel.type,
           error: e?.message ?? e,
         })
+        void sendMessage({
+          title: '监控告警推送失败',
+          content: `规则：${rule.name}\n渠道：${link.alertChannel.name}（${link.alertChannel.type}）\n错误：${e?.message ?? '未知错误'}`,
+          category: 'system',
+          type: 'error',
+          skipAlert: true,
+        }).catch(() => {})
       }
     }
   }

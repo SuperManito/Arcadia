@@ -4,13 +4,9 @@ import axios from 'axios'
 import querystring from 'node:querystring'
 import { UAParser } from 'ua-parser-js'
 import { logger } from './logger'
+import { getVersionTag } from '../core/config'
 
 export { default as API_STATUS_CODE } from './statusCode'
-
-interface RequestConfig extends AxiosRequestConfig {
-  body?: object | string
-  parmas?: object | string
-}
 
 export const userAgentTools = {
   Android(userAgent: string) {
@@ -136,9 +132,9 @@ export async function ip2Address(ip: string) {
     const { data }: { data: any } = await request({
       method: 'GET',
       url: 'http://ip.360.cn/IPShare/info',
-      parmas: { ip },
+      params: { ip },
       headers: {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/128.0.0.0',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0.0 Mobile/15E148 Safari/604.1',
         'Content-Type': 'application/x-www-form-urlencoded',
         'Referer': 'http://ip.360.cn/',
       },
@@ -175,7 +171,7 @@ interface RequestReturnData {
  *
  * @async
  */
-export async function request(config: RequestConfig): Promise<RequestReturnData> {
+export async function request(config: AxiosRequestConfig): Promise<RequestReturnData> {
   const returnData: RequestReturnData = {
     success: false,
     status: null,
@@ -192,7 +188,7 @@ export async function request(config: RequestConfig): Promise<RequestReturnData>
     Object.assign(axios.defaults, {
       headers: {
         common: {
-          'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Mobile/15E148 Safari/604.1',
+          'User-Agent': `Arcadia/${await getVersionTag() || '1.0.0'}`,
         },
       },
       maxContentLength: Infinity,
@@ -218,10 +214,6 @@ export async function request(config: RequestConfig): Promise<RequestReturnData>
         },
       ],
     })
-    if (config.body) {
-      config.data = config.body
-      delete config.body
-    }
     for (const key of ['data', 'params']) {
       if (!config[key]) {
         delete config[key]
