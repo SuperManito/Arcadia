@@ -84,6 +84,15 @@ export function getBaseName(ecosystem: string, name: string): string {
   return fn(name)
 }
 
+/**
+ * 平台保留依赖直接抛错，文案按动作区分
+ */
+export function assertNotProtected(ecosystem: string, name: string, action: '添加' | '操作' = '操作') {
+  const baseName = getBaseName(ecosystem, name)
+  if (PROTECTED[ecosystem]?.has(baseName))
+    throw new Error(`${baseName} 为平台保留依赖，禁止${action}！`)
+}
+
 type QueueTask = () => Promise<void>
 
 class SerialQueue {

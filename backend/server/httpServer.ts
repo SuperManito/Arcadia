@@ -21,7 +21,7 @@ import { systemApi } from '../api/routes/system'
 import { API as ApiLog } from '../api/routes/log'
 import { API as ApiConfig } from '../api/routes/config'
 import { API as ApiDaemon } from '../api/routes/daemon'
-import { API as ApiDep } from '../api/routes/dep'
+import { API as ApiDep, OpenAPI as OpenApiDep } from '../api/routes/dep'
 import { API as ApiUpdate, InnerAPI as InnerApiUpdate } from '../api/routes/update'
 import { API as ApiAlert } from '../api/routes/alert'
 
@@ -121,6 +121,7 @@ export function registerApp(apiAuthentication: RequestHandler) {
   openApiRouter.use('/cron', OpenApiCron)
   openApiRouter.use('/exec', OpenApiExec)
   openApiRouter.use('/message', OpenApiMessage)
+  openApiRouter.use('/dependency', OpenApiDep)
   app.use('/api/open', OpenAPIAuthentication, openApiLogMiddleware, openApiRouter)
   const handleOpenApiSyntaxError: ErrorRequestHandler = (err, _req, res, next) => {
     if (err && err?.name === 'SyntaxError') {

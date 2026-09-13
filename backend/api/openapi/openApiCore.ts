@@ -23,9 +23,12 @@ export type PermissionKey
     | 'message:query' // 查询消息（分页、获取未读消息计数、详情）
     | 'message:push' // 推送消息（向消息中心发送用户消息）
     | 'message:manage' // 管理消息（标记已读、删除）
+    | 'dependency:query' // 查询依赖（分页列表、详情、错误日志）
+    | 'dependency:manage' // 管理依赖记录（创建、删除）[危险 - 默认禁用]
+    | 'dependency:operate' // 操作依赖包（安装、卸载、同步状态）[危险 - 默认禁用]
     | 'extra:use' // 调用编程接口（extra_server.js 自定义封装的接口）[危险 - 默认禁用]
 
-export type PermissionGroup = 'cron' | 'env' | 'file' | 'exec' | 'message' | 'extra'
+export type PermissionGroup = 'cron' | 'env' | 'file' | 'exec' | 'message' | 'dependency' | 'extra'
 
 export interface PermissionMeta {
   group: PermissionGroup
@@ -50,6 +53,9 @@ export const PERMISSION_META: Record<PermissionKey, PermissionMeta> = {
   'message:query': { group: 'message', label: '查询消息', desc: '允许分页查询、获取未读消息计数和消息详情', dangerous: false },
   'message:push': { group: 'message', label: '推送消息', desc: '允许向消息中心推送用户消息', dangerous: false },
   'message:manage': { group: 'message', label: '管理消息', desc: '允许标记消息已读和删除消息', dangerous: false },
+  'dependency:query': { group: 'dependency', label: '查询依赖', desc: '允许分页查询、获取依赖详情和错误日志', dangerous: false },
+  'dependency:manage': { group: 'dependency', label: '管理依赖记录', desc: '允许创建、删除依赖记录', dangerous: true },
+  'dependency:operate': { group: 'dependency', label: '操作依赖包', desc: '允许安装、卸载依赖包及同步安装状态', dangerous: true },
   'extra:use': { group: 'extra', label: '调用编程接口', desc: '允许调用用户通过 extra_server.js 自定义封装的接口', dangerous: true },
 }
 
@@ -60,6 +66,7 @@ export const DEFAULT_PERMISSIONS: PermissionKey[] = [
   'env:manage',
   'file:list',
   'message:query',
+  'dependency:query',
 ]
 
 // 所有权限键，供遍历校验使用
@@ -97,6 +104,10 @@ const ROUTE_PERM_RULES: RoutePermRule[] = [
   { pattern: /^\/message\/v1\/create$/, permission: 'message:push' },
   { pattern: /^\/message\/v1\/(list|unreadCount|detail)$/, permission: 'message:query' },
   { pattern: /^\/message\/v1\/(readStatus|readAll|delete)$/, permission: 'message:manage' },
+  // Dependency
+  { pattern: /^\/dependency\/v1\/(page|query|error)$/, permission: 'dependency:query' },
+  { pattern: /^\/dependency\/v1\/(create|delete)$/, permission: 'dependency:manage' },
+  { pattern: /^\/dependency\/v1\/operate$/, permission: 'dependency:operate' },
   // Extra
   { pattern: /^\/extra(\/|$)/, permission: 'extra:use' },
 ]
@@ -313,26 +324,31 @@ export const openApiLogMiddleware: RequestHandler = (req, res, next) => {
  * @param prefix  客户端消息前缀，最终消息为 `${prefix}：${message}`
  */
 export function handleOpenApiError(error: unknown, response: Response, context?: string, prefix?: string): void {
-  const tag = context || 'OpenAPI 错误'
-  const raw = error instanceof Error ? error.stack || error.message : String(error)
-  const { message, kind, code, syscall } = resolveErrorMessage(error)
+  try {
+    const tag = context || 'OpenAPI 错误'
+    const raw = error instanceof Error ? error.stack || error.message : String(error)
+    const { message, kind, code, syscall } = resolveErrorMessage(error)
 
-  switch (kind) {
-    case 'database':
-      logger.error(tag, `数据库错误 [${code}]`, raw)
-      break
-    case 'database-unknown':
-      logger.error(tag, '未知数据库错误', raw)
-      break
-    case 'fs':
-      logger.error(tag, `文件系统错误 [${code}] syscall=${syscall || '无'}`, raw)
-      break
-    case 'unknown':
-      logger.error(tag, '未知错误类型', raw)
-      break
-    default:
-      logger.error(tag, raw)
+    switch (kind) {
+      case 'database':
+        logger.error(tag, `数据库错误 [${code}]`, raw)
+        break
+      case 'database-unknown':
+        logger.error(tag, '未知数据库错误', raw)
+        break
+      case 'fs':
+        logger.error(tag, `文件系统错误 [${code}] syscall=${syscall || '无'}`, raw)
+        break
+      case 'unknown':
+        logger.error(tag, '未知错误类型', raw)
+        break
+      default:
+        logger.error(tag, raw)
+    }
+
+    response.send(API_STATUS_CODE.fail(prefix ? `${prefix}：${message}` : message))
   }
-
-  response.send(API_STATUS_CODE.fail(prefix ? `${prefix}：${message}` : message))
+  catch {
+    response.send(API_STATUS_CODE.fail('服务内部错误'))
+  }
 }
