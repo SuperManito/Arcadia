@@ -1,6 +1,6 @@
 import type { ValidateObjectParamType } from '../../utils'
 import type { ChannelDefinition, Pusher } from './types'
-import { Channels } from './channels'
+import { Channels } from './push'
 
 type Definitions = (typeof Channels)[keyof typeof Channels]
 type ConfigOf<D> = D extends ChannelDefinition<infer C> ? C : never

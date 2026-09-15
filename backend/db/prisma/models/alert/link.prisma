@@ -1,13 +1,13 @@
 // 规则与渠道的关联，sort 即触发顺序
 model alertRuleChannel {
-  id             Int          @id @default(autoincrement())
-  alertRuleId    Int
-  alertRule      alertRule    @relation(fields: [alertRuleId], references: [id])
-  alertChannelId Int
-  alertChannel   alertChannel @relation(fields: [alertChannelId], references: [id])
-  sort           Int          @default(0)
+  id          Int       @id @default(autoincrement())
+  alertRuleId Int
+  alertRule   alertRule @relation(fields: [alertRuleId], references: [id])
+  channelId   Int
+  channel     notifyChannel @relation(fields: [channelId], references: [id])
+  sort        Int       @default(0)
 
-  @@unique([alertRuleId, alertChannelId]) // 同一规则不能重复挂同一渠道
+  @@unique([alertRuleId, channelId]) // 同一规则不能重复挂同一渠道
   @@index([alertRuleId])
-  @@index([alertChannelId])
+  @@index([channelId])
 }

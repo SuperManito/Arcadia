@@ -24,6 +24,7 @@ import { API as ApiDaemon } from '../api/routes/daemon'
 import { API as ApiDep, OpenAPI as OpenApiDep } from '../api/routes/dep'
 import { API as ApiUpdate, InnerAPI as InnerApiUpdate } from '../api/routes/update'
 import { API as ApiAlert } from '../api/routes/alert'
+import { API as ApiChannel } from '../api/routes/channel'
 
 function getToken(req: Request) {
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
@@ -186,6 +187,7 @@ export function registerApp(apiAuthentication: RequestHandler) {
   apiRouter.use('/dependency', ApiDep)
   apiRouter.use('/update', ApiUpdate)
   apiRouter.use('/alert', ApiAlert)
+  apiRouter.use('/channel', ApiChannel)
   app.use('/api', apiAuthentication, handleAuthenticationError, apiRouter)
 
   /**

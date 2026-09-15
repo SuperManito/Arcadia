@@ -1,16 +1,16 @@
-# core/push 通知渠道模块
+# 通知渠道模块
 
 这个模块负责把告警消息推送到各种第三方服务（Telegram、钉钉、Bark、飞书等）。如果还没有你正在使用的推送服务，欢迎按本指南适配一个并提交 PR，只需要一个新文件加一行登记。
 
 ## 工作原理
 
-一个渠道就是一个文件 `channels/<渠道>.ts`，导出一个 `ChannelDefinition` 对象，包含三样东西：
+一个渠道就是一个文件 `push/<渠道>.ts`，导出一个 `ChannelDefinition` 对象，包含三样东西：
 
 - `type`：渠道唯一键，服务名小写（如 `'telegram'`、`'serverchan'`）。
 - `configRules`：配置字段白名单，保存配置时约束并清洗配置对象，只保留列表中的字段。
 - `pusher`：推送器，一个异步函数，直接写在定义对象中，负责调用目标服务的 API 把消息发出去。
 
-`channels/index.ts` 用一张 `Channels` 表汇总全部渠道定义；`registry.ts` 基于它自动完成注册与类型派生；`dispatch` 是统一发送入口。新增渠道不需要修改这些文件的逻辑，只要在 `Channels` 表里加一行。
+`push/index.ts` 用一张 `Channels` 表汇总全部渠道定义；`registry.ts` 基于它自动完成注册与类型派生；`dispatch` 是统一发送入口。新增渠道不需要修改这些文件的逻辑，只要在 `Channels` 表里加一行。
 
 ## pusher 的参数
 
@@ -22,13 +22,13 @@
 
 ## 新增渠道的步骤
 
-1. 新建 `channels/<渠道>.ts`：导出渠道定义（唯一键 + 字段白名单 + 推送器）和配置类型。
-2. 在 `channels/index.ts` 的 `Channels` 表登记一行。
+1. 新建 `push/<渠道>.ts`：导出渠道定义（唯一键 + 字段白名单 + 推送器）和配置类型。
+2. 在 `push/index.ts` 的 `Channels` 表登记一行。
 3. 提交 PR。前端配置表单在私有仓库中由维护者同步，无需包含前端改动。
 
 ## 完整示例：适配 foo 服务
 
-### `channels/foo.ts`（新建）
+### `push/foo.ts`（新建）
 
 ```ts
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
@@ -74,7 +74,7 @@ export const Foo = {
 - `configRules` 是保存配置时的字段白名单，不在列表中的字段会被丢弃。每项格式为 `[字段名, [是否必填, 类型]]`，类型支持 `'string'` / `'number'` / `'boolean'` / `'string[]'` / `'object'` 或枚举数组。
 - 写推送器需要知道的两件事：
   - **`request` 不会抛出异常**。网络错误、非 2xx 响应等都以 `result.success === false` 返回（错误信息在 `result.error`），所以必须主动判断并用 `throw new Error(...)` 报告失败。抛出的错误信息会作为"推送失败"的原因反馈给用户，请写清楚是什么问题。
-  - **很多服务的 API 用 HTTP 200 + 错误码表示业务失败**（如 Bark 以 `{ code: 200 }` 表示成功）。这类渠道需要再检查 `result.data`，业务失败同样 `throw`，可参考 `channels/bark.ts`。
+  - **很多服务的 API 用 HTTP 200 + 错误码表示业务失败**（如 Bark 以 `{ code: 200 }` 表示成功）。这类渠道需要再检查 `result.data`，业务失败同样 `throw`，可参考 `push/bark.ts`。
 
 `request` 返回值的字段说明：
 
@@ -87,7 +87,7 @@ export const Foo = {
 | `error` | 失败原因，成功时为 null |
 | `connected` | 是否已建立连接（收到 4xx / 5xx 响应也算已连接） |
 
-### `channels/index.ts`（修改）
+### `push/index.ts`（修改）
 
 ```ts
 // 新增 import（与现有渠道并列）：
@@ -119,4 +119,4 @@ if (text === null) {
 ## 其他约定
 
 - 配置的格式校验在用户保存时已完成，推送器不需要重复校验；只有目标 API 有特殊要求时（如取值范围、参数转换）才在推送器内检查，并以 `throw` 报告。
-- 新增渠道不需要改数据库：`alertChannel.type` 是普通字符串、`config` 是 JSON 文本，没有 schema、migrate 步骤。
+- 新增渠道不需要改数据库：`channel.type` 是普通字符串、`config` 是 JSON 文本，没有 schema、migrate 步骤。

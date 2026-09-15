@@ -2,7 +2,7 @@ import type { messageModel } from '../../db'
 import { db } from '../../db'
 import { logger } from '../../utils/logger'
 import { matchRule } from './matcher'
-import { dispatch } from '../push'
+import { dispatch } from '../channel'
 import { sendMessage } from '../message'
 
 export async function processMessageAlert(msg: messageModel) {
@@ -10,7 +10,7 @@ export async function processMessageAlert(msg: messageModel) {
     where: { scope: 'message', enabled: 1 },
     include: {
       conditions: { orderBy: { sort: 'asc' } },
-      channels: { orderBy: { sort: 'asc' }, include: { alertChannel: true } },
+      channels: { orderBy: { sort: 'asc' }, include: { channel: true } },
     },
   })
 
@@ -43,7 +43,7 @@ export async function processMessageAlert(msg: messageModel) {
     for (const link of rule.channels) {
       try {
         await dispatch(
-          { type: link.alertChannel.type, config: link.alertChannel.config },
+          { type: link.channel.type, config: link.channel.config },
           { title: msg.title, content: msg.content },
         )
       }
@@ -51,14 +51,14 @@ export async function processMessageAlert(msg: messageModel) {
         logger.error('[消息中心监控告警] 渠道发送失败', {
           ruleId: rule.id,
           ruleName: rule.name,
-          channelId: link.alertChannel.id,
-          channelName: link.alertChannel.name,
-          channelType: link.alertChannel.type,
+          channelId: link.channel.id,
+          channelName: link.channel.name,
+          channelType: link.channel.type,
           error: e?.message ?? e,
         })
         void sendMessage({
           title: '告警消息推送失败',
-          content: `规则：${rule.name}\n渠道：${link.alertChannel.name}（${link.alertChannel.type}）\n错误：${e?.message ?? '未知错误'}`,
+          content: `规则：${rule.name}\n渠道：${link.channel.name}（${link.channel.type}）\n错误：${e?.message ?? '未知错误'}`,
           category: 'system',
           type: 'error',
           skipAlert: true,
