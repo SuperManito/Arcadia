@@ -20,7 +20,6 @@ import { applySystemTimezone, detectAndSaveSourcesIfEmpty } from './system'
 import { isNotEmpty, randomString } from '../../utils'
 import {
   updateModuleConfigValues,
-  updateSystemConfigValues,
   updateUserConfigValues,
   validateConfigFieldKey,
 } from './update'
@@ -337,61 +336,9 @@ async function initSystemConfig() {
 }
 
 /**
- * 迁移旧版 System 配置键名（UPPER_SNAKE_CASE → camelCase）
- */
-async function _migrateSystemConfigKeys(): Promise<void> {
-  const LEGACY_SYSTEM_KEYS: Record<string, ConfigKeySystem> = {
-    SYSTEM_TIMEZONE: ConfigKeySystem.TIMEZONE,
-    NPM_REGISTRY: ConfigKeySystem.NPM_REGISTRY,
-    PIP_INDEX_URL: ConfigKeySystem.PIP_INDEX_URL,
-    APT_MIRROR_URL: ConfigKeySystem.APT_MIRROR_URL,
-    GEM_REGISTRY: ConfigKeySystem.GEM_REGISTRY,
-    MESSAGE_RETENTION_DAYS: ConfigKeySystem.MESSAGE_RETENTION_DAYS,
-    TASK_HISTORY_RETENTION_DAYS: ConfigKeySystem.TASK_HISTORY_RETENTION_DAYS,
-    CLEANUP_CRON_EXPRESSION: ConfigKeySystem.CLEANUP_CRON_EXPRESSION,
-    CLEANUP_CRON_ENABLED: ConfigKeySystem.CLEANUP_CRON_ENABLED,
-  }
-  const legacyKeys = Object.keys(LEGACY_SYSTEM_KEYS)
-  if (legacyKeys.length === 0)
-    return
-  // 查找所有旧的 UPPER_SNAKE_CASE 记录
-  const oldConfigs = await db.config.$list({ where: { module: ConfigModule.SYSTEM, key: { in: legacyKeys } } })
-  if (oldConfigs.length === 0)
-    return
-  // 查找对应的新 camelCase 记录
-  const newKeys = oldConfigs.map(c => LEGACY_SYSTEM_KEYS[c.key]).filter(Boolean)
-  const newConfigMap = new Map<string, configModel>()
-  if (newKeys.length > 0) {
-    const newConfigs = await db.config.$list({ where: { module: ConfigModule.SYSTEM, key: { in: newKeys } } })
-    for (const c of newConfigs)
-      newConfigMap.set(c.key, c)
-  }
-  // 值不同时用旧值覆盖新记录，然后批量删除所有旧记录
-  const entries: Array<{ key: ConfigKeySystem, value: string }> = []
-  const idsToDelete: number[] = []
-  for (const old of oldConfigs) {
-    const newKey = LEGACY_SYSTEM_KEYS[old.key]
-    const newRecord = newKey ? newConfigMap.get(newKey) : undefined
-    if (newRecord && newRecord.value !== old.value) {
-      entries.push({ key: newKey, value: old.value })
-    }
-    idsToDelete.push(old.id)
-  }
-  if (entries.length > 0) {
-    await updateSystemConfigValues(entries)
-  }
-  if (idsToDelete.length > 0) {
-    await db.config.$deleteById(idsToDelete)
-  }
-}
-
-/**
  * 初始化应用配置
  */
 export async function initConfig() {
-  // 迁移旧版配置（一段时间后移除）
-  await _migrateSystemConfigKeys()
-
   // 清理无效和重复配置
   await cleanInvalidConfigs()
   // 初始化用户配置
