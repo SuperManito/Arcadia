@@ -14,7 +14,7 @@ function service_manage() {
         output_error "Prisma 初始化失败（客户端生成或数据库同步），请查看报错并分析原因！"
     }
 
-    local ServiceStatus
+    local service_status
     pm2_list_all_services
     cat $FilePm2List | awk -F '|' '{print$3}' | grep "arcadia_server" -wq
     local ExitStatusSERVER=$?
@@ -26,47 +26,33 @@ function service_manage() {
         ## 删除日志
         rm -rf /root/.pm2/logs/arcadia_server-*.log
         if [[ ${ExitStatusSERVER} -eq 0 ]]; then
-            local ServiceStatus=$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')
-            case ${ServiceStatus} in
-            online)
-                sync_prisma_schema || output_db_error
-                cd $SrcDir
-                pm2 startOrRestart ecosystem.config.cjs
-                echo -e "\n$COMPLETE 后台管理面板已重启\n"
-                ;;
-            stopped)
-                sync_prisma_schema || output_db_error
-                cd $SrcDir
-                pm2 startOrRestart ecosystem.config.cjs
-                echo -e "\n$COMPLETE 后台管理面板已重新启动\n"
-                ;;
-            errored)
+            local service_status="$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')"
+            if [[ "${service_status}" == "errored" ]]; then
                 echo -e "\n$WARN 检测到服务状态异常，开始尝试修复...\n"
-                pm2 delete arcadia_server
                 install_dependencies
-                sync_prisma_schema || output_db_error
-                cd $SrcDir
-                pm2 start ecosystem.config.cjs && sleep 3
-                pm2_list_all_services
-                local ServiceNewStatus=$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')
-                if [[ "${ServiceNewStatus}" == "online" ]]; then
-                    echo -e "\n$SUCCESS 已修复错误，服务恢复正常运行！\n"
-                else
-                    echo -e "\n$FAIL 未能自动修复错误，请检查原因后重试！\n"
-                fi
-                ;;
-            esac
+            fi
+            pm2 delete arcadia_server >/dev/null 2>&1
+            sync_prisma_schema || output_db_error
+            cd $SrcDir
+            pm2 start ecosystem.config.cjs && sleep 3
+            pm2_list_all_services
+            local service_new_status="$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')"
+            if [[ "${service_status}" != "online" && "${service_new_status}" == "online" ]]; then
+                echo -e "\n$SUCCESS Arcadia 服务已重启\n"
+            else
+                echo -e "\n$FAIL Arcadia 服务启动失败，请检查原因后重试！\n"
+            fi
         else
             install_dependencies
             sync_prisma_schema || output_db_error
             cd $SrcDir
             pm2 start ecosystem.config.cjs && sleep 1
             pm2_list_all_services
-            local ServiceStatus=$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')
-            if [[ ${ServiceStatus} == "online" ]]; then
-                echo -e "\n$SUCCESS 后台管理面板已启动\n"
+            local service_status="$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')"
+            if [[ ${service_status} == "online" ]]; then
+                echo -e "\n$SUCCESS Arcadia 服务已启动\n"
             else
-                echo -e "\n$FAIL 后台管理面板启动失败，请检查原因后重试！\n"
+                echo -e "\n$FAIL Arcadia 服务启动失败，请检查原因后重试！\n"
             fi
         fi
         ;;
@@ -75,9 +61,9 @@ function service_manage() {
         if [[ ${ExitStatusSERVER} -eq 0 ]]; then
             pm2 stop arcadia_server >/dev/null 2>&1
             pm2 list
-            echo -e "\n$COMPLETE 后台管理服务已关闭\n"
+            echo -e "\n$COMPLETE Arcadia 服务已关闭\n"
         else
-            echo -e "\n$ERROR 服务不存在！\n"
+            echo -e "\n$ERROR Arcadia 服务不存在！\n"
         fi
         ;;
     ## 重置密码
