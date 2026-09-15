@@ -1,34 +1,45 @@
-import type { WeComBotConfig } from '../config/wecombot'
-import type { PushPayload } from '../types'
+import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
+import { applyTemplate } from '../applyTemplate'
+
+interface WeComBotConfig extends BaseChannelConfig {
+  webhookUrl: string
+}
 
 /**
- * 企业微信机器人渠道推送器
- *
- * @param config.webhookUrl Webhook 地址
+ * 企业微信机器人
  */
-export default async function pushWeComBot(config: WeComBotConfig, payload: PushPayload) {
-  // 无独立标题字段，标题并入正文开头
-  const body = {
-    msgtype: 'text',
-    text: {
-      content: `${payload.title}\n\n${payload.content}`,
-    },
-  }
+export const WeComBot = {
+  type: 'wecombot',
+  configRules: [
+    ['webhookUrl', [true, 'string']],
+  ],
+  pusher: async (config, payload) => {
+    const content = applyTemplate(payload, config.general)
+    if (content === null)
+      return
+    const body = {
+      msgtype: 'text',
+      text: {
+        content,
+      },
+    }
 
-  const result = await request({
-    method: 'POST',
-    url: config.webhookUrl,
-    data: body,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-  if (!result.success) {
-    throw new Error(`企业微信机器人请求失败：${result.error ?? '未知错误'}`)
-  }
-  const data = result.data as { errcode?: number, errmsg?: string } | null
-  if (data?.errcode !== 0) {
-    throw new Error(`企业微信机器人返回业务错误 [${data?.errcode}] ${data?.errmsg ?? ''}`.trim())
-  }
-}
+    const result = await request({
+      method: 'POST',
+      url: config.webhookUrl,
+      data: body,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      proxy: config.general?.proxy,
+    })
+    if (!result.success) {
+      throw new Error(`企业微信机器人请求失败：${result.error ?? '未知错误'}`)
+    }
+    const res = result.data as { errcode?: number, errmsg?: string } | null
+    if (res?.errcode !== 0) {
+      throw new Error(`企业微信机器人返回业务错误 [${res?.errcode}] ${res?.errmsg ?? ''}`.trim())
+    }
+  },
+} satisfies ChannelDefinition<WeComBotConfig>

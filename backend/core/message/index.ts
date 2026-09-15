@@ -81,10 +81,10 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
   // 注册去重缓存
   registerDedup(fingerprint)
 
-  // 监控告警：非阻塞触发，外部渠道延迟不影响消息写入路径
+  // 消息中心监控告警：非阻塞触发，外部渠道延迟不影响消息写入路径
   if (!data.skipAlert) {
     void processMessageAlert(msg).catch((e: any) => {
-      logger.error('[监控告警] 触发异常', e?.message ?? e)
+      logger.error('[消息中心监控告警] 触发异常', e?.message ?? e)
     })
   }
 

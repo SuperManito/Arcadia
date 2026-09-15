@@ -96,7 +96,7 @@ export function matchCondition(msg: AlertMessageContext, condition: AlertConditi
   if (condition.mode === 'regex') {
     const reg = tryCompileRegex(condition.value)
     if (!reg) {
-      logger.warn('[监控告警] 条件正则编译失败，按不命中处理', { pattern: condition.value })
+      logger.warn('[消息中心监控告警] 条件正则编译失败，按不命中处理', { pattern: condition.value })
       return false
     }
     try {
@@ -104,7 +104,7 @@ export function matchCondition(msg: AlertMessageContext, condition: AlertConditi
       return condition.operator === 'not_regex' ? !hit : hit
     }
     catch (e: any) {
-      logger.warn('[监控告警] 条件正则执行异常，按不命中处理', { pattern: condition.value, error: e?.message ?? e })
+      logger.warn('[消息中心监控告警] 条件正则执行异常，按不命中处理', { pattern: condition.value, error: e?.message ?? e })
       return false
     }
   }

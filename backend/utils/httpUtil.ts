@@ -1,5 +1,5 @@
 import type { Request } from 'express'
-import type { AxiosRequestConfig } from 'axios'
+import type { AxiosProxyConfig, AxiosRequestConfig } from 'axios'
 import axios from 'axios'
 import querystring from 'node:querystring'
 import { UAParser } from 'ua-parser-js'
@@ -157,13 +157,9 @@ export async function ip2Address(ip: string) {
   }
 }
 
-interface RequestReturnData {
-  success: boolean
-  status: number | null
-  data: object | string | null
-  headers: object | string | null
-  error: string | null
-  connected: boolean
+export interface RequestOptions extends Omit<AxiosRequestConfig, 'proxy'> {
+  /** 代理地址，格式 http://host:port，协议可省略 */
+  proxy?: string
 }
 
 /**
@@ -171,14 +167,20 @@ interface RequestReturnData {
  *
  * @async
  */
-export async function request(config: AxiosRequestConfig): Promise<RequestReturnData> {
-  const returnData: RequestReturnData = {
-    success: false,
-    status: null,
-    data: null,
-    headers: null,
-    error: null,
-    connected: false,
+export async function request(config: RequestOptions) {
+  const returnData = {
+    /** 请求是否成功（HTTP 2xx） */
+    success: false as boolean,
+    /** HTTP 状态码，未收到响应时为 null */
+    status: null as number | null,
+    /** 响应体，JSON 自动解析，解析失败保留原始字符串 */
+    data: null as object | string | null,
+    /** 响应头 */
+    headers: null as object | string | null,
+    /** 失败原因，成功时为 null */
+    error: null as string | null,
+    /** 是否已建立连接（收到 4xx / 5xx 响应也算已连接） */
+    connected: false as boolean,
   }
   try {
     if (!config || !config.url) {
@@ -223,7 +225,12 @@ export async function request(config: AxiosRequestConfig): Promise<RequestReturn
     if (config.data && typeof config.data === 'object' && (!config.headers || !config.headers['Content-Type'] || config.headers['Content-Type'].includes('application/x-www-form-urlencoded'))) {
       config.data = querystring.stringify(config.data)
     }
-    await axios(config)
+
+    // 代理配置处理（自动清理空配置）
+    const { proxy, ...rest } = config
+    const axiosConfig: AxiosRequestConfig = proxy ? { ...rest, proxy: _parseRequestProxyString(proxy) } : rest
+
+    await axios(axiosConfig)
       .then((response) => {
         returnData.success = true
         returnData.status = response.status
@@ -338,4 +345,36 @@ export async function request(config: AxiosRequestConfig): Promise<RequestReturn
     returnData.error = error.message || error
   }
   return returnData
+}
+
+/**
+ * 代理地址字符串转 Axios 代理配置
+ */
+function _parseRequestProxyString(proxy: string): AxiosProxyConfig | undefined {
+  const address = proxy.trim()
+  if (!address) {
+    return undefined
+  }
+  let url: URL
+  try {
+    url = new URL(address.includes('://') ? address : `http://${address}`)
+  }
+  catch {
+    throw new Error(`代理地址无效：${proxy}`)
+  }
+  if (!url.hostname) {
+    throw new Error(`代理地址无效：${proxy}`)
+  }
+  const proxyConfig: AxiosProxyConfig = {
+    protocol: url.protocol === 'https:' ? 'https' : 'http',
+    host: url.hostname,
+    port: Number(url.port || (url.protocol === 'https:' ? 443 : 80)),
+  }
+  if (url.username || url.password) {
+    proxyConfig.auth = {
+      username: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
+    }
+  }
+  return proxyConfig
 }

@@ -13,7 +13,7 @@ const api: Express = express()
 
 // 测试发送固定文案
 const TEST_NOTIFY_TITLE = '测试通知'
-const TEST_NOTIFY_CONTENT = '这是一条来自 Arcadia 监控告警的测试通知，收到即表示渠道配置有效。'
+const TEST_NOTIFY_CONTENT = '这是一条来自 Arcadia 平台的测试通知，收到即表示渠道配置有效。'
 
 /**
  * query 参数 id 解析

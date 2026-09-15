@@ -1,7 +1,7 @@
-import type { ChannelType, PushPayload } from './types'
-import { CHANNEL_CONFIG_RULES } from './types'
+import type { GeneralConfig, PushPayload } from './types'
+import { CHANNEL_CONFIG_RULES, getPusher } from './registry'
+import type { ChannelType } from './registry'
 import { validateObject } from '../../utils'
-import { getPusher } from './registry'
 
 /**
  * 推送失败错误，携带出错的渠道类型
@@ -14,7 +14,19 @@ export class PushError extends Error {
 }
 
 /**
- * 渠道配置保存清洗：字段类型校验 + 白名单过滤 + 字符串 / 数组归一
+ * 无论前端是否提交都写入 general，缺省空字符串并 trim
+ */
+function cleanGeneralConfig(raw: unknown): GeneralConfig {
+  const source = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {}
+  return {
+    footer: typeof source.footer === 'string' ? source.footer.trim() : '',
+    messageTemplate: typeof source.messageTemplate === 'string' ? source.messageTemplate.trim() : '',
+    proxy: typeof source.proxy === 'string' ? source.proxy.trim() : '',
+  }
+}
+
+/**
+ * 字段类型校验 + 白名单过滤 + 字符串 / 数组归一
  *
  * @param type 渠道类型唯一键
  * @param raw 前端提交的原始配置
@@ -48,18 +60,19 @@ export function cleanChannelConfig(type: ChannelType, raw: Record<string, unknow
       result[key] = value
     }
   }
+  result.general = cleanGeneralConfig(raw.general)
   return result
 }
 
 /**
- * 派发消息到指定渠道：解析配置 JSON → 校验 → 调用推送器
+ * 解析配置 JSON → 校验 → 调用推送器
  *
  * @param channel 渠道记录，含类型唯一键与 JSON 字符串配置
  * @param payload 推送载荷，标题 + 正文
  */
 export async function dispatch(channel: { type: string, config: string }, payload: PushPayload) {
-  const pusher = getPusher(channel.type)
-  const rules = CHANNEL_CONFIG_RULES[channel.type as ChannelType]
+  const pusher = getPusher(channel.type as ChannelType)
+  const rules = CHANNEL_CONFIG_RULES[channel.type]
   if (!pusher || !rules) {
     throw new PushError(channel.type, `推送失败：未注册的通知渠道类型 ${channel.type}`)
   }
@@ -75,7 +88,11 @@ export async function dispatch(channel: { type: string, config: string }, payloa
   }
   try {
     validateObject(config as object, rules, '推送配置')
-    await pusher(config as Record<string, any>, payload)
+    const footer = (config as Record<string, any>).general?.footer?.trim()
+    const finalPayload = footer
+      ? { ...payload, content: payload.content ? `${payload.content}\n\n${footer}` : footer }
+      : payload
+    await pusher(config as Record<string, any>, finalPayload)
   }
   catch (e: any) {
     if (e instanceof PushError) {

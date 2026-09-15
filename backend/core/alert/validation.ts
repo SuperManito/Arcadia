@@ -1,6 +1,5 @@
 import db from '../../db'
-import type { ChannelType } from '../push'
-import { CHANNEL_TYPES, cleanChannelConfig } from '../push'
+import { ChannelType, cleanChannelConfig } from '../push'
 import type { AlertConditionInput } from './matcher'
 import {
   assertValidRegexPattern,
@@ -51,7 +50,7 @@ export interface CleanedRulePayload extends CleanedRuleCore {
 
 export interface CleanedChannelPayload {
   name: string
-  type: string
+  type: ChannelType
   config: string
 }
 
@@ -205,8 +204,8 @@ export async function validateChannelPayload(
     }
   }
 
-  const type = body.type
-  if (!CHANNEL_TYPES.includes(type as ChannelType)) {
+  const type = body.type as ChannelType
+  if (!Object.values(ChannelType).includes(type)) {
     throw new Error(`不支持的渠道类型：${String(type)}`)
   }
 
@@ -222,11 +221,11 @@ export async function validateChannelPayload(
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
     throw new Error('渠道配置无效：必须是对象')
   }
-  const cleaned = cleanChannelConfig(type as ChannelType, config as Record<string, unknown>)
+  const cleaned = cleanChannelConfig(type, config as Record<string, unknown>)
 
   return {
     name,
-    type: type as string,
+    type,
     config: JSON.stringify(cleaned),
   }
 }

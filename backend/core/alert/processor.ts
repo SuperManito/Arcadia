@@ -33,13 +33,13 @@ export async function processMessageAlert(msg: messageModel) {
     if (!hit) {
       continue
     }
-    logger.info('[监控告警] 规则命中', {
-      ruleId: rule.id,
-      ruleName: rule.name,
-      messageId: msg.id,
-      messageTitle: msg.title,
-      channelCount: rule.channels.length,
-    })
+    // logger.info('[消息中心监控告警] 规则命中', {
+    //   ruleId: rule.id,
+    //   ruleName: rule.name,
+    //   messageId: msg.id,
+    //   messageTitle: msg.title,
+    //   channelCount: rule.channels.length,
+    // })
     for (const link of rule.channels) {
       try {
         await dispatch(
@@ -48,7 +48,7 @@ export async function processMessageAlert(msg: messageModel) {
         )
       }
       catch (e: any) {
-        logger.error('[监控告警] 渠道发送失败', {
+        logger.error('[消息中心监控告警] 渠道发送失败', {
           ruleId: rule.id,
           ruleName: rule.name,
           channelId: link.alertChannel.id,
@@ -57,7 +57,7 @@ export async function processMessageAlert(msg: messageModel) {
           error: e?.message ?? e,
         })
         void sendMessage({
-          title: '监控告警推送失败',
+          title: '告警消息推送失败',
           content: `规则：${rule.name}\n渠道：${link.alertChannel.name}（${link.alertChannel.type}）\n错误：${e?.message ?? '未知错误'}`,
           category: 'system',
           type: 'error',

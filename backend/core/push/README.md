@@ -1,82 +1,122 @@
 # core/push 通知渠道模块
 
-告警通知的渠道适配层：注册表模式，一渠道一推送器，纯 `request()` HTTP 调用。对外只经 `index.ts` barrel 暴露 `dispatch` / `cleanChannelConfig` / `CHANNEL_TYPES` / `ChannelType`。
+这个模块负责把告警消息推送到各种第三方服务（Telegram、钉钉、Bark、飞书等）。如果还没有你正在使用的推送服务，欢迎按本指南适配一个并提交 PR，只需要一个新文件加一行登记。
 
-## 目录职责
+## 工作原理
 
-| 文件 / 目录 | 职责 |
-| --- | --- |
-| `index.ts` | 纯 barrel：`import './registry'` 触发注册 + re-export `types` / `dispatch` / `registerPusher` |
-| `registry.ts` | `registerPusher` 机制 + 全部渠道注册聚合（**新增渠道在此登记**） |
-| `dispatch.ts` | `PushError` / `cleanChannelConfig`（保存时字段筛查）/ `dispatch`（解析 JSON → 校验 → 推送） |
-| `types.ts` | 共享类型与常量：`Pusher` / `PushPayload` / `ChannelType` / `CHANNEL_TYPES` / `CHANNEL_CONFIG_RULES` / `ChannelConfig` |
-| `config/<渠道>.d.ts` | 单渠道配置类型 `XxxConfig`（一渠道一文件） |
-| `channels/<渠道>.ts` | 单渠道推送器，默认导出 `pushXxx` |
+一个渠道就是一个文件 `channels/<渠道>.ts`，导出一个 `ChannelDefinition` 对象，包含三样东西：
 
-## 新增渠道流程
+- `type`：渠道唯一键，服务名小写（如 `'telegram'`、`'serverchan'`）。
+- `configRules`：配置字段白名单，保存配置时约束并清洗配置对象，只保留列表中的字段。
+- `pusher`：推送器，一个异步函数，直接写在定义对象中，负责调用目标服务的 API 把消息发出去。
 
-以 `foo` 为例，按序改 4 处：
+`channels/index.ts` 用一张 `Channels` 表汇总全部渠道定义；`registry.ts` 基于它自动完成注册与类型派生；`dispatch` 是统一发送入口。新增渠道不需要修改这些文件的逻辑，只要在 `Channels` 表里加一行。
 
-**1. 定类型** — 新建 `config/foo.d.ts`（可选字段才写注释，注释只写 label）：
+## pusher 的参数
+
+推送器签名为 `(config, payload) => Promise<void>`，两个参数的说明：
+
+- `config`：本渠道的配置对象，类型就是文件里定义的 `XConfig`。除了渠道自身字段，还带一个可选的 `general`（`footer` / `messageTemplate` / `proxy`，见「你免费获得的通用能力」）。传入前已按 `configRules` 白名单清洗，格式校验在用户保存时完成，推送器不需要重复校验。
+- `payload`：待推送的消息 `{ title, content }`，两者可能为空字符串。
+- 返回 `Promise<void>`：正常返回即推送成功；失败时 `throw new Error(...)`，错误信息会作为"推送失败"的原因展示给用户。
+
+## 新增渠道的步骤
+
+1. 新建 `channels/<渠道>.ts`：导出渠道定义（唯一键 + 字段白名单 + 推送器）和配置类型。
+2. 在 `channels/index.ts` 的 `Channels` 表登记一行。
+3. 提交 PR。前端配置表单在私有仓库中由维护者同步，无需包含前端改动。
+
+## 完整示例：适配 foo 服务
+
+### `channels/foo.ts`（新建）
 
 ```ts
-export interface FooConfig {
+import type { BaseChannelConfig, ChannelDefinition } from '../types'
+import { request } from '../../../utils/httpUtil'
+
+interface FooConfig extends BaseChannelConfig {
   apiKey: string
   /** 优先级 */
   priority?: number
 }
+
+export const Foo = {
+  type: 'foo',
+  configRules: [
+    ['apiKey', [true, 'string']],
+    ['priority', [false, 'number']],
+  ],
+  pusher: async (config, payload) => {
+    const body = {
+      key: config.apiKey,
+      title: payload.title,
+      content: payload.content,
+    }
+    const result = await request({
+      method: 'POST',
+      url: 'https://api.foo.com/send',
+      data: body,
+      headers: { 'Content-Type': 'application/json' },
+      proxy: config.general?.proxy,
+    })
+    if (!result.success) {
+      throw new Error(`Foo 请求失败：${result.error ?? '未知错误'}`)
+    }
+  },
+} satisfies ChannelDefinition<FooConfig>
 ```
 
-**2. 写推送器** — 新建 `channels/foo.ts`，默认导出 `pushFoo`：
+说明：
+
+- 唯一键 `'foo'` 只在定义对象里写一次，`satisfies` 保证结构符合 `ChannelDefinition` 并保留字面量类型；`pusher` 的参数类型也由它推导，无需手动标注。
+- 配置接口无需导出，外部通过派生的 `ChannelConfig` 联合拿到它。
+- `FooConfig` 的字段就是用户配置渠道时要填的内容，继承 `BaseChannelConfig` 可自动获得通用能力（见下文）。
+- `configRules` 是保存配置时的字段白名单，不在列表中的字段会被丢弃。每项格式为 `[字段名, [是否必填, 类型]]`，类型支持 `'string'` / `'number'` / `'boolean'` / `'string[]'` / `'object'` 或枚举数组。
+- 写推送器需要知道的两件事：
+  - **`request` 不会抛出异常**。网络错误、非 2xx 响应等都以 `result.success === false` 返回（错误信息在 `result.error`），所以必须主动判断并用 `throw new Error(...)` 报告失败。抛出的错误信息会作为"推送失败"的原因反馈给用户，请写清楚是什么问题。
+  - **很多服务的 API 用 HTTP 200 + 错误码表示业务失败**（如 Bark 以 `{ code: 200 }` 表示成功）。这类渠道需要再检查 `result.data`，业务失败同样 `throw`，可参考 `channels/bark.ts`。
+
+`request` 返回值的字段说明：
+
+| 字段 | 说明 |
+| ---- | ---- |
+| `success` | 请求是否成功（HTTP 2xx） |
+| `status` | HTTP 状态码，未收到响应时为 null |
+| `data` | 响应体，JSON 自动解析，解析失败保留原始字符串 |
+| `headers` | 响应头 |
+| `error` | 失败原因，成功时为 null |
+| `connected` | 是否已建立连接（收到 4xx / 5xx 响应也算已连接） |
+
+### `channels/index.ts`（修改）
 
 ```ts
-import type { FooConfig } from '../config/foo'
-import type { PushPayload } from '../types'
-import { request } from '../../../utils/httpUtil'
+// 新增 import（与现有渠道并列）：
+import { Foo } from './foo'
 
-/**
- * Foo 渠道推送器
- *
- * @param config.apiKey API Key
- * @param config.priority 优先级
- */
-export default async function pushFoo(config: FooConfig, payload: PushPayload) {
-  const result = await request({
-    method: 'POST',
-    url: 'https://api.foo.com/send',
-    body: { key: config.apiKey, title: payload.title, content: payload.content },
-    headers: { 'Content-Type': 'application/json' },
-  })
-  if (!result.success) {
-    throw new Error(`Foo 请求失败：${result.error ?? '未知错误'}`)
-  }
+// Channels 表按首字母序新增一行：
+//   Foo,
+```
+
+## 你免费获得的通用能力
+
+推送器无需实现以下功能，框架会自动处理或通过 `config.general` 提供：
+
+- **通知尾（footer）**：用户自定义的通知尾部文字，发送前自动追加到正文末尾。
+- **HTTP 代理（proxy）**：用户配置的代理地址，推送器把它传给 `request` 的 `proxy` 键即可生效（走 CLI 的渠道如 `apprise` 除外）。
+- **消息模板（messageTemplate）**：适用于"标题和正文拼成一段文本发送"的渠道（API 没有独立标题字段）。用 `applyTemplate` 渲染正文：
+
+```ts
+import { applyTemplate } from '../applyTemplate'
+
+const text = applyTemplate(payload, config.general)
+if (text === null) {
+  // 用户模板渲染后为空，表示无需推送
 }
 ```
 
-**3. 注册** — `registry.ts`：顶部 import 推送器，底部加一行 `registerPusher`：
+未配置模板时自动以"标题 + 空行 + 正文"拼接；配置后 `{{title}}` / `{{content}}` 两个占位符可只写其一。如果你的渠道 API 有独立标题字段（如钉钉、pushplus），直接使用 `payload.title` / `payload.content`，不需要模板。
 
-```ts
-import pushFoo from './channels/foo'
-// ...
-registerPusher('foo', pushFoo)
-```
+## 其他约定
 
-**4. 补常量** — `types.ts` 三处：
-
-- `CHANNEL_TYPES` 加 `'foo'`（按首字母序）；
-- `CHANNEL_CONFIG_RULES` 加 `foo: [['apiKey', [true, 'string']], ['priority', [false, 'number']]]`；
-- 顶部 `import type { FooConfig } from './config/foo'`，`ChannelConfig` 联合追加 `| FooConfig`。
-
-> 前端另需同步：`setting.ts` 的 `notifyChannel.type.foo` + `config.foo.*`（label / info）、`channelFormSchema.ts` 表单、`alertModel.ts` 类型。
-
-## 封装约束（速查）
-
-- **后端只筛字段**：`cleanChannelConfig` 按白名单过滤 + trim / 数组去重，**不校验、不改写字段值**。
-- **值校验交前端**：min-max、正则、必填、枚举、JSON 合法性等前端能做的，后端不重复。
-- **复杂校验在推送器内抛错**：确需二次校验的复杂内容放 `pushFoo` 内，失败**必须 `throw`**，绝不“钳制 / 格式化后继续请求”。
-- **结构转换也在推送器内**：白名单无法表达的结构转换（如 wxpusher `topicIds` 字符串数组 → 正整数数组）同样放 `pushXxx` 内于推送时完成，失败一并 `throw`；保存清洗阶段不做结构转换。
-- **注释只写 label**：字段注释与 `@param` 只写 label（对齐前端 `setting.ts`），不写默认值 / 枚举 / 格式 / 用法；仅保留解释非显然行为的一行内联注释。
-
-## 无需数据库变更
-
-`alertChannel.type` 是普通 `String`（非 enum）、`config` 是 JSON 字符串。**新增渠道类型无需改 schema、migrate、`npm run generate`**，合法性由 `CHANNEL_TYPES` + `CHANNEL_CONFIG_RULES` 把关。
+- 配置的格式校验在用户保存时已完成，推送器不需要重复校验；只有目标 API 有特殊要求时（如取值范围、参数转换）才在推送器内检查，并以 `throw` 报告。
+- 新增渠道不需要改数据库：`alertChannel.type` 是普通字符串、`config` 是 JSON 文本，没有 schema、migrate 步骤。
