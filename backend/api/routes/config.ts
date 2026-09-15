@@ -46,7 +46,6 @@ API.post('/cli', async (request: Request, response: Response) => {
         ['ENABLE_TASK_BEFORE_EXTRA', [false, 'string', true]],
         ['ENABLE_TASK_AFTER_EXTRA', [false, 'string', true]],
         ['ENABLE_AUTO_DELETE_REMOTE_FILE', [false, 'string', true]],
-        ['ENABLE_CUSTOM_NOTIFY', [false, 'string', true]],
         ['RUN_DELAY_MAX_SECONDS', [false, 'string', true]],
         ['DEFAULT_JS_RUNTIME', [false, 'string', true]],
         ['DEFAULT_TS_RUNTIME', [false, 'string', true]],

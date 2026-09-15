@@ -104,11 +104,11 @@ function update_cron() {
         [ -f $tmp_file ] && rm -f $tmp_file
         ## 推送通知提醒
         if [ -s $send_mark_add ]; then
-            send_notify "新增定时任务" "$(cat $send_mark_add)"
+            send_notify "代码同步 - 新增定时任务" "$(cat $send_mark_add)"
             rm -f $send_mark_add
         fi
         if [ -s $send_mark_del ]; then
-            send_notify "过期定时任务" "$(cat $send_mark_del)"
+            send_notify "代码同步 - 过期定时任务" "$(cat $send_mark_del)"
             rm -f $send_mark_del
         fi
         echo -e "\n$COMPLETE 更新定时任务完成"

@@ -67,8 +67,6 @@ function find_script() {
 
         ## 判定变量是否存在否则报错终止退出
         if [ -n "${FileName}" ] && [ -n "${FileDir}" ]; then
-            ## 添加依赖文件
-            check_modules $FileDir
             local primary_path secondary_path
             ## 定义日志路径
             if [[ $(echo ${absolute_path} | awk -F '/' '{print$3}') == "repo" ]]; then
@@ -134,8 +132,6 @@ function find_script() {
         if [ -n "${FileName}" ] && [ -n "${FileDir}" ]; then
             # 判断并定义代码文件类型
             match_script_type "${FileSuffix}"
-            ## 添加依赖文件
-            check_modules $FileDir
             ## 定义日志路径
             LogPath="$LogDir/${FileName}"
         else
@@ -182,8 +178,6 @@ function find_script() {
             echo -e "$COMPLETE 下载完毕，开始执行\n"
             FileName=${tmp_file_name%.*}
             FileDir=$ScriptsDir
-            ## 添加依赖文件
-            check_modules $FileDir
             ## 定义日志路径
             LogPath="${LogDir}/${FileName}"
             RUN_REMOTE="true"
@@ -191,20 +185,6 @@ function find_script() {
             echo ''
             [ -f "${ScriptsDir}/${tmp_file_name}.new" ] && rm -rf "$ScriptsDir/${tmp_file_name}.new"
             output_fail "代码文件 ${tmp_file_name} 下载异常，请检查网络连通性并对目标 URL 地址是否正确进行验证！"
-        fi
-    }
-
-    ## 检测环境，添加依赖文件
-    function check_modules() {
-        local work_dir=$1
-        if [[ "${FileType}" == "JavaScript" || "${FileType}" == "TypeScript" ]]; then
-            ## 拷贝推送通知模块
-            import_config_not_check
-            if [[ "${CLI_CONFIG_ENABLE_CUSTOM_NOTIFY}" == "true" ]] && [ -s $FileSendNotifyUser ]; then
-                cp -rf $FileSendNotifyUser $work_dir
-            else
-                cp -rf $FileSendNotify $work_dir
-            fi
         fi
     }
 
