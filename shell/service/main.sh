@@ -37,8 +37,12 @@ function service_manage() {
             pm2 start ecosystem.config.cjs && sleep 3
             pm2_list_all_services
             local service_new_status="$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')"
-            if [[ "${service_status}" != "online" && "${service_new_status}" == "online" ]]; then
-                echo -e "\n$SUCCESS Arcadia 服务已重启\n"
+            if [[ "${service_new_status}" == "online" ]]; then
+                if [[ "${service_status}" != "online" ]]; then
+                    echo -e "\n$SUCCESS Arcadia 服务已重启\n"
+                else
+                    echo -e "\n$SUCCESS Arcadia 服务已启动\n"
+                fi
             else
                 echo -e "\n$FAIL Arcadia 服务启动失败，请检查原因后重试！\n"
             fi
@@ -49,7 +53,7 @@ function service_manage() {
             pm2 start ecosystem.config.cjs && sleep 1
             pm2_list_all_services
             local service_status="$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')"
-            if [[ ${service_status} == "online" ]]; then
+            if [[ "${service_status}" == "online" ]]; then
                 echo -e "\n$SUCCESS Arcadia 服务已启动\n"
             else
                 echo -e "\n$FAIL Arcadia 服务启动失败，请检查原因后重试！\n"
