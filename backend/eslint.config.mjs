@@ -16,6 +16,7 @@ export default antfu({
     'public/**',
     'sample/**',
     'shell/**',
+    '**/*.md',
   ],
   extends: ['@antfu'],
   rules: {
