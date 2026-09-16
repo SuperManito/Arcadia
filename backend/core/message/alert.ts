@@ -249,7 +249,7 @@ export async function validateMessageAlertRulePayload(
     channelIds.push(id)
   }
   if (channelIds.length > 0) {
-    const channels = await db.notifyChannel.findMany({
+    const channels = await db.notificationChannel.findMany({
       where: { id: { in: channelIds } },
       select: { id: true },
     })

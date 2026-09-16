@@ -28,7 +28,7 @@ export async function validateChannelPayload(
     if (name.length > CHANNEL_NAME_MAX_LENGTH) {
       throw new Error(`渠道名称长度不能超过 ${CHANNEL_NAME_MAX_LENGTH} 个字符`)
     }
-    const duplicated = await db.notifyChannel.findFirst({
+    const duplicated = await db.notificationChannel.findFirst({
       where: {
         name,
         ...(options?.excludeId !== undefined ? { id: { not: options.excludeId } } : {}),

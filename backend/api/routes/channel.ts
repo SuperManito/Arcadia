@@ -1,7 +1,7 @@
 import type { Express } from 'express'
 import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
-import type { notifyChannelWhereInput } from '../../db'
+import type { notificationChannelWhereInput } from '../../db'
 import db from '../../db'
 import { validatePageFixedParams, validateRequestParams } from '../../utils'
 import { dispatch } from '../../core/channel'
@@ -34,8 +34,8 @@ api.get('/page', async (request, response) => {
         ['type', [false, 'string']],
       ],
     })
-    const where: notifyChannelWhereInput = {}
-    const and: notifyChannelWhereInput[] = []
+    const where: notificationChannelWhereInput = {}
+    const and: notificationChannelWhereInput[] = []
     if (request.query.search) {
       and.push({ name: { contains: request.query.search as string } })
     }
@@ -47,7 +47,7 @@ api.get('/page', async (request, response) => {
     }
     const orderBy = request.query.orderBy as string || 'id'
     const desc = request.query.order !== '0'
-    const result = await db.notifyChannel.$page({
+    const result = await db.notificationChannel.$page({
       where,
       orderBy: [{ [orderBy]: desc ? 'desc' : 'asc' }],
       page: String(request.query.page),
@@ -65,7 +65,7 @@ api.get('/page', async (request, response) => {
  */
 api.get('/list', async (_request, response) => {
   try {
-    const result = await db.notifyChannel.findMany({
+    const result = await db.notificationChannel.findMany({
       orderBy: { id: 'asc' },
       select: { id: true, name: true, type: true },
     })
@@ -87,7 +87,7 @@ api.get('/', async (request, response) => {
       ] as const,
     })
     const id = parseQueryId(params.query.id)
-    const channel = await db.notifyChannel.$getById(id)
+    const channel = await db.notificationChannel.$getById(id)
     if (!channel) {
       throw new Error('渠道不存在')
     }
@@ -111,7 +111,7 @@ api.post('/', async (request, response) => {
       ] as const,
     }, true)
     const cleaned = await validateChannelPayload(params.body)
-    const channel = await db.notifyChannel.$create(cleaned)
+    const channel = await db.notificationChannel.$create(cleaned)
     response.send(API_STATUS_CODE.okData(channel))
   }
   catch (e: any) {
@@ -133,12 +133,12 @@ api.put('/', async (request, response) => {
       ] as const,
     }, true)
     const { id } = params.body
-    const exists = await db.notifyChannel.$getById(id)
+    const exists = await db.notificationChannel.$getById(id)
     if (!exists) {
       throw new Error('渠道不存在')
     }
     const cleaned = await validateChannelPayload(params.body, { excludeId: id })
-    const channel = await db.notifyChannel.$updateById({ id, data: cleaned })
+    const channel = await db.notificationChannel.$updateById({ id, data: cleaned })
     response.send(API_STATUS_CODE.okData(channel))
   }
   catch (e: any) {
@@ -157,7 +157,7 @@ api.delete('/', async (request, response) => {
       ] as const,
     })
     const { id } = params.body
-    const exists = await db.notifyChannel.$getById(id)
+    const exists = await db.notificationChannel.$getById(id)
     if (!exists) {
       throw new Error('渠道不存在')
     }
@@ -165,7 +165,7 @@ api.delete('/', async (request, response) => {
     if (refCount > 0) {
       throw new Error(`该渠道已被 ${refCount} 条消息中心监控告警规则引用，请先解除关联`)
     }
-    await db.notifyChannel.$deleteById(id)
+    await db.notificationChannel.$deleteById(id)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {

@@ -1,5 +1,5 @@
 // 通知渠道
-model notifyChannel {
+model notificationChannel {
   id          Int                @id @default(autoincrement())
   name        String // 渠道名称，后端保证唯一（DB 不设 unique）
   type        String // 渠道类型唯一键
