@@ -40,26 +40,17 @@ function registerDedup(fingerprint: string) {
   }
 }
 
-// 内容长度校验
+// 内容长度限制，超出部分截断
 const TITLE_MAX_LENGTH = 200
 const CONTENT_MAX_LENGTH = 20000
-
-function validateMessageLength(data: MessageData) {
-  if (data.title && data.title.length > TITLE_MAX_LENGTH) {
-    throw new Error(`消息标题长度不能超过 ${TITLE_MAX_LENGTH} 个字符`)
-  }
-  if (data.content && data.content.length > CONTENT_MAX_LENGTH) {
-    throw new Error(`消息内容长度不能超过 ${CONTENT_MAX_LENGTH} 个字符`)
-  }
-}
 
 /**
  * 发送消息
  * @returns true=新消息已创建，false=重复消息已丢弃
  */
 export async function sendMessage(data: MessageData): Promise<boolean> {
-  const title = (data.title ?? '').trim()
-  const content = (data.content ?? '').trim()
+  const title = (data.title ?? '').trim().slice(0, TITLE_MAX_LENGTH)
+  const content = (data.content ?? '').trim().slice(0, CONTENT_MAX_LENGTH)
   const category = data.category || MessageCategory.SYSTEM
   const type = data.type || MessageType.INFO
 
@@ -69,7 +60,6 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
     ['category', [false, Object.values(MessageCategory)]],
     ['type', [false, Object.values(MessageType)]],
   ])
-  validateMessageLength({ title, content })
 
   // 消息去重
   const contentHash = createHash('md5').update(content).digest('hex')
