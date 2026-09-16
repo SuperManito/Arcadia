@@ -62,7 +62,7 @@ api.get('/alert/rule/page', async (request, response) => {
 })
 
 /**
- * 规则详情（有序 conditions + channels）
+ * 规则详情
  */
 api.get('/alert/rule', async (request, response) => {
   try {
@@ -75,7 +75,7 @@ api.get('/alert/rule', async (request, response) => {
     const rule = await db.messageAlertRule.$getById(id, 'id', {
       include: {
         conditions: { orderBy: { sort: 'asc' } },
-        channels: { orderBy: { sort: 'asc' }, include: { channel: true } },
+        channels: { include: { channel: true } },
       },
     })
     if (!rule) {
@@ -90,7 +90,6 @@ api.get('/alert/rule', async (request, response) => {
         channelId: link.channelId,
         name: link.channel.name,
         type: link.channel.type,
-        sort: link.sort,
       })),
     }))
   }

@@ -44,14 +44,13 @@ model messageAlertRuleCondition {
   @@index([messageAlertRuleId])
 }
 
-// 规则与渠道的关联，sort 即触发顺序
+// 规则与渠道的关联
 model messageAlertRuleChannel {
   id                 Int              @id @default(autoincrement())
   messageAlertRuleId Int
   messageAlertRule   messageAlertRule @relation(fields: [messageAlertRuleId], references: [id])
   channelId          Int
   channel            notificationChannel @relation(fields: [channelId], references: [id])
-  sort               Int              @default(0)
 
   @@unique([messageAlertRuleId, channelId]) // 同一规则不能重复挂同一渠道
   @@index([messageAlertRuleId])

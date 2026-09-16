@@ -2,7 +2,12 @@ import type { messageModel } from '../../db'
 import { db } from '../../db'
 import { logger } from '../../utils/logger'
 import type { ConditionInput } from '../alert/matcher'
-import { MESSAGE_CATEGORIES, MESSAGE_TYPES, MessageCategory, MessageType } from '../type/message'
+import {
+  MESSAGE_CATEGORIES,
+  MESSAGE_TYPES,
+  MessageCategory,
+  MessageType,
+} from '../type/message'
 import {
   assertValidRegexPattern,
   CONDITION_MODES,
@@ -71,72 +76,91 @@ function matchMessageAlertFilters(msg: MessageAlertContext, rule: MessageAlertRu
 }
 
 // 返回逐条条件结果，供测试接口展示命中明细；matched 含分类/级别范围过滤
-export function evaluateMessageAlertRule(msg: MessageAlertContext, rule: MessageAlertRuleInput): { matched: boolean, conditions: Array<{ sort: number, matched: boolean }> } {
-  const conditionResult = evaluateConditions({ title: msg.title, content: msg.content }, rule.logic, rule.conditions)
+export function evaluateMessageAlertRule(msg: MessageAlertContext, rule: MessageAlertRuleInput):
+{
+  matched: boolean
+  conditions: Array<{ sort: number, matched: boolean }>
+} {
+  const conditionResult = evaluateConditions({
+    title: msg.title,
+    content: msg.content,
+  }, rule.logic, rule.conditions)
   return {
     matched: matchMessageAlertFilters(msg, rule) && conditionResult.matched,
     conditions: conditionResult.conditions,
   }
 }
 
-export function matchMessageAlertRule(msg: MessageAlertContext, rule: MessageAlertRuleInput): boolean {
+export function matchMessageAlertRule(
+  msg: MessageAlertContext,
+  rule: MessageAlertRuleInput,
+): boolean {
   return evaluateMessageAlertRule(msg, rule).matched
 }
 
-export async function processMessageAlert(msg: messageModel) {
-  const rules = await db.messageAlertRule.findMany({
+async function loadEnabledRules() {
+  return db.messageAlertRule.findMany({
     where: { enabled: 1 },
     include: {
       conditions: { orderBy: { sort: 'asc' } },
-      channels: { orderBy: { sort: 'asc' }, include: { channel: true } },
+      channels: { include: { channel: true } },
     },
   })
+}
 
-  for (const rule of rules) {
-    const hit = matchMessageAlertRule(
-      { title: msg.title, content: msg.content, category: msg.category, type: msg.type },
-      {
-        logic: rule.logic,
-        categories: rule.categories,
-        types: rule.types,
-        conditions: rule.conditions.map(condition => ({
-          mode: condition.mode,
-          field: condition.field,
-          operator: condition.operator,
-          value: condition.value,
-          sort: condition.sort,
-        })),
-      },
-    )
-    if (!hit) {
-      continue
-    }
-    for (const link of rule.channels) {
-      try {
-        await dispatch(
-          { type: link.channel.type, config: link.channel.config },
-          { title: msg.title, content: msg.content },
-        )
-      }
-      catch (e: any) {
-        logger.error('[消息中心监控告警] 渠道发送失败', {
-          ruleId: rule.id,
-          ruleName: rule.name,
-          channelId: link.channel.id,
-          channelName: link.channel.name,
-          channelType: link.channel.type,
-          error: e?.message ?? e,
-        })
-        void sendMessage({
-          title: '告警消息推送失败',
-          content: `规则：${rule.name}\n渠道：${link.channel.name}（${link.channel.type}）\n错误：${e?.message ?? '未知错误'}`,
-          category: MessageCategory.SYSTEM,
-          type: MessageType.ERROR,
-          skipAlert: true,
-        }).catch(() => {})
-      }
-    }
+export async function processMessageAlert(msg: messageModel) {
+  const rules = await loadEnabledRules()
+
+  const context = { title: msg.title, content: msg.content, category: msg.category, type: msg.type }
+  await Promise.allSettled(rules.map(rule => processRule(rule, msg, context)))
+}
+
+// allSettled 保证单规则 / 单渠道失败不影响其余
+async function processRule(
+  rule: Awaited<ReturnType<typeof loadEnabledRules>>[number],
+  msg: messageModel,
+  context: MessageAlertContext,
+) {
+  const hit = matchMessageAlertRule(context, {
+    logic: rule.logic,
+    categories: rule.categories,
+    types: rule.types,
+    conditions: rule.conditions.map(condition => ({
+      mode: condition.mode,
+      field: condition.field,
+      operator: condition.operator,
+      value: condition.value,
+      sort: condition.sort,
+    })),
+  })
+  if (!hit) {
+    return
   }
+  await Promise.allSettled(rule.channels.map(async (link) => {
+    try {
+      await dispatch(
+        { type: link.channel.type, config: link.channel.config },
+        { title: msg.title, content: msg.content },
+      )
+    }
+    catch (e: any) {
+      logger.error('[消息中心监控告警] 渠道发送失败', {
+        ruleId: rule.id,
+        ruleName: rule.name,
+        channelId: link.channel.id,
+        channelName: link.channel.name,
+        channelType: link.channel.type,
+        error: e?.message ?? e,
+      })
+      void sendMessage({
+        title: '告警消息推送失败',
+        content: `触发消息：${msg.title}\n规则：${rule.name}\n渠道：${link.channel.name}（${link.channel.type}）\n错误：${e?.message ?? '未知错误'}`,
+        category: MessageCategory.SYSTEM,
+        type: MessageType.ERROR,
+        skipAlert: true,
+      }).catch(() => {})
+    }
+  }))
 }
 
 function normalizeMultiValue(value: unknown, allowed: readonly string[], errorMessage: string): string {
@@ -235,7 +259,6 @@ export async function validateMessageAlertRulePayload(
 
   const core = validateMessageAlertRuleCore(body)
 
-  // channelIds 顺序即触发顺序
   const channelIds: number[] = []
   for (const rawId of body.channelIds ?? []) {
     const id = Number(rawId)
