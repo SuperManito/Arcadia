@@ -126,8 +126,8 @@ async function runCheckAndPersist(source: UpdateCheckSource): Promise<UpdateChec
       await sendMessage({
         title: `发现 Arcadia 新版本 ${result.target.versionTag ?? ''}`,
         content,
-        category: MessageCategory.System,
-        type: MessageType.Info,
+        category: MessageCategory.SYSTEM,
+        type: MessageType.INFO,
       })
       await updateRuntimeConfigValue(ConfigKeyRuntime.UPDATE_NOTIFIED, 'true')
     }

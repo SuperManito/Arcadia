@@ -130,8 +130,8 @@ export async function processMessageAlert(msg: messageModel) {
         void sendMessage({
           title: '告警消息推送失败',
           content: `规则：${rule.name}\n渠道：${link.channel.name}（${link.channel.type}）\n错误：${e?.message ?? '未知错误'}`,
-          category: MessageCategory.System,
-          type: MessageType.Error,
+          category: MessageCategory.SYSTEM,
+          type: MessageType.ERROR,
           skipAlert: true,
         }).catch(() => {})
       }

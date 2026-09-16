@@ -19,12 +19,12 @@ async function handleMessageList(request: Request, scope: MessageScope) {
   validatePageFixedParams(request, ['create_time'])
 
   const where: messageWhereInput = {}
-  if (scope === MessageScope.User) {
-    where.category = { equals: MessageCategory.User }
+  if (scope === MessageScope.USER) {
+    where.category = { equals: MessageCategory.USER }
   }
 
   // 分类过滤（支持逗号分隔多值，仅 API 生效；OpenAPI 固定 category=user）
-  if (scope === MessageScope.All && request.query.category) {
+  if (scope === MessageScope.ALL && request.query.category) {
     const categories = (request.query.category as string).split(',').map(s => s.trim()).filter(Boolean)
     if (categories.some(c => !(MESSAGE_CATEGORIES as readonly string[]).includes(c))) {
       throw new Error('参数 category 无效（参数值类型错误）')
@@ -85,7 +85,7 @@ async function handleMessageDetail(id: number, scope: MessageScope) {
   const message = await db.message.$getById(id)
   if (!message)
     throw new Error('消息不存在')
-  if (scope === MessageScope.User && message.category !== MessageCategory.User)
+  if (scope === MessageScope.USER && message.category !== MessageCategory.USER)
     throw new Error('消息不存在')
   return message
 }
@@ -95,8 +95,8 @@ async function handleMessageDetail(id: number, scope: MessageScope) {
  */
 async function handleMarkRead(ids: number[] | null, scope: MessageScope, status: number) {
   const where: messageWhereInput = { status: status === 1 ? 0 : 1 }
-  if (scope === MessageScope.User)
-    where.category = MessageCategory.User
+  if (scope === MessageScope.USER)
+    where.category = MessageCategory.USER
   if (ids)
     where.id = { in: ids }
   await db.message.updateMany({ where, data: { status } })
@@ -107,8 +107,8 @@ async function handleMarkRead(ids: number[] | null, scope: MessageScope, status:
  */
 async function handleDelete(ids: number[], scope: MessageScope) {
   const where: messageWhereInput = { id: { in: ids } }
-  if (scope === MessageScope.User)
-    where.category = MessageCategory.User
+  if (scope === MessageScope.USER)
+    where.category = MessageCategory.USER
   await db.message.deleteMany({ where })
 }
 
@@ -124,7 +124,7 @@ api.get('/list', async (request, response) => {
         ['status', [false, ['1', '0']]],
       ],
     })
-    const result = await handleMessageList(request, MessageScope.All)
+    const result = await handleMessageList(request, MessageScope.ALL)
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
@@ -137,7 +137,7 @@ api.get('/list', async (request, response) => {
  */
 api.get('/unread/count', async (_request, response) => {
   try {
-    const total = await getUnreadCount(MessageScope.All)
+    const total = await getUnreadCount(MessageScope.ALL)
     response.send(API_STATUS_CODE.okData({ total }))
   }
   catch (e: any) {
@@ -159,7 +159,7 @@ api.get('/', async (request, response) => {
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
       throw new Error('参数 id 无效（参数值类型错误）')
     }
-    const message = await handleMessageDetail(Number.parseInt(id), MessageScope.All)
+    const message = await handleMessageDetail(Number.parseInt(id), MessageScope.ALL)
     response.send(API_STATUS_CODE.okData(message))
   }
   catch (e: any) {
@@ -179,7 +179,7 @@ api.delete('/', async (request, response) => {
     })
     const { id } = params.body
     const ids: number[] = Array.isArray(id) ? id : [id]
-    await handleDelete(ids, MessageScope.All)
+    await handleDelete(ids, MessageScope.ALL)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -198,7 +198,7 @@ api.put('/status/all', async (request, response) => {
       ] as const,
     })
     const status = request.body.status ?? 1
-    await handleMarkRead(null, MessageScope.All, status)
+    await handleMarkRead(null, MessageScope.ALL, status)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -219,7 +219,7 @@ api.put('/status', async (request, response) => {
     })
     const { id, status } = params.body
     const ids: number[] = Array.isArray(id) ? id : [id]
-    await handleMarkRead(ids, MessageScope.All, status)
+    await handleMarkRead(ids, MessageScope.ALL, status)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -282,7 +282,7 @@ apiOpen.get('/v1/list', async (request, response) => {
         ['status', [false, ['1', '0']]],
       ],
     })
-    const result = await handleMessageList(request, MessageScope.User)
+    const result = await handleMessageList(request, MessageScope.USER)
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
@@ -295,7 +295,7 @@ apiOpen.get('/v1/list', async (request, response) => {
  */
 apiOpen.get('/v1/unreadCount', async (_request, response) => {
   try {
-    const total = await getUnreadCount(MessageScope.User)
+    const total = await getUnreadCount(MessageScope.USER)
     response.send(API_STATUS_CODE.okData({ total }))
   }
   catch (e: any) {
@@ -317,7 +317,7 @@ apiOpen.get('/v1/detail', async (request, response) => {
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
       throw new Error('参数 id 无效（参数值类型错误）')
     }
-    const message = await handleMessageDetail(Number.parseInt(id), MessageScope.User)
+    const message = await handleMessageDetail(Number.parseInt(id), MessageScope.USER)
     response.send(API_STATUS_CODE.okData(message))
   }
   catch (e: any) {
@@ -338,7 +338,7 @@ apiOpen.post('/v1/readStatus', async (request, response) => {
     })
     const { id, status } = params.body
     const ids: number[] = Array.isArray(id) ? id : [id]
-    await handleMarkRead(ids, MessageScope.User, status)
+    await handleMarkRead(ids, MessageScope.USER, status)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -357,7 +357,7 @@ apiOpen.post('/v1/readAll', async (request, response) => {
       ] as const,
     })
     const status = request.body.status ?? 1
-    await handleMarkRead(null, MessageScope.User, status)
+    await handleMarkRead(null, MessageScope.USER, status)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -377,7 +377,7 @@ apiOpen.post('/v1/delete', async (request, response) => {
     })
     const { id } = params.body
     const ids: number[] = Array.isArray(id) ? id : [id]
-    await handleDelete(ids, MessageScope.User)
+    await handleDelete(ids, MessageScope.USER)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {

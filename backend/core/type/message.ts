@@ -1,24 +1,24 @@
 export enum MessageCategory {
-  System = 'system',
-  Cron = 'cron',
-  User = 'user',
+  SYSTEM = 'system',
+  CRON = 'cron',
+  USER = 'user',
 }
 
 // 枚举值列表，供多值校验与遍历使用
 export const MESSAGE_CATEGORIES = Object.values(MessageCategory)
 
 export enum MessageType {
-  Info = 'info',
-  Warn = 'warn',
-  Error = 'error',
-  Success = 'success',
+  INFO = 'info',
+  WARN = 'warn',
+  ERROR = 'error',
+  SUCCESS = 'success',
 }
 
 export const MESSAGE_TYPES = Object.values(MessageType)
 
 export enum MessageScope {
-  All = 'all',
-  User = 'user',
+  ALL = 'all',
+  USER = 'user',
 }
 
 export interface MessageData {

@@ -59,8 +59,8 @@ function validateMessageLength(data: MessageData) {
 export async function sendMessage(data: MessageData): Promise<boolean> {
   const title = (data.title ?? '').trim()
   const content = (data.content ?? '').trim()
-  const category = data.category || MessageCategory.System
-  const type = data.type || MessageType.Info
+  const category = data.category || MessageCategory.SYSTEM
+  const type = data.type || MessageType.INFO
 
   validateObject({ title, content, category, type }, [
     ['title', [true, 'string']],
@@ -111,18 +111,18 @@ export async function pushUserMessage(data: { title: string, content: string, ty
   return await sendMessage({
     title: data.title,
     content: data.content,
-    category: MessageCategory.User,
-    type: data.type ?? MessageType.Info,
+    category: MessageCategory.USER,
+    type: data.type ?? MessageType.INFO,
   })
 }
 
 /**
  * 获取未读消息数量
  */
-export async function getUnreadCount(scope: MessageScope = MessageScope.All): Promise<number> {
+export async function getUnreadCount(scope: MessageScope = MessageScope.ALL): Promise<number> {
   const where: messageWhereInput = { status: 0 }
-  if (scope === MessageScope.User) {
-    where.category = MessageCategory.User
+  if (scope === MessageScope.USER) {
+    where.category = MessageCategory.USER
   }
   return await db.message.count({ where })
 }
