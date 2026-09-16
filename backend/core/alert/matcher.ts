@@ -47,6 +47,9 @@ export interface ConditionMatchResult {
   matched: boolean
 }
 
+/**
+ * 解析多值字段：接受数组或逗号分隔字符串，trim 去空去重
+ */
 export function parseMultiValue(value: string | string[] | undefined | null): string[] {
   if (Array.isArray(value)) {
     return [...new Set(value.map(item => String(item ?? '').trim()).filter(Boolean))]
@@ -57,6 +60,9 @@ export function parseMultiValue(value: string | string[] | undefined | null): st
   return [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))]
 }
 
+/**
+ * 校验正则 pattern：非空、长度受限、语法可编译，任一不满足即抛错
+ */
 export function assertValidRegexPattern(pattern: unknown): void {
   if (typeof pattern !== 'string' || pattern.length === 0) {
     throw new Error('正则表达式无效')
@@ -124,7 +130,14 @@ export function matchCondition(context: Record<string, string>, condition: Condi
 }
 
 // matched 仅由 conditions 与 logic 决定，业务范围过滤由各业务域叠加
-export function evaluateConditions(context: Record<string, string>, logic: string, conditions: ConditionInput[]): { matched: boolean, conditions: ConditionMatchResult[] } {
+export function evaluateConditions(
+  context: Record<string, string>,
+  logic: string,
+  conditions: ConditionInput[],
+): {
+  matched: boolean
+  conditions: ConditionMatchResult[]
+} {
   const results: ConditionMatchResult[] = conditions
     .slice()
     .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))

@@ -4,7 +4,7 @@ import { API_STATUS_CODE } from '../../utils/httpUtil'
 import type { notificationChannelWhereInput } from '../../db'
 import db from '../../db'
 import { validatePageFixedParams, validateRequestParams } from '../../utils'
-import { dispatch } from '../../core/channel'
+import { pushChannel } from '../../core/channel'
 import { validateChannelPayload } from '../../core/channel/validation'
 
 const api: Express = express()
@@ -186,10 +186,14 @@ api.post('/test', async (request, response) => {
       ] as const,
     }, true)
     const cleaned = await validateChannelPayload(params.body, { skipNameCheck: true })
-    await dispatch(
+    const result = await pushChannel(
       { type: cleaned.type, config: cleaned.config },
       { title: TEST_NOTIFY_TITLE, content: TEST_NOTIFY_CONTENT },
     )
+    if (!result.success) {
+      response.send(API_STATUS_CODE.fail(result.error))
+      return
+    }
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {

@@ -23,7 +23,6 @@ import { API as ApiConfig } from '../api/routes/config'
 import { API as ApiDaemon } from '../api/routes/daemon'
 import { API as ApiDep, OpenAPI as OpenApiDep } from '../api/routes/dep'
 import { API as ApiUpdate, InnerAPI as InnerApiUpdate } from '../api/routes/update'
-import { API as ApiMessageAlert } from '../api/routes/messageAlert'
 import { API as ApiChannel } from '../api/routes/channel'
 
 function getToken(req: Request) {
@@ -179,7 +178,6 @@ export function registerApp(apiAuthentication: RequestHandler) {
   apiRouter.use('/env', ApiEnv)
   apiRouter.use('/cron', ApiCron)
   apiRouter.use('/message', ApiMessage)
-  apiRouter.use('/message', ApiMessageAlert)
   apiRouter.use('/system', systemApi)
   apiRouter.use('/token', ApiOpenApiToken)
   apiRouter.use('/log', ApiLog)
