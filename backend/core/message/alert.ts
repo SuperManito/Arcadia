@@ -2,6 +2,7 @@ import type { messageModel } from '../../db'
 import { db } from '../../db'
 import { logger } from '../../utils/logger'
 import type { ConditionInput } from '../alert/matcher'
+import { MESSAGE_CATEGORIES, MESSAGE_TYPES, MessageCategory, MessageType } from '../type/message'
 import {
   assertValidRegexPattern,
   CONDITION_MODES,
@@ -15,8 +16,6 @@ import {
 import { dispatch } from '../channel'
 import { sendMessage } from './index'
 
-export const MESSAGE_CATEGORIES = ['system', 'cron', 'user'] as const
-export const MESSAGE_TYPES = ['info', 'warn', 'error', 'success'] as const
 export const MESSAGE_ALERT_CONDITION_FIELDS = ['title', 'content'] as const
 export const MESSAGE_ALERT_RULE_NAME_MAX_LENGTH = 50
 
@@ -131,8 +130,8 @@ export async function processMessageAlert(msg: messageModel) {
         void sendMessage({
           title: '告警消息推送失败',
           content: `规则：${rule.name}\n渠道：${link.channel.name}（${link.channel.type}）\n错误：${e?.message ?? '未知错误'}`,
-          category: 'system',
-          type: 'error',
+          category: MessageCategory.System,
+          type: MessageType.Error,
           skipAlert: true,
         }).catch(() => {})
       }

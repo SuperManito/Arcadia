@@ -2,6 +2,7 @@ import type { taskRunInfo } from '../cron/taskRunner'
 import { sendMessage } from './index'
 import { logger } from '../../utils/logger'
 import { dateToString } from '../../utils'
+import { MessageCategory, MessageType } from '../type/message'
 
 function formatDuration(ms: number): string {
   if (ms < 1000)
@@ -23,8 +24,8 @@ export async function notifyTaskFailure(info: taskRunInfo) {
     await sendMessage({
       title: '定时任务运行失败',
       content: `任务名称：${info.task.name}\n任务 ID：${info.task.id}\n执行时长：${formatDuration(info.duration)}\n失败时间：${dateToString(new Date(info.endTime))}`,
-      category: 'cron',
-      type: 'error',
+      category: MessageCategory.Cron,
+      type: MessageType.Error,
     })
   }
   catch (e: any) {

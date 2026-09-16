@@ -4,6 +4,7 @@ import { db } from '../../db'
 import { logger } from '../../utils/logger'
 import { validateObject } from '../../utils'
 import type { MessageData } from '../type/message'
+import { MessageCategory, MessageScope, MessageType } from '../type/message'
 import { processMessageAlert } from './alert'
 import { socketCommon } from '../../server/socketCommon'
 
@@ -58,14 +59,14 @@ function validateMessageLength(data: MessageData) {
 export async function sendMessage(data: MessageData): Promise<boolean> {
   const title = (data.title ?? '').trim()
   const content = (data.content ?? '').trim()
-  const category = data.category || 'system'
-  const type = data.type || 'info'
+  const category = data.category || MessageCategory.System
+  const type = data.type || MessageType.Info
 
   validateObject({ title, content, category, type }, [
     ['title', [true, 'string']],
     ['content', [true, 'string']],
-    ['category', [false, 'string']],
-    ['type', [false, ['info', 'error', 'warn', 'success']]],
+    ['category', [false, Object.values(MessageCategory)]],
+    ['type', [false, Object.values(MessageType)]],
   ])
   validateMessageLength({ title, content })
 
@@ -106,22 +107,22 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
  * category 固定为 user
  * title 和 content 为必填，缺失时直接抛出错误
  */
-export async function pushUserMessage(data: { title: string, content: string, type?: 'info' | 'warn' | 'error' | 'success' }) {
+export async function pushUserMessage(data: { title: string, content: string, type?: MessageType }) {
   return await sendMessage({
     title: data.title,
     content: data.content,
-    category: 'user',
-    type: data.type ?? 'info',
+    category: MessageCategory.User,
+    type: data.type ?? MessageType.Info,
   })
 }
 
 /**
  * 获取未读消息数量
  */
-export async function getUnreadCount(scope: 'all' | 'user' = 'all'): Promise<number> {
+export async function getUnreadCount(scope: MessageScope = MessageScope.All): Promise<number> {
   const where: messageWhereInput = { status: 0 }
-  if (scope === 'user') {
-    where.category = 'user'
+  if (scope === MessageScope.User) {
+    where.category = MessageCategory.User
   }
   return await db.message.count({ where })
 }

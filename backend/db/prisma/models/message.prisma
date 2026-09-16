@@ -1,7 +1,7 @@
 // 消息中心通知
 model message {
   id          Int      @id @default(autoincrement())
-  category    String   @default("system") // 系统类型 user,system,cron 等
+  category    String   @default("system") // 消息分类
   type        String   @default("info") // info, warn, error, success
   title       String
   content     String

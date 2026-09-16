@@ -5,6 +5,7 @@ import {
   updateRuntimeConfigValues,
 } from '../config'
 import { sendMessage } from '../message'
+import { MessageCategory, MessageType } from '../type/message'
 import { socketCommon } from '../../server/socketCommon'
 import { ConfigKeyRuntime, ConfigModule } from '../type/config'
 import { logger } from '../../utils/logger'
@@ -125,8 +126,8 @@ async function runCheckAndPersist(source: UpdateCheckSource): Promise<UpdateChec
       await sendMessage({
         title: `发现 Arcadia 新版本 ${result.target.versionTag ?? ''}`,
         content,
-        category: 'system',
-        type: 'info',
+        category: MessageCategory.System,
+        type: MessageType.Info,
       })
       await updateRuntimeConfigValue(ConfigKeyRuntime.UPDATE_NOTIFIED, 'true')
     }

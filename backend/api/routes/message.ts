@@ -5,13 +5,12 @@ import type { messageWhereInput } from '../../db'
 import db from '../../db'
 import { validatePageFixedParams, validateRequestParams } from '../../utils'
 import { getUnreadCount, pushUserMessage } from '../../core/message'
+import { MESSAGE_CATEGORIES, MESSAGE_TYPES, MessageCategory, MessageScope, MessageType } from '../../core/type/message'
 import { handleOpenApiError } from '../openapi/openApiCore'
 
 const api: Express = express()
 const apiOpen: Express = express()
 const apiInner: Express = express()
-
-type MessageScope = 'all' | 'user'
 
 /**
  * 消息列表查询
@@ -20,13 +19,16 @@ async function handleMessageList(request: Request, scope: MessageScope) {
   validatePageFixedParams(request, ['create_time'])
 
   const where: messageWhereInput = {}
-  if (scope === 'user') {
-    where.category = { equals: 'user' }
+  if (scope === MessageScope.User) {
+    where.category = { equals: MessageCategory.User }
   }
 
   // 分类过滤（支持逗号分隔多值，仅 API 生效；OpenAPI 固定 category=user）
-  if (scope === 'all' && request.query.category) {
+  if (scope === MessageScope.All && request.query.category) {
     const categories = (request.query.category as string).split(',').map(s => s.trim()).filter(Boolean)
+    if (categories.some(c => !(MESSAGE_CATEGORIES as readonly string[]).includes(c))) {
+      throw new Error('参数 category 无效（参数值类型错误）')
+    }
     if (categories.length === 1) {
       where.category = { equals: categories[0] }
     }
@@ -37,6 +39,9 @@ async function handleMessageList(request: Request, scope: MessageScope) {
   // 消息级别过滤（支持逗号分隔多值）
   if (request.query.type) {
     const types = (request.query.type as string).split(',').map(s => s.trim()).filter(Boolean)
+    if (types.some(t => !(MESSAGE_TYPES as readonly string[]).includes(t))) {
+      throw new Error('参数 type 无效（参数值类型错误）')
+    }
     if (types.length === 1) {
       where.type = { equals: types[0] }
     }
@@ -80,7 +85,7 @@ async function handleMessageDetail(id: number, scope: MessageScope) {
   const message = await db.message.$getById(id)
   if (!message)
     throw new Error('消息不存在')
-  if (scope === 'user' && message.category !== 'user')
+  if (scope === MessageScope.User && message.category !== MessageCategory.User)
     throw new Error('消息不存在')
   return message
 }
@@ -90,8 +95,8 @@ async function handleMessageDetail(id: number, scope: MessageScope) {
  */
 async function handleMarkRead(ids: number[] | null, scope: MessageScope, status: number) {
   const where: messageWhereInput = { status: status === 1 ? 0 : 1 }
-  if (scope === 'user')
-    where.category = 'user'
+  if (scope === MessageScope.User)
+    where.category = MessageCategory.User
   if (ids)
     where.id = { in: ids }
   await db.message.updateMany({ where, data: { status } })
@@ -102,8 +107,8 @@ async function handleMarkRead(ids: number[] | null, scope: MessageScope, status:
  */
 async function handleDelete(ids: number[], scope: MessageScope) {
   const where: messageWhereInput = { id: { in: ids } }
-  if (scope === 'user')
-    where.category = 'user'
+  if (scope === MessageScope.User)
+    where.category = MessageCategory.User
   await db.message.deleteMany({ where })
 }
 
@@ -119,7 +124,7 @@ api.get('/list', async (request, response) => {
         ['status', [false, ['1', '0']]],
       ],
     })
-    const result = await handleMessageList(request, 'all')
+    const result = await handleMessageList(request, MessageScope.All)
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
@@ -132,7 +137,7 @@ api.get('/list', async (request, response) => {
  */
 api.get('/unread/count', async (_request, response) => {
   try {
-    const total = await getUnreadCount('all')
+    const total = await getUnreadCount(MessageScope.All)
     response.send(API_STATUS_CODE.okData({ total }))
   }
   catch (e: any) {
@@ -154,7 +159,7 @@ api.get('/', async (request, response) => {
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
       throw new Error('参数 id 无效（参数值类型错误）')
     }
-    const message = await handleMessageDetail(Number.parseInt(id), 'all')
+    const message = await handleMessageDetail(Number.parseInt(id), MessageScope.All)
     response.send(API_STATUS_CODE.okData(message))
   }
   catch (e: any) {
@@ -174,7 +179,7 @@ api.delete('/', async (request, response) => {
     })
     const { id } = params.body
     const ids: number[] = Array.isArray(id) ? id : [id]
-    await handleDelete(ids, 'all')
+    await handleDelete(ids, MessageScope.All)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -193,7 +198,7 @@ api.put('/status/all', async (request, response) => {
       ] as const,
     })
     const status = request.body.status ?? 1
-    await handleMarkRead(null, 'all', status)
+    await handleMarkRead(null, MessageScope.All, status)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -214,7 +219,7 @@ api.put('/status', async (request, response) => {
     })
     const { id, status } = params.body
     const ids: number[] = Array.isArray(id) ? id : [id]
-    await handleMarkRead(ids, 'all', status)
+    await handleMarkRead(ids, MessageScope.All, status)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -254,11 +259,11 @@ apiOpen.post('/v1/create', async (request, response) => {
       body: [
         ['title', [true, 'string']],
         ['content', [true, 'string']],
-        ['type', [false, ['info', 'warn', 'error', 'success']]],
+        ['type', [false, Object.values(MessageType)]],
       ] as const,
     })
     const { title, content, type } = params.body
-    await pushUserMessage({ title, content, type })
+    await pushUserMessage({ title, content, type: type as MessageType })
     response.send(API_STATUS_CODE.okData({ count: 1 }))
   }
   catch (e: any) {
@@ -277,7 +282,7 @@ apiOpen.get('/v1/list', async (request, response) => {
         ['status', [false, ['1', '0']]],
       ],
     })
-    const result = await handleMessageList(request, 'user')
+    const result = await handleMessageList(request, MessageScope.User)
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
@@ -290,7 +295,7 @@ apiOpen.get('/v1/list', async (request, response) => {
  */
 apiOpen.get('/v1/unreadCount', async (_request, response) => {
   try {
-    const total = await getUnreadCount('user')
+    const total = await getUnreadCount(MessageScope.User)
     response.send(API_STATUS_CODE.okData({ total }))
   }
   catch (e: any) {
@@ -312,7 +317,7 @@ apiOpen.get('/v1/detail', async (request, response) => {
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
       throw new Error('参数 id 无效（参数值类型错误）')
     }
-    const message = await handleMessageDetail(Number.parseInt(id), 'user')
+    const message = await handleMessageDetail(Number.parseInt(id), MessageScope.User)
     response.send(API_STATUS_CODE.okData(message))
   }
   catch (e: any) {
@@ -333,7 +338,7 @@ apiOpen.post('/v1/readStatus', async (request, response) => {
     })
     const { id, status } = params.body
     const ids: number[] = Array.isArray(id) ? id : [id]
-    await handleMarkRead(ids, 'user', status)
+    await handleMarkRead(ids, MessageScope.User, status)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -352,7 +357,7 @@ apiOpen.post('/v1/readAll', async (request, response) => {
       ] as const,
     })
     const status = request.body.status ?? 1
-    await handleMarkRead(null, 'user', status)
+    await handleMarkRead(null, MessageScope.User, status)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -372,7 +377,7 @@ apiOpen.post('/v1/delete', async (request, response) => {
     })
     const { id } = params.body
     const ids: number[] = Array.isArray(id) ? id : [id]
-    await handleDelete(ids, 'user')
+    await handleDelete(ids, MessageScope.User)
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -389,11 +394,11 @@ apiInner.post('/push', async (request, response) => {
       body: [
         ['title', [true, 'string']],
         ['content', [true, 'string']],
-        ['type', [false, ['info', 'warn', 'error', 'success']]],
+        ['type', [false, Object.values(MessageType)]],
       ] as const,
     })
     const { title, content, type } = params.body
-    await pushUserMessage({ title, content, type })
+    await pushUserMessage({ title, content, type: type as MessageType })
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
