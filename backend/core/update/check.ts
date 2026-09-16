@@ -1,3 +1,4 @@
+import { SocketEvent } from '../type/socket'
 import {
   getConfigValue,
   getRuntimeModuleConfigReadonly,
@@ -151,7 +152,7 @@ async function runCheckAndPersist(source: UpdateCheckSource): Promise<UpdateChec
     await updateRuntimeConfigValue(ConfigKeyRuntime.UPDATE_CHECK_FAILED_AT, String(Date.now()))
   }
 
-  socketCommon.emit('update:refresh', {})
+  socketCommon.emit(SocketEvent.UPDATE_REFRESH, {})
   return result
 }
 

@@ -1,3 +1,4 @@
+import { SocketEvent } from '../core/type/socket'
 import type { Request } from 'express'
 import type { Server as HttpServer } from 'node:http'
 import { Server } from 'socket.io'
@@ -62,7 +63,7 @@ export function initSocketServer(server: HttpServer) {
 }
 
 export function emitTaskStarted(task: Pick<tasksModel, 'id' | 'name' | 'type'>, manual: boolean) {
-  socketCommon.emit('task:started', {
+  socketCommon.emit(SocketEvent.TASK_STARTED, {
     taskId: task.id,
     taskName: task.name,
     taskType: task.type,
@@ -72,7 +73,7 @@ export function emitTaskStarted(task: Pick<tasksModel, 'id' | 'name' | 'type'>, 
 }
 
 export function emitTaskCompleted(info: taskRunInfo) {
-  socketCommon.emit('task:completed', {
+  socketCommon.emit(SocketEvent.TASK_COMPLETED, {
     taskId: info.task.id,
     taskName: info.task.name,
     taskType: info.task.type,

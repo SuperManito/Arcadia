@@ -1,3 +1,4 @@
+import { SocketEvent } from '../type/socket'
 import type { messageWhereInput } from '../../db'
 import { createHash } from 'node:crypto'
 import { db } from '../../db'
@@ -90,7 +91,7 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
   }
 
   // 通过 WebSocket 推送新消息
-  socketCommon.emit('message:new', {
+  socketCommon.emit(SocketEvent.MESSAGE_NEW, {
     id: msg.id,
     category: msg.category,
     type: msg.type,

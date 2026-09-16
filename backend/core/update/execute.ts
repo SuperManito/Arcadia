@@ -1,3 +1,4 @@
+import { SocketEvent } from '../type/socket'
 import type { Buffer } from 'node:buffer'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { getConfigValue, updateRuntimeConfigValue, updateRuntimeConfigValues } from '../config'
@@ -145,7 +146,7 @@ function runUpgradeProcess(marker: UpgradeMarker): void {
 
   // 先落标记（无 pid），拿到真实脚本 PID 后补充，供重启后的存活探测使用
   writeMarker(marker).catch(() => {})
-  socketCommon.emit('update:refresh', {})
+  socketCommon.emit(SocketEvent.UPDATE_REFRESH, {})
 
   const cleanup = () => {
     finished = true
@@ -200,7 +201,7 @@ function runUpgradeProcess(marker: UpgradeMarker): void {
       logger.error('[版本更新] 更新脚本启动失败')
       await dumpUpgradeLog()
       await clearUpgradeHook()
-      socketCommon.emit('update:refresh', {})
+      socketCommon.emit(SocketEvent.UPDATE_REFRESH, {})
       return
     }
     // launcher 已退出，改为轮询真实脚本存活状态
@@ -222,7 +223,7 @@ function runUpgradeProcess(marker: UpgradeMarker): void {
     logger.error('[版本更新] 启动更新脚本失败', err.message || err)
     await dumpUpgradeLog()
     await clearUpgradeHook()
-    socketCommon.emit('update:refresh', {})
+    socketCommon.emit(SocketEvent.UPDATE_REFRESH, {})
   })
 }
 
@@ -272,7 +273,7 @@ async function finalizeUpgradeOutcome(marker: UpgradeMarker): Promise<{ success:
   }
 
   await clearUpgradeHook()
-  socketCommon.emit('update:refresh', {})
+  socketCommon.emit(SocketEvent.UPDATE_REFRESH, {})
   return { success }
 }
 
@@ -300,6 +301,6 @@ export async function restoreUpgradeState(): Promise<void> {
   if (marker.pid && !isProcessAlive(marker.pid)) {
     await clearUpgradeHook()
     await dumpUpgradeLog()
-    socketCommon.emit('update:refresh', {})
+    socketCommon.emit(SocketEvent.UPDATE_REFRESH, {})
   }
 }

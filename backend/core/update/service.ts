@@ -1,3 +1,4 @@
+import { SocketEvent } from '../type/socket'
 import { getRuntimeModuleConfigReadonly, updateRuntimeConfigValue, updateRuntimeConfigValues } from '../config'
 import { socketCommon } from '../../server/socketCommon'
 import { ConfigKeyRuntime } from '../type/config'
@@ -62,5 +63,5 @@ export async function refreshVersionStateAfterUpgrade(): Promise<void> {
   await resolveCurrentVersionTag()
   if (localHead)
     await updateRuntimeConfigValue(ConfigKeyRuntime.UPDATE_CURRENT_COMMIT, localHead)
-  socketCommon.emit('update:refresh', {})
+  socketCommon.emit(SocketEvent.UPDATE_REFRESH, {})
 }

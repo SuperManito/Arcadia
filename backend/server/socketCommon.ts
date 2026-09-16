@@ -1,3 +1,4 @@
+import type { SocketEvent } from '../core/type/socket'
 import type { Server } from 'socket.io'
 
 export const socketCommon = {
@@ -7,7 +8,7 @@ export const socketCommon = {
   setSocket(io: Server) {
     globalThis.io = io
   },
-  emit(name: string, data: any) {
+  emit(name: SocketEvent, data: any) {
     const io = this.getSocket()
     if (io) {
       io.emit(name, data)

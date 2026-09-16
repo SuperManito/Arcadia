@@ -1,3 +1,4 @@
+import { SocketEvent } from '../type/socket'
 import path from 'node:path'
 import { execFile } from 'node:child_process'
 import db from '../../db'
@@ -13,7 +14,7 @@ export const DepStatus = {
   UNINSTALLING: 4,
 } as const
 
-const socketEventName = 'dep:operate'
+const socketEventName = SocketEvent.DEP_OPERATE
 
 export type DepStatusValue = (typeof DepStatus)[keyof typeof DepStatus]
 

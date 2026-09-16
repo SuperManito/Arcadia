@@ -1,3 +1,4 @@
+import { SocketEvent } from '../core/type/socket'
 import type { Server, Socket } from 'socket.io'
 import { APP_ROOT_DIR } from '../core/type'
 import { socketAuthMiddleware } from './socket'
@@ -81,24 +82,24 @@ export async function initTerminalServer(io: Server) {
   terminalNs.on('connection', (socket: Socket) => {
     // logger.info(`Terminal socket connected: ${socket.id}`)
 
-    socket.on('terminal:spawn', (options: {
+    socket.on(SocketEvent.TERMINAL_SPAWN, (options: {
       cols?: number
       rows?: number
       cwd?: string
       command?: string
     } = {}) => {
       if (!options || typeof options !== 'object') {
-        socket.emit('terminal:error', 'Invalid terminal options')
+        socket.emit(SocketEvent.TERMINAL_ERROR, 'Invalid terminal options')
         return
       }
 
       // 每个 socket 只允许一个 PTY 会话
       if (sessions.has(socket.id)) {
-        socket.emit('terminal:error', 'Session already exists')
+        socket.emit(SocketEvent.TERMINAL_ERROR, 'Session already exists')
         return
       }
       if (sessions.size >= MAX_PTY_SESSIONS) {
-        socket.emit('terminal:error', 'Terminal session limit reached')
+        socket.emit(SocketEvent.TERMINAL_ERROR, 'Terminal session limit reached')
         return
       }
 
@@ -108,7 +109,7 @@ export async function initTerminalServer(io: Server) {
       }
       catch {
         // logger.error('Failed to create PTY process:', err)
-        socket.emit('terminal:error', 'Failed to create terminal')
+        socket.emit(SocketEvent.TERMINAL_ERROR, 'Failed to create terminal')
         return
       }
 
@@ -117,21 +118,21 @@ export async function initTerminalServer(io: Server) {
 
       // PTY → 客户端
       ptyProcess.onData((data: string) => {
-        socket.emit('terminal:output', data)
+        socket.emit(SocketEvent.TERMINAL_OUTPUT, data)
       })
 
       // PTY 退出
       ptyProcess.onExit(({ exitCode }) => {
-        socket.emit('terminal:exit', exitCode)
+        socket.emit(SocketEvent.TERMINAL_EXIT, exitCode)
         sessions.delete(socket.id)
         // logger.info(`Terminal session ended (sid: ${socket.id}, code: ${exitCode})`)
       })
 
-      socket.emit('terminal:ready')
+      socket.emit(SocketEvent.TERMINAL_READY)
     })
 
     // 客户端 → PTY
-    socket.on('terminal:input', (data: string) => {
+    socket.on(SocketEvent.TERMINAL_INPUT, (data: string) => {
       const pty = sessions.get(socket.id)
       if (pty && typeof data === 'string') {
         try {
@@ -142,7 +143,7 @@ export async function initTerminalServer(io: Server) {
     })
 
     // 终端尺寸调整
-    socket.on('terminal:resize', (size: { cols: number, rows: number }) => {
+    socket.on(SocketEvent.TERMINAL_RESIZE, (size: { cols: number, rows: number }) => {
       const pty = sessions.get(socket.id)
       if (pty && size && typeof size === 'object' && typeof size.cols === 'number' && typeof size.rows === 'number' && Number.isFinite(size.cols) && Number.isFinite(size.rows)) {
         try {
