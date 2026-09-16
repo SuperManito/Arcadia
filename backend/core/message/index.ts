@@ -4,7 +4,7 @@ import { db } from '../../db'
 import { logger } from '../../utils/logger'
 import { validateObject } from '../../utils'
 import type { MessageData } from '../type/message'
-import { processMessageAlert } from '../alert'
+import { processMessageAlert } from './alert'
 import { socketCommon } from '../../server/socketCommon'
 
 // 消息去重缓存（FIFO 淘汰）

@@ -1,8 +1,5 @@
 import { logger } from '../../utils/logger'
 
-export const MESSAGE_CATEGORIES = ['system', 'cron', 'user'] as const
-export const MESSAGE_TYPES = ['info', 'warn', 'error', 'success'] as const
-export const CONDITION_FIELDS = ['title', 'content'] as const
 export const RULE_LOGICS = ['and', 'or'] as const
 export const SIMPLE_OPERATORS = ['include', 'not_include', 'equal', 'not_equal', 'starts_with', 'ends_with', 'empty', 'not_empty'] as const
 export const REGEX_OPERATORS = ['regex', 'not_regex'] as const
@@ -10,14 +7,7 @@ export const CONDITION_MODES = ['simple', 'regex'] as const
 export const VALUE_OPTIONAL_OPERATORS = ['empty', 'not_empty'] as const
 export const REGEX_MAX_LENGTH = 512
 
-export interface AlertMessageContext {
-  title: string
-  content: string
-  category: string
-  type: string
-}
-
-export interface AlertConditionInput {
+export interface ConditionInput {
   mode: string
   field: string
   operator: string
@@ -25,21 +15,9 @@ export interface AlertConditionInput {
   sort?: number
 }
 
-export interface AlertRuleInput {
-  logic: string
-  categories: string
-  types: string
-  conditions: AlertConditionInput[]
-}
-
 export interface ConditionMatchResult {
   sort: number
   matched: boolean
-}
-
-export interface RuleMatchResult {
-  matched: boolean
-  conditions: ConditionMatchResult[]
 }
 
 export function parseMultiValue(value: string | string[] | undefined | null): string[] {
@@ -78,25 +56,13 @@ export function tryCompileRegex(pattern: string): RegExp | null {
   }
 }
 
-// categories / types 为空表示不限制
-export function matchFilters(msg: AlertMessageContext, rule: AlertRuleInput): boolean {
-  const categories = parseMultiValue(rule.categories)
-  if (categories.length > 0 && !categories.includes(msg.category)) {
-    return false
-  }
-  const types = parseMultiValue(rule.types)
-  if (types.length > 0 && !types.includes(msg.type)) {
-    return false
-  }
-  return true
-}
-
-export function matchCondition(msg: AlertMessageContext, condition: AlertConditionInput): boolean {
-  const fieldValue = condition.field === 'content' ? (msg.content ?? '') : (msg.title ?? '')
+// 上下文按字段名取值，可用字段集由各业务域定义
+export function matchCondition(context: Record<string, string>, condition: ConditionInput): boolean {
+  const fieldValue = context[condition.field] ?? ''
   if (condition.mode === 'regex') {
     const reg = tryCompileRegex(condition.value)
     if (!reg) {
-      logger.warn('[消息中心监控告警] 条件正则编译失败，按不命中处理', { pattern: condition.value })
+      logger.warn('[告警引擎] 条件正则编译失败，按不命中处理', { pattern: condition.value })
       return false
     }
     try {
@@ -104,7 +70,7 @@ export function matchCondition(msg: AlertMessageContext, condition: AlertConditi
       return condition.operator === 'not_regex' ? !hit : hit
     }
     catch (e: any) {
-      logger.warn('[消息中心监控告警] 条件正则执行异常，按不命中处理', { pattern: condition.value, error: e?.message ?? e })
+      logger.warn('[告警引擎] 条件正则执行异常，按不命中处理', { pattern: condition.value, error: e?.message ?? e })
       return false
     }
   }
@@ -130,24 +96,18 @@ export function matchCondition(msg: AlertMessageContext, condition: AlertConditi
   }
 }
 
-// 返回逐条条件结果，供测试接口展示命中明细
-export function evaluateRule(msg: AlertMessageContext, rule: AlertRuleInput): RuleMatchResult {
-  const conditions: ConditionMatchResult[] = rule.conditions
+// matched 仅由 conditions 与 logic 决定，业务范围过滤由各业务域叠加
+export function evaluateConditions(context: Record<string, string>, logic: string, conditions: ConditionInput[]): { matched: boolean, conditions: ConditionMatchResult[] } {
+  const results: ConditionMatchResult[] = conditions
     .slice()
     .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
     .map((condition, index) => ({
       sort: condition.sort ?? index,
-      matched: matchCondition(msg, condition),
+      matched: matchCondition(context, condition),
     }))
-  const passed = matchFilters(msg, rule)
-  const hits = conditions.map(item => item.matched)
-  const conditionMatched = rule.logic === 'or' ? hits.some(Boolean) : hits.every(Boolean)
+  const hits = results.map(item => item.matched)
   return {
-    matched: passed && conditionMatched,
-    conditions,
+    matched: logic === 'or' ? hits.some(Boolean) : hits.every(Boolean),
+    conditions: results,
   }
-}
-
-export function matchRule(msg: AlertMessageContext, rule: AlertRuleInput): boolean {
-  return evaluateRule(msg, rule).matched
 }

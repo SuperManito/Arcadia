@@ -1,12 +1,11 @@
 import type { Express } from 'express'
 import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
-import type { alertRuleWhereInput } from '../../db'
+import type { messageAlertRuleWhereInput } from '../../db'
 import db from '../../db'
 import { validatePageFixedParams, validateRequestParams } from '../../utils'
-import type { AlertMessageContext } from '../../core/alert/matcher'
-import { evaluateRule } from '../../core/alert/matcher'
-import { validateRuleCore, validateRulePayload } from '../../core/alert/validation'
+import type { MessageAlertContext } from '../../core/message/alert'
+import { evaluateMessageAlertRule, validateMessageAlertRuleCore, validateMessageAlertRulePayload } from '../../core/message/alert'
 
 const api: Express = express()
 
@@ -23,7 +22,7 @@ function parseQueryId(value: string): number {
 /**
  * 规则分页列表（消息中心抽屉）
  */
-api.get('/rule/page', async (request, response) => {
+api.get('/alert/rule/page', async (request, response) => {
   try {
     validatePageFixedParams(request, ['id', 'name', 'create_time', 'update_time'])
     validateRequestParams(request, {
@@ -31,8 +30,8 @@ api.get('/rule/page', async (request, response) => {
         ['enabled', [false, ['1', '0']]],
       ],
     })
-    const where: alertRuleWhereInput = {}
-    const and: alertRuleWhereInput[] = []
+    const where: messageAlertRuleWhereInput = {}
+    const and: messageAlertRuleWhereInput[] = []
     if (request.query.search) {
       and.push({ name: { contains: request.query.search as string } })
     }
@@ -44,7 +43,7 @@ api.get('/rule/page', async (request, response) => {
     }
     const orderBy = request.query.orderBy as string || 'id'
     const desc = request.query.order !== '0'
-    const result = await db.alertRule.$page({
+    const result = await db.messageAlertRule.$page({
       where,
       orderBy: [{ [orderBy]: desc ? 'desc' : 'asc' }],
       page: String(request.query.page),
@@ -65,7 +64,7 @@ api.get('/rule/page', async (request, response) => {
 /**
  * 规则详情（有序 conditions + channels）
  */
-api.get('/rule', async (request, response) => {
+api.get('/alert/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
@@ -73,7 +72,7 @@ api.get('/rule', async (request, response) => {
       ] as const,
     })
     const id = parseQueryId(params.query.id)
-    const rule = await db.alertRule.$getById(id, 'id', {
+    const rule = await db.messageAlertRule.$getById(id, 'id', {
       include: {
         conditions: { orderBy: { sort: 'asc' } },
         channels: { orderBy: { sort: 'asc' }, include: { channel: true } },
@@ -103,7 +102,7 @@ api.get('/rule', async (request, response) => {
 /**
  * 新建规则
  */
-api.post('/rule', async (request, response) => {
+api.post('/alert/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
@@ -115,20 +114,19 @@ api.post('/rule', async (request, response) => {
         ['channelIds', [false, 'number[]']],
       ] as const,
     }, true)
-    const cleaned = await validateRulePayload(params.body)
+    const cleaned = await validateMessageAlertRulePayload(params.body)
     const rule = await db.$transaction(async (tx) => {
-      const created = await tx.alertRule.create({
+      const created = await tx.messageAlertRule.create({
         data: {
           name: cleaned.name,
-          scope: cleaned.scope,
           logic: cleaned.logic,
           categories: cleaned.categories,
           types: cleaned.types,
         },
       })
-      await tx.alertRuleCondition.createMany({
+      await tx.messageAlertRuleCondition.createMany({
         data: cleaned.conditions.map((condition, index) => ({
-          alertRuleId: created.id,
+          messageAlertRuleId: created.id,
           mode: condition.mode,
           field: condition.field,
           operator: condition.operator,
@@ -136,9 +134,9 @@ api.post('/rule', async (request, response) => {
           sort: index,
         })),
       })
-      await tx.alertRuleChannel.createMany({
+      await tx.messageAlertRuleChannel.createMany({
         data: cleaned.channelIds.map((channelId, index) => ({
-          alertRuleId: created.id,
+          messageAlertRuleId: created.id,
           channelId,
           sort: index,
         })),
@@ -155,7 +153,7 @@ api.post('/rule', async (request, response) => {
 /**
  * 更新规则（整体替换条件与关联；仅提供 id 与 enabled 时为快速启停）
  */
-api.put('/rule', async (request, response) => {
+api.put('/alert/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
@@ -170,33 +168,32 @@ api.put('/rule', async (request, response) => {
       ] as const,
     }, true)
     const { id, enabled, name, logic, categories, types, conditions, channelIds } = params.body
-    const exists = await db.alertRule.$getById(id)
+    const exists = await db.messageAlertRule.$getById(id)
     if (!exists) {
       throw new Error('规则不存在')
     }
     // 快速启停：只更新 enabled 字段，不触碰条件与关联
     if (enabled !== undefined && [name, logic, categories, types, conditions, channelIds].every(field => field === undefined)) {
-      const rule = await db.alertRule.$updateById({ id, data: { enabled } })
+      const rule = await db.messageAlertRule.$updateById({ id, data: { enabled } })
       response.send(API_STATUS_CODE.okData(rule))
       return
     }
-    const cleaned = await validateRulePayload(params.body, { excludeId: id })
+    const cleaned = await validateMessageAlertRulePayload(params.body, { excludeId: id })
     const rule = await db.$transaction(async (tx) => {
-      const updated = await tx.alertRule.update({
+      const updated = await tx.messageAlertRule.update({
         where: { id },
         data: {
           name: cleaned.name,
-          scope: cleaned.scope,
           logic: cleaned.logic,
           categories: cleaned.categories,
           types: cleaned.types,
         },
       })
-      await tx.alertRuleCondition.deleteMany({ where: { alertRuleId: id } })
-      await tx.alertRuleChannel.deleteMany({ where: { alertRuleId: id } })
-      await tx.alertRuleCondition.createMany({
+      await tx.messageAlertRuleCondition.deleteMany({ where: { messageAlertRuleId: id } })
+      await tx.messageAlertRuleChannel.deleteMany({ where: { messageAlertRuleId: id } })
+      await tx.messageAlertRuleCondition.createMany({
         data: cleaned.conditions.map((condition, index) => ({
-          alertRuleId: id,
+          messageAlertRuleId: id,
           mode: condition.mode,
           field: condition.field,
           operator: condition.operator,
@@ -204,9 +201,9 @@ api.put('/rule', async (request, response) => {
           sort: index,
         })),
       })
-      await tx.alertRuleChannel.createMany({
+      await tx.messageAlertRuleChannel.createMany({
         data: cleaned.channelIds.map((channelId, index) => ({
-          alertRuleId: id,
+          messageAlertRuleId: id,
           channelId,
           sort: index,
         })),
@@ -223,7 +220,7 @@ api.put('/rule', async (request, response) => {
 /**
  * 删除规则（事务内先删关联、再删条件、最后删规则）
  */
-api.delete('/rule', async (request, response) => {
+api.delete('/alert/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
@@ -231,14 +228,14 @@ api.delete('/rule', async (request, response) => {
       ] as const,
     })
     const { id } = params.body
-    const exists = await db.alertRule.$getById(id)
+    const exists = await db.messageAlertRule.$getById(id)
     if (!exists) {
       throw new Error('规则不存在')
     }
     await db.$transaction(async (tx) => {
-      await tx.alertRuleChannel.deleteMany({ where: { alertRuleId: id } })
-      await tx.alertRuleCondition.deleteMany({ where: { alertRuleId: id } })
-      await tx.alertRule.delete({ where: { id } })
+      await tx.messageAlertRuleChannel.deleteMany({ where: { messageAlertRuleId: id } })
+      await tx.messageAlertRuleCondition.deleteMany({ where: { messageAlertRuleId: id } })
+      await tx.messageAlertRule.delete({ where: { id } })
     })
     response.send(API_STATUS_CODE.ok())
   }
@@ -250,7 +247,7 @@ api.delete('/rule', async (request, response) => {
 /**
  * 规则命中测试（不落库、不发送）
  */
-api.post('/rule/test', async (request, response) => {
+api.post('/alert/rule/test', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
@@ -259,20 +256,20 @@ api.post('/rule/test', async (request, response) => {
       ] as const,
     })
     const { rule, message } = params.body
-    const cleanedRule = validateRuleCore(rule)
+    const cleanedRule = validateMessageAlertRuleCore(rule)
 
     const title = typeof message.title === 'string' ? message.title.trim() : ''
     const content = typeof message.content === 'string' ? message.content.trim() : ''
     if (!title && !content) {
       throw new Error('测试消息的标题与内容至少填写一项')
     }
-    const msg: AlertMessageContext = {
+    const msg: MessageAlertContext = {
       title,
       content,
       category: typeof message.category === 'string' ? message.category : '',
       type: typeof message.type === 'string' ? message.type : '',
     }
-    const result = evaluateRule(msg, {
+    const result = evaluateMessageAlertRule(msg, {
       logic: cleanedRule.logic,
       categories: cleanedRule.categories,
       types: cleanedRule.types,

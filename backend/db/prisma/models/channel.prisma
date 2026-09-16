@@ -6,7 +6,7 @@ model notifyChannel {
   config      String             @default("{}") // JSON 字符串，存该渠道除 type 外的全部参数
   create_time DateTime           @default(now())
   update_time DateTime           @default(now()) @updatedAt
-  alertLinks  alertRuleChannel[]
+  messageAlertLinks messageAlertRuleChannel[]
 
   @@index([type])
 }

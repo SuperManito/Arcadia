@@ -161,7 +161,7 @@ api.delete('/', async (request, response) => {
     if (!exists) {
       throw new Error('渠道不存在')
     }
-    const refCount = await db.alertRuleChannel.count({ where: { channelId: id } })
+    const refCount = await db.messageAlertRuleChannel.count({ where: { channelId: id } })
     if (refCount > 0) {
       throw new Error(`该渠道已被 ${refCount} 条消息中心监控告警规则引用，请先解除关联`)
     }

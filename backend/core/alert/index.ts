@@ -1,1 +1,1 @@
-export { processMessageAlert } from './processor'
+export * from './matcher'
