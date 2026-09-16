@@ -1,10 +1,37 @@
 import { logger } from '../../utils/logger'
 
-export const RULE_LOGICS = ['and', 'or'] as const
-export const SIMPLE_OPERATORS = ['include', 'not_include', 'equal', 'not_equal', 'starts_with', 'ends_with', 'empty', 'not_empty'] as const
-export const REGEX_OPERATORS = ['regex', 'not_regex'] as const
-export const CONDITION_MODES = ['simple', 'regex'] as const
-export const VALUE_OPTIONAL_OPERATORS = ['empty', 'not_empty'] as const
+export enum RuleLogic {
+  AND = 'and',
+  OR = 'or',
+}
+
+export enum ConditionMode {
+  SIMPLE = 'simple',
+  REGEX = 'regex',
+}
+
+export enum SimpleOperator {
+  INCLUDE = 'include',
+  NOT_INCLUDE = 'not_include',
+  EQUAL = 'equal',
+  NOT_EQUAL = 'not_equal',
+  STARTS_WITH = 'starts_with',
+  ENDS_WITH = 'ends_with',
+  EMPTY = 'empty',
+  NOT_EMPTY = 'not_empty',
+}
+
+export enum RegexOperator {
+  REGEX = 'regex',
+  NOT_REGEX = 'not_regex',
+}
+
+// 枚举值列表，供多值校验与遍历使用
+export const RULE_LOGICS = Object.values(RuleLogic)
+export const CONDITION_MODES = Object.values(ConditionMode)
+export const SIMPLE_OPERATORS = Object.values(SimpleOperator)
+export const REGEX_OPERATORS = Object.values(RegexOperator)
+export const VALUE_OPTIONAL_OPERATORS = [SimpleOperator.EMPTY, SimpleOperator.NOT_EMPTY]
 export const REGEX_MAX_LENGTH = 512
 
 export interface ConditionInput {
@@ -59,7 +86,7 @@ export function tryCompileRegex(pattern: string): RegExp | null {
 // 上下文按字段名取值，可用字段集由各业务域定义
 export function matchCondition(context: Record<string, string>, condition: ConditionInput): boolean {
   const fieldValue = context[condition.field] ?? ''
-  if (condition.mode === 'regex') {
+  if (condition.mode === ConditionMode.REGEX) {
     const reg = tryCompileRegex(condition.value)
     if (!reg) {
       logger.warn('[告警引擎] 条件正则编译失败，按不命中处理', { pattern: condition.value })
@@ -67,7 +94,7 @@ export function matchCondition(context: Record<string, string>, condition: Condi
     }
     try {
       const hit = reg.test(fieldValue)
-      return condition.operator === 'not_regex' ? !hit : hit
+      return condition.operator === RegexOperator.NOT_REGEX ? !hit : hit
     }
     catch (e: any) {
       logger.warn('[告警引擎] 条件正则执行异常，按不命中处理', { pattern: condition.value, error: e?.message ?? e })
@@ -75,21 +102,21 @@ export function matchCondition(context: Record<string, string>, condition: Condi
     }
   }
   switch (condition.operator) {
-    case 'include':
+    case SimpleOperator.INCLUDE:
       return fieldValue.includes(condition.value)
-    case 'not_include':
+    case SimpleOperator.NOT_INCLUDE:
       return !fieldValue.includes(condition.value)
-    case 'equal':
+    case SimpleOperator.EQUAL:
       return fieldValue === condition.value
-    case 'not_equal':
+    case SimpleOperator.NOT_EQUAL:
       return fieldValue !== condition.value
-    case 'starts_with':
+    case SimpleOperator.STARTS_WITH:
       return fieldValue.startsWith(condition.value)
-    case 'ends_with':
+    case SimpleOperator.ENDS_WITH:
       return fieldValue.endsWith(condition.value)
-    case 'empty':
+    case SimpleOperator.EMPTY:
       return fieldValue === ''
-    case 'not_empty':
+    case SimpleOperator.NOT_EMPTY:
       return fieldValue !== ''
     default:
       return false
@@ -107,7 +134,7 @@ export function evaluateConditions(context: Record<string, string>, logic: strin
     }))
   const hits = results.map(item => item.matched)
   return {
-    matched: logic === 'or' ? hits.some(Boolean) : hits.every(Boolean),
+    matched: logic === RuleLogic.OR ? hits.some(Boolean) : hits.every(Boolean),
     conditions: results,
   }
 }

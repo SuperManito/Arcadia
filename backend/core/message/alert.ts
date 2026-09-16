@@ -1,7 +1,7 @@
 import type { messageModel } from '../../db'
 import { db } from '../../db'
 import { logger } from '../../utils/logger'
-import type { ConditionInput } from '../alert/matcher'
+import type { ConditionInput, SimpleOperator } from '../alert/matcher'
 import {
   MESSAGE_CATEGORIES,
   MESSAGE_TYPES,
@@ -11,10 +11,12 @@ import {
 import {
   assertValidRegexPattern,
   CONDITION_MODES,
+  ConditionMode,
   evaluateConditions,
   parseMultiValue,
   REGEX_OPERATORS,
   RULE_LOGICS,
+  RuleLogic,
   SIMPLE_OPERATORS,
   VALUE_OPTIONAL_OPERATORS,
 } from '../alert/matcher'
@@ -178,8 +180,8 @@ function normalizeMultiValue(value: unknown, allowed: readonly string[], errorMe
 
 // 保存与测试共用，不查库
 export function validateMessageAlertRuleCore(body: MessageAlertRuleCoreInput): CleanedMessageAlertRuleCore {
-  const logic = body.logic ?? 'and'
-  if (!RULE_LOGICS.includes(logic as typeof RULE_LOGICS[number])) {
+  const logic = body.logic ?? RuleLogic.AND
+  if (!RULE_LOGICS.includes(logic as RuleLogic)) {
     throw new Error('条件组合逻辑无效')
   }
 
@@ -192,7 +194,7 @@ export function validateMessageAlertRuleCore(body: MessageAlertRuleCoreInput): C
     const n = index + 1
     const condition = raw ?? {}
     const mode = condition.mode
-    if (!CONDITION_MODES.includes(mode as typeof CONDITION_MODES[number])) {
+    if (!CONDITION_MODES.includes(mode as ConditionMode)) {
       throw new Error(`条件 ${n} 的匹配模式无效`)
     }
     const field = condition.field
@@ -200,18 +202,18 @@ export function validateMessageAlertRuleCore(body: MessageAlertRuleCoreInput): C
       throw new Error(`条件 ${n} 的匹配字段无效`)
     }
     const operator = condition.operator
-    const allowedOperators: readonly string[] = mode === 'regex' ? REGEX_OPERATORS : SIMPLE_OPERATORS
+    const allowedOperators: readonly string[] = mode === ConditionMode.REGEX ? REGEX_OPERATORS : SIMPLE_OPERATORS
     if (!allowedOperators.includes(operator as string)) {
       throw new Error(`条件 ${n} 的匹配运算符无效`)
     }
     let value = typeof condition.value === 'string' ? condition.value : ''
-    if ((VALUE_OPTIONAL_OPERATORS as readonly string[]).includes(operator as string)) {
+    if (VALUE_OPTIONAL_OPERATORS.includes(operator as SimpleOperator)) {
       value = ''
     }
     else if (!value.trim()) {
       throw new Error(`条件 ${n} 的匹配内容不能为空`)
     }
-    if (mode === 'regex') {
+    if (mode === ConditionMode.REGEX) {
       try {
         assertValidRegexPattern(value)
       }
