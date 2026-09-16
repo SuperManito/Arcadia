@@ -30,6 +30,8 @@ import {
 import { getDashboardRunning, getDashboardStats, getDashboardTrend } from '../../core/cron/query'
 import { isValidTasksFilterType, TasksTypeEnum } from '../../core/type/cron'
 import type { TaskConfigModel, TasksType } from '../../core/type/cron'
+import { sendMessage } from '../../core/message'
+import { MessageCategory, MessageType } from '../../core/type/message'
 import { handleOpenApiError } from '../openapi/openApiCore'
 
 const api: Express = express()
@@ -671,15 +673,45 @@ function convertPathToBind(type: TasksType, s: string) {
 }
 
 /**
+ * 推送定时任务变更通知
+ * 仅包含清单声明了 notify 的条目，内容用 Markdown 表格展示
+ */
+async function notifyCronChange(title: string, action: '添加' | '删除', results: InnerOpreateResult[]) {
+  if (results.length === 0)
+    return
+  const rows = results
+    .map(item =>
+      item.success
+        ? `| ${item.name} | ${action}成功 ✅ |`
+        : `| ${item.name} | ${action}失败 ❌ |`,
+    )
+    .join('\n')
+  try {
+    await sendMessage({
+      title,
+      content: `| 定时任务 | 结果 |\n| --- | --- |\n${rows}`,
+      category: MessageCategory.CRON,
+      type: MessageType.INFO,
+    })
+  }
+  catch (e: any) {
+    logger.error(`推送定时任务变更通知异常 (${title}):`, e.message || e)
+  }
+}
+
+/**
  * 批量更新定时任务（底层专用）
  */
 apiInner.post('/updateAll', async (request, response) => {
   try {
     const infos: InnerOpreateResult[] = []
+    const notifyAdd: InnerOpreateResult[] = []
+    const notifyDel: InnerOpreateResult[] = []
     const { deleteFiles, newFiles, type } = request.body
 
     // 删除
     if (deleteFiles && deleteFiles.length > 0) {
+      const notifyMap = new Map(deleteFiles.map((s: any) => [convertPathToBind(type, s.path), s.notify === true]))
       const deleteTask = await db.tasks.$list({
         where: {
           type: TasksTypeEnum.SYSTEM,
@@ -693,26 +725,17 @@ apiInner.post('/updateAll', async (request, response) => {
       for (const item of deleteTask) {
         const paths = item.bind.split('#')
         const path = `${paths[1]}/${paths[2]}`
-        try {
-          infos.push({
-            success: true,
-            type: 1,
-            path,
-            name: item.name,
-            remark: item.remark,
-            message: 'success',
-          })
+        const info: InnerOpreateResult = {
+          success: true,
+          type: 1,
+          path,
+          name: item.name,
+          remark: item.remark,
+          message: 'success',
         }
-        catch (e: any) {
-          infos.push({
-            success: false,
-            type: 1,
-            path,
-            name: item.name,
-            remark: item.remark,
-            message: `${e.message || e}`,
-          })
-        }
+        infos.push(info)
+        if (notifyMap.get(item.bind))
+          notifyDel.push(info)
       }
       await applyCron(deleteIds)
     }
@@ -751,26 +774,32 @@ apiInner.post('/updateAll', async (request, response) => {
           }
           const createResult = await db.tasks.$create(data)
           createdIds.push(createResult.id)
-          infos.push({
+          const info: InnerOpreateResult = {
             success: true,
             type: 0,
             path: task.path,
             name: task.name,
             remark: '',
             message: 'success',
-          })
+          }
+          infos.push(info)
+          if (item.notify === true)
+            notifyAdd.push(info)
         }
         catch (e: any) {
           const arr = item.path.split('/')
           const name = arr[arr.length - 1]
-          infos.push({
+          const info: InnerOpreateResult = {
             success: false,
             type: 0,
             path: item.path,
             name,
             remark: '',
             message: `${e.message || e}`,
-          })
+          }
+          infos.push(info)
+          if (item.notify === true)
+            notifyAdd.push(info)
         }
       }
     }
@@ -779,6 +808,8 @@ apiInner.post('/updateAll', async (request, response) => {
     if (createdIds.length > 0) {
       await applyCron(createdIds)
     }
+    await notifyCronChange('代码同步 - 新增定时任务', '添加', notifyAdd)
+    await notifyCronChange('代码同步 - 过期定时任务', '删除', notifyDel)
     response.send(API_STATUS_CODE.okData(infos))
   }
   catch (e: any) {

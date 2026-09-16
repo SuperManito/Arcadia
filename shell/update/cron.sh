@@ -38,9 +38,7 @@ function update_cron() {
 
     ## 处理接口响应
     function handle_result() {
-        local success type name path message status array_title_add array_msg_add array_title_del array_msg_del
-        local send_mark_add="$RootDir/.send_mark_add.log"
-        local send_mark_del="$RootDir/.send_mark_del.log"
+        local success type name message status array_title_add array_msg_add array_title_del array_msg_del
         local array_num_add=0
         local array_num_del=0
         local res="$1"
@@ -56,28 +54,19 @@ function update_cron() {
             success="$(echo "${result}" | jq -r ".[${i}].success")" # 处理结果：true 成功 false 失败
             type="$(echo "${result}" | jq -r ".[${i}].type")"       # 处理类型： 0 添加 1 删除
             name="$(echo "${result}" | jq -r ".[${i}].name")"       # 代码文件名称（中文名称/文件名）
-            path="$(echo "${result}" | jq -r ".[${i}].path")"       # 代码文件路径
             message="$(echo "${result}" | jq -r ".[${i}].message")" # 处理结果消息（报错时返回）
 
             case "${type}" in
             0)
                 [[ "${success}" == "true" ]] && status="添加成功✅" || status="(${message})添加失败❌"
-                array_title_add[$array_num_add]="${name}" 
+                array_title_add[$array_num_add]="${name}"
                 array_msg_add[$array_num_add]="${status}"
-                ## 推送通知提醒
-                if [[ "$(cat $ListConfScripts | jq -r '."'"${path}"'".addNotify')" == "true" ]]; then
-                    echo "${name} => ${status}" >>$send_mark_add
-                fi
                 let array_num_add++
                 ;;
             1)
                 [[ "${success}" == "true" ]] && status="删除成功" || status="删除失败（${message}）"
                 array_title_del[$array_num_del]="${name}"
                 array_msg_del[$array_num_del]="${status}"
-                ## 推送通知提醒
-                if [[ "$(cat $ListConfScripts | jq -r '."'"${path}"'".delNotify')" == "true" ]]; then
-                    echo "${name} => ${status}" >>$send_mark_del
-                fi
                 let array_num_del++
                 ;;
             esac
@@ -102,15 +91,6 @@ function update_cron() {
             output_table_data_file "$tmp_file"
         fi
         [ -f $tmp_file ] && rm -f $tmp_file
-        ## 推送通知提醒
-        if [ -s $send_mark_add ]; then
-            send_notify "代码同步 - 新增定时任务" "$(cat $send_mark_add)"
-            rm -f $send_mark_add
-        fi
-        if [ -s $send_mark_del ]; then
-            send_notify "代码同步 - 过期定时任务" "$(cat $send_mark_del)"
-            rm -f $send_mark_del
-        fi
         echo -e "\n$COMPLETE 更新定时任务完成"
     }
 
@@ -140,7 +120,7 @@ function update_cron() {
     DelArr=(
         $(cat $ListDelScripts)
     )
-    local data_tmp path active
+    local data_tmp path active notify
     for ((i = 0; i < ${#AddArr[@]}; i++)); do
         path="$(cat $ListConfScripts | jq -r ".\"${AddArr[i]}\".path")"
         if [[ "$(cat $ListConfScripts | jq -r ".\"${AddArr[i]}\".autoDisable")" == "true" ]]; then
@@ -148,7 +128,12 @@ function update_cron() {
         else
             active=1
         fi
-        data_tmp='{"path": "'"${path}"'", "active": '${active}'}'
+        if [[ "$(cat $ListConfScripts | jq -r ".\"${AddArr[i]}\".addNotify")" == "true" ]]; then
+            notify=true
+        else
+            notify=false
+        fi
+        data_tmp='{"path": "'"${path}"'", "active": '${active}', "notify": '${notify}'}'
         if [ $i -eq 0 ]; then
             newFiles="${data_tmp}"
         else
@@ -156,7 +141,12 @@ function update_cron() {
         fi
     done
     for ((i = 0; i < ${#DelArr[@]}; i++)); do
-        data_tmp='{"path": "'"${DelArr[i]}"'"}'
+        if [[ "$(cat $ListConfScripts | jq -r ".\"${DelArr[i]}\".delNotify")" == "true" ]]; then
+            notify=true
+        else
+            notify=false
+        fi
+        data_tmp='{"path": "'"${DelArr[i]}"'", "notify": '${notify}'}'
         if [ $i -eq 0 ]; then
             deleteFiles="${data_tmp}"
         else
