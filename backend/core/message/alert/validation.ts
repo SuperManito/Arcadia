@@ -62,11 +62,12 @@ export function validateMessageAlertRuleCore(body: MessageAlertRuleCoreInput): C
     if (!allowedOperators.includes(operator as string)) {
       throw new Error(`条件 ${n} 的匹配运算符无效`)
     }
-    let value = typeof condition.value === 'string' ? condition.value : ''
+    // 消息 title/content 落库前已 trim，匹配值需同样 trim，否则 equal / starts_with 等运算符永不命中
+    let value = typeof condition.value === 'string' ? condition.value.trim() : ''
     if (VALUE_OPTIONAL_OPERATORS.includes(operator as SimpleOperator)) {
       value = ''
     }
-    else if (!value.trim()) {
+    else if (!value) {
       throw new Error(`条件 ${n} 的匹配内容不能为空`)
     }
     if (mode === ConditionMode.REGEX) {

@@ -24,12 +24,11 @@ function matchMessageAlertFilters(msg: MessageAlertContext, rule: MessageAlertRu
 }
 
 // 返回逐条条件结果，供测试接口展示命中明细；matched 含分类/级别范围过滤
-export function evaluateMessageAlertRule(msg: MessageAlertContext, rule: MessageAlertRuleInput):
-{
+export async function evaluateMessageAlertRule(msg: MessageAlertContext, rule: MessageAlertRuleInput): Promise<{
   matched: boolean
   conditions: Array<{ sort: number, matched: boolean }>
-} {
-  const conditionResult = evaluateConditions({
+}> {
+  const conditionResult = await evaluateConditions({
     title: msg.title,
     content: msg.content,
   }, rule.logic, rule.conditions)
@@ -42,11 +41,11 @@ export function evaluateMessageAlertRule(msg: MessageAlertContext, rule: Message
 /**
  * 规则是否命中：分类 / 级别范围过滤与条件组求值的综合结果
  */
-export function matchMessageAlertRule(
+export async function matchMessageAlertRule(
   msg: MessageAlertContext,
   rule: MessageAlertRuleInput,
-): boolean {
-  return evaluateMessageAlertRule(msg, rule).matched
+): Promise<boolean> {
+  return (await evaluateMessageAlertRule(msg, rule)).matched
 }
 
 /**
@@ -92,7 +91,7 @@ async function processRule(
   msg: messageModel,
   context: MessageAlertContext,
 ) {
-  const hit = matchMessageAlertRule(context, {
+  const hit = await matchMessageAlertRule(context, {
     logic: rule.logic,
     categories: rule.categories,
     types: rule.types,

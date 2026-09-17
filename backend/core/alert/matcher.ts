@@ -1,4 +1,5 @@
 import { logger } from '../../utils/logger'
+import { testRegex } from './regexTester'
 
 export enum RuleLogic {
   AND = 'and',
@@ -89,8 +90,8 @@ export function tryCompileRegex(pattern: string): RegExp | null {
   }
 }
 
-// 上下文按字段名取值，可用字段集由各业务域定义
-export function matchCondition(context: Record<string, string>, condition: ConditionInput): boolean {
+// 上下文按字段名取值，可用字段集由各业务域定义；正则匹配委托独立线程防灾难性回溯阻塞主线程
+export async function matchCondition(context: Record<string, string>, condition: ConditionInput): Promise<boolean> {
   const fieldValue = context[condition.field] ?? ''
   if (condition.mode === ConditionMode.REGEX) {
     const reg = tryCompileRegex(condition.value)
@@ -98,14 +99,8 @@ export function matchCondition(context: Record<string, string>, condition: Condi
       logger.warn('[告警引擎] 条件正则编译失败，按不命中处理', { pattern: condition.value })
       return false
     }
-    try {
-      const hit = reg.test(fieldValue)
-      return condition.operator === RegexOperator.NOT_REGEX ? !hit : hit
-    }
-    catch (e: any) {
-      logger.warn('[告警引擎] 条件正则执行异常，按不命中处理', { pattern: condition.value, error: e?.message ?? e })
-      return false
-    }
+    const hit = await testRegex(condition.value, fieldValue)
+    return condition.operator === RegexOperator.NOT_REGEX ? !hit : hit
   }
   switch (condition.operator) {
     case SimpleOperator.INCLUDE:
@@ -130,21 +125,21 @@ export function matchCondition(context: Record<string, string>, condition: Condi
 }
 
 // matched 仅由 conditions 与 logic 决定，业务范围过滤由各业务域叠加
-export function evaluateConditions(
+export async function evaluateConditions(
   context: Record<string, string>,
   logic: string,
   conditions: ConditionInput[],
-): {
+): Promise<{
   matched: boolean
   conditions: ConditionMatchResult[]
-} {
-  const results: ConditionMatchResult[] = conditions
+}> {
+  const sorted = conditions
     .slice()
     .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
-    .map((condition, index) => ({
-      sort: condition.sort ?? index,
-      matched: matchCondition(context, condition),
-    }))
+  const results: ConditionMatchResult[] = await Promise.all(sorted.map(async (condition, index) => ({
+    sort: condition.sort ?? index,
+    matched: await matchCondition(context, condition),
+  })))
   const hits = results.map(item => item.matched)
   return {
     matched: logic === RuleLogic.OR ? hits.some(Boolean) : hits.every(Boolean),

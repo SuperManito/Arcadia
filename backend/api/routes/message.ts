@@ -512,7 +512,7 @@ api.post('/alert/rule/test', async (request, response) => {
       category: typeof message.category === 'string' ? message.category : '',
       type: typeof message.type === 'string' ? message.type : '',
     }
-    const result = evaluateMessageAlertRule(msg, {
+    const result = await evaluateMessageAlertRule(msg, {
       logic: cleanedRule.logic,
       categories: cleanedRule.categories,
       types: cleanedRule.types,
