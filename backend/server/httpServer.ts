@@ -4,7 +4,6 @@ import cors from 'cors'
 import compression from 'compression'
 import { expressjwt } from 'express-jwt'
 import bodyParser from 'body-parser'
-
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import { APP_PUBLIC_DIR } from '../core/type'
 import { getJwtSecretSync } from '../core/config'
@@ -21,9 +20,9 @@ import { systemApi } from '../api/routes/system'
 import { API as ApiLog } from '../api/routes/log'
 import { API as ApiConfig } from '../api/routes/config'
 import { API as ApiDaemon } from '../api/routes/daemon'
-import { API as ApiDep } from '../api/routes/dep'
+import { API as ApiDep, OpenAPI as OpenApiDep } from '../api/routes/dep'
 import { API as ApiUpdate, InnerAPI as InnerApiUpdate } from '../api/routes/update'
-// import { API as ApiAlert } from '../api/routes/alert'
+import { API as ApiChannel } from '../api/routes/channel'
 
 function getToken(req: Request) {
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
@@ -121,6 +120,7 @@ export function registerApp(apiAuthentication: RequestHandler) {
   openApiRouter.use('/cron', OpenApiCron)
   openApiRouter.use('/exec', OpenApiExec)
   openApiRouter.use('/message', OpenApiMessage)
+  openApiRouter.use('/dependency', OpenApiDep)
   app.use('/api/open', OpenAPIAuthentication, openApiLogMiddleware, openApiRouter)
   const handleOpenApiSyntaxError: ErrorRequestHandler = (err, _req, res, next) => {
     if (err && err?.name === 'SyntaxError') {
@@ -184,7 +184,7 @@ export function registerApp(apiAuthentication: RequestHandler) {
   apiRouter.use('/daemon', ApiDaemon)
   apiRouter.use('/dependency', ApiDep)
   apiRouter.use('/update', ApiUpdate)
-  // apiRouter.use('/alert', ApiAlert)
+  apiRouter.use('/channel', ApiChannel)
   app.use('/api', apiAuthentication, handleAuthenticationError, apiRouter)
 
   /**

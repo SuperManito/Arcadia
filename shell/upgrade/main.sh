@@ -31,16 +31,6 @@ function command_upgrade() {
     ## 检测依赖变动
     [ -f "${BackendDir}/package.json" ] && project_depend_new="$(cat "${BackendDir}/package.json")"
     if [[ "${project_depend_old}" != "${project_depend_new}" ]]; then
-
-        # node-pty build dependency（旧版本过渡，一段时间后移除）
-        local old_has_node_pty=1 new_has_node_pty=1
-        echo "${project_depend_old}" | grep "node-pty" -q && old_has_node_pty=0
-        echo "${project_depend_new}" | grep "node-pty" -q && new_has_node_pty=0
-        if [[ ${old_has_node_pty} -ne 0 ]] && [[ ${new_has_node_pty} -eq 0 ]]; then
-            apt-get install -y make build-essential
-            pm2 delete arcadia_ttyd >/dev/null 2>&1
-        fi
-
         pm2 delete arcadia_server >/dev/null 2>&1
         $ArcadiaCmd service start
     fi

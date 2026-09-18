@@ -1,12 +1,13 @@
-import type { Request } from 'express'
 import type { Server as HttpServer } from 'node:http'
-import { Server } from 'socket.io'
+import type { Request } from 'express'
 import type { Socket } from 'socket.io'
 import type { JwtPayload, VerifyCallback } from 'jsonwebtoken'
-import jwt from 'jsonwebtoken'
-import { getJwtSecretSync } from '../core/config'
 import type { taskRunInfo } from '../core/cron/taskRunner'
 import type { tasksModel } from '../db'
+import { Server } from 'socket.io'
+import jwt from 'jsonwebtoken'
+import { SocketEvent } from '../core/type/socket'
+import { getJwtSecretSync } from '../core/config'
 import { socketCommon } from './socketCommon'
 
 declare module 'http' {
@@ -62,7 +63,7 @@ export function initSocketServer(server: HttpServer) {
 }
 
 export function emitTaskStarted(task: Pick<tasksModel, 'id' | 'name' | 'type'>, manual: boolean) {
-  socketCommon.emit('task:started', {
+  socketCommon.emit(SocketEvent.TASK_STARTED, {
     taskId: task.id,
     taskName: task.name,
     taskType: task.type,
@@ -72,7 +73,7 @@ export function emitTaskStarted(task: Pick<tasksModel, 'id' | 'name' | 'type'>, 
 }
 
 export function emitTaskCompleted(info: taskRunInfo) {
-  socketCommon.emit('task:completed', {
+  socketCommon.emit(SocketEvent.TASK_COMPLETED, {
     taskId: info.task.id,
     taskName: info.task.name,
     taskType: info.task.type,

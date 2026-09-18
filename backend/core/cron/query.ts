@@ -1,7 +1,7 @@
+import type { TasksFilterType } from '../type/cron'
 import db from '../../db'
 import { logger } from '../../utils/logger'
 import { getAllRunningInstances } from './taskRunner'
-import type { TasksFilterType } from '../type/cron'
 import { TasksTypeEnum } from '../type/cron'
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000

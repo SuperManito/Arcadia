@@ -1,9 +1,9 @@
 import type { ConfigDataUser } from '../type/config'
+import { Buffer } from 'node:buffer'
+import { pbkdf2Sync, randomBytes } from 'node:crypto'
 import { ConfigKeyUser, DEFAULT_USER_CONFIG_VALUES } from '../type/config'
 import { updateUserConfigValues } from './index'
 import { isNotEmpty } from '../../utils'
-import { Buffer } from 'node:buffer'
-import { pbkdf2Sync, randomBytes } from 'node:crypto'
 
 const HASH_PREFIX = 'pbkdf2:'
 const PBKDF2_ITERATIONS = 10000

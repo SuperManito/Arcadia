@@ -1,8 +1,14 @@
 import type { Express, Request, Response } from 'express'
-import express from 'express'
+import type { RunEnv, RunOption } from '../../core/executor'
 import { execFile } from 'node:child_process'
+import express from 'express'
+import { createSession } from 'better-sse'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
-import { randomString, validateObject, validateRequestParams } from '../../utils'
+import {
+  randomString,
+  validateObject,
+  validateRequestParams,
+} from '../../utils'
 import { validateEnvName } from '../../utils/envUtil'
 import {
   checkPathAccess,
@@ -13,9 +19,14 @@ import {
 } from '../../core/file'
 import { APP_ROOT_DIR } from '../../core/type'
 import { CLI_CMD } from '../../core/type/cli'
-import { buildRunCodeFileCmd, makeNoopRunCallbacks, makeSocketRunCallbacks, runCodeFile, runningExecTasks, runShellCmd } from '../../core/executor'
-import type { RunEnv, RunOption } from '../../core/executor'
-import { createSession } from 'better-sse'
+import {
+  buildRunCodeFileCmd,
+  makeNoopRunCallbacks,
+  makeSocketRunCallbacks,
+  runCodeFile,
+  runningExecTasks,
+  runShellCmd,
+} from '../../core/executor'
 import { handleOpenApiError } from '../openapi/openApiCore'
 
 const api: Express = express()

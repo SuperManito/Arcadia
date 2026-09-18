@@ -1,5 +1,5 @@
-import { APP_ROOT_DIR } from '../core/type'
 import { exec } from 'node:child_process'
+import { APP_ROOT_DIR } from '../core/type'
 
 /**
  * 执行 Shell 命令

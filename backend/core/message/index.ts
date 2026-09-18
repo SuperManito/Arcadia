@@ -1,8 +1,12 @@
 import type { messageWhereInput } from '../../db'
-import { createHash } from 'node:crypto'
-import { db } from '../../db'
-import { validateObject } from '../../utils'
 import type { MessageData } from '../type/message'
+import { createHash } from 'node:crypto'
+import { SocketEvent } from '../type/socket'
+import { db } from '../../db'
+import { logger } from '../../utils/logger'
+import { validateObject } from '../../utils'
+import { MessageCategory, MessageScope, MessageType } from '../type/message'
+import { processMessageAlert } from './alert'
 import { socketCommon } from '../../server/socketCommon'
 
 // 消息去重缓存（FIFO 淘汰）
@@ -36,36 +40,26 @@ function registerDedup(fingerprint: string) {
   }
 }
 
-// 内容长度校验
+// 内容长度限制，超出部分截断
 const TITLE_MAX_LENGTH = 200
 const CONTENT_MAX_LENGTH = 20000
-
-function validateMessageLength(data: MessageData) {
-  if (data.title && data.title.length > TITLE_MAX_LENGTH) {
-    throw new Error(`消息标题长度不能超过 ${TITLE_MAX_LENGTH} 个字符`)
-  }
-  if (data.content && data.content.length > CONTENT_MAX_LENGTH) {
-    throw new Error(`消息内容长度不能超过 ${CONTENT_MAX_LENGTH} 个字符`)
-  }
-}
 
 /**
  * 发送消息
  * @returns true=新消息已创建，false=重复消息已丢弃
  */
 export async function sendMessage(data: MessageData): Promise<boolean> {
-  const title = (data.title ?? '').trim()
-  const content = (data.content ?? '').trim()
-  const category = data.category || 'system'
-  const type = data.type || 'info'
+  const title = (data.title ?? '').trim().slice(0, TITLE_MAX_LENGTH)
+  const content = (data.content ?? '').trim().slice(0, CONTENT_MAX_LENGTH)
+  const category = data.category || MessageCategory.SYSTEM
+  const type = data.type || MessageType.INFO
 
   validateObject({ title, content, category, type }, [
     ['title', [true, 'string']],
     ['content', [true, 'string']],
-    ['category', [false, 'string']],
-    ['type', [false, ['info', 'error', 'warn', 'success']]],
+    ['category', [false, Object.values(MessageCategory)]],
+    ['type', [false, Object.values(MessageType)]],
   ])
-  validateMessageLength({ title, content })
 
   // 消息去重
   const contentHash = createHash('md5').update(content).digest('hex')
@@ -79,8 +73,15 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
   // 注册去重缓存
   registerDedup(fingerprint)
 
+  // 消息中心监控告警：非阻塞触发，外部渠道延迟不影响消息写入路径
+  if (!data.skipAlert) {
+    void processMessageAlert(msg).catch((e: any) => {
+      logger.error('[消息中心监控告警] 触发异常', e?.message ?? e)
+    })
+  }
+
   // 通过 WebSocket 推送新消息
-  socketCommon.emit('message:new', {
+  socketCommon.emit(SocketEvent.MESSAGE_NEW, {
     id: msg.id,
     category: msg.category,
     type: msg.type,
@@ -97,22 +98,22 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
  * category 固定为 user
  * title 和 content 为必填，缺失时直接抛出错误
  */
-export async function pushUserMessage(data: { title: string, content: string, type?: 'info' | 'warn' | 'error' | 'success' }) {
+export async function pushUserMessage(data: { title: string, content: string, type?: MessageType }) {
   return await sendMessage({
     title: data.title,
     content: data.content,
-    category: 'user',
-    type: data.type ?? 'info',
+    category: MessageCategory.USER,
+    type: data.type ?? MessageType.INFO,
   })
 }
 
 /**
  * 获取未读消息数量
  */
-export async function getUnreadCount(scope: 'all' | 'user' = 'all'): Promise<number> {
+export async function getUnreadCount(scope: MessageScope = MessageScope.ALL): Promise<number> {
   const where: messageWhereInput = { status: 0 }
-  if (scope === 'user') {
-    where.category = 'user'
+  if (scope === MessageScope.USER) {
+    where.category = MessageCategory.USER
   }
   return await db.message.count({ where })
 }

@@ -1,4 +1,5 @@
 import { exec, execFile } from 'node:child_process'
+import { SocketEvent } from '../type/socket'
 import { getNeatContent } from '../file'
 import { socketCommon } from '../../server/socketCommon'
 import { randomString } from '../../utils'
@@ -161,7 +162,7 @@ export function makeNoopRunCallbacks(): RunnerCallbacks {
  * 构造 Socket run:log 事件回调
  */
 export function makeSocketRunCallbacks(): RunnerCallbacks {
-  const name = 'run:log'
+  const name = SocketEvent.RUN_LOG
   return {
     onStdout(runId, data) {
       socketCommon.emit(name, API_STATUS_CODE.okData({ runId, log: data, stream: 'stdout', over: false }))

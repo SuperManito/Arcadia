@@ -49,11 +49,10 @@ export async function runCleanup(
 
   // 系统日志（操作日志 + 登录日志 + 开放接口日志）
   if (types.includes('log')) {
-    const retentionDays = getRetentionDays(config, ConfigKeySystem.LOG_RETENTION_DAYS, days)
     const [serverResult, loginResult, openApiResult] = await Promise.all([
-      cleanServerLogs(retentionDays),
-      cleanLoginLogs(retentionDays),
-      cleanOpenApiLogs(retentionDays),
+      cleanServerLogs(getRetentionDays(config, ConfigKeySystem.SERVER_LOG_RETENTION_DAYS, days)),
+      cleanLoginLogs(getRetentionDays(config, ConfigKeySystem.LOGIN_LOG_RETENTION_DAYS, days)),
+      cleanOpenApiLogs(getRetentionDays(config, ConfigKeySystem.OPEN_API_LOG_RETENTION_DAYS, days)),
     ])
     result.log = { serverLog: serverResult.count, loginLog: loginResult.count, openApiLog: openApiResult.count }
   }

@@ -1,14 +1,58 @@
 // 消息中心通知
 model message {
-  id           Int      @id @default(autoincrement())
-  category     String   @default("system") // 系统类型 user,system,cron 等
-  type         String   @default("info") // info, warn, error, success
-  title        String
-  content      String
-  status       Int      @default(0) // 0:未读 1:已读
-  create_time  DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  category    String   @default("system") // 消息分类
+  type        String   @default("info") // info, warn, error, success
+  title       String
+  content     String
+  status      Int      @default(0) // 0:未读 1:已读
+  create_time DateTime @default(now())
 
   @@index([category])
   @@index([status, create_time])
   @@index([create_time])
+}
+
+// 监控告警规则：描述"什么消息需要告警"以及"告警到哪里"
+model messageAlertRule {
+  id          Int                         @id @default(autoincrement())
+  name        String // 规则名称，后端保证唯一（DB 不设 unique）
+  enabled     Int                         @default(1) // 1 启用 / 0 禁用
+  logic       String                      @default("and") // 条件组合逻辑："and" | "or"
+  categories  String                      @default("") // 消息分类多选，逗号分隔，空=全部
+  types       String                      @default("") // 消息级别多选，逗号分隔，空=全部
+  create_time DateTime                    @default(now())
+  update_time DateTime                    @default(now()) @updatedAt
+  conditions  messageAlertRuleCondition[]
+  channels    messageAlertRuleChannel[]
+
+  @@index([enabled])
+  @@index([name])
+}
+
+// 匹配条件：一条规则可包含多条，按 sort 排序展示与求值
+model messageAlertRuleCondition {
+  id                 Int              @id @default(autoincrement())
+  messageAlertRuleId Int
+  messageAlertRule   messageAlertRule @relation(fields: [messageAlertRuleId], references: [id])
+  mode               String           @default("simple") // "simple" 简易 | "regex" 正则
+  field              String // 匹配字段："title" | "content"
+  operator           String
+  value              String           @default("") // 匹配值；empty / not_empty 时忽略
+  sort               Int              @default(0) // 数组下标，0 起
+
+  @@index([messageAlertRuleId])
+}
+
+// 规则与渠道的关联
+model messageAlertRuleChannel {
+  id                 Int              @id @default(autoincrement())
+  messageAlertRuleId Int
+  messageAlertRule   messageAlertRule @relation(fields: [messageAlertRuleId], references: [id])
+  channelId          Int
+  channel            notificationChannel @relation(fields: [channelId], references: [id])
+
+  @@unique([messageAlertRuleId, channelId]) // 同一规则不能重复挂同一渠道
+  @@index([messageAlertRuleId])
+  @@index([channelId])
 }

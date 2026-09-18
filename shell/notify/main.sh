@@ -9,12 +9,10 @@ function command_notify() {
         output_command_error 1
         ;;
     2)
-        import_config_not_check
         import message
         push_message "$1" "$2"
         ;;
     3)
-        import_config_not_check
         import message
         push_message "$1" "$2" "$3"
         ;;

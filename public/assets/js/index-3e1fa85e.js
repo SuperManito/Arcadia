@@ -1,1 +1,0 @@
-import{Rs as e,_s as t,is as n,zs as r}from"./index-737aeaf0.js";function i(n,i=Symbol(),a={}){let{readonly:o=!0,createProvider:s=!1,native:c=!1}=a,l=e(n),u=o?r(l):l;return s||t(i,c?n:u),{state:l}}function a(e=Symbol(),t){return n(e,t||{})}var o=Symbol(`appProviderContext`);function s(e){return i(e,o)}function c(){return a(o)}export{a as i,c as n,i as r,s as t};

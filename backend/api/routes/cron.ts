@@ -1,8 +1,13 @@
 import type { Express, Request, Response } from 'express'
+import type { tasksModel, tasksWhereInput } from '../../db'
+import type { CodeFileResolveResult } from '../../core/file'
+import type { ValidateObjectParamType } from '../../utils'
+import type { TaskConfigModel, TasksType } from '../../core/type/cron'
 import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
 import { logger } from '../../utils/logger'
 import { validateCronExpression } from '../../core/cron/engine'
+import { normalizeTaskAlertChannelIds } from '../../core/cron/alert'
 import {
   applyCron,
   fixOrder,
@@ -14,12 +19,9 @@ import {
   stopCronTask,
   updateSortById,
 } from '../../core/cron'
-import type { tasksModel, tasksWhereInput } from '../../db'
 import db from '../../db'
-import type { CodeFileResolveResult } from '../../core/file'
 import { codeFileResolve } from '../../core/file'
 import { APP_DIR_PATH, APP_DIR_TYPE } from '../../core/type'
-import type { ValidateObjectParamType } from '../../utils'
 import {
   cleanProperties,
   getDateStr,
@@ -27,9 +29,14 @@ import {
   validatePageFixedParams,
   validateRequestParams,
 } from '../../utils'
-import { getDashboardRunning, getDashboardStats, getDashboardTrend } from '../../core/cron/query'
+import {
+  getDashboardRunning,
+  getDashboardStats,
+  getDashboardTrend,
+} from '../../core/cron/query'
 import { isValidTasksFilterType, TasksTypeEnum } from '../../core/type/cron'
-import type { TaskConfigModel, TasksType } from '../../core/type/cron'
+import { sendMessage } from '../../core/message'
+import { MessageCategory, MessageType } from '../../core/type/message'
 import { handleOpenApiError } from '../openapi/openApiCore'
 
 const api: Express = express()
@@ -278,6 +285,9 @@ api.post('/', async (request, response) => {
   try {
     const task = Object.assign({}, request.body, { create_time: new Date() })
     delete task.id
+    if ('error_alert' in task) {
+      task.error_alert = normalizeTaskAlertChannelIds(task.error_alert)
+    }
     // 校验定时规则
     validateCronExpression(task.cron)
     const createResult = await db.tasks.$create(task as tasksModel)
@@ -351,6 +361,8 @@ api.put('/', async (request, response) => {
         delete (task as any).bind
       if ('create_time' in task)
         delete (task as any).create_time
+      if ('error_alert' in task)
+        task.error_alert = normalizeTaskAlertChannelIds(task.error_alert)
       // 校验定时规则
       if (task.cron) {
         validateCronExpression(task.cron)
@@ -671,15 +683,45 @@ function convertPathToBind(type: TasksType, s: string) {
 }
 
 /**
+ * 推送定时任务变更通知
+ * 仅包含清单声明了 notify 的条目，内容用 Markdown 表格展示
+ */
+async function notifyCronChange(title: string, action: '添加' | '删除', results: InnerOpreateResult[]) {
+  if (results.length === 0)
+    return
+  const rows = results
+    .map(item =>
+      item.success
+        ? `| ${item.name} | ${action}成功 ✅ |`
+        : `| ${item.name} | ${action}失败 ❌ |`,
+    )
+    .join('\n')
+  try {
+    await sendMessage({
+      title,
+      content: `| 定时任务 | 结果 |\n| --- | --- |\n${rows}`,
+      category: MessageCategory.CRON,
+      type: MessageType.INFO,
+    })
+  }
+  catch (e: any) {
+    logger.error(`推送定时任务变更通知异常 (${title}):`, e.message || e)
+  }
+}
+
+/**
  * 批量更新定时任务（底层专用）
  */
 apiInner.post('/updateAll', async (request, response) => {
   try {
     const infos: InnerOpreateResult[] = []
+    const notifyAdd: InnerOpreateResult[] = []
+    const notifyDel: InnerOpreateResult[] = []
     const { deleteFiles, newFiles, type } = request.body
 
     // 删除
     if (deleteFiles && deleteFiles.length > 0) {
+      const notifyMap = new Map(deleteFiles.map((s: any) => [convertPathToBind(type, s.path), s.notify === true]))
       const deleteTask = await db.tasks.$list({
         where: {
           type: TasksTypeEnum.SYSTEM,
@@ -693,26 +735,17 @@ apiInner.post('/updateAll', async (request, response) => {
       for (const item of deleteTask) {
         const paths = item.bind.split('#')
         const path = `${paths[1]}/${paths[2]}`
-        try {
-          infos.push({
-            success: true,
-            type: 1,
-            path,
-            name: item.name,
-            remark: item.remark,
-            message: 'success',
-          })
+        const info: InnerOpreateResult = {
+          success: true,
+          type: 1,
+          path,
+          name: item.name,
+          remark: item.remark,
+          message: 'success',
         }
-        catch (e: any) {
-          infos.push({
-            success: false,
-            type: 1,
-            path,
-            name: item.name,
-            remark: item.remark,
-            message: `${e.message || e}`,
-          })
-        }
+        infos.push(info)
+        if (notifyMap.get(item.bind))
+          notifyDel.push(info)
       }
       await applyCron(deleteIds)
     }
@@ -751,26 +784,32 @@ apiInner.post('/updateAll', async (request, response) => {
           }
           const createResult = await db.tasks.$create(data)
           createdIds.push(createResult.id)
-          infos.push({
+          const info: InnerOpreateResult = {
             success: true,
             type: 0,
             path: task.path,
             name: task.name,
             remark: '',
             message: 'success',
-          })
+          }
+          infos.push(info)
+          if (item.notify === true)
+            notifyAdd.push(info)
         }
         catch (e: any) {
           const arr = item.path.split('/')
           const name = arr[arr.length - 1]
-          infos.push({
+          const info: InnerOpreateResult = {
             success: false,
             type: 0,
             path: item.path,
             name,
             remark: '',
             message: `${e.message || e}`,
-          })
+          }
+          infos.push(info)
+          if (item.notify === true)
+            notifyAdd.push(info)
         }
       }
     }
@@ -779,6 +818,8 @@ apiInner.post('/updateAll', async (request, response) => {
     if (createdIds.length > 0) {
       await applyCron(createdIds)
     }
+    await notifyCronChange('代码同步 - 新增定时任务', '添加', notifyAdd)
+    await notifyCronChange('代码同步 - 过期定时任务', '删除', notifyDel)
     response.send(API_STATUS_CODE.okData(infos))
   }
   catch (e: any) {

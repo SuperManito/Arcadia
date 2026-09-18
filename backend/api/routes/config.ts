@@ -2,7 +2,12 @@ import type { Express, Request, Response } from 'express'
 import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
 import { validateRequestParams } from '../../utils'
-import { getCliModuleConfig, getSystemModuleConfig, updateCliConfigValues, updateSystemConfigValues } from '../../core/config'
+import {
+  getCliModuleConfig,
+  getSystemModuleConfig,
+  updateCliConfigValues,
+  updateSystemConfigValues,
+} from '../../core/config'
 import { ConfigKeyCli, ConfigKeySystem } from '../../core/type/config'
 import { generateCliConfigSh } from '../../core/config/cli'
 import { applySystemTimezone, depSetSource } from '../../core/config/system'
@@ -46,7 +51,6 @@ API.post('/cli', async (request: Request, response: Response) => {
         ['ENABLE_TASK_BEFORE_EXTRA', [false, 'string', true]],
         ['ENABLE_TASK_AFTER_EXTRA', [false, 'string', true]],
         ['ENABLE_AUTO_DELETE_REMOTE_FILE', [false, 'string', true]],
-        ['ENABLE_CUSTOM_NOTIFY', [false, 'string', true]],
         ['RUN_DELAY_MAX_SECONDS', [false, 'string', true]],
         ['DEFAULT_JS_RUNTIME', [false, 'string', true]],
         ['DEFAULT_TS_RUNTIME', [false, 'string', true]],
@@ -99,7 +103,9 @@ API.post('/system', async (request: Request, response: Response) => {
         ['pipIndexUrl', [false, 'string', true]],
         ['aptMirrorUrl', [false, 'string', true]],
         ['gemRegistry', [false, 'string', true]],
-        ['logRetentionDays', [false, 'string', true]],
+        ['serverLogRetentionDays', [false, 'string', true]],
+        ['loginLogRetentionDays', [false, 'string', true]],
+        ['openApiLogRetentionDays', [false, 'string', true]],
         ['messageRetentionDays', [false, 'string', true]],
         ['taskHistoryRetentionDays', [false, 'string', true]],
         ['cleanupCronExpression', [false, 'string', true]],

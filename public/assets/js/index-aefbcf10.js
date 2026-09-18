@@ -1,0 +1,1 @@
+import{g as e}from"./index-971115f7.js";function t(t){return e.post({url:`/exec/cmd`,data:t})}function n(t){return e.post({url:`/exec/file`,data:t})}function r(t){return e.post({url:`/exec/file/debug`,data:t})}function i(t){return e.post({url:`/exec/file/command`,data:t})}function a(t){return e.post({url:`/exec/file/stop`,data:t})}export{a,r as i,t as n,n as r,i as t};

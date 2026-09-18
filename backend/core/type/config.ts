@@ -45,7 +45,6 @@ export enum ConfigKeyCli {
   ENABLE_TASK_BEFORE_EXTRA = 'ENABLE_TASK_BEFORE_EXTRA',
   ENABLE_TASK_AFTER_EXTRA = 'ENABLE_TASK_AFTER_EXTRA',
   ENABLE_AUTO_DELETE_REMOTE_FILE = 'ENABLE_AUTO_DELETE_REMOTE_FILE',
-  ENABLE_CUSTOM_NOTIFY = 'ENABLE_CUSTOM_NOTIFY',
   RUN_DELAY_MAX_SECONDS = 'RUN_DELAY_MAX_SECONDS',
   DEFAULT_JS_RUNTIME = 'DEFAULT_JS_RUNTIME',
   DEFAULT_TS_RUNTIME = 'DEFAULT_TS_RUNTIME',
@@ -60,7 +59,9 @@ export enum ConfigKeySystem {
   PIP_INDEX_URL = 'pipIndexUrl',
   APT_MIRROR_URL = 'aptMirrorUrl',
   GEM_REGISTRY = 'gemRegistry',
-  LOG_RETENTION_DAYS = 'logRetentionDays',
+  SERVER_LOG_RETENTION_DAYS = 'serverLogRetentionDays',
+  LOGIN_LOG_RETENTION_DAYS = 'loginLogRetentionDays',
+  OPEN_API_LOG_RETENTION_DAYS = 'openApiLogRetentionDays',
   MESSAGE_RETENTION_DAYS = 'messageRetentionDays',
   TASK_HISTORY_RETENTION_DAYS = 'taskHistoryRetentionDays',
   CLEANUP_CRON_EXPRESSION = 'cleanupCronExpression',
@@ -100,7 +101,6 @@ export interface ConfigDataCli {
   ENABLE_TASK_BEFORE_EXTRA: string
   ENABLE_TASK_AFTER_EXTRA: string
   ENABLE_AUTO_DELETE_REMOTE_FILE: string
-  ENABLE_CUSTOM_NOTIFY: string
   RUN_DELAY_MAX_SECONDS: string
   DEFAULT_JS_RUNTIME: string
   DEFAULT_TS_RUNTIME: string
@@ -112,7 +112,9 @@ export interface ConfigDataSystem {
   pipIndexUrl: string
   aptMirrorUrl: string
   gemRegistry: string
-  logRetentionDays: string
+  serverLogRetentionDays: string
+  loginLogRetentionDays: string
+  openApiLogRetentionDays: string
   messageRetentionDays: string
   taskHistoryRetentionDays: string
   cleanupCronExpression: string
@@ -162,7 +164,6 @@ export const DEFAULT_CONFIG_VALUES: DefaultConfigValues = {
     [ConfigKeyCli.ENABLE_TASK_BEFORE_EXTRA]: '',
     [ConfigKeyCli.ENABLE_TASK_AFTER_EXTRA]: '',
     [ConfigKeyCli.ENABLE_AUTO_DELETE_REMOTE_FILE]: '',
-    [ConfigKeyCli.ENABLE_CUSTOM_NOTIFY]: '',
     [ConfigKeyCli.RUN_DELAY_MAX_SECONDS]: '300',
     [ConfigKeyCli.DEFAULT_JS_RUNTIME]: 'node',
     [ConfigKeyCli.DEFAULT_TS_RUNTIME]: 'tsx',
@@ -174,7 +175,9 @@ export const DEFAULT_CONFIG_VALUES: DefaultConfigValues = {
     [ConfigKeySystem.PIP_INDEX_URL]: '',
     [ConfigKeySystem.APT_MIRROR_URL]: '',
     [ConfigKeySystem.GEM_REGISTRY]: '',
-    [ConfigKeySystem.LOG_RETENTION_DAYS]: '7',
+    [ConfigKeySystem.SERVER_LOG_RETENTION_DAYS]: '7',
+    [ConfigKeySystem.LOGIN_LOG_RETENTION_DAYS]: '180',
+    [ConfigKeySystem.OPEN_API_LOG_RETENTION_DAYS]: '7',
     [ConfigKeySystem.MESSAGE_RETENTION_DAYS]: '7',
     [ConfigKeySystem.TASK_HISTORY_RETENTION_DAYS]: '7',
     [ConfigKeySystem.CLEANUP_CRON_EXPRESSION]: '',

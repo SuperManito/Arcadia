@@ -1,8 +1,13 @@
-import { getRuntimeModuleConfigReadonly, updateRuntimeConfigValue, updateRuntimeConfigValues } from '../config'
+import type { UpdateSnapshot } from './types'
+import { SocketEvent } from '../type/socket'
+import {
+  getRuntimeModuleConfigReadonly,
+  updateRuntimeConfigValue,
+  updateRuntimeConfigValues,
+} from '../config'
 import { socketCommon } from '../../server/socketCommon'
 import { ConfigKeyRuntime } from '../type/config'
 import { isUpgradeRunning } from './execute'
-import type { UpdateSnapshot } from './types'
 import { updateCore } from './updateCore'
 
 /**
@@ -62,5 +67,5 @@ export async function refreshVersionStateAfterUpgrade(): Promise<void> {
   await resolveCurrentVersionTag()
   if (localHead)
     await updateRuntimeConfigValue(ConfigKeyRuntime.UPDATE_CURRENT_COMMIT, localHead)
-  socketCommon.emit('update:refresh', {})
+  socketCommon.emit(SocketEvent.UPDATE_REFRESH, {})
 }

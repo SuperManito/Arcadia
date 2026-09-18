@@ -1,8 +1,9 @@
+import type { FSWatcher } from 'node:fs'
 import type { Server, Socket } from 'socket.io'
 import { watch } from 'node:fs'
-import type { FSWatcher } from 'node:fs'
 import { open, stat } from 'node:fs/promises'
 import { Buffer } from 'node:buffer'
+import { SocketEvent } from '../core/type/socket'
 import db from '../db'
 import { getDaemonLogFilePath } from '../core/daemon'
 
@@ -61,7 +62,7 @@ async function flushLog(state: LogWatchState, socket: Socket): Promise<void> {
         await fd.close()
       }
       if (socket.connected && bytesRead > 0) {
-        socket.emit('daemon:log:data', buf.subarray(0, bytesRead).toString('utf-8'))
+        socket.emit(SocketEvent.DAEMON_LOG_DATA, buf.subarray(0, bytesRead).toString('utf-8'))
       }
     }
     else if (newSize < state.lastSize) {
@@ -131,7 +132,7 @@ async function startWatching(socket: Socket, taskId: number, filePath: string): 
  */
 export function initDaemonLogServer(io: Server): void {
   io.on('connection', (socket: Socket) => {
-    socket.on('daemon:log:subscribe', async (payload: unknown) => {
+    socket.on(SocketEvent.DAEMON_LOG_SUBSCRIBE, async (payload: unknown) => {
       try {
         const id = typeof payload === 'object' && payload !== null ? (payload as { id?: unknown }).id : undefined
         if (typeof id !== 'number' || !Number.isInteger(id) || id <= 0) {
@@ -147,7 +148,7 @@ export function initDaemonLogServer(io: Server): void {
       catch {}
     })
 
-    socket.on('daemon:log:unsubscribe', () => {
+    socket.on(SocketEvent.DAEMON_LOG_UNSUBSCRIBE, () => {
       cleanupWatch(socket.id)
     })
 

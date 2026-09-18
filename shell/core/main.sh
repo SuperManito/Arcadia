@@ -29,9 +29,6 @@ FileUpdateExtra=$ConfigDir/update_extra.sh
 FileInitExtra=$ConfigDir/init_extra.sh
 FileTaskBeforeExtra=$ConfigDir/task_before_extra.sh
 FileTaskAfterExtra=$ConfigDir/task_after_extra.sh
-FileNotify=$UtilsDir/notify.js
-FileSendNotify=$UtilsDir/sendNotify.js
-FileSendNotifyUser=$ConfigDir/sendNotify.js
 FileSendMark=$RootDir/send_mark
 FilePm2List=$RootDir/.pm2_list.log
 FileProcessList=$RootDir/.process_list.log
@@ -148,14 +145,8 @@ function output_command_error() {
 
 ## 推送通知
 function send_notify() {
-    local title=$(echo "$1" | sed "s|-|_|g")
-    local msg="$(echo -e "$2")"
-    import_config_not_check
-    if [[ "${CLI_CONFIG_ENABLE_CUSTOM_NOTIFY}" == "true" ]] && [ -s $FileSendNotifyUser ]; then
-        node $FileNotify "$title" "$msg" "true"
-    else
-        node $FileNotify "$title" "$msg"
-    fi
+    import message
+    push_message "$1" "$2"
 }
 
 ## 创建目录

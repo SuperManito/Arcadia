@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { execFile } from 'node:child_process'
+import { SocketEvent } from '../type/socket'
 import db from '../../db'
 import { APP_DIR_PATH } from '../type'
 import { socketCommon } from '../../server/socketCommon'
@@ -13,7 +14,7 @@ export const DepStatus = {
   UNINSTALLING: 4,
 } as const
 
-const socketEventName = 'dep:operate'
+const socketEventName = SocketEvent.DEP_OPERATE
 
 export type DepStatusValue = (typeof DepStatus)[keyof typeof DepStatus]
 
@@ -82,6 +83,15 @@ export function getBaseName(ecosystem: string, name: string): string {
     }
   }
   return fn(name)
+}
+
+/**
+ * 平台保留依赖直接抛错，文案按动作区分
+ */
+export function assertNotProtected(ecosystem: string, name: string, action: '添加' | '操作' = '操作') {
+  const baseName = getBaseName(ecosystem, name)
+  if (PROTECTED[ecosystem]?.has(baseName))
+    throw new Error(`${baseName} 为平台保留依赖，禁止${action}！`)
 }
 
 type QueueTask = () => Promise<void>

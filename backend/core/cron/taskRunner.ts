@@ -1,6 +1,6 @@
+import type { ChildProcess } from 'node:child_process'
 import type { tasksModel } from '../../db'
 import { db } from '../../db'
-import type { ChildProcess } from 'node:child_process'
 import { logger } from '../../utils/logger'
 import { randomString } from '../../utils'
 import { execShell } from '../../utils/cmdUtil'
@@ -15,7 +15,7 @@ export interface taskRunInfo {
   duration: number
   success: boolean
   manual: boolean
-  task: Pick<tasksModel, 'id' | 'name' | 'type' | 'error_notify'>
+  task: Pick<tasksModel, 'id' | 'name' | 'type' | 'error_notify' | 'error_alert'>
 }
 
 /**

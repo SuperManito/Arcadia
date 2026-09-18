@@ -1,3 +1,6 @@
+import type { GithubRelease } from './releases'
+import type { UpdateCheckResult, UpdateCheckSource } from './types'
+import { SocketEvent } from '../type/socket'
 import {
   getConfigValue,
   getRuntimeModuleConfigReadonly,
@@ -5,14 +8,13 @@ import {
   updateRuntimeConfigValues,
 } from '../config'
 import { sendMessage } from '../message'
+import { MessageCategory, MessageType } from '../type/message'
 import { socketCommon } from '../../server/socketCommon'
 import { ConfigKeyRuntime, ConfigModule } from '../type/config'
 import { logger } from '../../utils/logger'
 import { updateConstants } from './constants'
 import { fetchLatestRelease } from './releases'
-import type { GithubRelease } from './releases'
 import { UpdateCheckErrorCode, UpdateCheckErrors, UpdateCheckStatus } from './types'
-import type { UpdateCheckResult, UpdateCheckSource } from './types'
 import { updateCore } from './updateCore'
 
 /**
@@ -123,10 +125,10 @@ async function runCheckAndPersist(source: UpdateCheckSource): Promise<UpdateChec
     if (source === 'auto' && notified !== 'true') {
       const content = result.target.changelog?.trim() || '检测到新版本，请前往版本更新页面查看更多细节'
       await sendMessage({
-        title: '发现新版本',
+        title: `发现 Arcadia 新版本 ${result.target.versionTag ?? ''}`,
         content,
-        category: 'system',
-        type: 'info',
+        category: MessageCategory.SYSTEM,
+        type: MessageType.INFO,
       })
       await updateRuntimeConfigValue(ConfigKeyRuntime.UPDATE_NOTIFIED, 'true')
     }
@@ -150,7 +152,7 @@ async function runCheckAndPersist(source: UpdateCheckSource): Promise<UpdateChec
     await updateRuntimeConfigValue(ConfigKeyRuntime.UPDATE_CHECK_FAILED_AT, String(Date.now()))
   }
 
-  socketCommon.emit('update:refresh', {})
+  socketCommon.emit(SocketEvent.UPDATE_REFRESH, {})
   return result
 }
 
