@@ -1,1 +1,0 @@
-import{g as e,v as t}from"./index-2b49a631.js";import{s as n}from"./index-9d1d1508.js";var r=Symbol();function i(i,a=!0){let{on:o,off:s,reset:c,emit:l}=n(i??r),u,d;function f(e,{wait:n=150,immediate:r=!1,isPassPars:i=!0}={}){u=t(e,n),d=()=>{u()},o(i?u:()=>{u()}),r&&l()}function p(e){let t=e||u||d;t&&s(t)}return e(()=>{a&&p()}),{on:f,off:p,reset:c,emit:l}}export{i as t};

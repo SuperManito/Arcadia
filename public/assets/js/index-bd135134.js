@@ -1,0 +1,1 @@
+var e=new URL(`../images/logo-dark-sub.png`,import.meta.url).href,t=new URL(`../images/logo-light-sub.png`,import.meta.url).href;export{e as n,t};

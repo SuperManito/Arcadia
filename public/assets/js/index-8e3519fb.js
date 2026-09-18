@@ -1,0 +1,1 @@
+import{Yo as e,ts as t,ys as n}from"./index-a7eb3ae4.js";import{t as r}from"./index-4334ccc6.js";var i=t({name:`FrameBlank`});function a(t,r,i,a,o,s){return n(),e(`div`)}var o=r(i,[[`render`,a]]);export{o as default};

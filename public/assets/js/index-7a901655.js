@@ -1,1 +1,0 @@
-import{Wo as e,es as t}from"./index-737aeaf0.js";import{n,t as r}from"./index-9956abb4.js";import{t as i}from"./index-7b3abc7c.js";function a(e,t=!1){let i=t?r:n;return i[e].self(i.common)}function o(n,r){if(!t())return;let{getIsDarkMode:o}=i(),s=a(n),c=a(n,!0);return e(()=>o.value?c[r]:s[r])}export{o as n,a as t};

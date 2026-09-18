@@ -1,0 +1,1 @@
+import{g as e}from"./index-971115f7.js";function t(){return e.get({url:`/config/cli`})}function n(t){return e.post({url:`/config/cli`,data:t})}function r(){return e.get({url:`/config/system`},{errorMessageMode:`none`})}function i(t){return e.post({url:`/config/system`,data:t})}function a(t){return e.post({url:`/log/cleanup`,data:t})}export{a,i,r as n,n as r,t};

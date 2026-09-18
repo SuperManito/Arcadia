@@ -1,0 +1,1 @@
+var e=`*`.repeat(256);function t(t){return t<=e.length?e.slice(0,t):`*`.repeat(t)}function n(e){if(!e)return``;let n=e.length,r=0,i=0;return n>=5?(r=2,i=2):n===4?(r=2,i=1):n===3?(r=1,i=1):n===2&&(r=1),r+i===0?t(n):e.slice(0,r)+t(n-r-i)+e.slice(n-i)}export{n as t};
