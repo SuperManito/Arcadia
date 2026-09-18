@@ -1,7 +1,7 @@
 import type { Express } from 'express'
+import type { notificationChannelWhereInput } from '../../db'
 import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
-import type { notificationChannelWhereInput } from '../../db'
 import db from '../../db'
 import { validatePageFixedParams, validateRequestParams } from '../../utils'
 import { pushChannel } from '../../core/channel'

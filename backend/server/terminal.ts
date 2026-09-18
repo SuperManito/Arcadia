@@ -1,5 +1,5 @@
-import { SocketEvent } from '../core/type/socket'
 import type { Server, Socket } from 'socket.io'
+import { SocketEvent } from '../core/type/socket'
 import { APP_ROOT_DIR } from '../core/type'
 import { socketAuthMiddleware } from './socket'
 // import { logger } from '../utils/logger'

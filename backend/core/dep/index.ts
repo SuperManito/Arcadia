@@ -1,6 +1,6 @@
-import { SocketEvent } from '../type/socket'
 import path from 'node:path'
 import { execFile } from 'node:child_process'
+import { SocketEvent } from '../type/socket'
 import db from '../../db'
 import { APP_DIR_PATH } from '../type'
 import { socketCommon } from '../../server/socketCommon'

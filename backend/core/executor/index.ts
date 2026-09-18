@@ -1,5 +1,5 @@
-import { SocketEvent } from '../type/socket'
 import { exec, execFile } from 'node:child_process'
+import { SocketEvent } from '../type/socket'
 import { getNeatContent } from '../file'
 import { socketCommon } from '../../server/socketCommon'
 import { randomString } from '../../utils'

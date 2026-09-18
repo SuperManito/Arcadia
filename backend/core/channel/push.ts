@@ -1,6 +1,6 @@
 import type { PushPayload } from './types'
-import { CHANNEL_CONFIG_RULES, getPusher } from './registry'
 import type { ChannelType } from './registry'
+import { CHANNEL_CONFIG_RULES, getPusher } from './registry'
 import { validateObject } from '../../utils'
 
 export type PushResult = { success: true } | { success: false, error: string }

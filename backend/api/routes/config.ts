@@ -2,7 +2,12 @@ import type { Express, Request, Response } from 'express'
 import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
 import { validateRequestParams } from '../../utils'
-import { getCliModuleConfig, getSystemModuleConfig, updateCliConfigValues, updateSystemConfigValues } from '../../core/config'
+import {
+  getCliModuleConfig,
+  getSystemModuleConfig,
+  updateCliConfigValues,
+  updateSystemConfigValues,
+} from '../../core/config'
 import { ConfigKeyCli, ConfigKeySystem } from '../../core/type/config'
 import { generateCliConfigSh } from '../../core/config/cli'
 import { applySystemTimezone, depSetSource } from '../../core/config/system'

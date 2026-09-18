@@ -41,7 +41,29 @@ export default antfu({
     'jsdoc/require-returns-type': 'off',
     // 自定义规则
     'no-unused-expressions': ['error', { allowShortCircuit: true }], // 允许短路表达式
-    'perfectionist/sort-imports': 'off', // 关闭 import 排序规则
+    'perfectionist/sort-imports': [
+      'error',
+      {
+        // 关闭主排序逻辑
+        type: 'unsorted',
+        groups: [
+          'type-import', // 顶层 import type 优先
+          'type-builtin',
+          'type-external',
+          'type-internal',
+          'type-parent',
+          'type-sibling',
+          'type-index',
+          'builtin',
+          'external',
+          'internal',
+          ['parent', 'sibling', 'index'],
+          'side-effect',
+          'unknown',
+        ],
+        newlinesBetween: 'ignore',
+      },
+    ],
     'import/newline-after-import': 'off', // 关闭 import 后必须有新行的规则
     'no-console': 'off', // 允许使用 console
     'style/arrow-parens': 'off', // 关闭箭头函数参数括号的样式规则

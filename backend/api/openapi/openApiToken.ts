@@ -1,8 +1,14 @@
 import type { Express, Request, Response } from 'express'
+import type { PermissionKey } from './openApiCore'
 import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
-import { ALL_PERMISSION_KEYS, createToken, deleteToken, listTokens, updateToken } from './openApiCore'
-import type { PermissionKey } from './openApiCore'
+import {
+  ALL_PERMISSION_KEYS,
+  createToken,
+  deleteToken,
+  listTokens,
+  updateToken,
+} from './openApiCore'
 
 const api: Express = express()
 

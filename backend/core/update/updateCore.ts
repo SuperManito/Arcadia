@@ -1,11 +1,16 @@
 import type { Buffer } from 'node:buffer'
-import { spawn } from 'node:child_process'
 import type { ChildProcessWithoutNullStreams } from 'node:child_process'
-import { getConfigValue, setVersionTagSync, updateRuntimeConfigValue, updateRuntimeConfigValues } from '../config'
+import type { LocalVersionInfo } from './types'
+import { spawn } from 'node:child_process'
+import {
+  getConfigValue,
+  setVersionTagSync,
+  updateRuntimeConfigValue,
+  updateRuntimeConfigValues,
+} from '../config'
 import { APP_DIR_PATH, APP_FILE_PATH, APP_SOURCE_DIR } from '../type'
 import { ConfigKeyRuntime, ConfigModule } from '../type/config'
 import { updateConstants } from './constants'
-import type { LocalVersionInfo } from './types'
 
 /**
  * shell/utils/update.sh 子命令

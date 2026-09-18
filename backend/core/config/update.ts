@@ -1,6 +1,12 @@
-import db from '../../db'
 import type { ConfigKey } from '../type/config'
-import { ConfigKeyCli, ConfigKeyRuntime, ConfigKeySystem, ConfigKeyUser, ConfigModule } from '../type/config'
+import db from '../../db'
+import {
+  ConfigKeyCli,
+  ConfigKeyRuntime,
+  ConfigKeySystem,
+  ConfigKeyUser,
+  ConfigModule,
+} from '../type/config'
 
 export interface ConfigUpdateItem {
   key: ConfigKey

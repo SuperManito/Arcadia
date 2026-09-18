@@ -12,7 +12,13 @@ import {
   validateMessageAlertRuleCore,
   validateMessageAlertRulePayload,
 } from '../../core/message/alert'
-import { MESSAGE_CATEGORIES, MESSAGE_TYPES, MessageCategory, MessageScope, MessageType } from '../../core/type/message'
+import {
+  MESSAGE_CATEGORIES,
+  MESSAGE_TYPES,
+  MessageCategory,
+  MessageScope,
+  MessageType,
+} from '../../core/type/message'
 import { handleOpenApiError } from '../openapi/openApiCore'
 
 const api: Express = express()

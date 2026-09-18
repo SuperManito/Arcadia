@@ -1,6 +1,6 @@
+import type { GeneralConfig } from './types'
 import { validateObject } from '../../utils'
 import db from '../../db'
-import type { GeneralConfig } from './types'
 import { CHANNEL_CONFIG_RULES, ChannelType } from './registry'
 
 export const CHANNEL_NAME_MAX_LENGTH = 50

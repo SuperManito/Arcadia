@@ -1,7 +1,7 @@
 import type { Request } from 'express'
 import type { AxiosProxyConfig, AxiosRequestConfig } from 'axios'
-import axios from 'axios'
 import querystring from 'node:querystring'
+import axios from 'axios'
 import { UAParser } from 'ua-parser-js'
 import { logger } from './logger'
 import { getVersionTag } from '../core/config'

@@ -1,9 +1,9 @@
-import { SocketEvent } from '../core/type/socket'
+import type { FSWatcher } from 'node:fs'
 import type { Server, Socket } from 'socket.io'
 import { watch } from 'node:fs'
-import type { FSWatcher } from 'node:fs'
 import { open, stat } from 'node:fs/promises'
 import { Buffer } from 'node:buffer'
+import { SocketEvent } from '../core/type/socket'
 import db from '../db'
 import { getDaemonLogFilePath } from '../core/daemon'
 

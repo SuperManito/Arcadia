@@ -4,7 +4,6 @@ import cors from 'cors'
 import compression from 'compression'
 import { expressjwt } from 'express-jwt'
 import bodyParser from 'body-parser'
-
 import { API_STATUS_CODE } from '../utils/httpUtil'
 import { APP_PUBLIC_DIR } from '../core/type'
 import { getJwtSecretSync } from '../core/config'

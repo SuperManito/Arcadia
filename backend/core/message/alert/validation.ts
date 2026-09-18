@@ -1,5 +1,11 @@
-import db from '../../../db'
 import type { ConditionInput, SimpleOperator } from '../../alert/matcher'
+import type {
+  CleanedMessageAlertRuleCore,
+  CleanedMessageAlertRulePayload,
+  MessageAlertRuleCoreInput,
+  MessageAlertRulePayloadInput,
+} from './types'
+import db from '../../../db'
 import {
   assertValidRegexPattern,
   CONDITION_MODES,
@@ -16,7 +22,6 @@ import {
   MESSAGE_ALERT_CONDITION_FIELDS,
   MESSAGE_ALERT_RULE_NAME_MAX_LENGTH,
 } from './types'
-import type { CleanedMessageAlertRuleCore, CleanedMessageAlertRulePayload, MessageAlertRuleCoreInput, MessageAlertRulePayloadInput } from './types'
 
 /**
  * 多值字段校验归一：逐项必须落在允许集合内，空值放行为空串（不限制）

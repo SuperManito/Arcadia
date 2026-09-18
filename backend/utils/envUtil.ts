@@ -1,6 +1,6 @@
+import type { ComboEnvsGroupModel, envsModel } from '../db'
 import fs from 'node:fs'
 import { APP_FILE_PATH } from '../core/type'
-import type { ComboEnvsGroupModel, envsModel } from '../db'
 
 /**
  * 校验环境变量名

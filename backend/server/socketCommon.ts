@@ -1,5 +1,5 @@
-import type { SocketEvent } from '../core/type/socket'
 import type { Server } from 'socket.io'
+import type { SocketEvent } from '../core/type/socket'
 
 export const socketCommon = {
   getSocket() {

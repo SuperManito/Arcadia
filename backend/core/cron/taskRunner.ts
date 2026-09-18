@@ -1,6 +1,6 @@
+import type { ChildProcess } from 'node:child_process'
 import type { tasksModel } from '../../db'
 import { db } from '../../db'
-import type { ChildProcess } from 'node:child_process'
 import { logger } from '../../utils/logger'
 import { randomString } from '../../utils'
 import { execShell } from '../../utils/cmdUtil'

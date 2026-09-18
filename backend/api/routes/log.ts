@@ -1,7 +1,11 @@
 import type { Express } from 'express'
+import type {
+  loginLogWhereInput,
+  openApiLogWhereInput,
+  serverLogWhereInput,
+} from '../../db'
 import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
-import type { loginLogWhereInput, openApiLogWhereInput, serverLogWhereInput } from '../../db'
 import db from '../../db'
 import { validateRequestParams } from '../../utils'
 import { CLEANUP_TYPES, runCleanup } from '../../core/cleanup'

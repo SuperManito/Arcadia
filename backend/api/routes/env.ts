@@ -1,7 +1,4 @@
 import type { Express } from 'express'
-import express from 'express'
-import { API_STATUS_CODE } from '../../utils/httpUtil'
-import { logger } from '../../utils/logger'
 import type {
   BatchPayload,
   ComboEnvsGroupWithCount,
@@ -11,8 +8,12 @@ import type {
   envsWhereInput,
   PageResult,
 } from '../../db'
-import db, { flattenEnvsGroupPageResult, flattenIncludeRelationCount } from '../../db'
 import type { EnvTag, TypeCategory } from '../../core/env'
+import type { ValidateObjectParamType } from '../../utils'
+import express from 'express'
+import { API_STATUS_CODE } from '../../utils/httpUtil'
+import { logger } from '../../utils/logger'
+import db, { flattenEnvsGroupPageResult, flattenIncludeRelationCount } from '../../db'
 import {
   checkVaribleExsit,
   convertToCLIExport,
@@ -28,7 +29,6 @@ import {
   updateSortById,
 } from '../../core/env'
 import { validateEnvName } from '../../utils/envUtil'
-import type { ValidateObjectParamType } from '../../utils'
 import {
   cleanProperties,
   validateObject,

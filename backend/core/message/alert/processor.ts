@@ -1,4 +1,5 @@
 import type { messageModel } from '../../../db'
+import type { MessageAlertContext, MessageAlertRuleInput } from './types'
 import { db } from '../../../db'
 import { logger } from '../../../utils/logger'
 import {
@@ -8,7 +9,6 @@ import {
 import { MessageCategory, MessageType } from '../../type/message'
 import { pushChannel } from '../../channel'
 import { sendMessage } from '../index'
-import type { MessageAlertContext, MessageAlertRuleInput } from './types'
 
 // categories / types 为空表示不限制
 function matchMessageAlertFilters(msg: MessageAlertContext, rule: MessageAlertRuleInput): boolean {

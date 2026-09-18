@@ -1,9 +1,13 @@
+import type { UpdateSnapshot } from './types'
 import { SocketEvent } from '../type/socket'
-import { getRuntimeModuleConfigReadonly, updateRuntimeConfigValue, updateRuntimeConfigValues } from '../config'
+import {
+  getRuntimeModuleConfigReadonly,
+  updateRuntimeConfigValue,
+  updateRuntimeConfigValues,
+} from '../config'
 import { socketCommon } from '../../server/socketCommon'
 import { ConfigKeyRuntime } from '../type/config'
 import { isUpgradeRunning } from './execute'
-import type { UpdateSnapshot } from './types'
 import { updateCore } from './updateCore'
 
 /**

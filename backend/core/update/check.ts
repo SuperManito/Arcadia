@@ -1,3 +1,5 @@
+import type { GithubRelease } from './releases'
+import type { UpdateCheckResult, UpdateCheckSource } from './types'
 import { SocketEvent } from '../type/socket'
 import {
   getConfigValue,
@@ -12,9 +14,7 @@ import { ConfigKeyRuntime, ConfigModule } from '../type/config'
 import { logger } from '../../utils/logger'
 import { updateConstants } from './constants'
 import { fetchLatestRelease } from './releases'
-import type { GithubRelease } from './releases'
 import { UpdateCheckErrorCode, UpdateCheckErrors, UpdateCheckStatus } from './types'
-import type { UpdateCheckResult, UpdateCheckSource } from './types'
 import { updateCore } from './updateCore'
 
 /**

@@ -1,5 +1,5 @@
-import { CronJob, validateCronExpression as cronValidateCronExpression } from 'cron'
 import type { TaskInstance } from './type'
+import { CronJob, validateCronExpression as cronValidateCronExpression } from 'cron'
 import { APP_TIMEZONE } from '../type'
 
 const id2Task: { [key: string]: TaskInstance } = {}

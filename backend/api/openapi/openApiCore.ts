@@ -1,10 +1,15 @@
-import { createHash, randomBytes } from 'node:crypto'
 import type { RequestHandler, Response } from 'express'
 import type { openApiAccessKeyModel } from '../../db'
+import { createHash, randomBytes } from 'node:crypto'
 import db from '../../db'
 import { resolveErrorMessage } from '../../utils/errorUtil'
 import { logger } from '../../utils/logger'
-import { API_STATUS_CODE, getClientIP, ip2AddressCached, parseUserAgent } from '../../utils/httpUtil'
+import {
+  API_STATUS_CODE,
+  getClientIP,
+  ip2AddressCached,
+  parseUserAgent,
+} from '../../utils/httpUtil'
 import { enqueueOpenApiLog } from '../../core/log'
 
 // 权限键定义
