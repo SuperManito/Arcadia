@@ -3,6 +3,7 @@ import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
 import { logger } from '../../utils/logger'
 import { validateCronExpression } from '../../core/cron/engine'
+import { normalizeTaskAlertChannelIds } from '../../core/cron/alert'
 import {
   applyCron,
   fixOrder,
@@ -280,6 +281,9 @@ api.post('/', async (request, response) => {
   try {
     const task = Object.assign({}, request.body, { create_time: new Date() })
     delete task.id
+    if ('error_alert' in task) {
+      task.error_alert = normalizeTaskAlertChannelIds(task.error_alert)
+    }
     // 校验定时规则
     validateCronExpression(task.cron)
     const createResult = await db.tasks.$create(task as tasksModel)
@@ -353,6 +357,8 @@ api.put('/', async (request, response) => {
         delete (task as any).bind
       if ('create_time' in task)
         delete (task as any).create_time
+      if ('error_alert' in task)
+        task.error_alert = normalizeTaskAlertChannelIds(task.error_alert)
       // 校验定时规则
       if (task.cron) {
         validateCronExpression(task.cron)

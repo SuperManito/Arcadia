@@ -15,7 +15,7 @@ export interface taskRunInfo {
   duration: number
   success: boolean
   manual: boolean
-  task: Pick<tasksModel, 'id' | 'name' | 'type' | 'error_notify'>
+  task: Pick<tasksModel, 'id' | 'name' | 'type' | 'error_notify' | 'error_alert'>
 }
 
 /**

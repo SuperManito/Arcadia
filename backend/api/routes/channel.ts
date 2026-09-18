@@ -6,6 +6,7 @@ import db from '../../db'
 import { validatePageFixedParams, validateRequestParams } from '../../utils'
 import { pushChannel } from '../../core/channel'
 import { validateChannelPayload } from '../../core/channel/validation'
+import { countTasksByAlertChannel } from '../../core/cron/alert'
 
 const api: Express = express()
 
@@ -161,9 +162,17 @@ api.delete('/', async (request, response) => {
     if (!exists) {
       throw new Error('渠道不存在')
     }
-    const refCount = await db.messageAlertRuleChannel.count({ where: { channelId: id } })
-    if (refCount > 0) {
-      throw new Error(`该渠道已被 ${refCount} 条消息中心监控告警规则引用，请先解除关联`)
+    const ruleRefCount = await db.messageAlertRuleChannel.count({ where: { channelId: id } })
+    const taskRefCount = await countTasksByAlertChannel(id)
+    const refMessages: string[] = []
+    if (ruleRefCount > 0) {
+      refMessages.push(`${ruleRefCount} 条消息中心监控告警规则`)
+    }
+    if (taskRefCount > 0) {
+      refMessages.push(`${taskRefCount} 个定时任务`)
+    }
+    if (refMessages.length > 0) {
+      throw new Error(`该渠道已被 ${refMessages.join('、')}引用，请先解除关联`)
     }
     await db.notificationChannel.$deleteById(id)
     response.send(API_STATUS_CODE.ok())

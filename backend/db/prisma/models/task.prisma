@@ -20,6 +20,7 @@ model tasks {
   remark        String    @default("")
   bind          String    @default("")
   error_notify  Int       @default(1)
+  error_alert   String    @default("")
 }
 
 model tasksExecutionStats {

@@ -1,34 +1,35 @@
 import type { taskRunInfo } from '../cron/taskRunner'
-import { sendMessage } from './index'
+import {
+  alertTaskFailure,
+  buildTaskFailureContent,
+  parseTaskAlertChannelIds,
+} from '../cron/alert'
 import { logger } from '../../utils/logger'
-import { dateToString } from '../../utils'
 import { MessageCategory, MessageType } from '../type/message'
+import { sendMessage } from './index'
 
-function formatDuration(ms: number): string {
-  if (ms < 1000)
-    return `${ms}ms`
-  const seconds = Math.floor(ms / 1000)
-  if (seconds < 60)
-    return `${seconds}s`
-  const minutes = Math.floor(seconds / 60)
-  const remainSeconds = seconds % 60
-  return `${minutes}m ${remainSeconds}s`
-}
-
+/**
+ * error_notify 与 error_alert 独立开关，共用同一份失败文案
+ */
 export async function notifyTaskFailure(info: taskRunInfo) {
   if (info.success)
     return
-  if (info.task.error_notify !== 1)
+  const hasAlertChannels = parseTaskAlertChannelIds(info.task.error_alert).length > 0
+  if (info.task.error_notify !== 1 && !hasAlertChannels)
     return
-  try {
-    await sendMessage({
-      title: '定时任务运行失败',
-      content: `任务名称：${info.task.name}\n任务 ID：${info.task.id}\n执行时长：${formatDuration(info.duration)}\n失败时间：${dateToString(new Date(info.endTime))}`,
-      category: MessageCategory.CRON,
-      type: MessageType.ERROR,
-    })
+  if (info.task.error_notify === 1) {
+    try {
+      await sendMessage({
+        ...buildTaskFailureContent(info),
+        category: MessageCategory.CRON,
+        type: MessageType.ERROR,
+      })
+    }
+    catch (e: any) {
+      logger.error(`推送定时任务运行失败通知异常 (task: ${info.task.name}):`, e.message || e)
+    }
   }
-  catch (e: any) {
-    logger.error(`推送定时任务运行失败通知异常 (task: ${info.task.name}):`, e.message || e)
+  if (hasAlertChannels) {
+    await alertTaskFailure(info)
   }
 }
