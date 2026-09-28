@@ -175,7 +175,7 @@ api.post('/auth', async (request, response) => {
   // 验证用户名和密码
   const credentialsCheck = await validateCredentials(username, password, userConfig, curTime)
   if (!credentialsCheck.valid) {
-    logger.warn('登录认证失败', { username, ip: clientIP, reason: credentialsCheck.message, attemptCount: getAuthErrorCount() })
+    logger.warn('登录认证失败', JSON.stringify({ username, ip: clientIP, reason: credentialsCheck.message, attemptCount: getAuthErrorCount() }))
     // 记录登录失败日志
     const ua = request.headers['user-agent'] || ''
     const { browser, os, device } = parseUserAgent(ua)
@@ -235,7 +235,7 @@ api.post('/auth/twoFactor', async (request, response) => {
   // 验证用户名和密码（防止跳过第一步）
   const credentialsCheck = await validateCredentials(username, password, userConfig, curTime)
   if (!credentialsCheck.valid) {
-    logger.warn('登录认证失败 (双重认证)', { username, ip: clientIP, reason: credentialsCheck.message, attemptCount: getAuthErrorCount() + 1 })
+    logger.warn('登录认证失败 (双重认证)', JSON.stringify({ username, ip: clientIP, reason: credentialsCheck.message, attemptCount: getAuthErrorCount() + 1 }))
     // 记录登录失败日志
     const ua = request.headers['user-agent'] || ''
     const { browser, os, device } = parseUserAgent(ua)
