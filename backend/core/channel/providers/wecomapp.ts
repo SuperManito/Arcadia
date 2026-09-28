@@ -8,6 +8,8 @@ interface WeComAppConfig extends BaseChannelConfig {
   agentId: number
   /** 接收成员 */
   toUser: string[]
+  /** 图文卡片封面素材，填写后改用 mpnews 发送 */
+  mediaId?: string
 }
 
 /**
@@ -20,6 +22,7 @@ export const WeComApp = {
     ['corpSecret', [true, 'string']],
     ['agentId', [true, 'number']],
     ['toUser', [true, 'string[]']],
+    ['mediaId', [false, 'string']],
   ],
   pusher: async (config, payload) => {
     // 先判空再取 token，避免空推送浪费请求
@@ -42,15 +45,26 @@ export const WeComApp = {
       throw new Error(`企业微信应用获取 access_token 失败 [${tokenData?.errcode}] ${tokenData?.errmsg ?? ''}`.trim())
     }
 
-    const body = {
+    const base = {
       touser: config.toUser.join('|'),
-      msgtype: 'text',
       agentid: config.agentId,
-      text: {
-        content,
-      },
-      safe: 0,
     }
+    const body = config.mediaId
+      ? {
+          ...base,
+          msgtype: 'mpnews',
+          mpnews: {
+            thumb_media_id: config.mediaId,
+            title: payload.title,
+            content,
+          },
+        }
+      : {
+          ...base,
+          msgtype: 'text',
+          text: { content },
+          safe: 0,
+        }
 
     const result = await request({
       method: 'POST',
