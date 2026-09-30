@@ -54,9 +54,13 @@ export const WeComApp = {
           ...base,
           msgtype: 'mpnews',
           mpnews: {
-            thumb_media_id: config.mediaId,
-            title: payload.title,
-            content,
+            articles: [
+              {
+                thumb_media_id: config.mediaId,
+                title: payload.title,
+                content,
+              },
+            ],
           },
         }
       : {
