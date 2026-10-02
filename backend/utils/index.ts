@@ -294,6 +294,9 @@ export function validateRequestParams<
   return result as ValidatedParams<TQuery, TBody>
 }
 
+// 分页 size 上限，防止一次请求拉全表
+const PAGE_SIZE_MAX = 9999
+
 /**
  * 校验分页接口常用参数
  */
@@ -314,6 +317,9 @@ export function validatePageFixedParams(req: Request, orderByFields?: (string | 
     }
     if (!/^\d+$/.test(keyValue) || Number.parseInt(keyValue) <= 0) {
       throw new Error(`参数 ${param} 无效（参数值类型错误）`)
+    }
+    if (param === 'size' && Number.parseInt(keyValue) > PAGE_SIZE_MAX) {
+      throw new Error(`参数 size 不能超过 ${PAGE_SIZE_MAX}`)
     }
   }
 }
