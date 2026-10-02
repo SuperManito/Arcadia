@@ -28,12 +28,19 @@ export async function evaluateMessageAlertRule(msg: MessageAlertContext, rule: M
   matched: boolean
   conditions: Array<{ sort: number, matched: boolean }>
 }> {
+  // 范围过滤不通过时跳过条件求值，此时 conditions 为空数组
+  if (!matchMessageAlertFilters(msg, rule)) {
+    return {
+      matched: false,
+      conditions: [],
+    }
+  }
   const conditionResult = await evaluateConditions({
     title: msg.title,
     content: msg.content,
   }, rule.logic, rule.conditions)
   return {
-    matched: matchMessageAlertFilters(msg, rule) && conditionResult.matched,
+    matched: conditionResult.matched,
     conditions: conditionResult.conditions,
   }
 }
@@ -61,7 +68,7 @@ async function loadEnabledRules() {
   })
 }
 
-// 是否可能存在启用规则的内存标记：false 时跳过查询。规则增删改路径经 refreshHasEnabledRules 刷新；初值 true 由首次加载自行校正，避免重启后已有规则被漏判
+// 是否可能存在启用规则的内存标记：false 时跳过查询，仅由规则增删改路径经 refreshHasEnabledRules 刷新；初值 true 保证重启后已有规则不漏判
 let hasEnabledRules = true
 
 /**
@@ -79,10 +86,20 @@ export async function processMessageAlert(msg: messageModel) {
     return
   }
   const rules = await loadEnabledRules()
-  hasEnabledRules = rules.length > 0
 
   const context = { title: msg.title, content: msg.content, category: msg.category, type: msg.type }
-  await Promise.allSettled(rules.map(rule => processRule(rule, msg, context)))
+  await Promise.all(rules.map(async (rule) => {
+    try {
+      await processRule(rule, msg, context)
+    }
+    catch (e: any) {
+      logger.error('[消息中心监控告警] 规则处理异常', {
+        ruleId: rule.id,
+        ruleName: rule.name,
+        error: e?.message,
+      })
+    }
+  }))
 }
 
 // allSettled 保证单规则 / 单渠道失败不影响其余
@@ -91,6 +108,10 @@ async function processRule(
   msg: messageModel,
   context: MessageAlertContext,
 ) {
+  // 空渠道规则直接跳过
+  if (rule.channels.length === 0) {
+    return
+  }
   const hit = await matchMessageAlertRule(context, {
     logic: rule.logic,
     categories: rule.categories,

@@ -1,6 +1,7 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
 import { applyTemplate } from '../applyTemplate'
+import { truncateChars } from '../truncate'
 
 interface TelegramConfig extends BaseChannelConfig {
   botToken: string
@@ -37,7 +38,8 @@ export const Telegram = {
     }
     const body: Record<string, unknown> = {
       chat_id: config.chatId,
-      text,
+      // sendMessage text 官方上限 4096 字符
+      text: truncateChars(text, 4096),
       link_preview_options: { is_disabled: true },
     }
     if (config.sendSilently) {

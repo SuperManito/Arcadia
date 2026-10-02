@@ -1,6 +1,7 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
 import { applyTemplate } from '../applyTemplate'
+import { truncateUtf8 } from '../truncate'
 
 interface WeComAppConfig extends BaseChannelConfig {
   corpId: string
@@ -66,7 +67,8 @@ export const WeComApp = {
       : {
           ...base,
           msgtype: 'text',
-          text: { content },
+          // text content 官方上限 2048 字节；mpnews content 上限 666KB，无需截断
+          text: { content: truncateUtf8(content, 2048) },
           safe: 0,
         }
 

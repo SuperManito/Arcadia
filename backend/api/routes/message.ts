@@ -4,6 +4,7 @@ import type { MessageAlertContext } from '../../core/message/alert'
 import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
 import db from '../../db'
+import { logger } from '../../utils/logger'
 import { validatePageFixedParams, validateRequestParams } from '../../utils'
 import { getUnreadCount, pushUserMessage } from '../../core/message'
 import {
@@ -24,6 +25,9 @@ import { handleOpenApiError } from '../openapi/openApiCore'
 const api: Express = express()
 const apiOpen: Express = express()
 const apiInner: Express = express()
+
+// 消息关键字搜索长度上限
+const MESSAGE_SEARCH_MAX_LENGTH = 100
 
 /**
  * 消息列表查询
@@ -66,9 +70,12 @@ async function handleMessageList(request: Request, scope: MessageScope) {
   if (request.query.status) {
     where.status = Number.parseInt(request.query.status as string)
   }
-  // 搜索过滤
+  // 搜索过滤：search 限长，避免超长关键字放大全表扫描
   if (request.query.search) {
     const search = request.query.search as string
+    if (search.length > MESSAGE_SEARCH_MAX_LENGTH) {
+      throw new Error(`参数 search 长度不能超过 ${MESSAGE_SEARCH_MAX_LENGTH} 个字符`)
+    }
     where.AND = {
       OR: [
         { title: { contains: search } },
@@ -101,6 +108,24 @@ async function handleMessageDetail(id: number, scope: MessageScope) {
   if (scope === MessageScope.USER && message.category !== MessageCategory.USER)
     throw new Error('消息不存在')
   return message
+}
+
+// 批量操作 id 数量上限，防止超大 in 查询
+const BATCH_ID_MAX_COUNT = 1000
+
+// 批量端点 id 归一：逐项必须为正整数，数组长度受限
+function parseBatchIds(id: unknown): number[] {
+  const ids = Array.isArray(id) ? id : [id]
+  if (ids.length > BATCH_ID_MAX_COUNT) {
+    throw new Error(`批量操作 id 数量不能超过 ${BATCH_ID_MAX_COUNT}`)
+  }
+  return ids.map((value) => {
+    const num = Number(value)
+    if (!Number.isSafeInteger(num) || num <= 0) {
+      throw new Error('参数 id 无效（参数值类型错误）')
+    }
+    return num
+  })
 }
 
 /**
@@ -191,7 +216,7 @@ api.delete('/', async (request, response) => {
       ] as const,
     })
     const { id } = params.body
-    const ids: number[] = Array.isArray(id) ? id : [id]
+    const ids = parseBatchIds(id)
     await handleDelete(ids, MessageScope.ALL)
     response.send(API_STATUS_CODE.ok())
   }
@@ -231,7 +256,7 @@ api.put('/status', async (request, response) => {
       ] as const,
     })
     const { id, status } = params.body
-    const ids: number[] = Array.isArray(id) ? id : [id]
+    const ids = parseBatchIds(id)
     await handleMarkRead(ids, MessageScope.ALL, status)
     response.send(API_STATUS_CODE.ok())
   }
@@ -388,7 +413,13 @@ api.post('/alert/rule', async (request, response) => {
       })
       return created
     })
-    await refreshHasEnabledRules()
+    // 刷新失败只记日志：标记失真仅影响一次额外查询或漏判，不应阻断规则增删改
+    try {
+      await refreshHasEnabledRules()
+    }
+    catch (e: any) {
+      logger.error('[消息中心监控告警] 刷新启用规则标记失败', { error: e?.message })
+    }
     response.send(API_STATUS_CODE.okData(rule))
   }
   catch (e: any) {
@@ -421,7 +452,13 @@ api.put('/alert/rule', async (request, response) => {
     // 快速启停：只更新 enabled 字段，不触碰条件与关联
     if (enabled !== undefined && [name, logic, categories, types, conditions, channelIds].every(field => field === undefined)) {
       const rule = await db.messageAlertRule.$updateById({ id, data: { enabled } })
-      await refreshHasEnabledRules()
+      // 刷新失败只记日志：标记失真仅影响一次额外查询或漏判，不应阻断规则增删改
+      try {
+        await refreshHasEnabledRules()
+      }
+      catch (e: any) {
+        logger.error('[消息中心监控告警] 刷新启用规则标记失败', { error: e?.message })
+      }
       response.send(API_STATUS_CODE.okData(rule))
       return
     }
@@ -457,7 +494,13 @@ api.put('/alert/rule', async (request, response) => {
       })
       return updated
     })
-    await refreshHasEnabledRules()
+    // 刷新失败只记日志：标记失真仅影响一次额外查询或漏判，不应阻断规则增删改
+    try {
+      await refreshHasEnabledRules()
+    }
+    catch (e: any) {
+      logger.error('[消息中心监控告警] 刷新启用规则标记失败', { error: e?.message })
+    }
     response.send(API_STATUS_CODE.okData(rule))
   }
   catch (e: any) {
@@ -485,7 +528,13 @@ api.delete('/alert/rule', async (request, response) => {
       await tx.messageAlertRuleCondition.deleteMany({ where: { messageAlertRuleId: id } })
       await tx.messageAlertRule.delete({ where: { id } })
     })
-    await refreshHasEnabledRules()
+    // 刷新失败只记日志：标记失真仅影响一次额外查询或漏判，不应阻断规则增删改
+    try {
+      await refreshHasEnabledRules()
+    }
+    catch (e: any) {
+      logger.error('[消息中心监控告警] 刷新启用规则标记失败', { error: e?.message })
+    }
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -618,7 +667,7 @@ apiOpen.post('/v1/readStatus', async (request, response) => {
       ] as const,
     })
     const { id, status } = params.body
-    const ids: number[] = Array.isArray(id) ? id : [id]
+    const ids = parseBatchIds(id)
     await handleMarkRead(ids, MessageScope.USER, status)
     response.send(API_STATUS_CODE.ok())
   }
@@ -657,7 +706,7 @@ apiOpen.post('/v1/delete', async (request, response) => {
       ] as const,
     })
     const { id } = params.body
-    const ids: number[] = Array.isArray(id) ? id : [id]
+    const ids = parseBatchIds(id)
     await handleDelete(ids, MessageScope.USER)
     response.send(API_STATUS_CODE.ok())
   }

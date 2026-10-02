@@ -20,6 +20,9 @@ import {
 import { MESSAGE_CATEGORIES, MESSAGE_TYPES } from '../../type/message'
 import {
   MESSAGE_ALERT_CONDITION_FIELDS,
+  MESSAGE_ALERT_CONDITION_MAX_COUNT,
+  MESSAGE_ALERT_CONDITION_VALUE_MAX_LENGTH,
+  MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT,
   MESSAGE_ALERT_RULE_NAME_MAX_LENGTH,
 } from './types'
 
@@ -51,6 +54,9 @@ export function validateMessageAlertRuleCore(body: MessageAlertRuleCoreInput): C
   if (!Array.isArray(body.conditions) || body.conditions.length === 0) {
     throw new Error('至少需要一条匹配条件')
   }
+  if (body.conditions.length > MESSAGE_ALERT_CONDITION_MAX_COUNT) {
+    throw new Error(`匹配条件数量不能超过 ${MESSAGE_ALERT_CONDITION_MAX_COUNT} 条`)
+  }
   const conditions: ConditionInput[] = body.conditions.map((raw, index) => {
     const n = index + 1
     const condition = raw ?? {}
@@ -67,20 +73,30 @@ export function validateMessageAlertRuleCore(body: MessageAlertRuleCoreInput): C
     if (!allowedOperators.includes(operator as string)) {
       throw new Error(`条件 ${n} 的匹配运算符无效`)
     }
-    // 消息 title/content 落库前已 trim，匹配值需同样 trim，否则 equal / starts_with 等运算符永不命中
-    let value = typeof condition.value === 'string' ? condition.value.trim() : ''
-    if (VALUE_OPTIONAL_OPERATORS.includes(operator as SimpleOperator)) {
-      value = ''
-    }
-    else if (!value) {
-      throw new Error(`条件 ${n} 的匹配内容不能为空`)
-    }
+    let value = typeof condition.value === 'string' ? condition.value : ''
     if (mode === ConditionMode.REGEX) {
+      // 正则首尾空白可能有语义，保持原值；非空与长度由 assertValidRegexPattern 校验
+      if (!value) {
+        throw new Error(`条件 ${n} 的匹配内容不能为空`)
+      }
       try {
         assertValidRegexPattern(value)
       }
       catch {
         throw new Error(`条件 ${n} 的正则表达式无效`)
+      }
+    }
+    else {
+      // 消息 title/content 落库前已 trim，简易模式匹配值需同样 trim，否则 equal / starts_with 等运算符永不命中
+      value = value.trim()
+      if (VALUE_OPTIONAL_OPERATORS.includes(operator as SimpleOperator)) {
+        value = ''
+      }
+      else if (!value) {
+        throw new Error(`条件 ${n} 的匹配内容不能为空`)
+      }
+      if (value.length > MESSAGE_ALERT_CONDITION_VALUE_MAX_LENGTH) {
+        throw new Error(`条件 ${n} 的匹配内容长度不能超过 ${MESSAGE_ALERT_CONDITION_VALUE_MAX_LENGTH} 个字符`)
       }
     }
     return {
@@ -137,6 +153,10 @@ export async function validateMessageAlertRulePayload(
   })
   if (duplicated) {
     throw new Error('规则名称已存在')
+  }
+
+  if (channelIds.length > MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT) {
+    throw new Error(`关联渠道数量不能超过 ${MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT} 个`)
   }
 
   if (channelIds.length > 0) {

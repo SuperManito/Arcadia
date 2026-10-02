@@ -1,4 +1,4 @@
-import type { messageWhereInput } from '../../db'
+import type { messageModel, messageWhereInput } from '../../db'
 import type { MessageData } from '../type/message'
 import { createHash } from 'node:crypto'
 import { SocketEvent } from '../type/socket'
@@ -63,15 +63,19 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
 
   // 消息去重
   const contentHash = createHash('md5').update(content).digest('hex')
-  const fingerprint = `${title}:${contentHash}`
+  const fingerprint = `${category}:${type}:${title}:${contentHash}`
   if (isDuplicate(fingerprint))
     return false
-
-  // 插入
-  const msg = await db.message.$create({ title, content, category, type })
-
-  // 注册去重缓存
   registerDedup(fingerprint)
+
+  let msg: messageModel
+  try {
+    msg = await db.message.$create({ title, content, category, type })
+  }
+  catch (e) {
+    dedupCache.delete(fingerprint)
+    throw e
+  }
 
   // 消息中心监控告警：非阻塞触发，外部渠道延迟不影响消息写入路径
   if (!data.skipAlert) {

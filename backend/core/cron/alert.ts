@@ -2,7 +2,9 @@ import type { taskRunInfo } from './taskRunner'
 import { db } from '../../db'
 import { dateToString } from '../../utils'
 import { logger } from '../../utils/logger'
+import { MessageCategory, MessageType } from '../type/message'
 import { pushChannel } from '../channel'
+import { sendMessage } from '../message'
 
 /**
  * 运行失败通知与告警共用文案
@@ -56,11 +58,12 @@ export function normalizeTaskAlertChannelIds(value: unknown): string {
 }
 
 export async function countTasksByAlertChannel(channelId: number): Promise<number> {
-  const tasks = await db.tasks.findMany({
-    where: { error_alert: { contains: String(channelId) } },
-    select: { error_alert: true },
-  })
-  return tasks.filter(task => parseTaskAlertChannelIds(task.error_alert).includes(channelId)).length
+  const rows = await db.$queryRaw<{ count: number }[]>`
+    SELECT COUNT(*) AS count
+    FROM tasks
+    WHERE ',' || error_alert || ',' LIKE ${`%,${channelId},%`}
+  `
+  return Number(rows[0]?.count ?? 0)
 }
 
 export async function alertTaskFailure(info: taskRunInfo) {
@@ -88,6 +91,13 @@ export async function alertTaskFailure(info: taskRunInfo) {
         channelType: channel.type,
         error: result.error,
       })
+      void sendMessage({
+        title: '告警消息推送失败',
+        content: `触发任务：${info.task.name}\n渠道：${channel.name}（${channel.type}）\n错误：${result.error}`,
+        category: MessageCategory.SYSTEM,
+        type: MessageType.ERROR,
+        skipAlert: true,
+      }).catch(() => {})
     }))
   }
   catch (e: any) {

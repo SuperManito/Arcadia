@@ -18,7 +18,7 @@ export const Pushplus = {
       token: config.token,
       title: payload.title,
       content: payload.content,
-      template: 'html',
+      template: 'txt',
     }
 
     const result = await request({

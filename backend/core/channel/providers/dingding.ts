@@ -31,8 +31,9 @@ export const DingDing = {
     const atMobiles = mentionType === 'mobiles' ? (config.mobiles ?? []) : []
     const atUserIds = mentionType === 'users' ? (config.users ?? []) : []
 
-    // markdown 消息中 @ 手机号需同时出现在正文里才会高亮
-    let text = payload.content
+    // markdown 中单个换行不换行渲染，统一补成段落换行；已连续换行的保持原样
+    let text = payload.content.replace(/(?<!\n)\n(?!\n)/g, '\n\n')
+    // @ 手机号需同时出现在正文里才会高亮
     if (atMobiles.length > 0) {
       text += `\n\n${atMobiles.map(mobile => `@${mobile}`).join(' ')}`
     }

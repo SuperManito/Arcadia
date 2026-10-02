@@ -1,6 +1,7 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
 import { applyTemplate } from '../applyTemplate'
+import { truncateChars } from '../truncate'
 
 interface DiscordConfig extends BaseChannelConfig {
   webhookUrl: string
@@ -41,7 +42,8 @@ export const Discord = {
     if (content === null)
       return
     const body: Record<string, unknown> = {
-      content,
+      // 频道消息 content 官方上限 2000 字符
+      content: truncateChars(content, 2000),
     }
     if (config.username) {
       body.username = config.username

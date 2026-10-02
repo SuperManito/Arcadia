@@ -34,7 +34,7 @@ export function cleanChannelConfig(type: ChannelType, raw: Record<string, unknow
       continue
     }
     const value = raw[key]
-    if (options?.[1]?.[1] === 'string') {
+    if (options?.[1] === 'string') {
       const text = (value as string).trim()
       if (options[0] && !text) {
         throw new Error(`渠道配置无效：${key} 不能为空`)

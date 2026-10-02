@@ -13,13 +13,10 @@ export function applyTemplate(payload: PushPayload, general: GeneralConfig | und
   if (!template) {
     return `${title}\n\n${content}`
   }
-  // 转换真实换行符、不强制插入标题和内容
+  // 转换真实换行符、不强制插入标题和内容；一次性替换，标题/内容中的字面量占位符不会被二次展开
   const rendered = template
     .split('\\n')
     .join('\n')
-    .split('{{title}}')
-    .join(title)
-    .split('{{content}}')
-    .join(content)
+    .replace(/\{\{(title|content)\}\}/g, (_, key) => (key === 'title' ? title : content))
   return rendered.trim() ? rendered : null
 }

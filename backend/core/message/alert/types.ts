@@ -2,6 +2,9 @@ import type { ConditionInput } from '../../alert/matcher'
 
 export const MESSAGE_ALERT_CONDITION_FIELDS = ['title', 'content'] as const
 export const MESSAGE_ALERT_RULE_NAME_MAX_LENGTH = 50
+export const MESSAGE_ALERT_CONDITION_MAX_COUNT = 20
+export const MESSAGE_ALERT_CONDITION_VALUE_MAX_LENGTH = 512
+export const MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT = 50
 
 export interface MessageAlertContext {
   title: string

@@ -48,18 +48,27 @@ export const Webhook = {
       'Content-Type': contentType === 'form' ? 'application/x-www-form-urlencoded' : 'application/json',
     }
     if (config.headers?.trim()) {
-      Object.assign(headers, parseHeaders(config.headers))
+      for (const [key, value] of Object.entries(parseHeaders(config.headers))) {
+        const lowerKey = key.toLowerCase()
+        for (const existing of Object.keys(headers)) {
+          if (existing.toLowerCase() === lowerKey)
+            delete headers[existing]
+        }
+        headers[key] = value
+      }
     }
 
-    // 用 split/join 而非 replace 替换占位符，避免内容中的 $& 等被当作替换模式解释
+    const escapeValue = (text: string) => contentType === 'form'
+      ? encodeURIComponent(text)
+      : JSON.stringify(text).slice(1, -1)
     const body: object | string = config.body?.trim()
-      ? config.body.split('{{title}}').join(payload.title).split('{{content}}').join(payload.content)
+      ? config.body.split('{{title}}').join(escapeValue(payload.title)).split('{{content}}').join(escapeValue(payload.content))
       : { title: payload.title, content: payload.content }
 
     const result = await request({
       method,
       url: config.url,
-      data: body,
+      ...(method === 'GET' ? {} : { data: body }),
       headers,
       proxy: config.general?.proxy,
     })

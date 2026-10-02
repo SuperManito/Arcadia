@@ -1,10 +1,12 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
 import { applyTemplate } from '../applyTemplate'
+import { truncateChars } from '../truncate'
 
 interface KookConfig extends BaseChannelConfig {
   botToken: string
-  guildId: string
+  /** 目标频道 ID（message/create 的 target_id 官方定义为频道 id，非服务器 id） */
+  channelId: string
 }
 
 /**
@@ -14,15 +16,16 @@ export const Kook = {
   type: 'kook',
   configRules: [
     ['botToken', [true, 'string']],
-    ['guildId', [true, 'string']],
+    ['channelId', [true, 'string']],
   ],
   pusher: async (config, payload) => {
     const content = applyTemplate(payload, config.general)
     if (content === null)
       return
     const body = {
-      target_id: config.guildId,
-      content,
+      target_id: config.channelId,
+      // 频道消息 content 官方上限 8000 字符
+      content: truncateChars(content, 8000),
     }
 
     const result = await request({

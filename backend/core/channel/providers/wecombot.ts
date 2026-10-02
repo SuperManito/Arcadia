@@ -1,6 +1,7 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
 import { applyTemplate } from '../applyTemplate'
+import { truncateUtf8 } from '../truncate'
 
 interface WeComBotConfig extends BaseChannelConfig {
   webhookUrl: string
@@ -21,7 +22,8 @@ export const WeComBot = {
     const body = {
       msgtype: 'text',
       text: {
-        content,
+        // text content 官方上限 2048 字节
+        content: truncateUtf8(content, 2048),
       },
     }
 
