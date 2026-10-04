@@ -33,6 +33,7 @@ api.get('/page', async (request, response) => {
     validateRequestParams(request, {
       query: [
         ['type', [false, 'string']],
+        ['tags', [false, 'string']],
       ],
     })
     const where: notificationChannelWhereInput = {}
@@ -43,6 +44,11 @@ api.get('/page', async (request, response) => {
     if (request.query.type) {
       and.push({ type: { equals: request.query.type as string } })
     }
+    // 标签存逗号分隔（首尾各带一个逗号），多个标签逐个 contains 取交集
+    const tags = request.query.tags
+      ? String(request.query.tags).split(',').filter(Boolean)
+      : []
+    tags.forEach(tag => and.push({ tags: { contains: `,${tag},` } }))
     if (and.length > 0) {
       where.AND = and
     }
@@ -68,7 +74,7 @@ api.get('/list', async (_request, response) => {
   try {
     const result = await db.notificationChannel.findMany({
       orderBy: { id: 'asc' },
-      select: { id: true, name: true, type: true },
+      select: { id: true, name: true, type: true, tags: true },
     })
     response.send(API_STATUS_CODE.okData(result))
   }
@@ -109,6 +115,7 @@ api.post('/', async (request, response) => {
         ['name', [false, 'string']],
         ['type', [false, 'string']],
         ['config', [false, 'string | object']],
+        ['tags', [false, 'string | string[]']],
       ] as const,
     }, true)
     const cleaned = await validateChannelPayload(params.body)
@@ -131,6 +138,7 @@ api.put('/', async (request, response) => {
         ['name', [false, 'string']],
         ['type', [false, 'string']],
         ['config', [false, 'string | object']],
+        ['tags', [false, 'string | string[]']],
       ] as const,
     }, true)
     const { id } = params.body
@@ -163,10 +171,14 @@ api.delete('/', async (request, response) => {
       throw new Error('渠道不存在')
     }
     const ruleRefCount = await db.messageAlertRuleChannel.count({ where: { channelId: id } })
+    const directRefCount = await db.messageAlertDirectRuleChannel.count({ where: { channelId: id } })
     const taskRefCount = await countTasksByAlertChannel(id)
     const refMessages: string[] = []
     if (ruleRefCount > 0) {
       refMessages.push(`${ruleRefCount} 条消息中心监控告警规则`)
+    }
+    if (directRefCount > 0) {
+      refMessages.push(`${directRefCount} 条一对一规则`)
     }
     if (taskRefCount > 0) {
       refMessages.push(`${taskRefCount} 个定时任务`)

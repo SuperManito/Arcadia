@@ -1,5 +1,6 @@
 import type { messageModel } from '../../../db'
 import type { MessageAlertContext, MessageAlertRuleInput } from './types'
+import type { MessageAlertDirectTitleMode } from './direct/types'
 import { db } from '../../../db'
 import { logger } from '../../../utils/logger'
 import {
@@ -9,6 +10,9 @@ import {
 import { MessageCategory, MessageType } from '../../type/message'
 import { pushChannel } from '../../channel'
 import { sendMessage } from '../index'
+import { extractMatchedLines } from './direct/extract'
+import { enqueueDirectPush } from './direct/directQueue'
+import { evaluateDirectConditions, renderDirectTitle } from './direct/evaluate'
 
 // categories / types 为空表示不限制
 function matchMessageAlertFilters(msg: MessageAlertContext, rule: MessageAlertRuleInput): boolean {
@@ -56,7 +60,7 @@ export async function matchMessageAlertRule(
 }
 
 /**
- * 查询全部启用规则，连同匹配条件与关联渠道配置
+ * 查询全部启用规则，连同匹配条件、关联渠道与挂载的一对一规则
  */
 async function loadEnabledRules() {
   return db.messageAlertRule.findMany({
@@ -64,6 +68,16 @@ async function loadEnabledRules() {
     include: {
       conditions: { orderBy: { sort: 'asc' } },
       channels: { include: { channel: true } },
+      directs: {
+        include: {
+          directRule: {
+            include: {
+              conditions: { orderBy: { sort: 'asc' } },
+              channels: { include: { channel: true } },
+            },
+          },
+        },
+      },
     },
   })
 }
@@ -108,8 +122,8 @@ async function processRule(
   msg: messageModel,
   context: MessageAlertContext,
 ) {
-  // 空渠道规则直接跳过
-  if (rule.channels.length === 0) {
+  // 空渠道且无挂载一对一规则直接跳过
+  if (rule.channels.length === 0 && rule.directs.length === 0) {
     return
   }
   const hit = await matchMessageAlertRule(context, {
@@ -151,4 +165,59 @@ async function processRule(
       skipAlert: true,
     }).catch(() => {})
   }))
+
+  await Promise.allSettled(rule.directs.map(async (link) => {
+    try {
+      await processDirectRule(link.directRule, msg)
+    }
+    catch (e: any) {
+      logger.error('[消息中心监控告警] 一对一规则处理异常', {
+        directRuleId: link.directRuleId,
+        directRuleName: link.directRule.name,
+        error: e?.message,
+      })
+    }
+  }))
+}
+
+// 提取空 = 无推送（提取正则未命中或执行超时按无提取处理）
+async function processDirectRule(
+  directRule: Awaited<ReturnType<typeof loadEnabledRules>>[number]['directs'][number]['directRule'],
+  msg: messageModel,
+) {
+  if (directRule.channels.length === 0) {
+    return
+  }
+  const evaluation = await evaluateDirectConditions(
+    { title: msg.title, content: msg.content },
+    {
+      logic: directRule.logic,
+      conditions: directRule.conditions.map(condition => ({
+        mode: condition.mode,
+        field: condition.field,
+        operator: condition.operator,
+        value: condition.value,
+        sort: condition.sort,
+        enabled: condition.enabled,
+      })),
+    },
+  )
+  if (!evaluation.matched) {
+    return
+  }
+  const extract = await extractMatchedLines(directRule.extract_regex, msg.content)
+  if (extract === null || extract.lines.length === 0) {
+    return
+  }
+  const content = extract.truncated
+    ? `${extract.lines.join('\n')}\n……（已截断，共命中 ${extract.total} 行）`
+    : extract.lines.join('\n')
+  const title = renderDirectTitle(directRule.title_mode as MessageAlertDirectTitleMode, directRule.title_template, msg.title, directRule.name)
+  for (const link of directRule.channels) {
+    enqueueDirectPush(
+      link.channel,
+      { title, content },
+      { originalTitle: msg.title, ruleName: directRule.name },
+    )
+  }
 }

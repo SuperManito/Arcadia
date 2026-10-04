@@ -25,6 +25,7 @@ model messageAlertRule {
   update_time DateTime                    @default(now()) @updatedAt
   conditions  messageAlertRuleCondition[]
   channels    messageAlertRuleChannel[]
+  directs     messageAlertRuleDirect[]
 
   @@index([enabled])
   @@index([name])
@@ -46,13 +47,74 @@ model messageAlertRuleCondition {
 
 // 规则与渠道的关联
 model messageAlertRuleChannel {
-  id                 Int              @id @default(autoincrement())
+  id                 Int                 @id @default(autoincrement())
   messageAlertRuleId Int
-  messageAlertRule   messageAlertRule @relation(fields: [messageAlertRuleId], references: [id])
+  messageAlertRule   messageAlertRule    @relation(fields: [messageAlertRuleId], references: [id])
   channelId          Int
   channel            notificationChannel @relation(fields: [channelId], references: [id])
 
   @@unique([messageAlertRuleId, channelId]) // 同一规则不能重复挂同一渠道
   @@index([messageAlertRuleId])
   @@index([channelId])
+}
+
+// 一对一规则（二次告警拓展：主规则命中后对消息内容做按行细分提取推送）
+model messageAlertDirectRule {
+  id                Int                               @id @default(autoincrement())
+  name              String // 规则名称，后端保证唯一（与一对多规则共用命名空间，DB 不设 unique）
+  enabled           Int                               @default(1) // 1 启用 / 0 禁用
+  logic             String                            @default("and") // 条件组合逻辑："and" | "or"
+  extract_regex     String // 截取正则，必填，对 content 逐行测试
+  title_mode        String                            @default("default") // 标题模式："default" 原标题 | "custom" 自定义模板 | "none" 不传标题
+  title_template    String                            @default("") // title_mode=custom 时的标题模板，支持 {{title}} / {{rule}}
+  create_time       DateTime                          @default(now())
+  update_time       DateTime                          @default(now()) @updatedAt
+  conditions        messageAlertDirectRuleCondition[]
+  channels          messageAlertDirectRuleChannel[]
+  messageAlertLinks messageAlertRuleDirect[]
+
+  @@index([enabled])
+  @@index([name])
+}
+
+// 一对一规则条件（field 恒为 content；行级启停与备注为一对一独有）
+model messageAlertDirectRuleCondition {
+  id                       Int                    @id @default(autoincrement())
+  messageAlertDirectRuleId Int
+  messageAlertDirectRule   messageAlertDirectRule @relation(fields: [messageAlertDirectRuleId], references: [id])
+  mode                     String                 @default("simple") // "simple" 简易 | "regex" 正则
+  field                    String                 @default("content") // 恒为 "content"
+  operator                 String
+  value                    String                 @default("") // 匹配值；empty / not_empty 时忽略
+  enabled                  Int                    @default(1) // 1 启用 / 0 禁用，禁用条件不参与评估
+  remark                   String                 @default("") // 条件备注
+  sort                     Int                    @default(0) // 数组下标，0 起
+
+  @@index([messageAlertDirectRuleId])
+}
+
+// 一对一规则与渠道的关联
+model messageAlertDirectRuleChannel {
+  id                       Int                    @id @default(autoincrement())
+  messageAlertDirectRuleId Int
+  messageAlertDirectRule   messageAlertDirectRule @relation(fields: [messageAlertDirectRuleId], references: [id])
+  channelId                Int
+  channel                  notificationChannel    @relation(fields: [channelId], references: [id])
+
+  @@unique([messageAlertDirectRuleId, channelId]) // 同一规则不能重复挂同一渠道
+  @@index([messageAlertDirectRuleId])
+  @@index([channelId])
+}
+
+// 一对多规则挂载一对一规则（多对多）
+model messageAlertRuleDirect {
+  id                 Int                    @id @default(autoincrement())
+  messageAlertRuleId Int
+  messageAlertRule   messageAlertRule       @relation(fields: [messageAlertRuleId], references: [id])
+  directRuleId       Int
+  directRule         messageAlertDirectRule @relation(fields: [directRuleId], references: [id])
+
+  @@unique([messageAlertRuleId, directRuleId]) // 同一规则不能重复挂载同一一对一规则
+  @@index([messageAlertRuleId])
+  @@index([directRuleId])
 }

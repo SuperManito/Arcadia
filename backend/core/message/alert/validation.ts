@@ -23,6 +23,7 @@ import {
   MESSAGE_ALERT_CONDITION_MAX_COUNT,
   MESSAGE_ALERT_CONDITION_VALUE_MAX_LENGTH,
   MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT,
+  MESSAGE_ALERT_RULE_DIRECT_MAX_COUNT,
   MESSAGE_ALERT_RULE_NAME_MAX_LENGTH,
 } from './types'
 
@@ -42,8 +43,11 @@ function normalizeMultiValue(value: unknown, allowed: readonly string[], errorMe
   return items.join(',')
 }
 
-// 保存与测试共用，不查库
-export function validateMessageAlertRuleCore(body: MessageAlertRuleCoreInput): CleanedMessageAlertRuleCore {
+// 保存与测试共用，不查库；allowEmptyConditions 仅限挂载一对一规则的场景（零条件 = 范围内全部命中）
+export function validateMessageAlertRuleCore(
+  body: MessageAlertRuleCoreInput,
+  options?: { allowEmptyConditions?: boolean },
+): CleanedMessageAlertRuleCore {
   const logic = body.logic ?? RuleLogic.AND
   if (!RULE_LOGICS.includes(logic as RuleLogic)) {
     throw new Error('条件组合逻辑无效')
@@ -52,7 +56,11 @@ export function validateMessageAlertRuleCore(body: MessageAlertRuleCoreInput): C
   const categories = normalizeMultiValue(body.categories, MESSAGE_CATEGORIES, '规则消息分类无效')
   const types = normalizeMultiValue(body.types, MESSAGE_TYPES, '规则消息级别无效')
   if (!Array.isArray(body.conditions) || body.conditions.length === 0) {
-    throw new Error('至少需要一条匹配条件')
+    if (!options?.allowEmptyConditions) {
+      throw new Error('至少需要一条匹配条件')
+    }
+    // 零条件时逻辑符无意义，强制 and 保证语义稳定
+    return { logic: RuleLogic.AND, categories, types, conditions: [] }
   }
   if (body.conditions.length > MESSAGE_ALERT_CONDITION_MAX_COUNT) {
     throw new Error(`匹配条件数量不能超过 ${MESSAGE_ALERT_CONDITION_MAX_COUNT} 条`)
@@ -130,7 +138,22 @@ export async function validateMessageAlertRulePayload(
     throw new Error(`规则名称长度不能超过 ${MESSAGE_ALERT_RULE_NAME_MAX_LENGTH} 个字符`)
   }
 
-  const core = validateMessageAlertRuleCore(body)
+  const directRuleIds: number[] = []
+  for (const rawId of body.directRuleIds ?? []) {
+    const id = Number(rawId)
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      throw new Error('参数 directRuleIds 无效（参数值类型错误）')
+    }
+    if (directRuleIds.includes(id)) {
+      continue
+    }
+    directRuleIds.push(id)
+  }
+  if (directRuleIds.length > MESSAGE_ALERT_RULE_DIRECT_MAX_COUNT) {
+    throw new Error(`挂载一对一规则数量不能超过 ${MESSAGE_ALERT_RULE_DIRECT_MAX_COUNT} 条`)
+  }
+
+  const core = validateMessageAlertRuleCore(body, { allowEmptyConditions: directRuleIds.length > 0 })
 
   const channelIds: number[] = []
   for (const rawId of body.channelIds ?? []) {
@@ -169,9 +192,23 @@ export async function validateMessageAlertRulePayload(
     }
   }
 
+  if (directRuleIds.length > 0) {
+    const directs = await db.messageAlertDirectRule.findMany({
+      where: { id: { in: directRuleIds } },
+      select: { id: true },
+    })
+    if (directs.length !== directRuleIds.length) {
+      throw new Error('挂载的一对一规则不存在')
+    }
+  }
+  if (channelIds.length === 0 && directRuleIds.length === 0) {
+    throw new Error('关联渠道与一对一规则至少配置一项')
+  }
+
   return {
     name,
     ...core,
     channelIds,
+    directRuleIds,
   }
 }

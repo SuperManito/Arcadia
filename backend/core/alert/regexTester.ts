@@ -5,20 +5,28 @@ const REGEX_TIMEOUT_MS = 500
 
 const WORKER_SOURCE = `
 const { parentPort } = require('node:worker_threads')
-parentPort.on('message', ({ id, pattern, input }) => {
-  let hit = false
+parentPort.on('message', ({ id, pattern, input, lines }) => {
+  let result = false
   try {
-    hit = new RegExp(pattern).test(input)
+    if (lines) {
+      result = input.split('\\n')
+        .map(line => line.endsWith('\\r') ? line.slice(0, -1) : line)
+        .filter(line => line !== '' && new RegExp(pattern).test(line))
+    }
+    else {
+      result = new RegExp(pattern).test(input)
+    }
   }
   catch {}
-  parentPort.postMessage({ id, hit })
+  parentPort.postMessage({ id, result })
 })
 `
 
 interface RegexJob {
   pattern: string
   input: string
-  resolve: (hit: boolean | null) => void
+  lines?: boolean
+  resolve: (result: boolean | string[] | null) => void
 }
 
 // 同一时刻只允许一个任务在 worker 中执行，其余排队；
@@ -34,7 +42,7 @@ let current: {
 } | null = null
 
 // 结算当前任务并派发下一个排队任务；null 表示超时或 worker 故障，调用方按不命中处理
-function settle(result: boolean | null) {
+function settle(result: boolean | string[] | null) {
   if (!current)
     return
   clearTimeout(current.timer)
@@ -67,17 +75,17 @@ function pump() {
     settle(null)
   }, REGEX_TIMEOUT_MS)
   current = { id, job, timer, worker: target }
-  target.postMessage({ id, pattern: job.pattern, input: job.input })
+  target.postMessage({ id, pattern: job.pattern, input: job.input, lines: job.lines ?? false })
 }
 
 function spawnWorker(): Worker | null {
   try {
     const instance = new Worker(WORKER_SOURCE, { eval: true })
     instance.unref()
-    instance.on('message', ({ id, hit }) => {
+    instance.on('message', ({ id, result }) => {
       if (current?.id !== id)
         return
-      settle(hit)
+      settle(result)
     })
     instance.on('error', (error: Error) => {
       logger.error('[告警引擎] 正则测试 worker 异常，按不命中处理', { error: error.message })
@@ -104,7 +112,18 @@ function spawnWorker(): Worker | null {
  */
 export function testRegex(pattern: string, input: string): Promise<boolean | null> {
   return new Promise((resolve) => {
-    queue.push({ pattern, input, resolve })
+    queue.push({ pattern, input, resolve: result => resolve(typeof result === 'boolean' ? result : null) })
+    pump()
+  })
+}
+
+/**
+ * 逐行匹配：命中行按原文顺序返回（去空行不去重）。
+ * 返回 null 表示超时或 worker 故障，调用方决定语义（不参与 NOT_REGEX 取反）。
+ */
+export function testRegexLines(pattern: string, input: string): Promise<string[] | null> {
+  return new Promise((resolve) => {
+    queue.push({ pattern, input, lines: true, resolve: result => resolve(Array.isArray(result) ? result : null) })
     pump()
   })
 }

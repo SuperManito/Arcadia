@@ -4,6 +4,35 @@ import db from '../../db'
 import { CHANNEL_CONFIG_RULES, ChannelType } from './registry'
 
 export const CHANNEL_NAME_MAX_LENGTH = 50
+export const CHANNEL_TAGS_MAX_COUNT = 10
+export const CHANNEL_TAG_MAX_LENGTH = 50
+
+/**
+ * 标签清洗：去重去空、限制数量与长度，逗号分隔落库；标签本身不得含逗号
+ */
+export function cleanChannelTags(raw: unknown): string {
+  let list: unknown = raw
+  if (typeof list === 'string') {
+    list = list.split(',')
+  }
+  if (list === null || list === undefined) {
+    list = []
+  }
+  if (!Array.isArray(list) || !list.every(item => typeof item === 'string')) {
+    throw new Error('渠道标签无效：必须是字符串数组或逗号分隔字符串')
+  }
+  const labels = [...new Set((list as string[]).map(item => item.trim()).filter(Boolean))]
+  if (labels.length > CHANNEL_TAGS_MAX_COUNT) {
+    throw new Error(`渠道标签数量不能超过 ${CHANNEL_TAGS_MAX_COUNT} 个`)
+  }
+  if (labels.some(label => label.length > CHANNEL_TAG_MAX_LENGTH)) {
+    throw new Error(`单个渠道标签长度不能超过 ${CHANNEL_TAG_MAX_LENGTH} 个字符`)
+  }
+  if (labels.some(label => label.includes(','))) {
+    throw new Error('渠道标签不能包含逗号')
+  }
+  return labels.length > 0 ? `,${labels.join(',')},` : ''
+}
 
 /**
  * 无论前端是否提交都写入 general，缺省空字符串并 trim
@@ -56,12 +85,14 @@ export interface ChannelPayloadInput {
   name?: string
   type?: string
   config?: string | Record<string, unknown>
+  tags?: string | string[]
 }
 
 export interface CleanedChannelPayload {
   name: string
   type: ChannelType
   config: string
+  tags: string
 }
 
 /**
@@ -118,5 +149,6 @@ export async function validateChannelPayload(
     name,
     type,
     config: JSON.stringify(cleaned),
+    tags: cleanChannelTags(body.tags ?? []),
   }
 }
