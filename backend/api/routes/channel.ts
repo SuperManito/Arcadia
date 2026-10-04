@@ -72,10 +72,10 @@ api.get('/page', async (request, response) => {
  */
 api.get('/list', async (_request, response) => {
   try {
-    const result = await db.notificationChannel.findMany({
-      orderBy: { id: 'asc' },
-      select: { id: true, name: true, type: true, tags: true },
-    })
+    const result = await db.notificationChannel.$list(
+      { orderBy: { id: 'asc' } },
+      { select: { id: true, name: true, type: true, tags: true } },
+    )
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {

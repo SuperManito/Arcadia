@@ -73,7 +73,7 @@ export async function alertTaskFailure(info: taskRunInfo) {
   }
   const payload = buildTaskFailureContent(info)
   try {
-    const channels = await db.notificationChannel.findMany({ where: { id: { in: channelIds } } })
+    const channels = await db.notificationChannel.$list({ where: { id: { in: channelIds } } })
     // allSettled 保证单渠道失败不影响其余渠道
     await Promise.allSettled(channels.map(async (channel) => {
       const result = await pushChannel(

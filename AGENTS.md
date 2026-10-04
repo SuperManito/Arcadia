@@ -20,6 +20,7 @@
 后端约束
 - 后端主要是 TypeScript + Node.js + Prisma，接口实现位于 `backend/api/`。
 - 数据库变更以 Prisma schema 为准，修改后运行 `npm run generate` 生成客户端文件，不要把 migrate 或 db push 作为默认流程。
+- 数据库调用优先使用 `backend/db/prisma/myfunc.ts` 提供的模型扩展方法：按 id 的增删改查用 `$create`、`$getById`、`$updateById`、`$upsertById`、`$deleteById`，列表与分页用 `$list`、`$page`；`include`/`select`/`omit` 通过这些方法的第二个参数传入，事务客户端 `tx` 上同样适用。没有对应封装的调用（`updateMany`、`deleteMany`、`findFirst`、`count`、`$queryRaw` 等）保持原生写法。
 - 新增或调整 API 时，要同时关注调用链、类型定义和错误处理。
 - 变更完成后，优先补测试，再补文档。
 

@@ -397,13 +397,11 @@ api.post('/alert/rule', async (request, response) => {
     }, true)
     const cleaned = await validateMessageAlertRulePayload(params.body)
     const rule = await db.$transaction(async (tx) => {
-      const created = await tx.messageAlertRule.create({
-        data: {
-          name: cleaned.name,
-          logic: cleaned.logic,
-          categories: cleaned.categories,
-          types: cleaned.types,
-        },
+      const created = await tx.messageAlertRule.$create({
+        name: cleaned.name,
+        logic: cleaned.logic,
+        categories: cleaned.categories,
+        types: cleaned.types,
       })
       await tx.messageAlertRuleCondition.createMany({
         data: cleaned.conditions.map((condition, index) => ({
@@ -481,8 +479,8 @@ api.put('/alert/rule', async (request, response) => {
     }
     const cleaned = await validateMessageAlertRulePayload(params.body, { excludeId: id })
     const rule = await db.$transaction(async (tx) => {
-      const updated = await tx.messageAlertRule.update({
-        where: { id },
+      const updated = await tx.messageAlertRule.$updateById({
+        id,
         data: {
           name: cleaned.name,
           logic: cleaned.logic,
@@ -551,7 +549,7 @@ api.delete('/alert/rule', async (request, response) => {
       await tx.messageAlertRuleChannel.deleteMany({ where: { messageAlertRuleId: id } })
       await tx.messageAlertRuleCondition.deleteMany({ where: { messageAlertRuleId: id } })
       await tx.messageAlertRuleDirect.deleteMany({ where: { messageAlertRuleId: id } })
-      await tx.messageAlertRule.delete({ where: { id } })
+      await tx.messageAlertRule.$deleteById(id)
     })
     // 刷新失败只记日志：标记失真仅影响一次额外查询或漏判，不应阻断规则增删改
     try {
@@ -601,10 +599,10 @@ api.post('/alert/rule/test', async (request, response) => {
     })
     // 试测联动：逐条挂载的一对一规则返回条件命中明细与提取行预览，不推送不落库
     const directRules = (directRuleIds?.length ?? 0) > 0
-      ? await db.messageAlertDirectRule.findMany({
-          where: { id: { in: directRuleIds } },
-          include: { conditions: { orderBy: { sort: 'asc' } } },
-        })
+      ? await db.messageAlertDirectRule.$list(
+          { where: { id: { in: directRuleIds } } },
+          { include: { conditions: { orderBy: { sort: 'asc' } } } },
+        )
       : []
     const directResults = await Promise.all(directRules.map(async (directRule) => {
       const evaluation = await evaluateDirectConditionsForTest(
@@ -689,10 +687,10 @@ api.get('/alert/direct/rule/page', async (request, response) => {
  */
 api.get('/alert/direct/rule/list', async (_request, response) => {
   try {
-    const result = await db.messageAlertDirectRule.findMany({
-      orderBy: { id: 'asc' },
-      select: { id: true, name: true, enabled: true },
-    })
+    const result = await db.messageAlertDirectRule.$list(
+      { orderBy: { id: 'asc' } },
+      { select: { id: true, name: true, enabled: true } },
+    )
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {
@@ -758,14 +756,12 @@ api.post('/alert/direct/rule', async (request, response) => {
     }, true)
     const cleaned = await validateMessageAlertDirectRulePayload(params.body)
     const rule = await db.$transaction(async (tx) => {
-      const created = await tx.messageAlertDirectRule.create({
-        data: {
-          name: cleaned.name,
-          logic: cleaned.logic,
-          extract_regex: cleaned.extractRegex,
-          title_mode: cleaned.titleMode,
-          title_template: cleaned.titleTemplate,
-        },
+      const created = await tx.messageAlertDirectRule.$create({
+        name: cleaned.name,
+        logic: cleaned.logic,
+        extract_regex: cleaned.extractRegex,
+        title_mode: cleaned.titleMode,
+        title_template: cleaned.titleTemplate,
       })
       await tx.messageAlertDirectRuleCondition.createMany({
         data: cleaned.conditions.map((condition, index) => ({
@@ -825,8 +821,8 @@ api.put('/alert/direct/rule', async (request, response) => {
     }
     const cleaned = await validateMessageAlertDirectRulePayload(params.body, { excludeId: id })
     const rule = await db.$transaction(async (tx) => {
-      const updated = await tx.messageAlertDirectRule.update({
-        where: { id },
+      const updated = await tx.messageAlertDirectRule.$updateById({
+        id,
         data: {
           name: cleaned.name,
           logic: cleaned.logic,
@@ -880,17 +876,17 @@ api.delete('/alert/direct/rule', async (request, response) => {
     if (!exists) {
       throw new Error('规则不存在')
     }
-    const mountings = await db.messageAlertRuleDirect.findMany({
-      where: { directRuleId: id },
-      include: { messageAlertRule: { select: { name: true } } },
-    })
+    const mountings = await db.messageAlertRuleDirect.$list(
+      { where: { directRuleId: id } },
+      { include: { messageAlertRule: { select: { name: true } } } },
+    )
     if (mountings.length > 0) {
       throw new Error(`规则正被以下告警规则挂载，请先解除挂载：${mountings.map(link => link.messageAlertRule.name).join('、')}`)
     }
     await db.$transaction(async (tx) => {
       await tx.messageAlertDirectRuleChannel.deleteMany({ where: { messageAlertDirectRuleId: id } })
       await tx.messageAlertDirectRuleCondition.deleteMany({ where: { messageAlertDirectRuleId: id } })
-      await tx.messageAlertDirectRule.delete({ where: { id } })
+      await tx.messageAlertDirectRule.$deleteById(id)
     })
     response.send(API_STATUS_CODE.ok())
   }

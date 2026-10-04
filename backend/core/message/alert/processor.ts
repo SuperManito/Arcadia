@@ -63,23 +63,25 @@ export async function matchMessageAlertRule(
  * 查询全部启用规则，连同匹配条件、关联渠道与挂载的一对一规则
  */
 async function loadEnabledRules() {
-  return db.messageAlertRule.findMany({
-    where: { enabled: 1 },
-    include: {
-      conditions: { orderBy: { sort: 'asc' } },
-      channels: { include: { channel: true } },
-      directs: {
-        include: {
-          directRule: {
-            include: {
-              conditions: { orderBy: { sort: 'asc' } },
-              channels: { include: { channel: true } },
+  return db.messageAlertRule.$list(
+    { where: { enabled: 1 } },
+    {
+      include: {
+        conditions: { orderBy: { sort: 'asc' } },
+        channels: { include: { channel: true } },
+        directs: {
+          include: {
+            directRule: {
+              include: {
+                conditions: { orderBy: { sort: 'asc' } },
+                channels: { include: { channel: true } },
+              },
             },
           },
         },
       },
     },
-  })
+  )
 }
 
 // 是否可能存在启用规则的内存标记：false 时跳过查询，仅由规则增删改路径经 refreshHasEnabledRules 刷新；初值 true 保证重启后已有规则不漏判

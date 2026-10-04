@@ -192,10 +192,10 @@ export async function validateMessageAlertDirectRulePayload(
   }
 
   if (channelIds.length > 0) {
-    const channels = await db.notificationChannel.findMany({
-      where: { id: { in: channelIds } },
-      select: { id: true },
-    })
+    const channels = await db.notificationChannel.$list(
+      { where: { id: { in: channelIds } } },
+      { select: { id: true } },
+    )
     if (channels.length !== channelIds.length) {
       throw new Error('渠道不存在')
     }
