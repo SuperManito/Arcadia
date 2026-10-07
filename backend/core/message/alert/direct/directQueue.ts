@@ -62,13 +62,16 @@ function drain(channelId: number) {
       }
     }
     finally {
-      // 循环退出与复位之间存在入队窗口，留给下次 drain 兜底
+      // 循环因异常退出时队列可能仍有剩余任务，复位后补一次 drain
       queue.draining = false
       if (queue.tasks.length > 0) {
         drain(channelId)
       }
     }
-  })()
+  })().catch((e: any) => {
+    // drain 是 fire-and-forget，未捕获的 rejection 会直接终止进程
+    logger.error('[消息中心监控告警] 一对一队列执行异常', { channelId, error: e?.message })
+  })
 }
 
 /**

@@ -4,17 +4,18 @@ import type { MessageAlertContext } from '../../core/message/alert'
 import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
 import db from '../../db'
-import { logger } from '../../utils/logger'
 import { validatePageFixedParams, validateRequestParams } from '../../utils'
 import { getUnreadCount, pushUserMessage } from '../../core/message'
-import { assertValidRegexPattern } from '../../core/alert/matcher'
 import {
-  evaluateDirectConditionsForTest,
   evaluateMessageAlertRule,
-  extractMatchedLines,
+  matchKeywordLines,
   refreshHasEnabledRules,
-  validateMessageAlertDirectRuleCore,
+  renderDirectTitle,
+  truncateMatchedLines,
+  validateMessageAlertDirectKeywordPayload,
+  validateMessageAlertDirectKeywords,
   validateMessageAlertDirectRulePayload,
+  validateMessageAlertDirectTitle,
   validateMessageAlertRuleCore,
   validateMessageAlertRulePayload,
 } from '../../core/message/alert'
@@ -354,7 +355,7 @@ api.get('/alert/rule', async (request, response) => {
       include: {
         conditions: { orderBy: { sort: 'asc' } },
         channels: { include: { channel: true } },
-        directs: { include: { directRule: { select: { id: true, name: true } } } },
+        directs: { select: { directRuleId: true } },
       },
     })
     if (!rule) {
@@ -371,7 +372,6 @@ api.get('/alert/rule', async (request, response) => {
         type: link.channel.type,
       })),
       directRuleIds: directs.map(link => link.directRuleId),
-      directRules: directs.map(link => link.directRule),
     }))
   }
   catch (e: any) {
@@ -427,13 +427,7 @@ api.post('/alert/rule', async (request, response) => {
       })
       return created
     })
-    // 刷新失败只记日志：标记失真仅影响一次额外查询或漏判，不应阻断规则增删改
-    try {
-      await refreshHasEnabledRules()
-    }
-    catch (e: any) {
-      logger.error('[消息中心监控告警] 刷新启用规则标记失败', { error: e?.message })
-    }
+    await refreshHasEnabledRules()
     response.send(API_STATUS_CODE.okData(rule))
   }
   catch (e: any) {
@@ -464,16 +458,9 @@ api.put('/alert/rule', async (request, response) => {
     if (!exists) {
       throw new Error('规则不存在')
     }
-    // 快速启停：只更新 enabled 字段，不触碰条件与关联
     if (enabled !== undefined && [name, logic, categories, types, conditions, channelIds, directRuleIds].every(field => field === undefined)) {
       const rule = await db.messageAlertRule.$updateById({ id, data: { enabled } })
-      // 刷新失败只记日志：标记失真仅影响一次额外查询或漏判，不应阻断规则增删改
-      try {
-        await refreshHasEnabledRules()
-      }
-      catch (e: any) {
-        logger.error('[消息中心监控告警] 刷新启用规则标记失败', { error: e?.message })
-      }
+      await refreshHasEnabledRules()
       response.send(API_STATUS_CODE.okData(rule))
       return
     }
@@ -516,13 +503,7 @@ api.put('/alert/rule', async (request, response) => {
       })
       return updated
     })
-    // 刷新失败只记日志：标记失真仅影响一次额外查询或漏判，不应阻断规则增删改
-    try {
-      await refreshHasEnabledRules()
-    }
-    catch (e: any) {
-      logger.error('[消息中心监控告警] 刷新启用规则标记失败', { error: e?.message })
-    }
+    await refreshHasEnabledRules()
     response.send(API_STATUS_CODE.okData(rule))
   }
   catch (e: any) {
@@ -551,13 +532,7 @@ api.delete('/alert/rule', async (request, response) => {
       await tx.messageAlertRuleDirect.deleteMany({ where: { messageAlertRuleId: id } })
       await tx.messageAlertRule.$deleteById(id)
     })
-    // 刷新失败只记日志：标记失真仅影响一次额外查询或漏判，不应阻断规则增删改
-    try {
-      await refreshHasEnabledRules()
-    }
-    catch (e: any) {
-      logger.error('[消息中心监控告警] 刷新启用规则标记失败', { error: e?.message })
-    }
+    await refreshHasEnabledRules()
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
@@ -597,41 +572,29 @@ api.post('/alert/rule/test', async (request, response) => {
       types: cleanedRule.types,
       conditions: cleanedRule.conditions,
     })
-    // 试测联动：逐条挂载的一对一规则返回条件命中明细与提取行预览，不推送不落库
     const directRules = (directRuleIds?.length ?? 0) > 0
       ? await db.messageAlertDirectRule.$list(
           { where: { id: { in: directRuleIds } } },
-          { include: { conditions: { orderBy: { sort: 'asc' } } } },
+          { include: { keywords: { where: { enabled: 1 }, orderBy: { sort: 'asc' } } } },
         )
       : []
-    const directResults = await Promise.all(directRules.map(async (directRule) => {
-      const evaluation = await evaluateDirectConditionsForTest(
-        { title, content },
-        {
-          logic: directRule.logic,
-          conditions: directRule.conditions.map(condition => ({
-            mode: condition.mode,
-            field: condition.field,
-            operator: condition.operator,
-            value: condition.value,
-            sort: condition.sort,
-            enabled: condition.enabled,
-          })),
-        },
-      )
-      const extract = evaluation.matched
-        ? await extractMatchedLines(directRule.extract_regex, content)
-        : null
+    const directResults = directRules.map((directRule) => {
+      const keywordResults = directRule.keywords.map((keyword) => {
+        const matched = truncateMatchedLines(matchKeywordLines(keyword.keyword, content))
+        return {
+          keyword: keyword.keyword,
+          matchedLines: matched.lines,
+          truncated: matched.truncated,
+          total: matched.total,
+        }
+      })
       return {
         directRuleId: directRule.id,
         name: directRule.name,
-        matched: evaluation.matched,
-        conditions: evaluation.conditions,
-        extractedLines: extract?.lines ?? [],
-        truncated: extract?.truncated ?? false,
-        total: extract?.total ?? 0,
+        matched: keywordResults.some(keyword => keyword.matchedLines.length > 0),
+        keywords: keywordResults,
       }
-    }))
+    })
     response.send(API_STATUS_CODE.okData({ ...result, directRules: directResults }))
   }
   catch (e: any) {
@@ -668,12 +631,11 @@ api.get('/alert/direct/rule/page', async (request, response) => {
       orderBy: [{ [orderBy]: desc ? 'desc' : 'asc' }],
       page: String(request.query.page),
       size: String(request.query.size),
-      include: { _count: { select: { channels: true, conditions: true } } },
+      include: { _count: { select: { keywords: true } } },
     })
     const data = (result.data as Array<any>).map(({ _count, ...rest }) => ({
       ...rest,
-      channelCount: _count?.channels ?? 0,
-      conditionCount: _count?.conditions ?? 0,
+      keywordCount: _count?.keywords ?? 0,
     }))
     response.send(API_STATUS_CODE.okData({ ...result, data }))
   }
@@ -714,22 +676,24 @@ api.get('/alert/direct/rule', async (request, response) => {
     }
     const rule = await db.messageAlertDirectRule.$getById(Number.parseInt(id), 'id', {
       include: {
-        conditions: { orderBy: { sort: 'asc' } },
-        channels: { include: { channel: true } },
+        keywords: {
+          orderBy: { sort: 'asc' },
+          include: { channels: { include: { channel: true } } },
+        },
       },
     })
     if (!rule) {
       throw new Error('规则不存在')
     }
-    const { conditions, channels, ...rest } = rule
+    const { keywords, ...rest } = rule
     response.send(API_STATUS_CODE.okData({
       ...rest,
-      conditions,
-      channels: channels.map(link => ({
-        id: link.id,
-        channelId: link.channelId,
-        name: link.channel.name,
-        type: link.channel.type,
+      keywords: keywords.map(keyword => ({
+        keyword: keyword.keyword,
+        remark: keyword.remark,
+        enabled: keyword.enabled,
+        sort: keyword.sort,
+        channelIds: keyword.channels.map(link => link.channelId),
       })),
     }))
   }
@@ -746,42 +710,15 @@ api.post('/alert/direct/rule', async (request, response) => {
     const params = validateRequestParams(request, {
       body: [
         ['name', [false, 'string']],
-        ['logic', [false, 'string']],
-        ['conditions', [false, 'object[]']],
-        ['extractRegex', [false, 'string']],
         ['titleMode', [false, 'string']],
         ['titleTemplate', [false, 'string']],
-        ['channelIds', [false, 'number[]']],
       ] as const,
     }, true)
     const cleaned = await validateMessageAlertDirectRulePayload(params.body)
-    const rule = await db.$transaction(async (tx) => {
-      const created = await tx.messageAlertDirectRule.$create({
-        name: cleaned.name,
-        logic: cleaned.logic,
-        extract_regex: cleaned.extractRegex,
-        title_mode: cleaned.titleMode,
-        title_template: cleaned.titleTemplate,
-      })
-      await tx.messageAlertDirectRuleCondition.createMany({
-        data: cleaned.conditions.map((condition, index) => ({
-          messageAlertDirectRuleId: created.id,
-          mode: condition.mode,
-          field: condition.field,
-          operator: condition.operator,
-          value: condition.value,
-          enabled: condition.enabled,
-          remark: condition.remark,
-          sort: index,
-        })),
-      })
-      await tx.messageAlertDirectRuleChannel.createMany({
-        data: cleaned.channelIds.map(channelId => ({
-          messageAlertDirectRuleId: created.id,
-          channelId,
-        })),
-      })
-      return created
+    const rule = await db.messageAlertDirectRule.$create({
+      name: cleaned.name,
+      title_mode: cleaned.titleMode,
+      title_template: cleaned.titleTemplate,
     })
     response.send(API_STATUS_CODE.okData(rule))
   }
@@ -791,7 +728,7 @@ api.post('/alert/direct/rule', async (request, response) => {
 })
 
 /**
- * 更新一对一规则（整体替换条件与关联；仅提供 id 与 enabled 时为快速启停）
+ * 更新一对一规则主体（仅提供 id 与 enabled 时为快速启停）；关键字由独立端点维护
  */
 api.put('/alert/direct/rule', async (request, response) => {
   try {
@@ -800,59 +737,29 @@ api.put('/alert/direct/rule', async (request, response) => {
         ['id', [true, 'number']],
         ['enabled', [false, [1, 0]]],
         ['name', [false, 'string']],
-        ['logic', [false, 'string']],
-        ['conditions', [false, 'object[]']],
-        ['extractRegex', [false, 'string']],
         ['titleMode', [false, 'string']],
         ['titleTemplate', [false, 'string']],
-        ['channelIds', [false, 'number[]']],
       ] as const,
     }, true)
-    const { id, enabled, name, logic, conditions, extractRegex, titleMode, titleTemplate, channelIds } = params.body
+    const { id, enabled, name, titleMode, titleTemplate } = params.body
     const exists = await db.messageAlertDirectRule.$getById(id)
     if (!exists) {
       throw new Error('规则不存在')
     }
-    // 快速启停：只更新 enabled 字段，不触碰条件与关联
-    if (enabled !== undefined && [name, logic, conditions, extractRegex, titleMode, titleTemplate, channelIds].every(field => field === undefined)) {
+    if (enabled !== undefined && [name, titleMode, titleTemplate].every(field => field === undefined)) {
       const rule = await db.messageAlertDirectRule.$updateById({ id, data: { enabled } })
       response.send(API_STATUS_CODE.okData(rule))
       return
     }
     const cleaned = await validateMessageAlertDirectRulePayload(params.body, { excludeId: id })
-    const rule = await db.$transaction(async (tx) => {
-      const updated = await tx.messageAlertDirectRule.$updateById({
-        id,
-        data: {
-          name: cleaned.name,
-          logic: cleaned.logic,
-          extract_regex: cleaned.extractRegex,
-          title_mode: cleaned.titleMode,
-          title_template: cleaned.titleTemplate,
-          ...(enabled !== undefined ? { enabled } : {}),
-        },
-      })
-      await tx.messageAlertDirectRuleCondition.deleteMany({ where: { messageAlertDirectRuleId: id } })
-      await tx.messageAlertDirectRuleChannel.deleteMany({ where: { messageAlertDirectRuleId: id } })
-      await tx.messageAlertDirectRuleCondition.createMany({
-        data: cleaned.conditions.map((condition, index) => ({
-          messageAlertDirectRuleId: id,
-          mode: condition.mode,
-          field: condition.field,
-          operator: condition.operator,
-          value: condition.value,
-          enabled: condition.enabled,
-          remark: condition.remark,
-          sort: index,
-        })),
-      })
-      await tx.messageAlertDirectRuleChannel.createMany({
-        data: cleaned.channelIds.map(channelId => ({
-          messageAlertDirectRuleId: id,
-          channelId,
-        })),
-      })
-      return updated
+    const rule = await db.messageAlertDirectRule.$updateById({
+      id,
+      data: {
+        name: cleaned.name,
+        title_mode: cleaned.titleMode,
+        title_template: cleaned.titleTemplate,
+        ...(enabled !== undefined ? { enabled } : {}),
+      },
     })
     response.send(API_STATUS_CODE.okData(rule))
   }
@@ -862,7 +769,48 @@ api.put('/alert/direct/rule', async (request, response) => {
 })
 
 /**
- * 删除一对一规则（被告警规则挂载时拒绝；事务内先删关联、再删条件、最后删规则）
+ * 整体替换一对一规则关键字（允许空数组清空；事务内先删渠道与关键字行再重建）
+ */
+api.put('/alert/direct/rule/keyword', async (request, response) => {
+  try {
+    const params = validateRequestParams(request, {
+      body: [
+        ['id', [true, 'number']],
+        ['keywords', [false, 'object[]']],
+      ] as const,
+    }, true)
+    const { id, keywords } = params.body
+    const exists = await db.messageAlertDirectRule.$getById(id)
+    if (!exists) {
+      throw new Error('规则不存在')
+    }
+    const cleaned = await validateMessageAlertDirectKeywordPayload(keywords)
+    await db.$transaction(async (tx) => {
+      // 先删孙表再删子表，避免外键残留
+      await tx.messageAlertDirectRuleKeywordChannel.deleteMany({ where: { keyword: { messageAlertDirectRuleId: id } } })
+      await tx.messageAlertDirectRuleKeyword.deleteMany({ where: { messageAlertDirectRuleId: id } })
+      for (const [index, keyword] of cleaned.entries()) {
+        await tx.messageAlertDirectRuleKeyword.$create({
+          messageAlertDirectRuleId: id,
+          keyword: keyword.keyword,
+          remark: keyword.remark,
+          enabled: keyword.enabled,
+          sort: index,
+          channels: {
+            create: keyword.channelIds.map(channelId => ({ channelId })),
+          },
+        })
+      }
+    })
+    response.send(API_STATUS_CODE.ok())
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+/**
+ * 删除一对一规则（被告警规则挂载时拒绝；事务内先删关键字渠道、再删关键字、最后删规则）
  */
 api.delete('/alert/direct/rule', async (request, response) => {
   try {
@@ -884,8 +832,8 @@ api.delete('/alert/direct/rule', async (request, response) => {
       throw new Error(`规则正被以下告警规则挂载，请先解除挂载：${mountings.map(link => link.messageAlertRule.name).join('、')}`)
     }
     await db.$transaction(async (tx) => {
-      await tx.messageAlertDirectRuleChannel.deleteMany({ where: { messageAlertDirectRuleId: id } })
-      await tx.messageAlertDirectRuleCondition.deleteMany({ where: { messageAlertDirectRuleId: id } })
+      await tx.messageAlertDirectRuleKeywordChannel.deleteMany({ where: { keyword: { messageAlertDirectRuleId: id } } })
+      await tx.messageAlertDirectRuleKeyword.deleteMany({ where: { messageAlertDirectRuleId: id } })
       await tx.messageAlertDirectRule.$deleteById(id)
     })
     response.send(API_STATUS_CODE.ok())
@@ -907,32 +855,30 @@ api.post('/alert/direct/rule/test', async (request, response) => {
       ] as const,
     })
     const { rule, message } = params.body
-    const cleanedRule = validateMessageAlertDirectRuleCore(rule)
-    const extractRegex = typeof rule.extractRegex === 'string' ? rule.extractRegex : ''
-    try {
-      assertValidRegexPattern(extractRegex)
-    }
-    catch {
-      throw new Error('截取正则表达式无效')
-    }
+    const keywords = validateMessageAlertDirectKeywords(rule.keywords)
+    // 禁用关键字不参与匹配，与真实触发行为一致
+    const activeKeywords = keywords.filter(keyword => keyword.enabled === 1)
+    const { titleMode, titleTemplate } = validateMessageAlertDirectTitle(rule)
     const title = typeof message.title === 'string' ? message.title.trim() : ''
     const content = typeof message.content === 'string' ? message.content.trim() : ''
     if (!title && !content) {
       throw new Error('测试消息的标题与内容至少填写一项')
     }
-    const evaluation = await evaluateDirectConditionsForTest(
-      { title, content },
-      { logic: cleanedRule.logic, conditions: cleanedRule.conditions },
-    )
-    const extract = evaluation.matched
-      ? await extractMatchedLines(extractRegex, content)
-      : null
+    const keywordResults = activeKeywords.map((keyword) => {
+      const matched = truncateMatchedLines(matchKeywordLines(keyword.keyword, content))
+      return {
+        keyword: keyword.keyword,
+        matched: matched.lines.length > 0,
+        matchedLines: matched.lines,
+        truncated: matched.truncated,
+        total: matched.total,
+      }
+    })
+    const matchedKeywords = keywordResults.filter(keyword => keyword.matched).map(keyword => keyword.keyword)
     response.send(API_STATUS_CODE.okData({
-      matched: evaluation.matched,
-      conditions: evaluation.conditions,
-      extractedLines: extract?.lines ?? [],
-      truncated: extract?.truncated ?? false,
-      total: extract?.total ?? 0,
+      title: renderDirectTitle(titleMode, titleTemplate, title, '', matchedKeywords.join('、')),
+      matched: keywordResults.some(keyword => keyword.matched),
+      keywords: keywordResults,
     }))
   }
   catch (e: any) {

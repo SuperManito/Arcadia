@@ -10,7 +10,7 @@ import { countTasksByAlertChannel } from '../../core/cron/alert'
 
 const api: Express = express()
 
-// 测试发送固定文案
+// 测试发送默认文案；前端弹窗未自定义标题/内容或传空时回退
 const TEST_NOTIFY_TITLE = '测试通知'
 const TEST_NOTIFY_CONTENT = '这是一条来自 Arcadia 平台的测试通知，收到即表示渠道配置有效。'
 
@@ -171,7 +171,12 @@ api.delete('/', async (request, response) => {
       throw new Error('渠道不存在')
     }
     const ruleRefCount = await db.messageAlertRuleChannel.count({ where: { channelId: id } })
-    const directRefCount = await db.messageAlertDirectRuleChannel.count({ where: { channelId: id } })
+    // 关键字-渠道关联按关键字去重到规则，渠道被同规则多个关键字绑定时只计一条
+    const directKeywordLinks = await db.messageAlertDirectRuleKeywordChannel.$list(
+      { where: { channelId: id } },
+      { include: { keyword: { select: { messageAlertDirectRuleId: true } } } },
+    )
+    const directRefCount = new Set(directKeywordLinks.map(link => link.keyword.messageAlertDirectRuleId)).size
     const taskRefCount = await countTasksByAlertChannel(id)
     const refMessages: string[] = []
     if (ruleRefCount > 0) {
@@ -204,12 +209,17 @@ api.post('/test', async (request, response) => {
         ['name', [false, 'string']],
         ['type', [false, 'string']],
         ['config', [false, 'string | object']],
+        ['title', [false, 'string']],
+        ['content', [false, 'string']],
       ] as const,
     }, true)
     const cleaned = await validateChannelPayload(params.body, { skipNameCheck: true })
     const result = await pushChannel(
       { type: cleaned.type, config: cleaned.config },
-      { title: TEST_NOTIFY_TITLE, content: TEST_NOTIFY_CONTENT },
+      {
+        title: params.body.title?.trim() || TEST_NOTIFY_TITLE,
+        content: params.body.content?.trim() || TEST_NOTIFY_CONTENT,
+      },
     )
     if (!result.success) {
       response.send(API_STATUS_CODE.fail(result.error))

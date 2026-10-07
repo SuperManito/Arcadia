@@ -10,9 +10,8 @@ import {
 import { MessageCategory, MessageType } from '../../type/message'
 import { pushChannel } from '../../channel'
 import { sendMessage } from '../index'
-import { extractMatchedLines } from './direct/extract'
 import { enqueueDirectPush } from './direct/directQueue'
-import { evaluateDirectConditions, renderDirectTitle } from './direct/evaluate'
+import { matchKeywordLineIndexes, renderDirectTitle, truncateMatchedLines } from './direct/match'
 
 // categories / types 为空表示不限制
 function matchMessageAlertFilters(msg: MessageAlertContext, rule: MessageAlertRuleInput): boolean {
@@ -49,9 +48,6 @@ export async function evaluateMessageAlertRule(msg: MessageAlertContext, rule: M
   }
 }
 
-/**
- * 规则是否命中：分类 / 级别范围过滤与条件组求值的综合结果
- */
 export async function matchMessageAlertRule(
   msg: MessageAlertContext,
   rule: MessageAlertRuleInput,
@@ -59,9 +55,6 @@ export async function matchMessageAlertRule(
   return (await evaluateMessageAlertRule(msg, rule)).matched
 }
 
-/**
- * 查询全部启用规则，连同匹配条件、关联渠道与挂载的一对一规则
- */
 async function loadEnabledRules() {
   return db.messageAlertRule.$list(
     { where: { enabled: 1 } },
@@ -70,11 +63,15 @@ async function loadEnabledRules() {
         conditions: { orderBy: { sort: 'asc' } },
         channels: { include: { channel: true } },
         directs: {
+          where: { directRule: { enabled: 1 } },
           include: {
             directRule: {
               include: {
-                conditions: { orderBy: { sort: 'asc' } },
-                channels: { include: { channel: true } },
+                keywords: {
+                  where: { enabled: 1 },
+                  orderBy: { sort: 'asc' },
+                  include: { channels: { include: { channel: true } } },
+                },
               },
             },
           },
@@ -88,10 +85,15 @@ async function loadEnabledRules() {
 let hasEnabledRules = true
 
 /**
- * 规则增删改后刷新启用标记（一次启用计数查询）
+ * 规则增删改后刷新启用标记；失败只记日志不抛出，标记失真仅影响一次额外查询或漏判，不应阻断调用方
  */
 export async function refreshHasEnabledRules() {
-  hasEnabledRules = (await db.messageAlertRule.count({ where: { enabled: 1 } })) > 0
+  try {
+    hasEnabledRules = (await db.messageAlertRule.count({ where: { enabled: 1 } })) > 0
+  }
+  catch (e: any) {
+    logger.error('[消息中心监控告警] 刷新启用规则标记失败', { error: e?.message })
+  }
 }
 
 /**
@@ -103,10 +105,12 @@ export async function processMessageAlert(msg: messageModel) {
   }
   const rules = await loadEnabledRules()
 
+  // 同一一对一规则可被多条命中规则挂载，单条消息只处理一次
+  const processedDirectRuleIds = new Set<number>()
   const context = { title: msg.title, content: msg.content, category: msg.category, type: msg.type }
   await Promise.all(rules.map(async (rule) => {
     try {
-      await processRule(rule, msg, context)
+      await processRule(rule, msg, context, processedDirectRuleIds)
     }
     catch (e: any) {
       logger.error('[消息中心监控告警] 规则处理异常', {
@@ -123,8 +127,8 @@ async function processRule(
   rule: Awaited<ReturnType<typeof loadEnabledRules>>[number],
   msg: messageModel,
   context: MessageAlertContext,
+  processedDirectRuleIds: Set<number>,
 ) {
-  // 空渠道且无挂载一对一规则直接跳过
   if (rule.channels.length === 0 && rule.directs.length === 0) {
     return
   }
@@ -169,6 +173,10 @@ async function processRule(
   }))
 
   await Promise.allSettled(rule.directs.map(async (link) => {
+    if (processedDirectRuleIds.has(link.directRuleId)) {
+      return
+    }
+    processedDirectRuleIds.add(link.directRuleId)
     try {
       await processDirectRule(link.directRule, msg)
     }
@@ -182,44 +190,50 @@ async function processRule(
   }))
 }
 
-// 提取空 = 无推送（提取正则未命中或执行超时按无提取处理）
+// 按渠道聚合命中行：多关键字绑定同一渠道时合并为一次推送，行序按原文还原，行文本去重
 async function processDirectRule(
   directRule: Awaited<ReturnType<typeof loadEnabledRules>>[number]['directs'][number]['directRule'],
   msg: messageModel,
 ) {
-  if (directRule.channels.length === 0) {
+  if (directRule.keywords.length === 0) {
     return
   }
-  const evaluation = await evaluateDirectConditions(
-    { title: msg.title, content: msg.content },
-    {
-      logic: directRule.logic,
-      conditions: directRule.conditions.map(condition => ({
-        mode: condition.mode,
-        field: condition.field,
-        operator: condition.operator,
-        value: condition.value,
-        sort: condition.sort,
-        enabled: condition.enabled,
-      })),
-    },
-  )
-  if (!evaluation.matched) {
+  const channelLines = new Map<number, { channel: (typeof directRule.keywords)[number]['channels'][number]['channel'], indexes: Map<string, number>, keywords: string[] }>()
+  for (const keyword of directRule.keywords) {
+    const matched = matchKeywordLineIndexes(keyword.keyword, msg.content)
+    if (matched.length === 0) {
+      continue
+    }
+    for (const link of keyword.channels) {
+      let entry = channelLines.get(link.channelId)
+      if (!entry) {
+        entry = { channel: link.channel, indexes: new Map(), keywords: [] }
+        channelLines.set(link.channelId, entry)
+      }
+      if (!entry.keywords.includes(keyword.keyword)) {
+        entry.keywords.push(keyword.keyword)
+      }
+      matched.forEach(({ line, index }) => {
+        if (!entry.indexes.has(line)) {
+          entry.indexes.set(line, index)
+        }
+      })
+    }
+  }
+  if (channelLines.size === 0) {
     return
   }
-  const extract = await extractMatchedLines(directRule.extract_regex, msg.content)
-  if (extract === null || extract.lines.length === 0) {
-    return
-  }
-  const content = extract.truncated
-    ? `${extract.lines.join('\n')}\n……（已截断，共命中 ${extract.total} 行）`
-    : extract.lines.join('\n')
-  const title = renderDirectTitle(directRule.title_mode as MessageAlertDirectTitleMode, directRule.title_template, msg.title, directRule.name)
-  for (const link of directRule.channels) {
+  await Promise.allSettled([...channelLines.values()].map(async ({ channel, indexes, keywords }) => {
+    const orderedLines = [...indexes.entries()].sort((a, b) => a[1] - b[1]).map(([line]) => line)
+    const match = truncateMatchedLines(orderedLines)
+    const content = match.truncated
+      ? `${match.lines.join('\n')}\n……（已截断，共命中 ${match.total} 行）`
+      : match.lines.join('\n')
+    const title = renderDirectTitle(directRule.title_mode as MessageAlertDirectTitleMode, directRule.title_template, msg.title, directRule.name, keywords.join('、'))
     enqueueDirectPush(
-      link.channel,
+      channel,
       { title, content },
       { originalTitle: msg.title, ruleName: directRule.name },
     )
-  }
+  }))
 }
