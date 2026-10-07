@@ -30,6 +30,8 @@ export interface MessageAlertRuleCoreInput {
 
 export interface MessageAlertRulePayloadInput extends MessageAlertRuleCoreInput {
   name?: string
+  contentReplace?: unknown
+  titleReplace?: unknown
   channelIds?: number[]
   directRuleIds?: number[]
 }
@@ -43,6 +45,8 @@ export interface CleanedMessageAlertRuleCore {
 
 export interface CleanedMessageAlertRulePayload extends CleanedMessageAlertRuleCore {
   name: string
+  contentReplace: string
+  titleReplace: string
   channelIds: number[]
   directRuleIds: number[]
 }

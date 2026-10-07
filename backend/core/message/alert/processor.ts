@@ -7,6 +7,7 @@ import {
   evaluateConditions,
   parseMultiValue,
 } from '../../alert/matcher'
+import { applyReplacements } from '../../alert/replacer'
 import { MessageCategory, MessageType } from '../../type/message'
 import { pushChannel } from '../../channel'
 import { sendMessage } from '../index'
@@ -147,30 +148,35 @@ async function processRule(
   if (!hit) {
     return
   }
-  await Promise.allSettled(rule.channels.map(async (link) => {
-    const result = await pushChannel(
-      { type: link.channel.type, config: link.channel.config },
-      { title: msg.title, content: msg.content },
-    )
-    if (result.success) {
-      return
-    }
-    logger.error('[消息中心监控告警] 渠道发送失败', {
-      ruleId: rule.id,
-      ruleName: rule.name,
-      channelId: link.channel.id,
-      channelName: link.channel.name,
-      channelType: link.channel.type,
-      error: result.error,
-    })
-    void sendMessage({
-      title: '告警消息推送失败',
-      content: `触发消息：${msg.title}\n规则：${rule.name}\n渠道：${link.channel.name}（${link.channel.type}）\n错误：${result.error}`,
-      category: MessageCategory.SYSTEM,
-      type: MessageType.ERROR,
-      skipAlert: true,
-    }).catch(() => {})
-  }))
+  // 替换只作用于推送副本，一对一规则的输入保持原文；按规则算一次供全部渠道复用
+  if (rule.channels.length > 0) {
+    const pushTitle = await applyReplacements(msg.title, rule.title_replace)
+    const pushContent = await applyReplacements(msg.content, rule.content_replace)
+    await Promise.allSettled(rule.channels.map(async (link) => {
+      const result = await pushChannel(
+        { type: link.channel.type, config: link.channel.config },
+        { title: pushTitle, content: pushContent },
+      )
+      if (result.success) {
+        return
+      }
+      logger.error('[消息中心监控告警] 渠道发送失败', {
+        ruleId: rule.id,
+        ruleName: rule.name,
+        channelId: link.channel.id,
+        channelName: link.channel.name,
+        channelType: link.channel.type,
+        error: result.error,
+      })
+      void sendMessage({
+        title: '告警消息推送失败',
+        content: `触发消息：${msg.title}\n规则：${rule.name}\n渠道：${link.channel.name}（${link.channel.type}）\n错误：${result.error}`,
+        category: MessageCategory.SYSTEM,
+        type: MessageType.ERROR,
+        skipAlert: true,
+      }).catch(() => {})
+    }))
+  }
 
   await Promise.allSettled(rule.directs.map(async (link) => {
     if (processedDirectRuleIds.has(link.directRuleId)) {
@@ -225,11 +231,14 @@ async function processDirectRule(
   }
   await Promise.allSettled([...channelLines.values()].map(async ({ channel, indexes, keywords }) => {
     const orderedLines = [...indexes.entries()].sort((a, b) => a[1] - b[1]).map(([line]) => line)
-    const match = truncateMatchedLines(orderedLines)
+    // 替换在聚合去重后按原文逐行执行，截断行数按替换前计
+    const replacedLines = await Promise.all(orderedLines.map(line => applyReplacements(line, directRule.content_replace)))
+    const match = truncateMatchedLines(replacedLines)
     const content = match.truncated
       ? `${match.lines.join('\n')}\n……（已截断，共命中 ${match.total} 行）`
       : match.lines.join('\n')
-    const title = renderDirectTitle(directRule.title_mode as MessageAlertDirectTitleMode, directRule.title_template, msg.title, directRule.name, keywords.join('、'))
+    const renderedTitle = renderDirectTitle(directRule.title_mode as MessageAlertDirectTitleMode, directRule.title_template, msg.title, directRule.name, keywords.join('、'))
+    const title = await applyReplacements(renderedTitle, directRule.title_replace)
     enqueueDirectPush(
       channel,
       { title, content },

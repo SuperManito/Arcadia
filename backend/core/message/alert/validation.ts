@@ -17,6 +17,7 @@ import {
   SIMPLE_OPERATORS,
   VALUE_OPTIONAL_OPERATORS,
 } from '../../alert/matcher'
+import { validateReplaceText } from '../../alert/replacer'
 import { MESSAGE_CATEGORIES, MESSAGE_TYPES } from '../../type/message'
 import {
   MESSAGE_ALERT_CONDITION_FIELDS,
@@ -154,6 +155,8 @@ export async function validateMessageAlertRulePayload(
   }
 
   const core = validateMessageAlertRuleCore(body, { allowEmptyConditions: directRuleIds.length > 0 })
+  const contentReplace = validateReplaceText(body.contentReplace)
+  const titleReplace = validateReplaceText(body.titleReplace)
 
   const channelIds: number[] = []
   for (const rawId of body.channelIds ?? []) {
@@ -208,6 +211,8 @@ export async function validateMessageAlertRulePayload(
   return {
     name,
     ...core,
+    contentReplace,
+    titleReplace,
     channelIds,
     directRuleIds,
   }

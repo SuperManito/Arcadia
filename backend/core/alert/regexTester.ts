@@ -5,10 +5,13 @@ const REGEX_TIMEOUT_MS = 500
 
 const WORKER_SOURCE = `
 const { parentPort } = require('node:worker_threads')
-parentPort.on('message', ({ id, pattern, input, lines }) => {
+parentPort.on('message', ({ id, pattern, input, lines, replacement }) => {
   let result = false
   try {
-    if (lines) {
+    if (replacement !== undefined) {
+      result = input.replace(new RegExp(pattern, 'g'), replacement)
+    }
+    else if (lines) {
       result = input.split('\\n')
         .map(line => line.endsWith('\\r') ? line.slice(0, -1) : line)
         .filter(line => line !== '' && new RegExp(pattern).test(line))
@@ -26,7 +29,8 @@ interface RegexJob {
   pattern: string
   input: string
   lines?: boolean
-  resolve: (result: boolean | string[] | null) => void
+  replacement?: string
+  resolve: (result: boolean | string[] | string | null) => void
 }
 
 // 同一时刻只允许一个任务在 worker 中执行，其余排队；
@@ -41,8 +45,8 @@ let current: {
   worker: Worker
 } | null = null
 
-// 结算当前任务并派发下一个排队任务；null 表示超时或 worker 故障，调用方按不命中处理
-function settle(result: boolean | string[] | null) {
+// 结算当前任务并派发下一个排队任务；null 表示超时或 worker 故障，调用方按不命中/跳过处理
+function settle(result: boolean | string[] | string | null) {
   if (!current)
     return
   clearTimeout(current.timer)
@@ -75,7 +79,7 @@ function pump() {
     settle(null)
   }, REGEX_TIMEOUT_MS)
   current = { id, job, timer, worker: target }
-  target.postMessage({ id, pattern: job.pattern, input: job.input, lines: job.lines ?? false })
+  target.postMessage({ id, pattern: job.pattern, input: job.input, lines: job.lines ?? false, replacement: job.replacement })
 }
 
 function spawnWorker(): Worker | null {
@@ -124,6 +128,17 @@ export function testRegex(pattern: string, input: string): Promise<boolean | nul
 export function testRegexLines(pattern: string, input: string): Promise<string[] | null> {
   return new Promise((resolve) => {
     queue.push({ pattern, input, lines: true, resolve: result => resolve(Array.isArray(result) ? result : null) })
+    pump()
+  })
+}
+
+/**
+ * 全量替换（隐含 g 标志）：返回替换后的字符串。
+ * 返回 null 表示超时、正则编译失败或 worker 故障，调用方决定语义（按跳过处理）。
+ */
+export function replaceRegex(pattern: string, replacement: string, input: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    queue.push({ pattern, input, replacement, resolve: result => resolve(typeof result === 'string' ? result : null) })
     pump()
   })
 }

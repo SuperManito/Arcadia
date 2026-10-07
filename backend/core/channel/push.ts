@@ -1,7 +1,7 @@
 import type { PushPayload } from './types'
 import type { ChannelType } from './registry'
 import { CHANNEL_CONFIG_RULES, getPusher } from './registry'
-import { validateObject } from '../../utils'
+import { dateToString, validateObject } from '../../utils'
 
 export type PushResult = { success: true } | { success: false, error: string }
 
@@ -32,8 +32,11 @@ export async function pushChannel(
   try {
     validateObject(config as object, rules, '推送配置')
 
-    // 追加通知尾部内容
-    const footer = (config as Record<string, any>).general?.footer?.trim()
+    // 通知尾支持 \n 换行与 {{time}} 推送时间，与消息模板的占位符语义一致
+    const rawFooter = (config as Record<string, any>).general?.footer?.trim()
+    const footer = rawFooter
+      ? rawFooter.split('\\n').join('\n').replace(/\{\{time\}\}/g, () => dateToString(new Date()))
+      : ''
     const finalPayload = footer
       ? { ...payload, content: payload.content ? `${payload.content}\n\n${footer}` : footer }
       : payload

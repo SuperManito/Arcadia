@@ -1,4 +1,5 @@
 import type { GeneralConfig, PushPayload } from './types'
+import { dateToString } from '../../utils'
 
 /**
  * 渲染消息模板
@@ -17,6 +18,6 @@ export function applyTemplate(payload: PushPayload, general: GeneralConfig | und
   const rendered = template
     .split('\\n')
     .join('\n')
-    .replace(/\{\{(title|content)\}\}/g, (_, key) => (key === 'title' ? title : content))
+    .replace(/\{\{(title|content|time)\}\}/g, (_, key) => key === 'title' ? title : key === 'content' ? content : dateToString(new Date()))
   return rendered.trim() ? rendered : null
 }

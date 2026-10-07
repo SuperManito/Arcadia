@@ -393,6 +393,8 @@ api.post('/alert/rule', async (request, response) => {
         ['conditions', [false, 'object[]']],
         ['channelIds', [false, 'number[]']],
         ['directRuleIds', [false, 'number[]']],
+        ['contentReplace', [false, 'string']],
+        ['titleReplace', [false, 'string']],
       ] as const,
     }, true)
     const cleaned = await validateMessageAlertRulePayload(params.body)
@@ -402,6 +404,8 @@ api.post('/alert/rule', async (request, response) => {
         logic: cleaned.logic,
         categories: cleaned.categories,
         types: cleaned.types,
+        content_replace: cleaned.contentReplace,
+        title_replace: cleaned.titleReplace,
       })
       await tx.messageAlertRuleCondition.createMany({
         data: cleaned.conditions.map((condition, index) => ({
@@ -451,14 +455,16 @@ api.put('/alert/rule', async (request, response) => {
         ['conditions', [false, 'object[]']],
         ['channelIds', [false, 'number[]']],
         ['directRuleIds', [false, 'number[]']],
+        ['contentReplace', [false, 'string']],
+        ['titleReplace', [false, 'string']],
       ] as const,
     }, true)
-    const { id, enabled, name, logic, categories, types, conditions, channelIds, directRuleIds } = params.body
+    const { id, enabled, name, logic, categories, types, conditions, channelIds, directRuleIds, contentReplace, titleReplace } = params.body
     const exists = await db.messageAlertRule.$getById(id)
     if (!exists) {
       throw new Error('规则不存在')
     }
-    if (enabled !== undefined && [name, logic, categories, types, conditions, channelIds, directRuleIds].every(field => field === undefined)) {
+    if (enabled !== undefined && [name, logic, categories, types, conditions, channelIds, directRuleIds, contentReplace, titleReplace].every(field => field === undefined)) {
       const rule = await db.messageAlertRule.$updateById({ id, data: { enabled } })
       await refreshHasEnabledRules()
       response.send(API_STATUS_CODE.okData(rule))
@@ -473,6 +479,8 @@ api.put('/alert/rule', async (request, response) => {
           logic: cleaned.logic,
           categories: cleaned.categories,
           types: cleaned.types,
+          content_replace: cleaned.contentReplace,
+          title_replace: cleaned.titleReplace,
           ...(enabled !== undefined ? { enabled } : {}),
         },
       })
@@ -712,6 +720,8 @@ api.post('/alert/direct/rule', async (request, response) => {
         ['name', [false, 'string']],
         ['titleMode', [false, 'string']],
         ['titleTemplate', [false, 'string']],
+        ['contentReplace', [false, 'string']],
+        ['titleReplace', [false, 'string']],
       ] as const,
     }, true)
     const cleaned = await validateMessageAlertDirectRulePayload(params.body)
@@ -719,6 +729,8 @@ api.post('/alert/direct/rule', async (request, response) => {
       name: cleaned.name,
       title_mode: cleaned.titleMode,
       title_template: cleaned.titleTemplate,
+      content_replace: cleaned.contentReplace,
+      title_replace: cleaned.titleReplace,
     })
     response.send(API_STATUS_CODE.okData(rule))
   }
@@ -739,14 +751,16 @@ api.put('/alert/direct/rule', async (request, response) => {
         ['name', [false, 'string']],
         ['titleMode', [false, 'string']],
         ['titleTemplate', [false, 'string']],
+        ['contentReplace', [false, 'string']],
+        ['titleReplace', [false, 'string']],
       ] as const,
     }, true)
-    const { id, enabled, name, titleMode, titleTemplate } = params.body
+    const { id, enabled, name, titleMode, titleTemplate, contentReplace, titleReplace } = params.body
     const exists = await db.messageAlertDirectRule.$getById(id)
     if (!exists) {
       throw new Error('规则不存在')
     }
-    if (enabled !== undefined && [name, titleMode, titleTemplate].every(field => field === undefined)) {
+    if (enabled !== undefined && [name, titleMode, titleTemplate, contentReplace, titleReplace].every(field => field === undefined)) {
       const rule = await db.messageAlertDirectRule.$updateById({ id, data: { enabled } })
       response.send(API_STATUS_CODE.okData(rule))
       return
@@ -758,6 +772,8 @@ api.put('/alert/direct/rule', async (request, response) => {
         name: cleaned.name,
         title_mode: cleaned.titleMode,
         title_template: cleaned.titleTemplate,
+        content_replace: cleaned.contentReplace,
+        title_replace: cleaned.titleReplace,
         ...(enabled !== undefined ? { enabled } : {}),
       },
     })

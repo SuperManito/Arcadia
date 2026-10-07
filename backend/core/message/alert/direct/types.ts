@@ -18,6 +18,8 @@ export interface MessageAlertDirectRulePayloadInput {
   name?: string
   titleMode?: unknown
   titleTemplate?: unknown
+  contentReplace?: unknown
+  titleReplace?: unknown
 }
 
 export interface CleanedMessageAlertDirectKeyword {
@@ -31,4 +33,6 @@ export interface CleanedMessageAlertDirectRulePayload {
   name: string
   titleMode: MessageAlertDirectTitleMode
   titleTemplate: string
+  contentReplace: string
+  titleReplace: string
 }

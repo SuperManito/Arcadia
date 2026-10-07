@@ -5,6 +5,7 @@ import type {
   MessageAlertDirectTitleMode,
 } from './types'
 import db from '../../../../db'
+import { validateReplaceText } from '../../../alert/replacer'
 import {
   MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT,
   MESSAGE_ALERT_RULE_NAME_MAX_LENGTH,
@@ -108,6 +109,8 @@ export async function validateMessageAlertDirectRulePayload(
   }
 
   const { titleMode, titleTemplate } = validateMessageAlertDirectTitle(body)
+  const contentReplace = validateReplaceText(body.contentReplace)
+  const titleReplace = validateReplaceText(body.titleReplace)
 
   if (options?.excludeId === undefined) {
     const count = await db.messageAlertDirectRule.count()
@@ -135,6 +138,8 @@ export async function validateMessageAlertDirectRulePayload(
     name,
     titleMode,
     titleTemplate,
+    contentReplace,
+    titleReplace,
   }
 }
 
