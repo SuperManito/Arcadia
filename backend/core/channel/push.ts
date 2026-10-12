@@ -85,6 +85,17 @@ function release(type: string, limit: { concurrency: number, windows: Array<{ li
   schedule(type, limit)
 }
 
+// 绕过等待但仍记账：无排队者时窗口也要感知占用，否则后续任务入队时看不到已消耗的名额
+function recordThrottleStamp(type: string, limit: { concurrency: number, windows: Array<{ limit: number, windowMs: number }> }) {
+  let t = throttles.get(type)
+  if (!t) {
+    t = { stamps: [], active: 0, waiters: [] }
+    throttles.set(type, t)
+  }
+  t.stamps.push(Date.now())
+  schedule(type, limit)
+}
+
 /**
  * 队列消费方据此决定并行消费循环数，实际速率仍由节流器统一约束
  */
@@ -97,13 +108,13 @@ export function getChannelTypeConcurrency(type: string): number {
  *
  * 类型级节流排队 → 解析配置数据对象 → 校验 → 通知尾与消息模板渲染 → 调用对应推送器
  *
- * bypassThrottle 供测试发送与定时任务失败告警等低频单次调用绕过类型级 FIFO，
- * 避免窗口占满时 HTTP 请求长时间挂起
+ * bypassThrottle 供低频调用绕过类型级 FIFO：true 完全绕过、不占窗口名额（/channel/test 手动单次）；
+ * 'record' 记名额不等待，时间戳写入滑动窗口供后续排队任务感知，定时任务失败告警用，避免批量故障击穿提供方限流
  */
 export async function pushChannel(
   channel: { type: string, config: string },
   payload: PushPayload,
-  options?: { bypassThrottle?: boolean },
+  options?: { bypassThrottle?: boolean | 'record' },
 ): Promise<PushResult> {
   const pusher = getPusher(channel.type as ChannelType)
   const rules = CHANNEL_CONFIG_RULES[channel.type]
@@ -111,9 +122,13 @@ export async function pushChannel(
     return { success: false, error: `推送失败：未注册的通知渠道类型 ${channel.type}` }
   }
   const limit = resolveLimit(channel.type)
-  const throttled = !options?.bypassThrottle
+  const bypass = options?.bypassThrottle
+  const throttled = !bypass
   if (throttled) {
     await acquire(channel.type, limit)
+  }
+  else if (bypass === 'record') {
+    recordThrottleStamp(channel.type, limit)
   }
   try {
     let config: unknown

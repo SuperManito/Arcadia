@@ -565,6 +565,10 @@ api.post('/alert/rule/test', async (request, response) => {
       types: cleanedRule.types,
       conditions: cleanedRule.conditions,
     })
+    // 求值失败时 matched 无意义，直接报错而不是显示成未命中
+    if (result.failed) {
+      throw new Error('规则条件求值超时或异常，请稍后重试')
+    }
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {

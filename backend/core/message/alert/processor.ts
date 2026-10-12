@@ -25,33 +25,24 @@ function matchMessageAlertFilters(msg: MessageAlertContext, rule: MessageAlertRu
   return true
 }
 
-// 返回逐条条件结果，供测试接口展示命中明细；matched 含分类/级别范围过滤
+// 返回逐条条件结果供测试接口展示命中明细，matched 含分类/级别范围过滤，failed 表示存在不可判定的条件
 export async function evaluateMessageAlertRule(msg: MessageAlertContext, rule: MessageAlertRuleInput): Promise<{
   matched: boolean
-  conditions: Array<{ sort: number, matched: boolean }>
+  failed: boolean
+  conditions: Array<{ sort: number, matched: boolean, failed?: boolean }>
 }> {
   // 范围过滤不通过时跳过条件求值，此时 conditions 为空数组
   if (!matchMessageAlertFilters(msg, rule)) {
     return {
       matched: false,
+      failed: false,
       conditions: [],
     }
   }
-  const conditionResult = await evaluateConditions({
+  return evaluateConditions({
     title: msg.title,
     content: msg.content,
   }, rule.logic, rule.conditions)
-  return {
-    matched: conditionResult.matched,
-    conditions: conditionResult.conditions,
-  }
-}
-
-export async function matchMessageAlertRule(
-  msg: MessageAlertContext,
-  rule: MessageAlertRuleInput,
-): Promise<boolean> {
-  return (await evaluateMessageAlertRule(msg, rule)).matched
 }
 
 async function loadEnabledRules() {
@@ -167,6 +158,9 @@ export async function processMessageAlert(msg: messageModel) {
   const session: DirectPushSession = { title: msg.title, pending: 1, failures: [] }
   try {
     const hits = await evaluateRules(candidateRules, msg, session)
+    if (hits.length === 0) {
+      return
+    }
     for (const rule of hits) {
       // 全局规则命中后才替换，替换只作用于推送副本；按规则算一次供全部渠道复用
       const pushTitle = await applyReplacements(msg.title, rule.title_replace)
@@ -219,7 +213,7 @@ async function evaluateRules(
   for (let start = 0; start < rules.length; start += RULE_EVAL_BATCH_SIZE) {
     await Promise.all(rules.slice(start, start + RULE_EVAL_BATCH_SIZE).map(async (rule) => {
       try {
-        if (await matchMessageAlertRule(context, {
+        const result = await evaluateMessageAlertRule(context, {
           logic: rule.logic,
           categories: rule.categories,
           types: rule.types,
@@ -230,18 +224,34 @@ async function evaluateRules(
             value: condition.value,
             sort: condition.sort,
           })),
-        })) {
+        })
+        if (result.failed) {
+          throw new Error('规则条件求值超时或异常')
+        }
+        if (result.matched) {
           hits.push(rule)
         }
       }
       catch (e: any) {
         // 求值失败不能静默当不命中，触发规则漏判会让一对一与全局推送整体不发且无可见线索
         logger.error('[消息中心监控告警] 规则求值异常', { ruleId: rule.id, ruleName: rule.name, error: e?.message })
-        for (const link of rule.channels) {
+        if (rule.channels.length > 0) {
+          for (const link of rule.channels) {
+            recordSessionFailure(session, {
+              ruleName: rule.name,
+              channelName: link.channel.name,
+              channelType: link.channel.type,
+              reason: '规则条件求值超时或异常，未推送',
+              content: '',
+            })
+          }
+        }
+        else {
+          // 仅作一对一触发源的规则没有渠道，规则级记账保证失败可见
           recordSessionFailure(session, {
             ruleName: rule.name,
-            channelName: link.channel.name,
-            channelType: link.channel.type,
+            channelName: '（一对一触发源）',
+            channelType: '-',
             reason: '规则条件求值超时或异常，未推送',
             content: '',
           })
