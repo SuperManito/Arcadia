@@ -2,10 +2,8 @@ import type { ValidateObjectParamType } from '../../utils'
 import type { ChannelDefinition, Pusher } from './types'
 import { Channels } from './providers'
 type Definitions = (typeof Channels)[keyof typeof Channels]
-type ConfigOf<D> = D extends ChannelDefinition<infer C> ? C : never
 
 export type ChannelType = Definitions['type']
-export type ChannelConfig = ConfigOf<Definitions>
 
 const ChannelTypeMap = Object.fromEntries(
   (Object.keys(Channels) as Array<keyof typeof Channels>).map(key => [key, Channels[key].type]),

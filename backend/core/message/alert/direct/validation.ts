@@ -5,12 +5,12 @@ import type {
   MessageAlertDirectTitleMode,
 } from './types'
 import db from '../../../../db'
-import { validateReplaceText } from '../../../alert/replacer'
+import { validateReplaceText } from '../../../alert'
 import {
-  MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT,
   MESSAGE_ALERT_RULE_NAME_MAX_LENGTH,
 } from '../types'
 import {
+  MESSAGE_ALERT_DIRECT_KEYWORD_CHANNEL_MAX_COUNT,
   MESSAGE_ALERT_DIRECT_KEYWORD_MAX_COUNT,
   MESSAGE_ALERT_DIRECT_KEYWORD_MAX_LENGTH,
   MESSAGE_ALERT_DIRECT_KEYWORD_RECEIVER_MAX_LENGTH,
@@ -83,8 +83,8 @@ export function validateMessageAlertDirectKeywords(raw: unknown): CleanedMessage
     if (channelIds.length === 0) {
       throw new Error(`关键字 ${n} 至少需要绑定一个通知渠道`)
     }
-    if (channelIds.length > MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT) {
-      throw new Error(`关键字 ${n} 绑定的渠道数量不能超过 ${MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT} 个`)
+    if (channelIds.length > MESSAGE_ALERT_DIRECT_KEYWORD_CHANNEL_MAX_COUNT) {
+      throw new Error(`关键字 ${n} 绑定的渠道数量不能超过 ${MESSAGE_ALERT_DIRECT_KEYWORD_CHANNEL_MAX_COUNT} 个`)
     }
     const remark = typeof item?.remark === 'string' ? item.remark.trim() : ''
     if (remark.length > MESSAGE_ALERT_DIRECT_KEYWORD_REMARK_MAX_LENGTH) {

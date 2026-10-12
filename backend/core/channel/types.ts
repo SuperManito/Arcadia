@@ -51,4 +51,6 @@ export interface PushPayload {
   content: string
 }
 
+export type PushResult = { success: true } | { success: false, error: string }
+
 export type Pusher = (config: Record<string, any>, payload: PushPayload) => Promise<void>

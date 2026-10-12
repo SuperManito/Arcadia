@@ -185,3 +185,15 @@ export function getDashboardRunning(taskType: TasksFilterType = TasksTypeEnum.AL
       shell: task.shell,
     }))
 }
+
+/**
+ * 统计 error_alert 引用指定渠道的任务数（渠道删除前的引用检查）
+ */
+export async function countTasksByAlertChannel(channelId: number): Promise<number> {
+  const rows = await db.$queryRaw<{ count: number }[]>`
+    SELECT COUNT(*) AS count
+    FROM tasks
+    WHERE ',' || error_alert || ',' LIKE ${`%,${channelId},%`}
+  `
+  return Number(rows[0]?.count ?? 0)
+}

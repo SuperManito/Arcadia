@@ -1,10 +1,9 @@
-import type { MessageAlertDirectTitleMode } from './types'
 import { logger } from '../../../../utils/logger'
-import { matchRegexLines } from '../../../alert/regexTester'
+import { matchRegexLines } from '../../../alert'
 import { MESSAGE_ALERT_DIRECT_KEYWORD_RECEIVER_PLACEHOLDER } from './types'
 
 // 单关键字命中行上限：超限截断，防止单条消息命中数百行把渠道内容撑爆
-export const MESSAGE_ALERT_DIRECT_MATCH_MAX_LINES = 50
+const MESSAGE_ALERT_DIRECT_MATCH_MAX_LINES = 50
 
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -19,24 +18,24 @@ export function expandKeywordPattern(pattern: string, receiver: string): string 
   return pattern.split(MESSAGE_ALERT_DIRECT_KEYWORD_RECEIVER_PLACEHOLDER).join(escapeRegExp(receiver))
 }
 
-export interface MessageAlertDirectMatchResult {
+interface MessageAlertDirectMatchResult {
   lines: string[]
   truncated: boolean
   total: number
 }
 
-export interface MatchedKeywordLine {
+interface MatchedKeywordLine {
   line: string
   index: number
   matched: string
 }
 
 /**
- * 行首尾 trim、空行跳过后逐行匹配，委托 regexTester worker 防灾难性回溯阻塞主线程；
+ * 行首尾 trim、空行跳过后逐行匹配，委托正则 worker 防灾难性回溯阻塞主线程；
  * index 为原文行号、matched 为命中片段。
  * 返回 null 表示执行超时或异常（区别于零命中），由调用方决定语义
  */
-export async function matchKeywordLineIndexes(pattern: string, receiver: string, content: string): Promise<MatchedKeywordLine[] | null> {
+export async function matchKeywordLines(pattern: string, receiver: string, content: string): Promise<MatchedKeywordLine[] | null> {
   if (pattern.includes(MESSAGE_ALERT_DIRECT_KEYWORD_RECEIVER_PLACEHOLDER) && !receiver) {
     logger.warn('[消息中心监控告警] 关键字使用收信人占位符但收信人标识为空，按不命中处理', { keyword: pattern })
     return []
@@ -68,23 +67,4 @@ export function truncateMatchedLines(lines: string[]): MessageAlertDirectMatchRe
     }
   }
   return { lines, truncated: false, total: lines.length }
-}
-
-export function renderDirectTitle(
-  titleMode: MessageAlertDirectTitleMode,
-  titleTemplate: string,
-  originalTitle: string,
-  ruleName: string,
-  keyword = '',
-): string {
-  if (titleMode === 'none') {
-    return ''
-  }
-  if (titleMode === 'custom') {
-    return titleTemplate
-      .replaceAll('{{title}}', originalTitle)
-      .replaceAll('{{rule}}', ruleName)
-      .replaceAll('{{keyword}}', keyword)
-  }
-  return originalTitle
 }

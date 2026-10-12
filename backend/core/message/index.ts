@@ -5,7 +5,7 @@ import { SocketEvent } from '../type/socket'
 import { db } from '../../db'
 import { logger } from '../../utils/logger'
 import { validateObject } from '../../utils'
-import { MessageCategory, MessageScope, MessageType } from '../type/message'
+import { MESSAGE_CONTENT_MAX_LENGTH, MESSAGE_TITLE_MAX_LENGTH, MessageCategory, MessageScope, MessageType } from '../type/message'
 import { processMessageAlert } from './alert'
 import { socketCommon } from '../../server/socketCommon'
 
@@ -44,9 +44,6 @@ function registerDedup(fingerprint: string) {
   }
 }
 
-const TITLE_MAX_LENGTH = 200
-const CONTENT_MAX_LENGTH = 20000
-
 /**
  * 发送消息
  *
@@ -55,10 +52,10 @@ const CONTENT_MAX_LENGTH = 20000
 export async function sendMessage(data: MessageData): Promise<boolean> {
   const rawTitle = (data.title ?? '').trim()
   const rawContent = (data.content ?? '').trim()
-  const title = rawTitle.slice(0, TITLE_MAX_LENGTH)
-  const content = rawContent.slice(0, CONTENT_MAX_LENGTH)
-  if (rawContent.length > CONTENT_MAX_LENGTH) {
-    logger.warn('[消息中心] 消息内容超长被截断', { title: rawTitle, length: rawContent.length, maxLength: CONTENT_MAX_LENGTH })
+  const title = rawTitle.slice(0, MESSAGE_TITLE_MAX_LENGTH)
+  const content = rawContent.slice(0, MESSAGE_CONTENT_MAX_LENGTH)
+  if (rawContent.length > MESSAGE_CONTENT_MAX_LENGTH) {
+    logger.warn('[消息中心] 消息内容超长被截断', { title: rawTitle, length: rawContent.length, maxLength: MESSAGE_CONTENT_MAX_LENGTH })
   }
   const category = data.category || MessageCategory.SYSTEM
   const type = data.type || MessageType.INFO
@@ -85,9 +82,16 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
     throw e
   }
 
-  // 消息中心监控告警：非阻塞触发，外部渠道延迟不影响消息写入路径
+  // 消息中心监控告警：非阻塞触发，外部渠道延迟不影响消息写入路径；
+  // 失败汇总的落库出口就地注入，队列与会话模块不反向依赖消息入库
   if (!data.skipAlert) {
-    void processMessageAlert(msg).catch((e: any) => {
+    void processMessageAlert(msg, (title, content) => sendMessage({
+      title,
+      content,
+      category: MessageCategory.SYSTEM,
+      type: MessageType.ERROR,
+      skipAlert: true,
+    })).catch((e: any) => {
       logger.error('[消息中心监控告警] 触发异常', e?.message ?? e)
     })
   }
@@ -110,7 +114,7 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
  * category 固定为 user
  * title 和 content 为必填，缺失时直接抛出错误
  */
-export async function pushUserMessage(data: { title: string, content: string, type?: MessageType }) {
+export async function sendUserMessage(data: { title: string, content: string, type?: MessageType }) {
   return await sendMessage({
     title: data.title,
     content: data.content,

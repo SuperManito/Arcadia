@@ -1,5 +1,6 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
+import { TEMPLATE_CONTENT_PLACEHOLDER, TEMPLATE_TITLE_PLACEHOLDER } from '../constants'
 
 /** 解析 JSON 文本请求头 */
 function parseHeaders(raw: string): Record<string, string> {
@@ -62,7 +63,7 @@ export const Webhook = {
       ? encodeURIComponent(text)
       : JSON.stringify(text).slice(1, -1)
     const body: object | string = config.body?.trim()
-      ? config.body.split('{{title}}').join(escapeValue(payload.title)).split('{{content}}').join(escapeValue(payload.content))
+      ? config.body.split(TEMPLATE_TITLE_PLACEHOLDER).join(escapeValue(payload.title)).split(TEMPLATE_CONTENT_PLACEHOLDER).join(escapeValue(payload.content))
       : { title: payload.title, content: payload.content }
 
     const result = await request({

@@ -3,14 +3,14 @@ import { validateObject } from '../../utils'
 import db from '../../db'
 import { CHANNEL_CONFIG_RULES, CHANNEL_CONFIG_VALIDATORS, ChannelType } from './registry'
 
-export const CHANNEL_NAME_MAX_LENGTH = 50
-export const CHANNEL_TAGS_MAX_COUNT = 10
-export const CHANNEL_TAG_MAX_LENGTH = 50
+const CHANNEL_NAME_MAX_LENGTH = 50
+const CHANNEL_TAGS_MAX_COUNT = 10
+const CHANNEL_TAG_MAX_LENGTH = 50
 
 /**
  * 标签清洗：去重去空、限制数量与长度，逗号分隔落库；标签本身不得含逗号
  */
-export function cleanChannelTags(raw: unknown): string {
+function cleanChannelTags(raw: unknown): string {
   let list: unknown = raw
   if (typeof list === 'string') {
     list = list.split(',')
@@ -49,7 +49,7 @@ function cleanGeneralConfig(raw: unknown): GeneralConfig {
 /**
  * 保存期配置清洗：字段类型校验 + 白名单过滤 + 字符串 / 数组归一
  */
-export function cleanChannelConfig(type: ChannelType, raw: Record<string, unknown>): Record<string, unknown> {
+function cleanChannelConfig(type: ChannelType, raw: Record<string, unknown>): Record<string, unknown> {
   const rules = CHANNEL_CONFIG_RULES[type]
   try {
     validateObject(raw, rules)

@@ -5,11 +5,9 @@ import { logger } from '../../utils/logger'
 import { MessageCategory, MessageType } from '../type/message'
 import { pushChannel } from '../channel'
 import { sendMessage } from '../message'
+import { parseTaskAlertChannelIds } from './alertChannel'
 
-/**
- * 运行失败通知与告警共用文案
- */
-export function buildTaskFailureContent(info: taskRunInfo) {
+function buildTaskFailureContent(info: taskRunInfo) {
   return {
     title: '定时任务运行失败',
     content: [
@@ -34,39 +32,33 @@ function formatDuration(ms: number): string {
   return `${minutes}m ${remainSeconds}s`
 }
 
-export function parseTaskAlertChannelIds(value: string | null | undefined): number[] {
-  if (!value) {
-    return []
+/**
+ * 任务失败通知入口：error_notify 写消息中心、error_alert 推送渠道，两个开关独立
+ */
+export async function notifyTaskFailure(info: taskRunInfo) {
+  if (info.success)
+    return
+  const hasAlertChannels = parseTaskAlertChannelIds(info.task.error_alert).length > 0
+  if (info.task.error_notify !== 1 && !hasAlertChannels)
+    return
+  if (info.task.error_notify === 1) {
+    try {
+      await sendMessage({
+        ...buildTaskFailureContent(info),
+        category: MessageCategory.CRON,
+        type: MessageType.ERROR,
+      })
+    }
+    catch (e: any) {
+      logger.error(`推送定时任务运行失败通知异常 (task: ${info.task.name}):`, e.message || e)
+    }
   }
-  const ids = value
-    .split(',')
-    .map(item => item.trim())
-    .filter(item => /^\d+$/.test(item))
-    .map(item => Number.parseInt(item, 10))
-    .filter(id => Number.isSafeInteger(id) && id > 0)
-  return [...new Set(ids)]
+  if (hasAlertChannels) {
+    await alertTaskFailure(info)
+  }
 }
 
-export function normalizeTaskAlertChannelIds(value: unknown): string {
-  if (Array.isArray(value)) {
-    return parseTaskAlertChannelIds(value.join(',')).join(',')
-  }
-  if (typeof value === 'string') {
-    return parseTaskAlertChannelIds(value).join(',')
-  }
-  return ''
-}
-
-export async function countTasksByAlertChannel(channelId: number): Promise<number> {
-  const rows = await db.$queryRaw<{ count: number }[]>`
-    SELECT COUNT(*) AS count
-    FROM tasks
-    WHERE ',' || error_alert || ',' LIKE ${`%,${channelId},%`}
-  `
-  return Number(rows[0]?.count ?? 0)
-}
-
-export async function alertTaskFailure(info: taskRunInfo) {
+async function alertTaskFailure(info: taskRunInfo) {
   const channelIds = parseTaskAlertChannelIds(info.task.error_alert)
   if (channelIds.length === 0) {
     return

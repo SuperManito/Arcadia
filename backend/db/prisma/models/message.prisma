@@ -67,7 +67,7 @@ model messageAlertDirectRule {
   enabled           Int                             @default(1) // 1 启用 / 0 禁用
   title_mode        String                          @default("default") // 标题模式："default" 原标题 | "custom" 自定义模板 | "none" 不传标题
   title_template    String                          @default("") // title_mode=custom 时的标题模板，支持 {{title}} / {{rule}} / {{keyword}}
-  content_replace   String                          @default("") // 推送内容替换：s/正则/替换串/ 每行一条，作用于命中的行，空=不启用
+  content_replace   String                          @default("") // 推送内容替换：s/正则/替换串/ 每行一条，匹配前对整条正文替换、推送命中行，空=不启用
   title_replace     String                          @default("") // 推送标题替换单条 s/正则/替换串/，作用于标题模板渲染结果，空=不启用
   create_time       DateTime                        @default(now())
   update_time       DateTime                        @default(now()) @updatedAt

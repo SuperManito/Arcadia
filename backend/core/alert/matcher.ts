@@ -1,5 +1,6 @@
 import { logger } from '../../utils/logger'
-import { testRegex } from './regexTester'
+import { matchRegex } from './regexWorker'
+import { REGEX_MAX_LENGTH } from './constants'
 
 export enum RuleLogic {
   AND = 'and',
@@ -33,7 +34,6 @@ export const CONDITION_MODES = Object.values(ConditionMode)
 export const SIMPLE_OPERATORS = Object.values(SimpleOperator)
 export const REGEX_OPERATORS = Object.values(RegexOperator)
 export const VALUE_OPTIONAL_OPERATORS = [SimpleOperator.EMPTY, SimpleOperator.NOT_EMPTY]
-export const REGEX_MAX_LENGTH = 512
 
 export interface ConditionInput {
   mode: string
@@ -103,7 +103,7 @@ export async function matchCondition(context: Record<string, string>, condition:
     }
     // null 表示超时或 worker 故障，抛给 evaluateConditions 捕获为条件级失败；
     // 不能静默按不命中处理，也不能参与 NOT_REGEX 取反，否则超时会误判为命中
-    const hit = await testRegex(condition.value, fieldValue)
+    const hit = await matchRegex(condition.value, fieldValue)
     if (hit === null) {
       throw new Error(`正则 ${condition.value} 执行超时或异常`)
     }

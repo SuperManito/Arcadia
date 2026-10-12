@@ -4,25 +4,10 @@ import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
 import db from '../../db'
 import { validatePageFixedParams, validateRequestParams } from '../../utils'
-import { pushChannel } from '../../core/channel'
+import { getChannelReferences, pushChannel, TEST_NOTIFY_CONTENT, TEST_NOTIFY_TITLE } from '../../core/channel'
 import { validateChannelPayload } from '../../core/channel/validation'
-import { countTasksByAlertChannel } from '../../core/cron/alert'
 
 const api: Express = express()
-
-// 测试发送默认文案；前端弹窗未自定义标题/内容或传空时回退
-const TEST_NOTIFY_TITLE = '测试通知'
-const TEST_NOTIFY_CONTENT = '这是一条来自 Arcadia 平台的测试通知，收到即表示渠道配置有效。'
-
-/**
- * query 参数 id 解析
- */
-function parseQueryId(value: string): number {
-  if (!/^\d+$/.test(value) || Number.parseInt(value) <= 0) {
-    throw new Error('参数 id 无效（参数值类型错误）')
-  }
-  return Number.parseInt(value)
-}
 
 /**
  * 渠道分页列表（个人设置管理页；不含 config，编辑与测试发送按 id 另行获取）
@@ -94,8 +79,11 @@ api.get('/', async (request, response) => {
         ['id', [true, 'string']],
       ] as const,
     })
-    const id = parseQueryId(params.query.id)
-    const channel = await db.notificationChannel.$getById(id)
+    const { id } = params.query
+    if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
+      throw new Error('参数 id 无效（参数值类型错误）')
+    }
+    const channel = await db.notificationChannel.$getById(Number.parseInt(id))
     if (!channel) {
       throw new Error('渠道不存在')
     }
@@ -171,23 +159,16 @@ api.delete('/', async (request, response) => {
     if (!exists) {
       throw new Error('渠道不存在')
     }
-    const ruleRefCount = await db.messageAlertRuleChannel.count({ where: { channelId: id } })
-    // 关键字-渠道关联按关键字去重到规则，渠道被同规则多个关键字绑定时只计一条
-    const directKeywordLinks = await db.messageAlertDirectRuleKeywordChannel.$list(
-      { where: { channelId: id } },
-      { include: { keyword: { select: { messageAlertDirectRuleId: true } } } },
-    )
-    const directRefCount = new Set(directKeywordLinks.map(link => link.keyword.messageAlertDirectRuleId)).size
-    const taskRefCount = await countTasksByAlertChannel(id)
+    const { alertRuleCount, directRuleCount, taskCount } = await getChannelReferences(id)
     const refMessages: string[] = []
-    if (ruleRefCount > 0) {
-      refMessages.push(`${ruleRefCount} 条消息中心监控告警规则`)
+    if (alertRuleCount > 0) {
+      refMessages.push(`${alertRuleCount} 条消息中心监控告警规则`)
     }
-    if (directRefCount > 0) {
-      refMessages.push(`${directRefCount} 条一对一规则`)
+    if (directRuleCount > 0) {
+      refMessages.push(`${directRuleCount} 条一对一规则`)
     }
-    if (taskRefCount > 0) {
-      refMessages.push(`${taskRefCount} 个定时任务`)
+    if (taskCount > 0) {
+      refMessages.push(`${taskCount} 个定时任务`)
     }
     if (refMessages.length > 0) {
       throw new Error(`该渠道已被 ${refMessages.join('、')}引用，请先解除关联`)

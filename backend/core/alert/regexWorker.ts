@@ -39,6 +39,19 @@ interface RegexJob {
   resolve: (result: boolean | string | string[] | Array<string | null> | null) => void
 }
 
+// eval 脚本无法被 TS 检查，消息字段以 WorkerRequest 为准；增减字段时同步 worker 源码里的解构
+interface WorkerRequest {
+  id: number
+  pattern: string
+  input: string | string[]
+  replacement?: string
+  match?: boolean
+}
+
+function buildRequest(id: number, job: RegexJob): WorkerRequest {
+  return { id, pattern: job.pattern, input: job.input, replacement: job.replacement, match: job.match }
+}
+
 // 同一时刻只允许一个任务在 worker 中执行，其余排队；
 // 超时 terminate 后必须换新 worker，否则残留的死循环任务会吞掉后续所有消息
 let worker: Worker | null = null
@@ -95,7 +108,7 @@ function pump() {
     settle(null)
   }, REGEX_TIMEOUT_MS)
   current = { id, job, timer, worker: target }
-  target.postMessage({ id, pattern: job.pattern, input: job.input, replacement: job.replacement, match: job.match })
+  target.postMessage(buildRequest(id, job))
 }
 
 function spawnWorker(): Worker | null {
@@ -108,7 +121,7 @@ function spawnWorker(): Worker | null {
       settle(result)
     })
     instance.on('error', (error: Error) => {
-      logger.error('[告警引擎] 正则测试 worker 异常，按不命中处理', { error: error.message })
+      logger.error('[告警引擎] 正则 worker 异常，按不命中处理', { error: error.message })
     })
     // error 后必跟 exit，由 exit 统一结算；若卡死则有超时兜底
     instance.on('exit', () => {
@@ -121,7 +134,7 @@ function spawnWorker(): Worker | null {
     return instance
   }
   catch (e: any) {
-    logger.error('[告警引擎] 正则测试 worker 创建失败，按不命中处理', { error: e?.message })
+    logger.error('[告警引擎] 正则 worker 创建失败，按不命中处理', { error: e?.message })
     return null
   }
 }
@@ -130,7 +143,7 @@ function spawnWorker(): Worker | null {
  * 在独立线程执行正则匹配：灾难性回溯只会拖垮 worker，不会阻塞主线程。
  * 返回 true/false 表示匹配结果；null 表示超时或 worker 故障，由调用方决定语义（不能参与 NOT_REGEX 取反）。
  */
-export function testRegex(pattern: string, input: string): Promise<boolean | null> {
+export function matchRegex(pattern: string, input: string): Promise<boolean | null> {
   return new Promise((resolve) => {
     enqueue({ pattern, input, resolve: result => resolve(typeof result === 'boolean' ? result : null) })
   })

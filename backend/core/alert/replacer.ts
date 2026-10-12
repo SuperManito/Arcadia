@@ -1,9 +1,7 @@
 import { logger } from '../../utils/logger'
-import { assertValidRegexPattern, REGEX_MAX_LENGTH } from './matcher'
-import { replaceRegex } from './regexTester'
-
-export const REPLACE_TEXT_MAX_LENGTH = 2000
-export const REPLACE_REPLACEMENT_MAX_LENGTH = 256
+import { assertValidRegexPattern } from './matcher'
+import { replaceRegex } from './regexWorker'
+import { REGEX_MAX_LENGTH, REPLACE_REPLACEMENT_MAX_LENGTH, REPLACE_TEXT_MAX_LENGTH } from './constants'
 
 export interface ParsedReplaceExpression {
   pattern: string

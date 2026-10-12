@@ -6,7 +6,7 @@ import { randomString } from '../../utils'
 import { execShell } from '../../utils/cmdUtil'
 import { APP_ROOT_DIR } from '../type'
 import { emitTaskCompleted, emitTaskStarted } from '../../server/socket'
-import { notifyTaskFailure } from '../message/task'
+import { notifyTaskFailure } from './notify'
 import { persistTaskExecution } from './stats'
 
 export interface taskRunInfo {

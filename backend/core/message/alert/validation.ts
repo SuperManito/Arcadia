@@ -1,8 +1,8 @@
-import type { ConditionInput, SimpleOperator } from '../../alert/matcher'
+import type { ConditionInput, SimpleOperator } from '../../alert'
 import type {
-  CleanedMessageAlertRuleCore,
+  CleanedMessageAlertRuleDefinition,
   CleanedMessageAlertRulePayload,
-  MessageAlertRuleCoreInput,
+  MessageAlertRuleDefinitionInput,
   MessageAlertRulePayloadInput,
 } from './types'
 import db from '../../../db'
@@ -15,9 +15,9 @@ import {
   RULE_LOGICS,
   RuleLogic,
   SIMPLE_OPERATORS,
+  validateReplaceText,
   VALUE_OPTIONAL_OPERATORS,
-} from '../../alert/matcher'
-import { validateReplaceText } from '../../alert/replacer'
+} from '../../alert'
 import { MESSAGE_CATEGORIES, MESSAGE_TYPES } from '../../type/message'
 import {
   MESSAGE_ALERT_CONDITION_FIELDS,
@@ -45,7 +45,7 @@ function normalizeMultiValue(value: unknown, allowed: readonly string[], errorMe
 }
 
 // 保存与测试共用，不查库
-export function validateMessageAlertRuleCore(body: MessageAlertRuleCoreInput): CleanedMessageAlertRuleCore {
+export function validateMessageAlertRuleDefinition(body: MessageAlertRuleDefinitionInput): CleanedMessageAlertRuleDefinition {
   const logic = body.logic ?? RuleLogic.AND
   if (!RULE_LOGICS.includes(logic as RuleLogic)) {
     throw new Error('条件组合逻辑无效')
@@ -118,7 +118,7 @@ export function validateMessageAlertRuleCore(body: MessageAlertRuleCoreInput): C
 }
 
 /**
- * 保存载荷校验：本地校验（名称、核心字段、渠道 ID）前置，全部通过后才查库做名称查重与渠道存在性校验
+ * 保存载荷校验：本地校验（名称、逻辑/范围/条件、渠道 ID）前置，全部通过后才查库做名称查重与渠道存在性校验
  */
 export async function validateMessageAlertRulePayload(
   body: MessageAlertRulePayloadInput,
@@ -132,7 +132,7 @@ export async function validateMessageAlertRulePayload(
     throw new Error(`规则名称长度不能超过 ${MESSAGE_ALERT_RULE_NAME_MAX_LENGTH} 个字符`)
   }
 
-  const core = validateMessageAlertRuleCore(body)
+  const core = validateMessageAlertRuleDefinition(body)
   const contentReplace = validateReplaceText(body.contentReplace)
   const titleReplace = validateReplaceText(body.titleReplace)
 

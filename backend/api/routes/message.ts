@@ -5,11 +5,11 @@ import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
 import db from '../../db'
 import { validatePageFixedParams, validateRequestParams } from '../../utils'
-import { getUnreadCount, pushUserMessage } from '../../core/message'
+import { getUnreadCount, sendUserMessage } from '../../core/message'
 import { applyReplacements, validateReplaceText } from '../../core/alert'
 import {
   evaluateMessageAlertRule,
-  matchKeywordLineIndexes,
+  matchKeywordLines,
   refreshEnabledRuleIndex,
   renderDirectTitle,
   truncateMatchedLines,
@@ -17,11 +17,13 @@ import {
   validateMessageAlertDirectKeywords,
   validateMessageAlertDirectRulePayload,
   validateMessageAlertDirectTitle,
-  validateMessageAlertRuleCore,
+  validateMessageAlertRuleDefinition,
   validateMessageAlertRulePayload,
 } from '../../core/message/alert'
 import {
+  MESSAGE_BATCH_ID_MAX_COUNT,
   MESSAGE_CATEGORIES,
+  MESSAGE_SEARCH_MAX_LENGTH,
   MESSAGE_TYPES,
   MessageCategory,
   MessageScope,
@@ -32,9 +34,6 @@ import { handleOpenApiError } from '../openapi/openApiCore'
 const api: Express = express()
 const apiOpen: Express = express()
 const apiInner: Express = express()
-
-// 消息关键字搜索长度上限
-const MESSAGE_SEARCH_MAX_LENGTH = 100
 
 /**
  * 消息列表查询
@@ -117,14 +116,11 @@ async function handleMessageDetail(id: number, scope: MessageScope) {
   return message
 }
 
-// 批量操作 id 数量上限，防止超大 in 查询
-const BATCH_ID_MAX_COUNT = 1000
-
 // 批量端点 id 归一：逐项必须为正整数，数组长度受限
 function parseBatchIds(id: unknown): number[] {
   const ids = Array.isArray(id) ? id : [id]
-  if (ids.length > BATCH_ID_MAX_COUNT) {
-    throw new Error(`批量操作 id 数量不能超过 ${BATCH_ID_MAX_COUNT}`)
+  if (ids.length > MESSAGE_BATCH_ID_MAX_COUNT) {
+    throw new Error(`批量操作 id 数量不能超过 ${MESSAGE_BATCH_ID_MAX_COUNT}`)
   }
   return ids.map((value) => {
     const num = Number(value)
@@ -449,7 +445,18 @@ api.put('/alert/rule', async (request, response) => {
         ['titleReplace', [false, 'string']],
       ] as const,
     }, true)
-    const { id, enabled, name, logic, categories, types, conditions, channelIds, contentReplace, titleReplace } = params.body
+    const {
+      id,
+      enabled,
+      name,
+      logic,
+      categories,
+      types,
+      conditions,
+      channelIds,
+      contentReplace,
+      titleReplace,
+    } = params.body
     const exists = await db.messageAlertRule.$getById(id)
     if (!exists) {
       throw new Error('规则不存在')
@@ -546,7 +553,7 @@ api.post('/alert/rule/test', async (request, response) => {
       ] as const,
     })
     const { rule, message } = params.body
-    const cleanedRule = validateMessageAlertRuleCore(rule)
+    const cleanedRule = validateMessageAlertRuleDefinition(rule)
 
     const title = typeof message.title === 'string' ? message.title.trim() : ''
     const content = typeof message.content === 'string' ? message.content.trim() : ''
@@ -739,7 +746,16 @@ api.put('/alert/direct/rule', async (request, response) => {
         ['ruleIds', [false, 'number[]']],
       ] as const,
     }, true)
-    const { id, enabled, name, titleMode, titleTemplate, contentReplace, titleReplace, ruleIds } = params.body
+    const {
+      id,
+      enabled,
+      name,
+      titleMode,
+      titleTemplate,
+      contentReplace,
+      titleReplace,
+      ruleIds,
+    } = params.body
     const exists = await db.messageAlertDirectRule.$getById(id)
     if (!exists) {
       throw new Error('规则不存在')
@@ -878,7 +894,7 @@ api.post('/alert/direct/rule/test', async (request, response) => {
     const replacedContent = await applyReplacements(content, contentReplace)
     const keywordResults = await Promise.all(activeKeywords.map(async (keyword) => {
       // 超时或异常与未命中语义不同，试测需明确报错而不是显示成未命中
-      const lines = await matchKeywordLineIndexes(keyword.keyword, keyword.receiver, replacedContent)
+      const lines = await matchKeywordLines(keyword.keyword, keyword.receiver, replacedContent)
       if (lines === null) {
         throw new Error(`关键字「${keyword.receiver || keyword.keyword}」匹配超时或异常，请稍后重试`)
       }
@@ -919,7 +935,7 @@ apiOpen.post('/v1/create', async (request, response) => {
       ] as const,
     })
     const { title, content, type } = params.body
-    await pushUserMessage({ title, content, type: type as MessageType })
+    await sendUserMessage({ title, content, type: type as MessageType })
     response.send(API_STATUS_CODE.okData({ count: 1 }))
   }
   catch (e: any) {
@@ -1054,7 +1070,7 @@ apiInner.post('/push', async (request, response) => {
       ] as const,
     })
     const { title, content, type } = params.body
-    await pushUserMessage({ title, content, type: type as MessageType })
+    await sendUserMessage({ title, content, type: type as MessageType })
     response.send(API_STATUS_CODE.ok())
   }
   catch (e: any) {
