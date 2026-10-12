@@ -78,13 +78,14 @@ model messageAlertDirectRule {
   @@index([name])
 }
 
-// 一对一规则关键字：正文按行切割，包含该关键字的行会推送给绑定的渠道
+// 一对一规则关键字：正文按行切割，以正则模式逐行匹配，命中行推送给绑定的渠道
 model messageAlertDirectRuleKeyword {
   id                       Int                                    @id @default(autoincrement())
   messageAlertDirectRuleId Int
   messageAlertDirectRule   messageAlertDirectRule                 @relation(fields: [messageAlertDirectRuleId], references: [id])
-  keyword                  String // 匹配关键字，行内原子串包含即命中
-  remark                   String                                 @default("") // 关键字备注
+  keyword                  String // 匹配模式（正则表达式），逐行匹配消息正文，语法非法保存时拒绝
+  receiver                 String                                 @default("") // 收信人标识，标题 {{keyword}} 占位符优先填充此内容，未填回退匹配模式串
+  remark                   String                                 @default("") // 私密备注，仅面板可见，不参与推送
   enabled                  Int                                    @default(1) // 1 启用 / 0 禁用，禁用后不参与匹配
   sort                     Int                                    @default(0) // 数组下标，0 起
   channels                 messageAlertDirectRuleKeywordChannel[]
@@ -106,7 +107,7 @@ model messageAlertDirectRuleKeywordChannel {
   @@index([channelId])
 }
 
-// 一对多规则挂载一对一规则（多对多）
+// 一对一规则绑定的全局规则（多对多）：绑定规则命中后，一对一规则按关键字筛行推送
 model messageAlertRuleDirect {
   id                 Int                    @id @default(autoincrement())
   messageAlertRuleId Int
@@ -114,7 +115,7 @@ model messageAlertRuleDirect {
   directRuleId       Int
   directRule         messageAlertDirectRule @relation(fields: [directRuleId], references: [id])
 
-  @@unique([messageAlertRuleId, directRuleId]) // 同一规则不能重复挂载同一一对一规则
+  @@unique([messageAlertRuleId, directRuleId]) // 同一一对一规则不能重复绑定同一全局规则
   @@index([messageAlertRuleId])
   @@index([directRuleId])
 }

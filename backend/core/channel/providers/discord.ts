@@ -1,6 +1,5 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
-import { applyTemplate } from '../applyTemplate'
 import { truncateChars } from '../truncate'
 
 interface DiscordConfig extends BaseChannelConfig {
@@ -22,6 +21,7 @@ interface DiscordConfig extends BaseChannelConfig {
  */
 export const Discord = {
   type: 'discord',
+  singleBody: true,
   configRules: [
     ['webhookUrl', [true, 'string']],
     ['username', [false, 'string']],
@@ -38,12 +38,9 @@ export const Discord = {
       params.thread_id = config.threadId
     }
 
-    const content = applyTemplate(payload, config.general)
-    if (content === null)
-      return
     const body: Record<string, unknown> = {
       // 频道消息 content 官方上限 2000 字符
-      content: truncateChars(content, 2000),
+      content: truncateChars(payload.content, 2000),
     }
     if (config.username) {
       body.username = config.username
@@ -67,7 +64,7 @@ export const Discord = {
     })
     // 成功时 Discord 返回 204 No Content，无业务码，仅依据 HTTP 状态判定
     if (!result.success) {
-      throw new Error(`Discord请求失败：${result.error ?? '未知错误'}`)
+      throw new Error(`Discord 请求失败：${result.error ?? '未知错误'}`)
     }
   },
 } satisfies ChannelDefinition<DiscordConfig>

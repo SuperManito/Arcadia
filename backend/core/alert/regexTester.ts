@@ -2,19 +2,25 @@ import { Worker } from 'node:worker_threads'
 import { logger } from '../../utils/logger'
 
 const REGEX_TIMEOUT_MS = 500
+// 积压上限：超限直接按失败结算，防止慢任务持续堆积拖垮内存与响应
+const QUEUE_MAX_SIZE = 200
 
 const WORKER_SOURCE = `
 const { parentPort } = require('node:worker_threads')
-parentPort.on('message', ({ id, pattern, input, lines, replacement }) => {
+parentPort.on('message', ({ id, pattern, input, replacement, match }) => {
   let result = false
   try {
-    if (replacement !== undefined) {
-      result = input.replace(new RegExp(pattern, 'g'), replacement)
+    if (match) {
+      const regex = new RegExp(pattern)
+      result = input.map(line => {
+        const m = regex.exec(line)
+        return m ? m[0] : null
+      })
     }
-    else if (lines) {
-      result = input.split('\\n')
-        .map(line => line.endsWith('\\r') ? line.slice(0, -1) : line)
-        .filter(line => line !== '' && new RegExp(pattern).test(line))
+    else if (replacement !== undefined) {
+      result = Array.isArray(input)
+        ? input.map(line => line.replace(new RegExp(pattern, 'g'), replacement))
+        : input.replace(new RegExp(pattern, 'g'), replacement)
     }
     else {
       result = new RegExp(pattern).test(input)
@@ -27,10 +33,10 @@ parentPort.on('message', ({ id, pattern, input, lines, replacement }) => {
 
 interface RegexJob {
   pattern: string
-  input: string
-  lines?: boolean
+  input: string | string[]
   replacement?: string
-  resolve: (result: boolean | string[] | string | null) => void
+  match?: boolean
+  resolve: (result: boolean | string | string[] | Array<string | null> | null) => void
 }
 
 // 同一时刻只允许一个任务在 worker 中执行，其余排队；
@@ -45,14 +51,24 @@ let current: {
   worker: Worker
 } | null = null
 
-// 结算当前任务并派发下一个排队任务；null 表示超时或 worker 故障，调用方按不命中/跳过处理
-function settle(result: boolean | string[] | string | null) {
+// 结算当前任务并派发下一个排队任务
+function settle(result: boolean | string | string[] | Array<string | null> | null) {
   if (!current)
     return
   clearTimeout(current.timer)
   const { job } = current
   current = null
   job.resolve(result)
+  pump()
+}
+
+function enqueue(job: RegexJob) {
+  if (queue.length >= QUEUE_MAX_SIZE) {
+    logger.warn('[告警引擎] 正则任务队列已满，按不命中处理', { pattern: job.pattern })
+    job.resolve(null)
+    return
+  }
+  queue.push(job)
   pump()
 }
 
@@ -79,7 +95,7 @@ function pump() {
     settle(null)
   }, REGEX_TIMEOUT_MS)
   current = { id, job, timer, worker: target }
-  target.postMessage({ id, pattern: job.pattern, input: job.input, lines: job.lines ?? false, replacement: job.replacement })
+  target.postMessage({ id, pattern: job.pattern, input: job.input, replacement: job.replacement })
 }
 
 function spawnWorker(): Worker | null {
@@ -116,19 +132,7 @@ function spawnWorker(): Worker | null {
  */
 export function testRegex(pattern: string, input: string): Promise<boolean | null> {
   return new Promise((resolve) => {
-    queue.push({ pattern, input, resolve: result => resolve(typeof result === 'boolean' ? result : null) })
-    pump()
-  })
-}
-
-/**
- * 逐行匹配：命中行按原文顺序返回（去空行不去重）。
- * 返回 null 表示超时或 worker 故障，调用方决定语义（不参与 NOT_REGEX 取反）。
- */
-export function testRegexLines(pattern: string, input: string): Promise<string[] | null> {
-  return new Promise((resolve) => {
-    queue.push({ pattern, input, lines: true, resolve: result => resolve(Array.isArray(result) ? result : null) })
-    pump()
+    enqueue({ pattern, input, resolve: result => resolve(typeof result === 'boolean' ? result : null) })
   })
 }
 
@@ -138,7 +142,36 @@ export function testRegexLines(pattern: string, input: string): Promise<string[]
  */
 export function replaceRegex(pattern: string, replacement: string, input: string): Promise<string | null> {
   return new Promise((resolve) => {
-    queue.push({ pattern, input, replacement, resolve: result => resolve(typeof result === 'string' ? result : null) })
-    pump()
+    enqueue({ pattern, input, replacement, resolve: result => resolve(typeof result === 'string' ? result : null) })
+  })
+}
+
+/**
+ * 批量全量替换：逐行独立替换，行间不产生跨行匹配（锚点与含 \n 的 pattern 语义与单行调用一致）。
+ * 返回 null 表示超时、正则编译失败或 worker 故障，调用方决定语义（按跳过处理）。
+ */
+export function replaceRegexBatch(pattern: string, replacement: string, inputs: string[]): Promise<string[] | null> {
+  return new Promise((resolve) => {
+    enqueue({
+      pattern,
+      input: inputs,
+      replacement,
+      resolve: result => resolve(Array.isArray(result) ? result as string[] : null),
+    })
+  })
+}
+
+/**
+ * 批量行匹配：逐行独立 exec（非全局，无 lastIndex 状态），返回每行命中的文本片段（未命中为 null）。
+ * 返回 null 表示超时、正则编译失败或 worker 故障，调用方决定语义（按不命中处理）。
+ */
+export function matchRegexLines(pattern: string, inputs: string[]): Promise<Array<string | null> | null> {
+  return new Promise((resolve) => {
+    enqueue({
+      pattern,
+      input: inputs,
+      match: true,
+      resolve: result => resolve(Array.isArray(result) ? result as Array<string | null> : null),
+    })
   })
 }

@@ -141,6 +141,13 @@ export async function evaluateConditions(
   const sorted = conditions
     .slice()
     .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
+  // 空条件组防御：保存校验已拦截，脏数据兜底按不命中处理，避免 every 空数组返回 true 造成全量命中
+  if (sorted.length === 0) {
+    return {
+      matched: false,
+      conditions: [],
+    }
+  }
   const results: ConditionMatchResult[] = await Promise.all(sorted.map(async (condition, index) => ({
     sort: condition.sort ?? index,
     matched: await matchCondition(context, condition),

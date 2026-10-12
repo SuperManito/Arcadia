@@ -10,8 +10,8 @@ import { processMessageAlert } from './alert'
 import { socketCommon } from '../../server/socketCommon'
 
 // 消息去重缓存（FIFO 淘汰）
-const DEDUP_MAX_SIZE = 50
-const DEDUP_WINDOW_MS = 5 * 60 * 1000 // 5 分钟
+const DEDUP_MAX_SIZE = 100
+const DEDUP_WINDOW_MS = 30 * 1000
 const dedupCache = new Map<string, number>() // fingerprint → timestamp
 
 /**
@@ -28,11 +28,15 @@ function isDuplicate(fingerprint: string): boolean {
   return false
 }
 
-/**
- * 注册新消息到去重缓存
- */
 function registerDedup(fingerprint: string) {
-  dedupCache.set(fingerprint, Date.now())
+  // 借新消息入库时机清理过期项，避免窗口内不重复访问的条目滞留占位
+  const now = Date.now()
+  for (const [key, timestamp] of dedupCache) {
+    if (now - timestamp >= DEDUP_WINDOW_MS) {
+      dedupCache.delete(key)
+    }
+  }
+  dedupCache.set(fingerprint, now)
   if (dedupCache.size > DEDUP_MAX_SIZE) {
     const firstKey = dedupCache.keys().next().value
     if (firstKey !== undefined)

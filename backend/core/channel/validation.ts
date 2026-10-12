@@ -1,7 +1,7 @@
 import type { GeneralConfig } from './types'
 import { validateObject } from '../../utils'
 import db from '../../db'
-import { CHANNEL_CONFIG_RULES, ChannelType } from './registry'
+import { CHANNEL_CONFIG_RULES, CHANNEL_CONFIG_VALIDATORS, ChannelType } from './registry'
 
 export const CHANNEL_NAME_MAX_LENGTH = 50
 export const CHANNEL_TAGS_MAX_COUNT = 10
@@ -78,6 +78,7 @@ export function cleanChannelConfig(type: ChannelType, raw: Record<string, unknow
     }
   }
   result.general = cleanGeneralConfig(raw.general)
+  CHANNEL_CONFIG_VALIDATORS[type]?.(result)
   return result
 }
 

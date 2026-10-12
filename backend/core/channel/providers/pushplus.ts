@@ -31,11 +31,11 @@ export const Pushplus = {
       proxy: config.general?.proxy,
     })
     if (!result.success) {
-      throw new Error(`PushPlus请求失败：${result.error ?? '未知错误'}`)
+      throw new Error(`pushplus 请求失败：${result.error ?? '未知错误'}`)
     }
     const res = result.data as { code?: number, msg?: string } | null
     if (res?.code !== 200) {
-      throw new Error(`PushPlus返回业务错误 [${res?.code}] ${res?.msg ?? ''}`.trim())
+      throw new Error(`pushplus 返回业务错误 [${res?.code}] ${res?.msg ?? ''}`.trim())
     }
   },
 } satisfies ChannelDefinition<PushplusConfig>

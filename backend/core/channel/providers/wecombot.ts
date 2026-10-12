@@ -1,6 +1,5 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
-import { applyTemplate } from '../applyTemplate'
 import { truncateUtf8 } from '../truncate'
 
 interface WeComBotConfig extends BaseChannelConfig {
@@ -12,18 +11,16 @@ interface WeComBotConfig extends BaseChannelConfig {
  */
 export const WeComBot = {
   type: 'wecombot',
+  singleBody: true,
   configRules: [
     ['webhookUrl', [true, 'string']],
   ],
   pusher: async (config, payload) => {
-    const content = applyTemplate(payload, config.general)
-    if (content === null)
-      return
     const body = {
       msgtype: 'text',
       text: {
         // text content 官方上限 2048 字节
-        content: truncateUtf8(content, 2048),
+        content: truncateUtf8(payload.content, 2048),
       },
     }
 

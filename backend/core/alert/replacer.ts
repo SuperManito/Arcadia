@@ -1,6 +1,6 @@
 import { logger } from '../../utils/logger'
 import { assertValidRegexPattern, REGEX_MAX_LENGTH } from './matcher'
-import { replaceRegex } from './regexTester'
+import { replaceRegex, replaceRegexBatch } from './regexTester'
 
 export const REPLACE_TEXT_MAX_LENGTH = 2000
 export const REPLACE_REPLACEMENT_MAX_LENGTH = 256
@@ -108,6 +108,36 @@ export async function applyReplacements(input: string, text: string): Promise<st
       continue
     }
     const replaced = await replaceRegex(parsed.pattern, parsed.replacement, result)
+    if (replaced === null) {
+      logger.warn('[告警引擎] 替换执行超时或异常，跳过该条', { line: index + 1 })
+      continue
+    }
+    result = replaced
+  }
+  return result
+}
+
+/**
+ * 批量链式替换：全部输入合并为一次链执行，每条表达式占用一个 worker 任务（而非每行一个）。
+ * 输出顺序与输入一致；单条无效或超时仅跳过该条，不中断后续替换。
+ */
+export async function applyReplacementsBatch(inputs: string[], text: string): Promise<string[]> {
+  const raw = typeof text === 'string' ? text.trim() : ''
+  if (!raw) {
+    return inputs
+  }
+  let result = inputs
+  for (const [index, line] of raw.split('\n').entries()) {
+    const trimmed = line.trim()
+    if (!trimmed) {
+      continue
+    }
+    const parsed = parseExpression(trimmed)
+    if (!parsed) {
+      logger.warn('[告警引擎] 替换表达式无效，跳过该条', { line: index + 1 })
+      continue
+    }
+    const replaced = await replaceRegexBatch(parsed.pattern, parsed.replacement, result)
     if (replaced === null) {
       logger.warn('[告警引擎] 替换执行超时或异常，跳过该条', { line: index + 1 })
       continue

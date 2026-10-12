@@ -25,7 +25,7 @@ function parseQueryId(value: string): number {
 }
 
 /**
- * 渠道分页列表（个人设置管理页）
+ * 渠道分页列表（个人设置管理页；不含 config，编辑与测试发送按 id 另行获取）
  */
 api.get('/page', async (request, response) => {
   try {
@@ -59,6 +59,7 @@ api.get('/page', async (request, response) => {
       orderBy: [{ [orderBy]: desc ? 'desc' : 'asc' }],
       page: String(request.query.page),
       size: String(request.query.size),
+      select: { id: true, name: true, type: true, tags: true, create_time: true, update_time: true },
     })
     response.send(API_STATUS_CODE.okData(result))
   }
@@ -200,12 +201,13 @@ api.delete('/', async (request, response) => {
 })
 
 /**
- * 渠道测试发送（不落库）
+ * 渠道测试发送（不落库）；传 id 按已存配置发送，未传按提交配置（编辑表单未保存场景）
  */
 api.post('/test', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
+        ['id', [false, 'number']],
         ['name', [false, 'string']],
         ['type', [false, 'string']],
         ['config', [false, 'string | object']],
@@ -213,9 +215,23 @@ api.post('/test', async (request, response) => {
         ['content', [false, 'string']],
       ] as const,
     }, true)
-    const cleaned = await validateChannelPayload(params.body, { skipNameCheck: true })
+    let type: string
+    let config: string
+    if (params.body.id !== undefined) {
+      const channel = await db.notificationChannel.$getById(params.body.id)
+      if (!channel) {
+        throw new Error('渠道不存在')
+      }
+      type = channel.type
+      config = channel.config
+    }
+    else {
+      const cleaned = await validateChannelPayload(params.body, { skipNameCheck: true })
+      type = cleaned.type
+      config = cleaned.config
+    }
     const result = await pushChannel(
-      { type: cleaned.type, config: cleaned.config },
+      { type, config },
       {
         title: params.body.title?.trim() || TEST_NOTIFY_TITLE,
         content: params.body.content?.trim() || TEST_NOTIFY_CONTENT,

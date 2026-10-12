@@ -18,12 +18,17 @@
 
 2. 在 `providers/index.ts` 中进行注册。
 
+- ### 可选定义字段
+
+  - `singleBody: true`：无独立标题字段的渠道标记。无自定义消息模板时，上层 `pushChannel` 会自动把标题并入正文（`标题\n\n正文`）传入推送器，推送器只读 `payload.content`，参考 `providers/telegram.ts`。
+  - `validateConfig(config)`：保存期校验钩子，在 `configRules` 清洗后调用，用于规则表达不了的跨字段约束（如互备字段至少填一项），失败 `throw` 即拒绝保存，参考 `providers/wxpusher.ts`。
+
 - ### 推送器 pusher 参数说明
 
   推送器签名为 `(config, payload) => Promise<void>`，两个参数的说明：
 
-  - `config`：本渠道的配置对象，类型就是文件里定义的 `XXXConfig`。除了渠道自身字段，还带一个可选的 `general`（`footer` / `messageTemplate` / `proxy`。传入前已按 `configRules` 白名单清洗，格式校验在用户保存时完成，推送器不需要重复校验。
-  - `payload`：待推送的消息 `{ title, content }`，两者可能为空字符串。
+  - `config`：本渠道的配置对象，类型就是文件里定义的 `XXXConfig`。除了渠道自身字段，还带一个可选的 `general`（`footer` / `messageTemplate` / `proxy`）。传入前已按 `configRules` 白名单清洗，格式校验在用户保存时完成，推送器不需要重复校验。
+  - `payload`：待推送的消息 `{ title, content }`。通知尾追加、自定义消息模板渲染（渲染结果覆盖 `content`，`title` 保留原文供 summary / 卡片标题等场景使用）与 `singleBody` 标题合并均已在 `pushChannel` 完成，推送器直接使用即可。
   - 返回 `Promise<void>`：正常返回即推送成功；失败时 `throw new Error(...)`，错误信息会作为"推送失败"的原因展示给用户。
 
 ## 完整示例（适配 foo 服务）
@@ -101,22 +106,16 @@ export const Foo = {
     | `error` | 失败原因，成功时为 null |
     | `connected` | 是否已建立连接（收到 4xx / 5xx 响应也算已连接） |
 
-- 无独立标题时的处理方式：
+- 无独立标题的处理方式：
 
-  若渠道无独立标题则需要将标题并入至消息内容中，通过 `applyTemplate` 内置方法自动处理。  
-  届时会涉及到自定义消息模板（通用配置）场景，可能会遇到无任何内容的情况，所以空消息内容时需要 return 处理 
+  在渠道定义上标记 `singleBody: true`，标题与正文的合并（以及自定义消息模板渲染）由上层 `pushChannel` 统一处理，推送器只读 `payload.content`：
 
   ```ts
-  import { applyTemplate } from '../applyTemplate'
-  ...
-
   export const Foo = {
     ...
+    singleBody: true,
     pusher: async (config, payload) => {
-      const content = applyTemplate(payload, config.general)
-      if (content === null)
-        return
-
+      // 直接使用 payload.content，无需关心标题合并与模板渲染
       ...
     },
   } satisfies ChannelDefinition<FooConfig>

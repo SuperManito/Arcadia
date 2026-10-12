@@ -5,7 +5,6 @@ export const MESSAGE_ALERT_RULE_NAME_MAX_LENGTH = 50
 export const MESSAGE_ALERT_CONDITION_MAX_COUNT = 20
 export const MESSAGE_ALERT_CONDITION_VALUE_MAX_LENGTH = 512
 export const MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT = 50
-export const MESSAGE_ALERT_RULE_DIRECT_MAX_COUNT = 20
 
 export interface MessageAlertContext {
   title: string
@@ -33,7 +32,6 @@ export interface MessageAlertRulePayloadInput extends MessageAlertRuleCoreInput 
   contentReplace?: unknown
   titleReplace?: unknown
   channelIds?: number[]
-  directRuleIds?: number[]
 }
 
 export interface CleanedMessageAlertRuleCore {
@@ -48,5 +46,4 @@ export interface CleanedMessageAlertRulePayload extends CleanedMessageAlertRuleC
   contentReplace: string
   titleReplace: string
   channelIds: number[]
-  directRuleIds: number[]
 }

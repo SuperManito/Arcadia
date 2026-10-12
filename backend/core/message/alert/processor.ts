@@ -7,7 +7,7 @@ import {
   evaluateConditions,
   parseMultiValue,
 } from '../../alert/matcher'
-import { applyReplacements } from '../../alert/replacer'
+import { applyReplacements, applyReplacementsBatch } from '../../alert/replacer'
 import { MessageCategory, MessageType } from '../../type/message'
 import { pushChannel } from '../../channel'
 import { sendMessage } from '../index'
@@ -63,37 +63,74 @@ async function loadEnabledRules() {
       include: {
         conditions: { orderBy: { sort: 'asc' } },
         channels: { include: { channel: true } },
-        directs: {
-          where: { directRule: { enabled: 1 } },
-          include: {
-            directRule: {
-              include: {
-                keywords: {
-                  where: { enabled: 1 },
-                  orderBy: { sort: 'asc' },
-                  include: { channels: { include: { channel: true } } },
-                },
-              },
-            },
-          },
-        },
       },
     },
   )
 }
 
-// 是否可能存在启用规则的内存标记：false 时跳过查询，仅由规则增删改路径经 refreshHasEnabledRules 刷新；初值 true 保证重启后已有规则不漏判
-let hasEnabledRules = true
+async function loadEnabledDirectRules() {
+  return db.messageAlertDirectRule.$list(
+    { where: { enabled: 1 } },
+    {
+      include: {
+        keywords: {
+          where: { enabled: 1 },
+          orderBy: { sort: 'asc' },
+          include: { channels: { include: { channel: true } } },
+        },
+        messageAlertLinks: { select: { messageAlertRuleId: true } },
+      },
+    },
+  )
+}
+
+// 启用规则的分类/级别粗判索引：未命中直接跳过全量关联查询，按维度独立近似、可能误放行但绝不漏判；
+// 为空表示不限制须视为命中一切；初值全通配保证重启后不漏判，仅由规则增删改路径刷新
+let enabledRuleIndex = {
+  allCategories: true,
+  categories: new Set<string>(),
+  allTypes: true,
+  types: new Set<string>(),
+}
+
+function mayMatchRule(category: string, type: string): boolean {
+  return (enabledRuleIndex.allCategories || enabledRuleIndex.categories.has(category))
+    && (enabledRuleIndex.allTypes || enabledRuleIndex.types.has(type))
+}
 
 /**
- * 规则增删改后刷新启用标记；失败只记日志不抛出，标记失真仅影响一次额外查询或漏判，不应阻断调用方
+ * 规则增删改后刷新粗判索引；失败只记日志不抛出，沿用旧索引的失真仅影响额外的查询或漏判，不应阻断调用方
  */
-export async function refreshHasEnabledRules() {
+export async function refreshEnabledRuleIndex() {
   try {
-    hasEnabledRules = (await db.messageAlertRule.count({ where: { enabled: 1 } })) > 0
+    const rules = await db.messageAlertRule.$list(
+      { where: { enabled: 1 } },
+      { select: { categories: true, types: true } },
+    )
+    const categories = new Set<string>()
+    const types = new Set<string>()
+    let allCategories = false
+    let allTypes = false
+    for (const rule of rules) {
+      const ruleCategories = parseMultiValue(rule.categories)
+      if (ruleCategories.length === 0) {
+        allCategories = true
+      }
+      else {
+        ruleCategories.forEach(category => categories.add(category))
+      }
+      const ruleTypes = parseMultiValue(rule.types)
+      if (ruleTypes.length === 0) {
+        allTypes = true
+      }
+      else {
+        ruleTypes.forEach(type => types.add(type))
+      }
+    }
+    enabledRuleIndex = { allCategories, categories, allTypes, types }
   }
   catch (e: any) {
-    logger.error('[消息中心监控告警] 刷新启用规则标记失败', { error: e?.message })
+    logger.error('[消息中心监控告警] 刷新启用规则索引失败', { error: e?.message })
   }
 }
 
@@ -101,17 +138,18 @@ export async function refreshHasEnabledRules() {
  * 告警处理入口：命中规则与关联渠道两级并发推送，由消息入库路径非阻塞调用
  */
 export async function processMessageAlert(msg: messageModel) {
-  if (!hasEnabledRules) {
+  if (!mayMatchRule(msg.category, msg.type)) {
     return
   }
   const rules = await loadEnabledRules()
+  const directRules = await loadEnabledDirectRules()
 
-  // 同一一对一规则可被多条命中规则挂载，单条消息只处理一次
+  // 同一一对一规则可绑定多条命中规则，单条消息只处理一次
   const processedDirectRuleIds = new Set<number>()
   const context = { title: msg.title, content: msg.content, category: msg.category, type: msg.type }
   await Promise.all(rules.map(async (rule) => {
     try {
-      await processRule(rule, msg, context, processedDirectRuleIds)
+      await processRule(rule, msg, context, directRules, processedDirectRuleIds)
     }
     catch (e: any) {
       logger.error('[消息中心监控告警] 规则处理异常', {
@@ -128,9 +166,14 @@ async function processRule(
   rule: Awaited<ReturnType<typeof loadEnabledRules>>[number],
   msg: messageModel,
   context: MessageAlertContext,
+  directRules: Awaited<ReturnType<typeof loadEnabledDirectRules>>,
   processedDirectRuleIds: Set<number>,
 ) {
-  if (rule.channels.length === 0 && rule.directs.length === 0) {
+  // 无渠道且无绑定时无需求值
+  const boundDirectRules = directRules.filter(direct =>
+    direct.messageAlertLinks.some(link => link.messageAlertRuleId === rule.id),
+  )
+  if (rule.channels.length === 0 && boundDirectRules.length === 0) {
     return
   }
   const hit = await matchMessageAlertRule(context, {
@@ -178,18 +221,18 @@ async function processRule(
     }))
   }
 
-  await Promise.allSettled(rule.directs.map(async (link) => {
-    if (processedDirectRuleIds.has(link.directRuleId)) {
+  await Promise.allSettled(boundDirectRules.map(async (directRule) => {
+    if (processedDirectRuleIds.has(directRule.id)) {
       return
     }
-    processedDirectRuleIds.add(link.directRuleId)
+    processedDirectRuleIds.add(directRule.id)
     try {
-      await processDirectRule(link.directRule, msg)
+      await processDirectRule(directRule, msg)
     }
     catch (e: any) {
       logger.error('[消息中心监控告警] 一对一规则处理异常', {
-        directRuleId: link.directRuleId,
-        directRuleName: link.directRule.name,
+        directRuleId: directRule.id,
+        directRuleName: directRule.name,
         error: e?.message,
       })
     }
@@ -198,15 +241,15 @@ async function processRule(
 
 // 按渠道聚合命中行：多关键字绑定同一渠道时合并为一次推送，行序按原文还原，行文本去重
 async function processDirectRule(
-  directRule: Awaited<ReturnType<typeof loadEnabledRules>>[number]['directs'][number]['directRule'],
+  directRule: Awaited<ReturnType<typeof loadEnabledDirectRules>>[number],
   msg: messageModel,
 ) {
   if (directRule.keywords.length === 0) {
     return
   }
-  const channelLines = new Map<number, { channel: (typeof directRule.keywords)[number]['channels'][number]['channel'], indexes: Map<string, number>, keywords: string[] }>()
+  const channelLines = new Map<number, { channel: (typeof directRule.keywords)[number]['channels'][number]['channel'], indexes: Map<string, number>, keywords: { keyword: string, receiver: string }[] }>()
   for (const keyword of directRule.keywords) {
-    const matched = matchKeywordLineIndexes(keyword.keyword, msg.content)
+    const matched = await matchKeywordLineIndexes(keyword.keyword, keyword.receiver, msg.content)
     if (matched.length === 0) {
       continue
     }
@@ -216,8 +259,8 @@ async function processDirectRule(
         entry = { channel: link.channel, indexes: new Map(), keywords: [] }
         channelLines.set(link.channelId, entry)
       }
-      if (!entry.keywords.includes(keyword.keyword)) {
-        entry.keywords.push(keyword.keyword)
+      if (!entry.keywords.some(item => item.keyword === keyword.keyword)) {
+        entry.keywords.push({ keyword: keyword.keyword, receiver: keyword.receiver })
       }
       matched.forEach(({ line, index }) => {
         if (!entry.indexes.has(line)) {
@@ -229,15 +272,22 @@ async function processDirectRule(
   if (channelLines.size === 0) {
     return
   }
+  // 全渠道命中行取并集批量替换一次，避免同文本按渠道重复执行替换链
+  const allLines = [...new Set([...channelLines.values()].flatMap(({ indexes }) => [...indexes.keys()]))]
+  const replaced = await applyReplacementsBatch(allLines, directRule.content_replace)
+  const replacedMap = new Map<string, string>()
+  allLines.forEach((line, index) => replacedMap.set(line, replaced[index]))
   await Promise.allSettled([...channelLines.values()].map(async ({ channel, indexes, keywords }) => {
     const orderedLines = [...indexes.entries()].sort((a, b) => a[1] - b[1]).map(([line]) => line)
-    // 替换在聚合去重后按原文逐行执行，截断行数按替换前计
-    const replacedLines = await Promise.all(orderedLines.map(line => applyReplacements(line, directRule.content_replace)))
+    // 截断行数按替换前计
+    const replacedLines = orderedLines.map(line => replacedMap.get(line)!)
     const match = truncateMatchedLines(replacedLines)
     const content = match.truncated
       ? `${match.lines.join('\n')}\n……（已截断，共命中 ${match.total} 行）`
       : match.lines.join('\n')
-    const renderedTitle = renderDirectTitle(directRule.title_mode as MessageAlertDirectTitleMode, directRule.title_template, msg.title, directRule.name, keywords.join('、'))
+    // {{keyword}} 填充收信人标识，未填时回退正则模式串
+    const keywordLabels = [...new Set(keywords.map(({ keyword, receiver }) => receiver || keyword))]
+    const renderedTitle = renderDirectTitle(directRule.title_mode as MessageAlertDirectTitleMode, directRule.title_template, msg.title, directRule.name, keywordLabels.join('、'))
     const title = await applyReplacements(renderedTitle, directRule.title_replace)
     enqueueDirectPush(
       channel,

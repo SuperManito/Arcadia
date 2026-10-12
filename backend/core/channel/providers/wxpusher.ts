@@ -1,6 +1,5 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
-import { applyTemplate } from '../applyTemplate'
 
 interface WxPusherConfig extends BaseChannelConfig {
   appToken: string
@@ -14,12 +13,18 @@ interface WxPusherConfig extends BaseChannelConfig {
  */
 export const WxPusher = {
   type: 'wxpusher',
+  singleBody: true,
   configRules: [
     ['appToken', [true, 'string']],
     ['uids', [false, 'string[]']],
     ['topicIds', [false, 'object']],
     ['url', [false, 'string']],
   ],
+  validateConfig: (config) => {
+    if ((config.uids?.length ?? 0) === 0 && (config.topicIds?.length ?? 0) === 0) {
+      throw new Error('uids 与 topicIds 不能同时为空')
+    }
+  },
   pusher: async (config, payload) => {
     const uids = config.uids ?? []
     // topicIds 允许字符串或数字，统一转为正整数并去重后提交
@@ -33,17 +38,11 @@ export const WxPusher = {
         topicIds.push(id)
       }
     }
-    if (uids.length === 0 && topicIds.length === 0) {
-      throw new Error('uids 与 topicIds 不能同时为空')
-    }
 
-    // summary 始终用原始标题，不受模板影响
-    const content = applyTemplate(payload, config.general)
-    if (content === null)
-      return
     const body: Record<string, unknown> = {
       appToken: config.appToken,
-      content,
+      content: payload.content,
+      // summary 始终用原始标题，不受模板渲染影响
       summary: payload.title,
       contentType: 1,
       uids,

@@ -1,6 +1,5 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
-import { applyTemplate } from '../applyTemplate'
 
 interface QQBotConfig extends BaseChannelConfig {
   appId: string
@@ -16,6 +15,7 @@ interface QQBotConfig extends BaseChannelConfig {
  */
 export const QQBot = {
   type: 'qqbot',
+  singleBody: true,
   configRules: [
     ['appId', [true, 'string']],
     ['clientSecret', [true, 'string']],
@@ -23,10 +23,6 @@ export const QQBot = {
     ['targetId', [true, 'string']],
   ],
   pusher: async (config, payload) => {
-    const content = applyTemplate(payload, config.general)
-    if (content === null)
-      return
-
     // 凭证错误以 HTTP 200 + 业务码返回，必须校验响应体里的 access_token
     const tokenResult = await request({
       method: 'POST',
@@ -50,7 +46,7 @@ export const QQBot = {
     const url = targetType === 'channel'
       ? `https://api.sgroup.qq.com/channels/${config.targetId}/messages`
       : `https://api.sgroup.qq.com/v2/${targetType === 'group' ? 'groups' : 'users'}/${config.targetId}/messages`
-    const body = targetType === 'channel' ? { content } : { msg_type: 0, content }
+    const body = targetType === 'channel' ? { content: payload.content } : { msg_type: 0, content: payload.content }
 
     const result = await request({
       method: 'POST',

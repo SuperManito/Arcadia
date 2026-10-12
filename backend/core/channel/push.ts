@@ -1,14 +1,16 @@
-import type { PushPayload } from './types'
+import type { GeneralConfig, PushPayload } from './types'
 import type { ChannelType } from './registry'
-import { CHANNEL_CONFIG_RULES, getPusher } from './registry'
+import { CHANNEL_CONFIG_RULES, CHANNEL_SINGLE_BODY, getPusher } from './registry'
 import { dateToString, validateObject } from '../../utils'
+import { logger } from '../../utils/logger'
+import { applyTemplate } from './applyTemplate'
 
 export type PushResult = { success: true } | { success: false, error: string }
 
 /**
  * 渠道统一推送入口
  *
- * 解析配置数据对象 → 校验 → 调用对应推送器
+ * 解析配置数据对象 → 校验 → 通知尾与消息模板渲染 → 调用对应推送器
  */
 export async function pushChannel(
   channel: { type: string, config: string },
@@ -37,9 +39,24 @@ export async function pushChannel(
     const footer = rawFooter
       ? rawFooter.split('\\n').join('\n').replace(/\{\{time\}\}/g, () => dateToString(new Date()))
       : ''
-    const finalPayload = footer
+    let finalPayload = footer
       ? { ...payload, content: payload.content ? `${payload.content}\n\n${footer}` : footer }
       : payload
+
+    const general = (config as Record<string, any>).general as GeneralConfig | undefined
+    if (general?.messageTemplate?.trim()) {
+      const rendered = applyTemplate(finalPayload, general)
+      if (rendered === null) {
+        // 渲染为空可能是模板写法使然（如仅留空白），不算渠道失败，记日志便于排查
+        logger.warn('[渠道推送] 自定义消息模板渲染结果为空，消息未推送', { channelType: channel.type })
+        return { success: true }
+      }
+      // 模板即消息全文；标题保留供 summary/卡片标题等原始标题场景使用
+      finalPayload = { ...finalPayload, content: rendered }
+    }
+    else if (CHANNEL_SINGLE_BODY.has(channel.type as ChannelType)) {
+      finalPayload = { ...finalPayload, content: `${finalPayload.title}\n\n${finalPayload.content}` }
+    }
 
     await pusher(config as Record<string, any>, finalPayload)
   }
