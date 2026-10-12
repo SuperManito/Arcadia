@@ -44,17 +44,22 @@ function registerDedup(fingerprint: string) {
   }
 }
 
-// 内容长度限制，超出部分截断
 const TITLE_MAX_LENGTH = 200
 const CONTENT_MAX_LENGTH = 20000
 
 /**
  * 发送消息
- * @returns true=新消息已创建，false=重复消息已丢弃
+ *
+ * 返回 true 表示新消息已入库，false 表示窗口内重复消息被丢弃
  */
 export async function sendMessage(data: MessageData): Promise<boolean> {
-  const title = (data.title ?? '').trim().slice(0, TITLE_MAX_LENGTH)
-  const content = (data.content ?? '').trim().slice(0, CONTENT_MAX_LENGTH)
+  const rawTitle = (data.title ?? '').trim()
+  const rawContent = (data.content ?? '').trim()
+  const title = rawTitle.slice(0, TITLE_MAX_LENGTH)
+  const content = rawContent.slice(0, CONTENT_MAX_LENGTH)
+  if (rawContent.length > CONTENT_MAX_LENGTH) {
+    logger.warn('[消息中心] 消息内容超长被截断', { title: rawTitle, length: rawContent.length, maxLength: CONTENT_MAX_LENGTH })
+  }
   const category = data.category || MessageCategory.SYSTEM
   const type = data.type || MessageType.INFO
 
@@ -65,7 +70,6 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
     ['type', [false, Object.values(MessageType)]],
   ])
 
-  // 消息去重
   const contentHash = createHash('md5').update(content).digest('hex')
   const fingerprint = `${category}:${type}:${title}:${contentHash}`
   if (isDuplicate(fingerprint))

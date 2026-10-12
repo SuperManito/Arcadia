@@ -26,6 +26,13 @@ export const DingDing = {
     ['mobiles', [false, 'string[]']],
     ['users', [false, 'string[]']],
   ],
+  rateLimit: {
+    // 自定义机器人 20 条/分钟，超限限流 10 分钟
+    concurrency: 1,
+    limits: [
+      { count: 20, seconds: 60 },
+    ],
+  },
   pusher: async (config, payload) => {
     const mentionType = config.mentionType ?? 'none'
     const atMobiles = mentionType === 'mobiles' ? (config.mobiles ?? []) : []

@@ -95,7 +95,7 @@ function pump() {
     settle(null)
   }, REGEX_TIMEOUT_MS)
   current = { id, job, timer, worker: target }
-  target.postMessage({ id, pattern: job.pattern, input: job.input, replacement: job.replacement })
+  target.postMessage({ id, pattern: job.pattern, input: job.input, replacement: job.replacement, match: job.match })
 }
 
 function spawnWorker(): Worker | null {
@@ -143,21 +143,6 @@ export function testRegex(pattern: string, input: string): Promise<boolean | nul
 export function replaceRegex(pattern: string, replacement: string, input: string): Promise<string | null> {
   return new Promise((resolve) => {
     enqueue({ pattern, input, replacement, resolve: result => resolve(typeof result === 'string' ? result : null) })
-  })
-}
-
-/**
- * 批量全量替换：逐行独立替换，行间不产生跨行匹配（锚点与含 \n 的 pattern 语义与单行调用一致）。
- * 返回 null 表示超时、正则编译失败或 worker 故障，调用方决定语义（按跳过处理）。
- */
-export function replaceRegexBatch(pattern: string, replacement: string, inputs: string[]): Promise<string[] | null> {
-  return new Promise((resolve) => {
-    enqueue({
-      pattern,
-      input: inputs,
-      replacement,
-      resolve: result => resolve(Array.isArray(result) ? result as string[] : null),
-    })
   })
 }
 

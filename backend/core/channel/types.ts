@@ -29,6 +29,10 @@ export interface ChannelDefinition<C extends BaseChannelConfig = BaseChannelConf
    */
   singleBody?: boolean
   /**
+   * 发送凭据的接口请求频率限制：limits 内每项为"任意 seconds 秒内最多 count 次"的滑动窗口约束（可多层叠加，如 5 次/秒 + 100 次/分钟），concurrency 为同时在途请求上限；未声明走全局默认值
+   */
+  rateLimit?: { concurrency?: number, limits: Array<{ count: number, seconds: number }> }
+  /**
    * 配置规则，用于校验渠道配置的合法性
    */
   configRules: ReadonlyArray<ValidateObjectParamType>

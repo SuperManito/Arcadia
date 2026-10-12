@@ -15,6 +15,13 @@ export const WeComBot = {
   configRules: [
     ['webhookUrl', [true, 'string']],
   ],
+  rateLimit: {
+    // 群机器人 20 条/分钟
+    concurrency: 1,
+    limits: [
+      { count: 20, seconds: 60 },
+    ],
+  },
   pusher: async (config, payload) => {
     const body = {
       msgtype: 'text',

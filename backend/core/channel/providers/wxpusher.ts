@@ -20,6 +20,13 @@ export const WxPusher = {
     ['topicIds', [false, 'object']],
     ['url', [false, 'string']],
   ],
+  rateLimit: {
+    // 官方限制最大 QPS 2
+    concurrency: 1,
+    limits: [
+      { count: 2, seconds: 1 },
+    ],
+  },
   validateConfig: (config) => {
     if ((config.uids?.length ?? 0) === 0 && (config.topicIds?.length ?? 0) === 0) {
       throw new Error('uids 与 topicIds 不能同时为空')

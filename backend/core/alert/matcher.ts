@@ -99,11 +99,11 @@ export async function matchCondition(context: Record<string, string>, condition:
       logger.warn('[告警引擎] 条件正则编译失败，按不命中处理', { pattern: condition.value })
       return false
     }
-    // null 表示超时或 worker 故障，按不命中处理且不能参与 NOT_REGEX 取反，否则超时会误判为命中
+    // null 表示超时或 worker 故障，抛错由调用方决定语义（记入失败会话或返回错误）；
+    // 不能静默按不命中处理，也不能参与 NOT_REGEX 取反，否则超时会误判为命中
     const hit = await testRegex(condition.value, fieldValue)
     if (hit === null) {
-      logger.warn('[告警引擎] 条件正则执行超时或异常，按不命中处理', { pattern: condition.value })
-      return false
+      throw new Error(`正则 ${condition.value} 执行超时或异常`)
     }
     return condition.operator === RegexOperator.NOT_REGEX ? !hit : hit
   }

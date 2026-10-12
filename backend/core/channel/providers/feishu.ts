@@ -14,6 +14,14 @@ export const Feishu = {
   configRules: [
     ['webhookUrl', [true, 'string']],
   ],
+  rateLimit: {
+    // 官方双层限制：5 次/秒 + 100 次/分钟
+    concurrency: 1,
+    limits: [
+      { count: 5, seconds: 1 },
+      { count: 100, seconds: 60 },
+    ],
+  },
   pusher: async (config, payload) => {
     const body = {
       msg_type: 'text',

@@ -31,7 +31,8 @@ export function validateMessageAlertDirectKeywords(raw: unknown): CleanedMessage
   if (raw.length > MESSAGE_ALERT_DIRECT_KEYWORD_MAX_COUNT) {
     throw new Error(`关键字数量不能超过 ${MESSAGE_ALERT_DIRECT_KEYWORD_MAX_COUNT} 条`)
   }
-  const seen = new Set<string>()
+  const seenKeywords = new Set<string>()
+  const seenReceivers = new Set<string>()
   return raw.map((item, index) => {
     const n = index + 1
     const keyword = typeof item?.keyword === 'string' ? item.keyword.trim() : ''
@@ -55,10 +56,20 @@ export function validateMessageAlertDirectKeywords(raw: unknown): CleanedMessage
     catch {
       throw new Error(`关键字 ${n} 不是有效的正则表达式`)
     }
-    if (seen.has(keyword)) {
-      throw new Error(`关键字 ${n} 与其他关键字重复`)
+    // 一行关键字对应一个收信人：填写收信人标识的行按标识去重，同标识不同模式仍属重复配置；
+    // 未填收信人标识的行是独立模式，按模式原文去重；{{receiver}} 模板借不同标识在同一规则内复用
+    if (receiver) {
+      if (seenReceivers.has(receiver)) {
+        throw new Error(`关键字 ${n} 的收信人标识与其他关键字重复`)
+      }
+      seenReceivers.add(receiver)
     }
-    seen.add(keyword)
+    else {
+      if (seenKeywords.has(keyword)) {
+        throw new Error(`关键字 ${n} 与其他关键字重复`)
+      }
+      seenKeywords.add(keyword)
+    }
     const channelIds: number[] = []
     for (const rawId of Array.isArray(item.channelIds) ? item.channelIds : []) {
       const id = Number(rawId)

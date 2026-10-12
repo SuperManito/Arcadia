@@ -236,6 +236,8 @@ api.post('/test', async (request, response) => {
         title: params.body.title?.trim() || TEST_NOTIFY_TITLE,
         content: params.body.content?.trim() || TEST_NOTIFY_CONTENT,
       },
+      // 测试发送是手动单次调用，绕过类型级节流 FIFO，避免窗口占满时请求长时间挂起
+      { bypassThrottle: true },
     )
     if (!result.success) {
       response.send(API_STATUS_CODE.fail(result.error))

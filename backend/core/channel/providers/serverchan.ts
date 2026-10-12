@@ -13,6 +13,13 @@ export const ServerChan = {
   configRules: [
     ['sendKey', [true, 'string']],
   ],
+  rateLimit: {
+    // 免费/付费口径冲突（5 或 50 条/分钟），取保守值
+    concurrency: 1,
+    limits: [
+      { count: 5, seconds: 60 },
+    ],
+  },
   pusher: async (config, payload) => {
     // sendKey 以 sctp<数字>t 开头走新版独立域名，其余走 sctapi 通用域名
     const match = config.sendKey.match(/^sctp(\d+)t/)

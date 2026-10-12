@@ -21,6 +21,7 @@
 - ### 可选定义字段
 
   - `singleBody: true`：无独立标题字段的渠道标记。无自定义消息模板时，上层 `pushChannel` 会自动把标题并入正文（`标题\n\n正文`）传入推送器，推送器只读 `payload.content`，参考 `providers/telegram.ts`。
+  - `rateLimit: { concurrency, limits }`：发送凭据的接口请求频率限制，`limits` 为滑动窗口数组（每项"任意 `seconds` 秒内最多 `count` 次"，可多层叠加如 5 次/秒 + 100 次/分钟），`concurrency` 为同时在途请求上限，`pushChannel` 按渠道类型执行（算法与 Sentinel 同款滑动窗口），计数口径按推送次数计，推送器内部的前置请求（如取 access_token）与 429 重试不另计名额。未声明走默认值（每秒 10 次 / 并发 3），仅官方明确限流的渠道才声明，参考 `providers/feishu.ts`。
   - `validateConfig(config)`：保存期校验钩子，在 `configRules` 清洗后调用，用于规则表达不了的跨字段约束（如互备字段至少填一项），失败 `throw` 即拒绝保存，参考 `providers/wxpusher.ts`。
 
 - ### 推送器 pusher 参数说明

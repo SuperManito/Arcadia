@@ -29,6 +29,13 @@ export const Telegram = {
     ['sendSilently', [false, 'boolean']],
     ['protectContent', [false, 'boolean']],
   ],
+  rateLimit: {
+    // Bot API 每 chat 1 条/秒
+    concurrency: 1,
+    limits: [
+      { count: 1, seconds: 1 },
+    ],
+  },
   pusher: async (config, payload) => {
     const serverUrl = (config.serverUrl || 'https://api.telegram.org').replace(/\/+$/, '')
 

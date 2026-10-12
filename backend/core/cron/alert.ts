@@ -79,6 +79,8 @@ export async function alertTaskFailure(info: taskRunInfo) {
       const result = await pushChannel(
         { type: channel.type, config: channel.config },
         payload,
+        // 失败告警本身常因渠道不可用触发，节流 FIFO 排队只会延迟失败通知
+        { bypassThrottle: true },
       )
       if (result.success) {
         return

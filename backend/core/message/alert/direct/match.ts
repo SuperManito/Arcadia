@@ -33,9 +33,10 @@ export interface MatchedKeywordLine {
 
 /**
  * 行首尾 trim、空行跳过后逐行匹配，委托 regexTester worker 防灾难性回溯阻塞主线程；
- * index 为原文行号、matched 为命中片段，执行异常按零命中处理
+ * index 为原文行号、matched 为命中片段。
+ * 返回 null 表示执行超时或异常（区别于零命中），由调用方决定语义
  */
-export async function matchKeywordLineIndexes(pattern: string, receiver: string, content: string): Promise<MatchedKeywordLine[]> {
+export async function matchKeywordLineIndexes(pattern: string, receiver: string, content: string): Promise<MatchedKeywordLine[] | null> {
   if (pattern.includes(MESSAGE_ALERT_DIRECT_KEYWORD_RECEIVER_PLACEHOLDER) && !receiver) {
     logger.warn('[消息中心监控告警] 关键字使用收信人占位符但收信人标识为空，按不命中处理', { keyword: pattern })
     return []
@@ -47,8 +48,7 @@ export async function matchKeywordLineIndexes(pattern: string, receiver: string,
     .filter(item => item.line.length > 0)
   const results = await matchRegexLines(keyword, lines.map(item => item.line))
   if (results === null) {
-    logger.warn('[消息中心监控告警] 关键字正则执行超时或异常，按不命中处理', { keyword })
-    return []
+    return null
   }
   return lines.reduce<MatchedKeywordLine[]>((acc, item, i) => {
     const matched = results[i]

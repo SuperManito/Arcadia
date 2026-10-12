@@ -18,6 +18,13 @@ export const Kook = {
     ['botToken', [true, 'string']],
     ['channelId', [true, 'string']],
   ],
+  rateLimit: {
+    // bot API 未实名 60 次/分钟
+    concurrency: 1,
+    limits: [
+      { count: 60, seconds: 60 },
+    ],
+  },
   pusher: async (config, payload) => {
     const body = {
       target_id: config.channelId,

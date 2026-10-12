@@ -30,6 +30,13 @@ export const Discord = {
     ['threadId', [false, 'string']],
     ['suppressNotifications', [false, 'boolean']],
   ],
+  rateLimit: {
+    // 每 webhook 约 5 请求 / 2秒
+    concurrency: 1,
+    limits: [
+      { count: 5, seconds: 2 },
+    ],
+  },
   pusher: async (config, payload) => {
     const channelType = config.channelType ?? 'channel'
 

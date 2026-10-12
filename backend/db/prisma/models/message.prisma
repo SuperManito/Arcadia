@@ -90,7 +90,7 @@ model messageAlertDirectRuleKeyword {
   sort                     Int                                    @default(0) // 数组下标，0 起
   channels                 messageAlertDirectRuleKeywordChannel[]
 
-  @@unique([messageAlertDirectRuleId, keyword]) // 同一规则内关键字不重复
+  @@unique([messageAlertDirectRuleId, keyword, receiver]) // 同一规则内模式与收信人组合不重复；同一收信人跨行由校验层拒绝
   @@index([messageAlertDirectRuleId])
 }
 

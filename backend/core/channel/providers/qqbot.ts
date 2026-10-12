@@ -22,6 +22,13 @@ export const QQBot = {
     ['targetType', [false, ['group', 'c2c', 'channel']]],
     ['targetId', [true, 'string']],
   ],
+  rateLimit: {
+    // 发送方频控未认证 30 条/分钟
+    concurrency: 1,
+    limits: [
+      { count: 30, seconds: 60 },
+    ],
+  },
   pusher: async (config, payload) => {
     // 凭证错误以 HTTP 200 + 业务码返回，必须校验响应体里的 access_token
     const tokenResult = await request({

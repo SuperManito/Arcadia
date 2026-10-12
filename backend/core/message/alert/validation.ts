@@ -24,6 +24,7 @@ import {
   MESSAGE_ALERT_CONDITION_MAX_COUNT,
   MESSAGE_ALERT_CONDITION_VALUE_MAX_LENGTH,
   MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT,
+  MESSAGE_ALERT_RULE_MAX_COUNT,
   MESSAGE_ALERT_RULE_NAME_MAX_LENGTH,
 } from './types'
 
@@ -164,6 +165,14 @@ export async function validateMessageAlertRulePayload(
 
   if (channelIds.length > MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT) {
     throw new Error(`关联渠道数量不能超过 ${MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT} 个`)
+  }
+
+  // 仅新建时校验总数，与一对一规则 50 条上限对齐；规则全量参与求值，数量需要收敛
+  if (options?.excludeId === undefined) {
+    const count = await db.messageAlertRule.count()
+    if (count >= MESSAGE_ALERT_RULE_MAX_COUNT) {
+      throw new Error(`规则数量不能超过 ${MESSAGE_ALERT_RULE_MAX_COUNT} 条`)
+    }
   }
 
   if (channelIds.length > 0) {

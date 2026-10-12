@@ -6,6 +6,7 @@ import { API_STATUS_CODE } from '../../utils/httpUtil'
 import db from '../../db'
 import { validatePageFixedParams, validateRequestParams } from '../../utils'
 import { getUnreadCount, pushUserMessage } from '../../core/message'
+import { applyReplacements, validateReplaceText } from '../../core/alert'
 import {
   evaluateMessageAlertRule,
   matchKeywordLineIndexes,
@@ -862,13 +863,22 @@ api.post('/alert/direct/rule/test', async (request, response) => {
     // 禁用关键字不参与匹配，与真实触发行为一致
     const activeKeywords = keywords.filter(keyword => keyword.enabled === 1)
     const { titleMode, titleTemplate } = validateMessageAlertDirectTitle(rule)
+    // 替换与真实推送一致：内容替换先于关键字匹配执行，标题替换作用于渲染结果
+    const contentReplace = validateReplaceText(rule.contentReplace)
+    const titleReplace = validateReplaceText(rule.titleReplace)
     const title = typeof message.title === 'string' ? message.title.trim() : ''
     const content = typeof message.content === 'string' ? message.content.trim() : ''
     if (!title && !content) {
       throw new Error('测试消息的标题与内容至少填写一项')
     }
+    const replacedContent = await applyReplacements(content, contentReplace)
     const keywordResults = await Promise.all(activeKeywords.map(async (keyword) => {
-      const matched = truncateMatchedLines((await matchKeywordLineIndexes(keyword.keyword, keyword.receiver, content)).map(item => item.line))
+      // 超时或异常与未命中语义不同，试测需明确报错而不是显示成未命中
+      const lines = await matchKeywordLineIndexes(keyword.keyword, keyword.receiver, replacedContent)
+      if (lines === null) {
+        throw new Error(`关键字「${keyword.receiver || keyword.keyword}」匹配超时或异常，请稍后重试`)
+      }
+      const matched = truncateMatchedLines(lines.map(item => item.line))
       return {
         keyword: keyword.keyword,
         matched: matched.lines.length > 0,
@@ -882,7 +892,7 @@ api.post('/alert/direct/rule/test', async (request, response) => {
       .filter((_, index) => keywordResults[index].matched)
       .map(keyword => keyword.receiver || keyword.keyword))]
     response.send(API_STATUS_CODE.okData({
-      title: renderDirectTitle(titleMode, titleTemplate, title, '', keywordLabels.join('、')),
+      title: await applyReplacements(renderDirectTitle(titleMode, titleTemplate, title, '', keywordLabels.join('、')), titleReplace),
       matched: keywordResults.some(keyword => keyword.matched),
       keywords: keywordResults,
     }))

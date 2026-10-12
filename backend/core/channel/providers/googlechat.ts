@@ -17,6 +17,13 @@ export const GoogleChat = {
     ['webhookUrl', [true, 'string']],
     ['maxRetries', [false, 'number']],
   ],
+  rateLimit: {
+    // 每空间写入 60 次/分钟
+    concurrency: 1,
+    limits: [
+      { count: 60, seconds: 60 },
+    ],
+  },
   pusher: async (config, payload) => {
     const body = {
       text: payload.content,

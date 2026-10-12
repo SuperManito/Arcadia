@@ -13,6 +13,13 @@ export const Pushplus = {
   configRules: [
     ['token', [true, 'string']],
   ],
+  rateLimit: {
+    // 官方限制 1 分钟内 5 次请求
+    concurrency: 1,
+    limits: [
+      { count: 5, seconds: 60 },
+    ],
+  },
   pusher: async (config, payload) => {
     const body = {
       token: config.token,

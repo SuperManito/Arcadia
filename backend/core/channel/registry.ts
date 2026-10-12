@@ -26,6 +26,12 @@ export const CHANNEL_SINGLE_BODY = new Set(
     .map(def => def.type),
 ) as Set<ChannelType>
 
+export const CHANNEL_RATE_LIMITS = Object.fromEntries(
+  Object.values(Channels)
+    .filter(def => (def as ChannelDefinition).rateLimit)
+    .map(def => [def.type, (def as ChannelDefinition).rateLimit!]),
+) as Partial<Record<ChannelType, NonNullable<ChannelDefinition['rateLimit']>>>
+
 const registry = new Map<ChannelType, Pusher>()
 for (const def of Object.values(Channels)) {
   registry.set(def.type, def.pusher)
