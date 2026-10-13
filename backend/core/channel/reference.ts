@@ -10,12 +10,12 @@ export async function getChannelReferences(channelId: number): Promise<{
   taskCount: number
 }> {
   const alertRuleCount = await db.messageAlertRuleChannel.count({ where: { channelId } })
-  // 关键字-渠道关联按关键字去重到规则，渠道被同规则多个关键字绑定时只计一条
+  // 收信人-渠道关联按收信人去重到规则，渠道被同规则多个收信人绑定时只计一条
   const directKeywordLinks = await db.messageAlertDirectRuleKeywordChannel.$list(
     { where: { channelId } },
-    { include: { keyword: { select: { messageAlertDirectRuleId: true } } } },
+    { include: { keyword: { select: { directRuleId: true } } } },
   )
-  const directRuleCount = new Set(directKeywordLinks.map(link => link.keyword.messageAlertDirectRuleId)).size
+  const directRuleCount = new Set(directKeywordLinks.map(link => link.keyword.directRuleId)).size
   const taskCount = await countTasksByAlertChannel(channelId)
   return { alertRuleCount, directRuleCount, taskCount }
 }

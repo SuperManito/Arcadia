@@ -12,7 +12,6 @@ import {
   matchKeywordLines,
   refreshEnabledRuleIndex,
   renderDirectTitle,
-  truncateMatchedLines,
   validateMessageAlertDirectKeywordPayload,
   validateMessageAlertDirectKeywords,
   validateMessageAlertDirectRulePayload,
@@ -527,10 +526,14 @@ api.delete('/alert/rule', async (request, response) => {
     if (!exists) {
       throw new Error('规则不存在')
     }
+    // 一对一规则可能绑定本规则，静默解绑会让用户无从发现一对一规则失效
+    const boundCount = await db.messageAlertDirectRuleBinding.count({ where: { alertRuleId: id } })
+    if (boundCount > 0) {
+      throw new Error(`该规则被 ${boundCount} 条一对一规则绑定，请先解除绑定`)
+    }
     await db.$transaction(async (tx) => {
       await tx.messageAlertRuleChannel.deleteMany({ where: { messageAlertRuleId: id } })
       await tx.messageAlertRuleCondition.deleteMany({ where: { messageAlertRuleId: id } })
-      await tx.messageAlertRuleDirect.deleteMany({ where: { messageAlertRuleId: id } })
       await tx.messageAlertRule.$deleteById(id)
     })
     await refreshEnabledRuleIndex()
@@ -614,13 +617,13 @@ api.get('/alert/direct/rule/page', async (request, response) => {
       size: String(request.query.size),
       include: {
         _count: { select: { keywords: true } },
-        messageAlertLinks: { select: { messageAlertRule: { select: { name: true } } } },
+        bindings: { select: { alertRule: { select: { id: true, name: true, enabled: true } } } },
       },
     })
-    const data = (result.data as Array<any>).map(({ _count, messageAlertLinks, ...rest }) => ({
+    const data = (result.data as Array<any>).map(({ _count, bindings, ...rest }) => ({
       ...rest,
       keywordCount: _count?.keywords ?? 0,
-      ruleNames: messageAlertLinks.map((link: any) => link.messageAlertRule.name),
+      alertRules: bindings.map((link: any) => link.alertRule),
     }))
     response.send(API_STATUS_CODE.okData({ ...result, data }))
   }
@@ -663,26 +666,34 @@ api.get('/alert/direct/rule', async (request, response) => {
       include: {
         keywords: {
           orderBy: { sort: 'asc' },
-          include: { channels: { include: { channel: true } } },
+          include: { channels: { select: { channelId: true } } },
         },
-        messageAlertLinks: { select: { messageAlertRuleId: true } },
+        bindings: {
+          select: { alertRule: { select: { id: true, name: true, enabled: true, _count: { select: { channels: true } } } } },
+        },
       },
     })
     if (!rule) {
       throw new Error('规则不存在')
     }
-    const { keywords, messageAlertLinks, ...rest } = rule
+    const { keywords, bindings, ...rest } = rule
     response.send(API_STATUS_CODE.okData({
       ...rest,
       keywords: keywords.map(keyword => ({
-        keyword: keyword.keyword,
+        pattern: keyword.pattern,
         receiver: keyword.receiver,
         remark: keyword.remark,
         enabled: keyword.enabled,
         sort: keyword.sort,
         channelIds: keyword.channels.map(link => link.channelId),
       })),
-      ruleIds: messageAlertLinks.map(link => link.messageAlertRuleId),
+      alertRuleIds: bindings.map(link => link.alertRule.id),
+      alertRules: bindings.map(link => ({
+        id: link.alertRule.id,
+        name: link.alertRule.name,
+        enabled: link.alertRule.enabled,
+        channelCount: link.alertRule._count.channels,
+      })),
     }))
   }
   catch (e: any) {
@@ -702,7 +713,7 @@ api.post('/alert/direct/rule', async (request, response) => {
         ['titleTemplate', [false, 'string']],
         ['contentReplace', [false, 'string']],
         ['titleReplace', [false, 'string']],
-        ['ruleIds', [false, 'number[]']],
+        ['alertRuleIds', [false, 'number[]']],
       ] as const,
     }, true)
     const cleaned = await validateMessageAlertDirectRulePayload(params.body)
@@ -714,9 +725,9 @@ api.post('/alert/direct/rule', async (request, response) => {
         content_replace: cleaned.contentReplace,
         title_replace: cleaned.titleReplace,
       })
-      await tx.messageAlertRuleDirect.createMany({
-        data: cleaned.ruleIds.map(messageAlertRuleId => ({
-          messageAlertRuleId,
+      await tx.messageAlertDirectRuleBinding.createMany({
+        data: cleaned.alertRuleIds.map(alertRuleId => ({
+          alertRuleId,
           directRuleId: created.id,
         })),
       })
@@ -743,7 +754,7 @@ api.put('/alert/direct/rule', async (request, response) => {
         ['titleTemplate', [false, 'string']],
         ['contentReplace', [false, 'string']],
         ['titleReplace', [false, 'string']],
-        ['ruleIds', [false, 'number[]']],
+        ['alertRuleIds', [false, 'number[]']],
       ] as const,
     }, true)
     const {
@@ -754,13 +765,13 @@ api.put('/alert/direct/rule', async (request, response) => {
       titleTemplate,
       contentReplace,
       titleReplace,
-      ruleIds,
+      alertRuleIds,
     } = params.body
     const exists = await db.messageAlertDirectRule.$getById(id)
     if (!exists) {
       throw new Error('规则不存在')
     }
-    if (enabled !== undefined && [name, titleMode, titleTemplate, contentReplace, titleReplace, ruleIds].every(field => field === undefined)) {
+    if (enabled !== undefined && [name, titleMode, titleTemplate, contentReplace, titleReplace, alertRuleIds].every(field => field === undefined)) {
       const rule = await db.messageAlertDirectRule.$updateById({ id, data: { enabled } })
       response.send(API_STATUS_CODE.okData(rule))
       return
@@ -778,12 +789,12 @@ api.put('/alert/direct/rule', async (request, response) => {
           ...(enabled !== undefined ? { enabled } : {}),
         },
       })
-      // 未显式提供 ruleIds 时保留原绑定；清空需显式传空数组，避免整存漏传被静默清空
-      if (ruleIds !== undefined) {
-        await tx.messageAlertRuleDirect.deleteMany({ where: { directRuleId: id } })
-        await tx.messageAlertRuleDirect.createMany({
-          data: cleaned.ruleIds.map(messageAlertRuleId => ({
-            messageAlertRuleId,
+      // 未显式提供 alertRuleIds 时保留原绑定；清空需显式传空数组，避免整存漏传被静默清空
+      if (alertRuleIds !== undefined) {
+        await tx.messageAlertDirectRuleBinding.deleteMany({ where: { directRuleId: id } })
+        await tx.messageAlertDirectRuleBinding.createMany({
+          data: cleaned.alertRuleIds.map(alertRuleId => ({
+            alertRuleId,
             directRuleId: id,
           })),
         })
@@ -798,7 +809,7 @@ api.put('/alert/direct/rule', async (request, response) => {
 })
 
 /**
- * 整体替换一对一规则关键字（允许空数组清空；事务内先删渠道与关键字行再重建）
+ * 整体替换一对一规则收信人（允许空数组清空；事务内先删渠道与收信人行再分批重建）
  */
 api.put('/alert/direct/rule/keyword', async (request, response) => {
   try {
@@ -816,20 +827,27 @@ api.put('/alert/direct/rule/keyword', async (request, response) => {
     const cleaned = await validateMessageAlertDirectKeywordPayload(keywords)
     await db.$transaction(async (tx) => {
       // 先删孙表再删子表，避免外键残留
-      await tx.messageAlertDirectRuleKeywordChannel.deleteMany({ where: { keyword: { messageAlertDirectRuleId: id } } })
-      await tx.messageAlertDirectRuleKeyword.deleteMany({ where: { messageAlertDirectRuleId: id } })
-      for (const [index, keyword] of cleaned.entries()) {
-        await tx.messageAlertDirectRuleKeyword.$create({
-          messageAlertDirectRuleId: id,
-          keyword: keyword.keyword,
-          receiver: keyword.receiver,
-          remark: keyword.remark,
-          enabled: keyword.enabled,
-          sort: index,
-          channels: {
-            create: keyword.channelIds.map(channelId => ({ channelId })),
-          },
+      await tx.messageAlertDirectRuleKeywordChannel.deleteMany({ where: { keyword: { directRuleId: id } } })
+      await tx.messageAlertDirectRuleKeyword.deleteMany({ where: { directRuleId: id } })
+      // 分批重建：数千条收信人逐条创建会拖慢事务甚至触发交互式事务超时
+      const BATCH_SIZE = 500
+      for (let start = 0; start < cleaned.length; start += BATCH_SIZE) {
+        const batch = cleaned.slice(start, start + BATCH_SIZE)
+        const created = await tx.messageAlertDirectRuleKeyword.createManyAndReturn({
+          data: batch.map((keyword, offset) => ({
+            directRuleId: id,
+            pattern: keyword.pattern,
+            receiver: keyword.receiver,
+            remark: keyword.remark,
+            enabled: keyword.enabled,
+            sort: start + offset,
+          })),
         })
+        const channelLinks = created.flatMap((row, offset) =>
+          batch[offset].channelIds.map(channelId => ({ keywordId: row.id, channelId })))
+        if (channelLinks.length > 0) {
+          await tx.messageAlertDirectRuleKeywordChannel.createMany({ data: channelLinks })
+        }
       }
     })
     response.send(API_STATUS_CODE.ok())
@@ -840,7 +858,7 @@ api.put('/alert/direct/rule/keyword', async (request, response) => {
 })
 
 /**
- * 删除一对一规则（事务内先删绑定与关键字渠道、再删关键字、最后删规则）
+ * 删除一对一规则（绑定自动解除；仍有收信人则拒绝）
  */
 api.delete('/alert/direct/rule', async (request, response) => {
   try {
@@ -854,10 +872,15 @@ api.delete('/alert/direct/rule', async (request, response) => {
     if (!exists) {
       throw new Error('规则不存在')
     }
+    // 收信人是用户逐行维护的名单，随规则静默清空会造成不可恢复的数据丢失
+    const keywordCount = await db.messageAlertDirectRuleKeyword.count({ where: { directRuleId: id } })
+    if (keywordCount > 0) {
+      throw new Error('该规则仍有收信人，请先清空收信人')
+    }
     await db.$transaction(async (tx) => {
-      await tx.messageAlertRuleDirect.deleteMany({ where: { directRuleId: id } })
-      await tx.messageAlertDirectRuleKeywordChannel.deleteMany({ where: { keyword: { messageAlertDirectRuleId: id } } })
-      await tx.messageAlertDirectRuleKeyword.deleteMany({ where: { messageAlertDirectRuleId: id } })
+      await tx.messageAlertDirectRuleBinding.deleteMany({ where: { directRuleId: id } })
+      await tx.messageAlertDirectRuleKeywordChannel.deleteMany({ where: { keyword: { directRuleId: id } } })
+      await tx.messageAlertDirectRuleKeyword.deleteMany({ where: { directRuleId: id } })
       await tx.messageAlertDirectRule.$deleteById(id)
     })
     response.send(API_STATUS_CODE.ok())
@@ -879,11 +902,13 @@ api.post('/alert/direct/rule/test', async (request, response) => {
       ] as const,
     })
     const { rule, message } = params.body
-    const keywords = validateMessageAlertDirectKeywords(rule.keywords)
-    // 禁用关键字不参与匹配，与真实触发行为一致
+    // 收信人数量不设上限，试测与真实推送同样按有限并发匹配
+    const rawKeywords = Array.isArray(rule.keywords) ? rule.keywords : []
+    const keywords = rawKeywords.length > 0 ? validateMessageAlertDirectKeywords(rawKeywords) : []
+    // 禁用收信人不参与匹配，与真实触发行为一致
     const activeKeywords = keywords.filter(keyword => keyword.enabled === 1)
     const { titleMode, titleTemplate } = validateMessageAlertDirectTitle(rule)
-    // 替换与真实推送一致：内容替换先于关键字匹配执行，标题替换作用于渲染结果
+    // 替换与真实推送一致：内容替换先于收信人匹配执行，标题替换作用于渲染结果
     const contentReplace = validateReplaceText(rule.contentReplace)
     const titleReplace = validateReplaceText(rule.titleReplace)
     const title = typeof message.title === 'string' ? message.title.trim() : ''
@@ -891,28 +916,30 @@ api.post('/alert/direct/rule/test', async (request, response) => {
     if (!title && !content) {
       throw new Error('测试消息的标题与内容至少填写一项')
     }
+    const ruleName = typeof rule.name === 'string' ? rule.name.trim() : ''
     const replacedContent = await applyReplacements(content, contentReplace)
     const keywordResults = await Promise.all(activeKeywords.map(async (keyword) => {
       // 超时或异常与未命中语义不同，试测需明确报错而不是显示成未命中
-      const lines = await matchKeywordLines(keyword.keyword, keyword.receiver, replacedContent)
+      const lines = await matchKeywordLines(keyword.pattern, keyword.receiver, replacedContent)
       if (lines === null) {
-        throw new Error(`关键字「${keyword.receiver || keyword.keyword}」匹配超时或异常，请稍后重试`)
+        throw new Error(`收信人「${keyword.receiver}」匹配超时或异常，请稍后重试`)
       }
-      const matched = truncateMatchedLines(lines.map(item => item.line))
+      // 行文本去重与真实推送的渠道内聚合一致
+      const matchedLines = [...new Set(lines.map(item => item.line))]
       return {
-        keyword: keyword.keyword,
-        matched: matched.lines.length > 0,
-        matchedLines: matched.lines,
-        truncated: matched.truncated,
-        total: matched.total,
+        receiver: keyword.receiver,
+        pattern: keyword.pattern,
+        channelCount: keyword.channelIds.length,
+        matched: matchedLines.length > 0,
+        matchedLines,
       }
     }))
-    // {{keyword}} 预览与真实推送一致：填充收信人标识，未填时回退模式串
-    const keywordLabels = [...new Set(activeKeywords
+    // {{receiver}} 预览与真实推送一致：填充命中收信人标识的"、"连接
+    const receiverLabels = [...new Set(activeKeywords
       .filter((_, index) => keywordResults[index].matched)
-      .map(keyword => keyword.receiver || keyword.keyword))]
+      .map(keyword => keyword.receiver))]
     response.send(API_STATUS_CODE.okData({
-      title: await applyReplacements(renderDirectTitle(titleMode, titleTemplate, title, '', keywordLabels.join('、')), titleReplace),
+      title: await applyReplacements(renderDirectTitle(titleMode, titleTemplate, title, ruleName, receiverLabels.join('、')), titleReplace),
       matched: keywordResults.some(keyword => keyword.matched),
       keywords: keywordResults,
     }))

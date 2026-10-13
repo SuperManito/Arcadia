@@ -4,10 +4,8 @@ import { getChannelTypeConcurrency, pushChannel } from '../../channel'
 import { logger } from '../../../utils/logger'
 import { settleSession, truncateSummaryContent } from './pushSession'
 
-// 一对一任务常规深度上限：持续积压时丢弃新任务，防止内存无限增长；只统计一对一任务，全局消息不占深度
-const PUSH_QUEUE_MAX_DEPTH = 200
-// 全局消息豁免常规深度，仅受绝对上限兜底：渠道长时间不可用且全局消息持续入队的最后边界
-const PUSH_QUEUE_HARD_LIMIT = 1000
+// 队列长度越过阈值时各记一条 warn 提示积压，不改变任何行为：任务只延迟不丢弃
+const QUEUE_BACKLOG_WARN_LEVELS = [1000, 10000]
 
 export interface PushChannel {
   name: string
@@ -27,6 +25,7 @@ export interface PushTask {
 interface ChannelQueue {
   tasks: PushTask[]
   active: number
+  warnedLevel: number
 }
 
 // 按渠道类型分桶，在途消费循环数不超过该类型的节流并发上限、实际速率由节流器统一约束；
@@ -36,10 +35,21 @@ const queues = new Map<string, ChannelQueue>()
 function getQueue(type: string) {
   let queue = queues.get(type)
   if (!queue) {
-    queue = { tasks: [], active: 0 }
+    queue = { tasks: [], active: 0, warnedLevel: 0 }
     queues.set(type, queue)
   }
   return queue
+}
+
+function warnBacklog(type: string, queue: ChannelQueue) {
+  const level = QUEUE_BACKLOG_WARN_LEVELS.find(size => queue.tasks.length >= size && queue.warnedLevel < size)
+  if (level !== undefined) {
+    queue.warnedLevel = level
+    logger.warn('[消息中心监控告警] 推送队列积压', { channelType: type, depth: queue.tasks.length })
+  }
+  if (queue.tasks.length < queue.warnedLevel) {
+    queue.warnedLevel = 0
+  }
 }
 
 function settle(task: PushTask, error?: string) {
@@ -94,7 +104,7 @@ function topUp(type: string) {
 }
 
 /**
- * 入队：超限丢弃计入失败会话；全局消息传 priority 插队头并豁免常规深度，仅受绝对上限约束
+ * 入队：任务只延迟不丢弃；全局消息传 priority 插队头优先发送
  */
 export function enqueuePush(
   channel: PushChannel,
@@ -107,10 +117,6 @@ export function enqueuePush(
   session.pending++
   const queue = getQueue(channel.type)
   if (priority) {
-    if (queue.tasks.length >= PUSH_QUEUE_HARD_LIMIT) {
-      settle(task, `队列积压超过 ${PUSH_QUEUE_HARD_LIMIT} 条，任务丢弃`)
-      return
-    }
     const idx = queue.tasks.findIndex(item => !item.priority)
     if (idx === -1) {
       queue.tasks.push(task)
@@ -120,13 +126,8 @@ export function enqueuePush(
     }
   }
   else {
-    // 深度只统计一对一任务，全局消息豁免常规深度、不挤占名额
-    const depth = queue.tasks.reduce((count, item) => item.priority ? count : count + 1, 0)
-    if (depth >= PUSH_QUEUE_MAX_DEPTH) {
-      settle(task, `队列积压超过 ${PUSH_QUEUE_MAX_DEPTH} 条，任务丢弃`)
-      return
-    }
     queue.tasks.push(task)
   }
+  warnBacklog(channel.type, queue)
   topUp(channel.type)
 }

@@ -83,9 +83,10 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
   }
 
   // 消息中心监控告警：非阻塞触发，外部渠道延迟不影响消息写入路径；
+  // 告警匹配使用入库截断前的完整正文，超长名单尾部不会静默丢失；
   // 失败汇总的落库出口就地注入，队列与会话模块不反向依赖消息入库
   if (!data.skipAlert) {
-    void processMessageAlert(msg, (title, content) => sendMessage({
+    void processMessageAlert(msg, rawContent, (title, content) => sendMessage({
       title,
       content,
       category: MessageCategory.SYSTEM,

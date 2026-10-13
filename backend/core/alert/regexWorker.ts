@@ -12,10 +12,7 @@ parentPort.on('message', ({ id, pattern, input, replacement, match }) => {
   try {
     if (match) {
       const regex = new RegExp(pattern)
-      result = input.map(line => {
-        const m = regex.exec(line)
-        return m ? m[0] : null
-      })
+      result = input.map(line => regex.exec(line) !== null)
     }
     else if (replacement !== undefined) {
       result = Array.isArray(input)
@@ -36,7 +33,7 @@ interface RegexJob {
   input: string | string[]
   replacement?: string
   match?: boolean
-  resolve: (result: boolean | string | string[] | Array<string | null> | null) => void
+  resolve: (result: boolean | boolean[] | string | string[] | null) => void
 }
 
 // eval 脚本无法被 TS 检查，消息字段以 WorkerRequest 为准；增减字段时同步 worker 源码里的解构
@@ -65,7 +62,7 @@ let current: {
 } | null = null
 
 // 结算当前任务并派发下一个排队任务
-function settle(result: boolean | string | string[] | Array<string | null> | null) {
+function settle(result: boolean | boolean[] | string | string[] | null) {
   if (!current)
     return
   clearTimeout(current.timer)
@@ -160,16 +157,16 @@ export function replaceRegex(pattern: string, replacement: string, input: string
 }
 
 /**
- * 批量行匹配：逐行独立 exec（非全局，无 lastIndex 状态），返回每行命中的文本片段（未命中为 null）。
+ * 批量行匹配：逐行独立 exec（非全局，无 lastIndex 状态），返回每行是否命中。
  * 返回 null 表示超时、正则编译失败或 worker 故障，调用方决定语义（按不命中处理）。
  */
-export function matchRegexLines(pattern: string, inputs: string[]): Promise<Array<string | null> | null> {
+export function matchRegexLines(pattern: string, inputs: string[]): Promise<Array<boolean> | null> {
   return new Promise((resolve) => {
     enqueue({
       pattern,
       input: inputs,
       match: true,
-      resolve: result => resolve(Array.isArray(result) ? result as Array<string | null> : null),
+      resolve: result => resolve(Array.isArray(result) ? result as Array<boolean> : null),
     })
   })
 }
