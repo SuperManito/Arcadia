@@ -62,16 +62,16 @@ model messageAlertRuleChannel {
 
 // 一对一规则（二次告警拓展：主规则命中后按关键字把命中行路由给不同渠道）
 model messageAlertDirectRule {
-  id              Int                             @id @default(autoincrement())
+  id              Int                              @id @default(autoincrement())
   name            String // 规则名称，后端保证唯一（与全局规则共用命名空间，DB 不设 unique）
-  enabled         Int                             @default(1) // 1 启用 / 0 禁用
-  title_mode      String                          @default("original") // 标题模式："original" 原标题 | "template" 自定义模板 | "none" 不传标题
-  title_template  String                          @default("") // title_mode=template 时的标题模板，支持 {{title}} / {{rule}} / {{receiver}}
-  content_replace String                          @default("") // 推送内容替换：s/正则/替换串/ 每行一条，匹配前对整条正文替换、推送命中行，空=不启用
-  title_replace   String                          @default("") // 推送标题替换单条 s/正则/替换串/，作用于标题模板渲染结果，title_mode=none 时恒为空
-  create_time     DateTime                        @default(now())
-  update_time     DateTime                        @default(now()) @updatedAt
-  keywords        messageAlertDirectRuleKeyword[]
+  enabled         Int                              @default(1) // 1 启用 / 0 禁用
+  title_mode      String                           @default("original") // 标题模式："original" 原标题 | "template" 自定义模板 | "none" 不传标题
+  title_template  String                           @default("") // title_mode=template 时的标题模板，支持 {{title}} / {{rule}} / {{receiver}}
+  content_replace String                           @default("") // 推送内容替换：s/正则/替换串/ 每行一条，匹配前对整条正文替换、推送命中行，空=不启用
+  title_replace   String                           @default("") // 推送标题替换单条 s/正则/替换串/，作用于标题模板渲染结果，title_mode=none 时恒为空
+  create_time     DateTime                         @default(now())
+  update_time     DateTime                         @default(now()) @updatedAt
+  receivers       messageAlertDirectRuleReceiver[]
   bindings        messageAlertDirectRuleBinding[]
 
   @@index([enabled])
@@ -79,32 +79,29 @@ model messageAlertDirectRule {
 }
 
 // 一对一规则收信人：正文按行切割后逐行匹配，命中行推送给绑定的渠道
-model messageAlertDirectRuleKeyword {
-  id           Int                                    @id @default(autoincrement())
+model messageAlertDirectRuleReceiver {
+  id           Int                                     @id @default(autoincrement())
   directRuleId Int
-  directRule   messageAlertDirectRule                 @relation(fields: [directRuleId], references: [id])
+  directRule   messageAlertDirectRule                  @relation(fields: [directRuleId], references: [id])
   receiver     String // 收信人标识，校验层必填且同规则内唯一，一身二用：身份判定 + 留空 pattern 时的匹配目标
-  pattern      String                                 @default("") // 用户填写的正则匹配表达式，空=对收信人标识做包含匹配；支持 {{receiver}} 占位符，运行时展开
-  remark       String                                 @default("") // 备注
-  enabled      Int                                    @default(1) // 1 启用 / 0 禁用，启用必须至少关联 1 个渠道（校验层保证）
-  sort         Int                                    @default(0)
-  channels     messageAlertDirectRuleKeywordChannel[]
+  pattern      String                                  @default("") // 用户填写的正则匹配表达式，空=对收信人标识做包含匹配；支持 {{receiver}} 占位符，运行时展开
+  remark       String                                  @default("") // 备注
+  enabled      Int                                     @default(1) // 1 启用 / 0 禁用，启用必须至少关联 1 个渠道（校验层保证）
+  channels     messageAlertDirectRuleReceiverChannel[]
 
   @@unique([directRuleId, receiver]) // 同一规则内收信人标识唯一
-  @@unique([directRuleId, sort]) // 整体替换先删后建，不冲突
-  @@index([directRuleId])
+  @@index([directRuleId, enabled])
 }
 
-// 一对一关键字与渠道的关联
-model messageAlertDirectRuleKeywordChannel {
-  id        Int                           @id @default(autoincrement())
-  keywordId Int
-  keyword   messageAlertDirectRuleKeyword @relation(fields: [keywordId], references: [id])
-  channelId Int
-  channel   notificationChannel           @relation(fields: [channelId], references: [id])
+// 一对一收信人与渠道的关联
+model messageAlertDirectRuleReceiverChannel {
+  id         Int                            @id @default(autoincrement())
+  receiverId Int
+  receiver   messageAlertDirectRuleReceiver @relation(fields: [receiverId], references: [id])
+  channelId  Int
+  channel    notificationChannel            @relation(fields: [channelId], references: [id])
 
-  @@unique([keywordId, channelId]) // 同一关键字不能重复绑同一渠道
-  @@index([keywordId])
+  @@unique([receiverId, channelId]) // 同一收信人不能重复绑同一渠道
   @@index([channelId])
 }
 

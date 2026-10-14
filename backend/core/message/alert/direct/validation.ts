@@ -1,5 +1,5 @@
 import type {
-  CleanedMessageAlertDirectKeyword,
+  CleanedMessageAlertDirectReceiver,
   CleanedMessageAlertDirectRulePayload,
   MessageAlertDirectRulePayloadInput,
   MessageAlertDirectTitleMode,
@@ -10,78 +10,86 @@ import {
   MESSAGE_ALERT_RULE_NAME_MAX_LENGTH,
 } from '../types'
 import {
-  MESSAGE_ALERT_DIRECT_KEYWORD_CHANNEL_MAX_COUNT,
-  MESSAGE_ALERT_DIRECT_KEYWORD_MAX_LENGTH,
-  MESSAGE_ALERT_DIRECT_KEYWORD_RECEIVER_MAX_LENGTH,
-  MESSAGE_ALERT_DIRECT_KEYWORD_REMARK_MAX_LENGTH,
+  MESSAGE_ALERT_DIRECT_RECEIVER_CHANNEL_MAX_COUNT,
+  MESSAGE_ALERT_DIRECT_RECEIVER_MAX_LENGTH,
+  MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH,
+  MESSAGE_ALERT_DIRECT_RECEIVER_REMARK_MAX_LENGTH,
   MESSAGE_ALERT_DIRECT_RULE_BIND_MAX_COUNT,
   MESSAGE_ALERT_DIRECT_RULE_MAX_COUNT,
   MESSAGE_ALERT_DIRECT_TITLE_MODES,
   MESSAGE_ALERT_DIRECT_TITLE_TEMPLATE_MAX_LENGTH,
 } from './types'
-import { expandKeywordPattern } from './match'
+import { expandReceiverPattern } from './match'
 
-// 保存与试测共用，不查库；收信人数量不设上限
-export function validateMessageAlertDirectKeywords(raw: unknown): CleanedMessageAlertDirectKeyword[] {
-  if (!Array.isArray(raw) || raw.length === 0) {
-    throw new Error('至少需要一条收信人')
+function cleanReceiverBase(raw: any): { receiver: string, pattern: string, remark: string } {
+  const receiver = typeof raw?.receiver === 'string' ? raw.receiver.trim() : ''
+  if (!receiver) {
+    throw new Error('收信人标识不能为空')
   }
-  const seenReceivers = new Set<string>()
-  return raw.map((item, index) => {
-    const n = index + 1
-    const receiver = typeof item?.receiver === 'string' ? item.receiver.trim() : ''
-    if (!receiver) {
-      throw new Error(`收信人 ${n} 的标识不能为空`)
+  if (receiver.length > MESSAGE_ALERT_DIRECT_RECEIVER_MAX_LENGTH) {
+    throw new Error(`收信人标识长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_MAX_LENGTH} 个字符`)
+  }
+  // 留空即按收信人标识包含匹配，库里只存用户填写的内容，不烘焙派生值
+  const pattern = typeof raw?.pattern === 'string' ? raw.pattern.trim() : ''
+  if (pattern.length > MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH) {
+    throw new Error(`收信人的正则匹配表达式长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH} 个字符`)
+  }
+  // {{receiver}} 占位符展开后才是实际参与匹配的正则，语法校验针对展开结果
+  if (pattern) {
+    try {
+      void new RegExp(expandReceiverPattern(pattern, receiver))
     }
-    if (receiver.length > MESSAGE_ALERT_DIRECT_KEYWORD_RECEIVER_MAX_LENGTH) {
-      throw new Error(`收信人 ${n} 的标识长度不能超过 ${MESSAGE_ALERT_DIRECT_KEYWORD_RECEIVER_MAX_LENGTH} 个字符`)
+    catch {
+      throw new Error('收信人的正则匹配表达式不是有效的正则表达式')
     }
-    // 留空即按收信人标识包含匹配，库里只存用户填写的内容，不烘焙派生值
-    const pattern = typeof item?.pattern === 'string' ? item.pattern.trim() : ''
-    if (pattern.length > MESSAGE_ALERT_DIRECT_KEYWORD_MAX_LENGTH) {
-      throw new Error(`收信人 ${n} 的正则匹配表达式长度不能超过 ${MESSAGE_ALERT_DIRECT_KEYWORD_MAX_LENGTH} 个字符`)
+  }
+  const remark = typeof raw?.remark === 'string' ? raw.remark.trim() : ''
+  if (remark.length > MESSAGE_ALERT_DIRECT_RECEIVER_REMARK_MAX_LENGTH) {
+    throw new Error(`收信人的备注长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_REMARK_MAX_LENGTH} 个字符`)
+  }
+  return { receiver, pattern, remark }
+}
+
+function cleanReceiverChannelIds(raw: unknown): number[] {
+  const channelIds: number[] = []
+  for (const rawId of Array.isArray(raw) ? raw : []) {
+    const id = Number(rawId)
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      throw new Error('收信人的渠道参数无效（参数值类型错误）')
     }
-    // 收信人占位符展开后才是实际参与匹配的正则，语法校验针对展开结果
-    if (pattern) {
-      try {
-        void new RegExp(expandKeywordPattern(pattern, receiver))
-      }
-      catch {
-        throw new Error(`收信人 ${n} 的正则匹配表达式不是有效的正则表达式`)
-      }
+    if (!channelIds.includes(id)) {
+      channelIds.push(id)
     }
-    // 一行对应一个收信人：收信人标识必填，同标识多行属重复配置
-    if (seenReceivers.has(receiver)) {
-      throw new Error(`收信人 ${n} 的标识与其他收信人重复`)
-    }
-    seenReceivers.add(receiver)
-    const channelIds: number[] = []
-    for (const rawId of Array.isArray(item.channelIds) ? item.channelIds : []) {
-      const id = Number(rawId)
-      if (!Number.isSafeInteger(id) || id <= 0) {
-        throw new Error(`收信人 ${n} 的渠道参数无效（参数值类型错误）`)
-      }
-      if (!channelIds.includes(id)) {
-        channelIds.push(id)
-      }
-    }
-    if (channelIds.length > MESSAGE_ALERT_DIRECT_KEYWORD_CHANNEL_MAX_COUNT) {
-      throw new Error(`收信人 ${n} 绑定的渠道数量不能超过 ${MESSAGE_ALERT_DIRECT_KEYWORD_CHANNEL_MAX_COUNT} 个`)
-    }
-    const remark = typeof item?.remark === 'string' ? item.remark.trim() : ''
-    if (remark.length > MESSAGE_ALERT_DIRECT_KEYWORD_REMARK_MAX_LENGTH) {
-      throw new Error(`收信人 ${n} 的备注长度不能超过 ${MESSAGE_ALERT_DIRECT_KEYWORD_REMARK_MAX_LENGTH} 个字符`)
-    }
-    const enabled = item?.enabled ?? 1
-    if (enabled !== 0 && enabled !== 1) {
-      throw new Error(`收信人 ${n} 的启用参数无效（参数值类型错误）`)
-    }
-    // 启用必须有推送目标，否则命中后无处可推；未关联渠道只能保持禁用
-    if (enabled === 1 && channelIds.length === 0) {
-      throw new Error(`收信人 ${n} 未关联通知渠道，不能启用`)
-    }
-    return { pattern, channelIds, receiver, remark, enabled }
-  })
+  }
+  if (channelIds.length > MESSAGE_ALERT_DIRECT_RECEIVER_CHANNEL_MAX_COUNT) {
+    throw new Error(`收信人绑定的渠道数量不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_CHANNEL_MAX_COUNT} 个`)
+  }
+  return channelIds
+}
+
+/**
+ * 新增/修改单个收信人的字段校验，不查库；唯一性与渠道存在性由路由层校验。
+ * 未提供 enabled 时按禁用处理：新增行默认禁用，启用必须显式关联渠道
+ */
+export function validateMessageAlertDirectReceiver(raw: unknown): CleanedMessageAlertDirectReceiver {
+  const base = cleanReceiverBase(raw)
+  const enabled = (raw as any)?.enabled ?? 0
+  if (enabled !== 0 && enabled !== 1) {
+    throw new Error('收信人的启用参数无效（参数值类型错误）')
+  }
+  const channelIds = cleanReceiverChannelIds((raw as any)?.channelIds)
+  // 启用必须有推送目标，否则命中后无处可推；未关联渠道只能保持禁用
+  if (enabled === 1 && channelIds.length === 0) {
+    throw new Error('收信人未关联通知渠道，不能启用')
+  }
+  return { ...base, enabled, channelIds }
+}
+
+/**
+ * 导入项只接收 receiver/pattern/remark 三个字段，一律按禁用无渠道写入
+ */
+export function validateMessageAlertDirectReceiverImportItem(raw: unknown): { receiver: string, pattern: string, remark: string } {
+  return cleanReceiverBase(raw)
 }
 
 // 保存与试测共用
@@ -182,25 +190,4 @@ export async function validateMessageAlertDirectRulePayload(
     titleReplace,
     alertRuleIds,
   }
-}
-
-/**
- * 允许空数组清空；渠道需真实存在
- */
-export async function validateMessageAlertDirectKeywordPayload(raw: unknown): Promise<CleanedMessageAlertDirectKeyword[]> {
-  if (!Array.isArray(raw)) {
-    throw new Error('参数 keywords 无效（参数值类型错误）')
-  }
-  const keywords = raw.length === 0 ? [] : validateMessageAlertDirectKeywords(raw)
-  const allChannelIds = [...new Set(keywords.flatMap(keyword => keyword.channelIds))]
-  if (allChannelIds.length > 0) {
-    const channels = await db.notificationChannel.$list(
-      { where: { id: { in: allChannelIds } } },
-      { select: { id: true } },
-    )
-    if (channels.length !== allChannelIds.length) {
-      throw new Error('渠道不存在')
-    }
-  }
-  return keywords
 }

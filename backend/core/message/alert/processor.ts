@@ -21,7 +21,8 @@ async function loadEnabledRules() {
   )
 }
 
-// 一对一规则按命中全局规则按需加载，收信人只取渠道 ID，渠道配置对去重后的 ID 统一查一次
+// 一对一规则按命中全局规则按需加载：规则体、启用收信人、渠道关联各一条扁平查询后内存分组，
+// 渠道关联按 receiver 的 directRuleId 反向过滤（不走 IN (收信人 id 列表)），收信人万级时不触碰 SQLite 变量上限
 async function loadHitDirectRules(ruleIds: number[]) {
   const rules = await db.messageAlertDirectRule.$list(
     {
@@ -31,30 +32,62 @@ async function loadHitDirectRules(ruleIds: number[]) {
       },
     },
     {
-      include: {
-        keywords: {
-          where: { enabled: 1 },
-          orderBy: { sort: 'asc' },
-          include: { channels: { select: { channelId: true } } },
-        },
-      },
+      select: { id: true, name: true, title_mode: true, title_template: true, content_replace: true, title_replace: true },
     },
   )
-  const channelIds = [...new Set(rules.flatMap(rule => rule.keywords.flatMap(keyword => keyword.channels.map(link => link.channelId))))]
-  const channels = channelIds.length > 0
+  if (rules.length === 0) {
+    return { directRules: [], channelsById: new Map<number, ChannelSnapshot>() }
+  }
+  const hitRuleIds = rules.map(rule => rule.id)
+  const [receivers, links] = await Promise.all([
+    db.messageAlertDirectRuleReceiver.$list(
+      { where: { directRuleId: { in: hitRuleIds }, enabled: 1 }, orderBy: { id: 'asc' } },
+      { select: { id: true, directRuleId: true, pattern: true, receiver: true } },
+    ),
+    db.messageAlertDirectRuleReceiverChannel.$list(
+      { where: { receiver: { directRuleId: { in: hitRuleIds } } } },
+      { select: { receiverId: true, channelId: true } },
+    ),
+  ])
+  const enabledReceiverIds = new Set(receivers.map(receiver => receiver.id))
+  const channelIdsByReceiver = new Map<number, number[]>()
+  const allChannelIds = new Set<number>()
+  for (const link of links) {
+    // 禁用收信人不加载，其渠道关联一并跳过
+    if (!enabledReceiverIds.has(link.receiverId)) {
+      continue
+    }
+    const ids = channelIdsByReceiver.get(link.receiverId)
+    if (ids) {
+      ids.push(link.channelId)
+    }
+    else {
+      channelIdsByReceiver.set(link.receiverId, [link.channelId])
+    }
+    allChannelIds.add(link.channelId)
+  }
+  const channels = allChannelIds.size > 0
     ? await db.notificationChannel.$list(
-        { where: { id: { in: channelIds } } },
+        { where: { id: { in: [...allChannelIds] } } },
         { select: { id: true, name: true, type: true, config: true } },
       )
     : []
   const channelsById = new Map<number, ChannelSnapshot>(channels.map(channel => [channel.id, channel]))
+  const receiversByRule = new Map<number, Array<{ pattern: string, receiver: string, channelIds: number[] }>>()
+  for (const { id, directRuleId, pattern, receiver } of receivers) {
+    const list = receiversByRule.get(directRuleId)
+    const entry = { pattern, receiver, channelIds: channelIdsByReceiver.get(id) ?? [] }
+    if (list) {
+      list.push(entry)
+    }
+    else {
+      receiversByRule.set(directRuleId, [entry])
+    }
+  }
   return {
-    directRules: rules.map(({ keywords, ...rest }) => ({
-      ...rest,
-      keywords: keywords.map(({ channels: links, ...keyword }) => ({
-        ...keyword,
-        channelIds: links.map(link => link.channelId),
-      })),
+    directRules: rules.map(rule => ({
+      ...rule,
+      receivers: receiversByRule.get(rule.id) ?? [],
     })),
     channelsById,
   }

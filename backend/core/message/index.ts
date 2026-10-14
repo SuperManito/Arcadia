@@ -5,7 +5,13 @@ import { SocketEvent } from '../type/socket'
 import { db } from '../../db'
 import { logger } from '../../utils/logger'
 import { validateObject } from '../../utils'
-import { MESSAGE_CONTENT_MAX_LENGTH, MESSAGE_TITLE_MAX_LENGTH, MessageCategory, MessageScope, MessageType } from '../type/message'
+import {
+  MESSAGE_CONTENT_MAX_LENGTH,
+  MESSAGE_TITLE_MAX_LENGTH,
+  MessageCategory,
+  MessageScope,
+  MessageType,
+} from '../type/message'
 import { processMessageAlert } from './alert'
 import { socketCommon } from '../../server/socketCommon'
 

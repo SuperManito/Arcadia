@@ -45,7 +45,9 @@ function normalizeMultiValue(value: unknown, allowed: readonly string[], errorMe
 }
 
 // 保存与测试共用，不查库
-export function validateMessageAlertRuleDefinition(body: MessageAlertRuleDefinitionInput): CleanedMessageAlertRuleDefinition {
+export function validateMessageAlertRuleDefinition(
+  body: MessageAlertRuleDefinitionInput,
+): CleanedMessageAlertRuleDefinition {
   const logic = body.logic ?? RuleLogic.AND
   if (!RULE_LOGICS.includes(logic as RuleLogic)) {
     throw new Error('条件组合逻辑无效')

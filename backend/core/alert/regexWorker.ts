@@ -2,8 +2,8 @@ import { Worker } from 'node:worker_threads'
 import { logger } from '../../utils/logger'
 
 const REGEX_TIMEOUT_MS = 500
-// 积压上限：超限直接按失败结算，防止慢任务持续堆积拖垮内存与响应
-const QUEUE_MAX_SIZE = 200
+// 等待量安全上限：队列满不判失败（调用方 await 等待结果），仅超过该上限才按失败结算，防止慢任务无限堆积拖垮内存
+const QUEUE_WAIT_MAX_SIZE = 20000
 
 const WORKER_SOURCE = `
 const { parentPort } = require('node:worker_threads')
@@ -73,8 +73,8 @@ function settle(result: boolean | boolean[] | string | string[] | null) {
 }
 
 function enqueue(job: RegexJob) {
-  if (queue.length >= QUEUE_MAX_SIZE) {
-    logger.warn('[告警引擎] 正则任务队列已满，按不命中处理', { pattern: job.pattern })
+  if (queue.length >= QUEUE_WAIT_MAX_SIZE) {
+    logger.warn('[告警引擎] 正则任务等待量超过安全上限，按不命中处理', { pattern: job.pattern, waiting: queue.length })
     job.resolve(null)
     return
   }
