@@ -47,7 +47,7 @@ async function matchReceiverPattern(
   lines: DirectMatchedLine[],
 ): Promise<DirectMatchedLine[] | null> {
   if (pattern.includes(MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_PLACEHOLDER) && !receiver) {
-    logger.warn('[消息中心监控告警] 收信人模式使用收信人占位符但收信人标识为空，按不命中处理', { pattern })
+    logger.warn('[消息中心监控告警] 收信人模式使用收信人占位符但收信人标识为空，按不命中处理', JSON.stringify({ pattern }))
     return []
   }
   const expanded = expandReceiverPattern(pattern, receiver)

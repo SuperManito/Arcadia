@@ -51,11 +51,11 @@ const LOG_FAILURE_SAMPLES = 5
 // 按消息入库截断上限分片，避免表格尾部行丢失；每片独立一条汇总消息
 async function flushSession(session: PushSession) {
   // 每个失败会话只写一条日志：百级渠道整类失败时逐条日志会形成洪水
-  logger.warn('[消息中心监控告警] 推送存在失败', {
+  logger.warn('[消息中心监控告警] 推送存在失败', JSON.stringify({
     triggerTitle: session.title,
     failureCount: session.failures.length,
     samples: session.failures.slice(0, LOG_FAILURE_SAMPLES).map(({ channelName, reason }) => `${channelName}: ${reason}`),
-  })
+  }))
   const rows = session.failures.map(({ ruleName, channelName, channelType, reason, content }) =>
     `| ${toCell(ruleName)} | ${toCell(channelName)}（${channelType}） | ${toCell(reason)} | ${toCell(content)} |`)
   const header = buildSummaryContent(session, [])

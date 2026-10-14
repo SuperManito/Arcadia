@@ -98,7 +98,7 @@ export async function matchCondition(context: Record<string, string>, condition:
   if (condition.mode === ConditionMode.REGEX) {
     const reg = tryCompileRegex(condition.value)
     if (!reg) {
-      logger.warn('[告警引擎] 条件正则编译失败，按不命中处理', { pattern: condition.value })
+      logger.warn('[告警引擎] 条件正则编译失败，按不命中处理', JSON.stringify({ pattern: condition.value }))
       return false
     }
     // null 表示超时或 worker 故障，抛给 evaluateConditions 捕获为条件级失败；

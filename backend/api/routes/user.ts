@@ -265,7 +265,7 @@ api.post('/auth/twoFactor', async (request, response) => {
   const isValid = verifyTOTPCode(codeCheck.code, totpSecret)
   if (!isValid) {
     incrementAuthError(curTime.getTime())
-    logger.warn('2FA 双重认证失败', { username, ip: clientIP, attemptCount: getAuthErrorCount() })
+    logger.warn('2FA 双重认证失败', JSON.stringify({ username, ip: clientIP, attemptCount: getAuthErrorCount() }))
     // 记录登录失败日志
     const ua = request.headers['user-agent'] || ''
     const { browser, os, device } = parseUserAgent(ua)

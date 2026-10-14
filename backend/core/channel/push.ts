@@ -62,7 +62,7 @@ export async function pushChannel(
         const rendered = applyTemplate(finalPayload, general)
         if (rendered === null) {
           // 渲染为空可能是模板写法使然（如仅留空白），不算渠道失败，记日志便于排查
-          logger.warn('[渠道推送] 自定义消息模板渲染结果为空，消息未推送', { channelType: channel.type })
+          logger.warn('[渠道推送] 自定义消息模板渲染结果为空，消息未推送', JSON.stringify({ channelType: channel.type }))
           return { success: true }
         }
         // 模板即消息全文；标题保留供 summary/卡片标题等原始标题场景使用

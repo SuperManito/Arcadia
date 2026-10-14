@@ -61,7 +61,7 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
   const title = rawTitle.slice(0, MESSAGE_TITLE_MAX_LENGTH)
   const content = rawContent.slice(0, MESSAGE_CONTENT_MAX_LENGTH)
   if (rawContent.length > MESSAGE_CONTENT_MAX_LENGTH) {
-    logger.warn('[消息中心] 消息内容超长被截断', { title: rawTitle, length: rawContent.length, maxLength: MESSAGE_CONTENT_MAX_LENGTH })
+    logger.warn('[消息中心] 消息内容超长被截断', JSON.stringify({ title: rawTitle, length: rawContent.length, maxLength: MESSAGE_CONTENT_MAX_LENGTH }))
   }
   const category = data.category || MessageCategory.SYSTEM
   const type = data.type || MessageType.INFO

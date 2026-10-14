@@ -45,7 +45,7 @@ function warnBacklog(type: string, queue: ChannelQueue) {
   const level = QUEUE_BACKLOG_WARN_LEVELS.find(size => queue.tasks.length >= size && queue.warnedLevel < size)
   if (level !== undefined) {
     queue.warnedLevel = level
-    logger.warn('[消息中心监控告警] 推送队列积压', { channelType: type, depth: queue.tasks.length })
+    logger.warn('[消息中心监控告警] 推送队列积压', JSON.stringify({ channelType: type, depth: queue.tasks.length }))
   }
   if (queue.tasks.length < queue.warnedLevel) {
     queue.warnedLevel = 0

@@ -102,12 +102,12 @@ export async function applyReplacements(input: string, text: string): Promise<st
     }
     const parsed = parseExpression(trimmed)
     if (!parsed) {
-      logger.warn('[告警引擎] 替换表达式无效，跳过该条', { line: index + 1 })
+      logger.warn('[告警引擎] 替换表达式无效，跳过该条', JSON.stringify({ line: index + 1 }))
       continue
     }
     const replaced = await replaceRegex(parsed.pattern, parsed.replacement, result)
     if (replaced === null) {
-      logger.warn('[告警引擎] 替换执行超时或异常，跳过该条', { line: index + 1 })
+      logger.warn('[告警引擎] 替换执行超时或异常，跳过该条', JSON.stringify({ line: index + 1 }))
       continue
     }
     result = replaced

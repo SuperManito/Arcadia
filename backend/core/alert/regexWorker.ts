@@ -74,7 +74,7 @@ function settle(result: boolean | boolean[] | string | string[] | null) {
 
 function enqueue(job: RegexJob) {
   if (queue.length >= QUEUE_WAIT_MAX_SIZE) {
-    logger.warn('[告警引擎] 正则任务等待量超过安全上限，按不命中处理', { pattern: job.pattern, waiting: queue.length })
+    logger.warn('[告警引擎] 正则任务等待量超过安全上限，按不命中处理', JSON.stringify({ pattern: job.pattern, waiting: queue.length }))
     job.resolve(null)
     return
   }
