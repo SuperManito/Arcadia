@@ -551,7 +551,7 @@ function checkConfigSave(oldContent: string) {
   if (os.type() === 'Linux') {
     // 判断格式是否正确
     try {
-      execSync(`bash ${APP_FILE_PATH.CONFIG} >${APP_DIR_PATH.LOG}/.check`, { encoding: 'utf8' })
+      execSync(`bash ${APP_FILE_PATH.CONFIG} >/dev/null`, { encoding: 'utf8' })
     }
     catch (e: any) {
       fs.writeFileSync(APP_FILE_PATH.CONFIG, oldContent)
