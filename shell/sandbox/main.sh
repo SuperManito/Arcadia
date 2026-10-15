@@ -94,9 +94,9 @@ function sandbox_main() {
             esac
         done
 
-        # opts 用法检查
-        if [[ "${_raw_has_net_allow}" == "true" && ("${_raw_has_net_deny}" == "true" || ${#SANDBOX_NET_ALLOW[@]} -gt 0 || ${#SANDBOX_NET_DENY[@]} -gt 0 || "${SANDBOX_NET_DENY_ALL}" == "true" || "${SANDBOX_NET_DENY_LOCAL}" == "true") ]] ||
-            [[ "${_raw_has_net_deny}" == "true" && ("${_raw_has_net_allow}" == "true" || ${#SANDBOX_NET_ALLOW[@]} -gt 0 || ${#SANDBOX_NET_DENY[@]} -gt 0 || "${SANDBOX_NET_DENY_ALL}" == "true") ]] ||
+        # opts 用法检查（透传白名单/黑名单可互相组合，deny 规则由引擎保证优先；同侧与高层重复仍视为配置歧义）
+        if [[ "${_raw_has_net_allow}" == "true" && ("${SANDBOX_NET_DENY_ALL}" == "true" || "${SANDBOX_NET_DENY_LOCAL}" == "true" || ${#SANDBOX_NET_ALLOW[@]} -gt 0) ]] ||
+            [[ "${_raw_has_net_deny}" == "true" && ("${SANDBOX_NET_DENY_ALL}" == "true" || ${#SANDBOX_NET_DENY[@]} -gt 0) ]] ||
             [[ "${_raw_has_net_allow_bind}" == "true" && ("${SANDBOX_NET_ALLOW_BIND_ALL}" == "true" || ${#SANDBOX_NET_ALLOW_BIND[@]} -gt 0) ]] ||
             [[ "${_raw_has_http_allow}" == "true" && ("${_raw_has_http_deny}" == "true" || ${#SANDBOX_HTTP_ALLOW[@]} -gt 0 || ${#SANDBOX_HTTP_DENY[@]} -gt 0) ]] ||
             [[ "${_raw_has_http_deny}" == "true" && ("${_raw_has_http_allow}" == "true" || ${#SANDBOX_HTTP_ALLOW[@]} -gt 0 || ${#SANDBOX_HTTP_DENY[@]} -gt 0) ]] ||
@@ -147,18 +147,34 @@ function sandbox_main() {
         done
     fi
 
-    # 网络控制（--net-allow 与 --net-deny 互斥）
+    # 网络控制（--net-allow 与 --net-deny 可组合使用，deny 规则由引擎保证优先于 allow）
     if [[ "${SANDBOX_NET_DENY_ALL}" == "true" ]]; then
         :
-    elif [[ "${_has_net_allow}" == "true" ]]; then
-        for _spec in "${SANDBOX_NET_ALLOW[@]}"; do
-            _args+=("--net-allow" "${_spec}")
-        done
-    elif [[ "${_has_net_deny}" == "true" || "${SANDBOX_NET_DENY_LOCAL}" == "true" ]]; then
-        for _spec in "${SANDBOX_NET_DENY[@]}"; do
-            _args+=("--net-deny" "${_spec}")
-        done
-        if [[ "${SANDBOX_NET_DENY_LOCAL}" == "true" ]]; then
+    else
+        if [[ "${_has_net_allow}" == "true" ]]; then
+            for _spec in "${SANDBOX_NET_ALLOW[@]}"; do
+                _args+=("--net-allow" "${_spec}")
+            done
+        fi
+        if [[ "${_has_net_deny}" == "true" || "${SANDBOX_NET_DENY_LOCAL}" == "true" ]]; then
+            for _spec in "${SANDBOX_NET_DENY[@]}"; do
+                _args+=("--net-deny" "${_spec}")
+            done
+            if [[ "${SANDBOX_NET_DENY_LOCAL}" == "true" ]]; then
+                for _local_range in \
+                    "127.0.0.0/8" \
+                    "10.0.0.0/8" \
+                    "172.16.0.0/12" \
+                    "192.168.0.0/16" \
+                    "169.254.0.0/16" \
+                    "::1/128" \
+                    "fc00::/7" \
+                    "fe80::/10"; do
+                    _args+=("--net-deny" "${_local_range}")
+                done
+            fi
+        elif [[ "${_has_net_allow}" != "true" ]]; then
+            # 默认屏蔽本地回环、私网与云元数据地址，其余出站连接正常放行
             for _local_range in \
                 "127.0.0.0/8" \
                 "10.0.0.0/8" \
@@ -171,19 +187,6 @@ function sandbox_main() {
                 _args+=("--net-deny" "${_local_range}")
             done
         fi
-    else
-        # 默认屏蔽本地回环、私网与云元数据地址，其余出站连接正常放行
-        for _local_range in \
-            "127.0.0.0/8" \
-            "10.0.0.0/8" \
-            "172.16.0.0/12" \
-            "192.168.0.0/16" \
-            "169.254.0.0/16" \
-            "::1/128" \
-            "fc00::/7" \
-            "fe80::/10"; do
-            _args+=("--net-deny" "${_local_range}")
-        done
     fi
 
     # 端口绑定（与出站控制独立）

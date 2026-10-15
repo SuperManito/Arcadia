@@ -119,8 +119,8 @@ function _print_help_run() {
     沙箱：
 
     ${BLUE}--sandbox${PLAIN}                                 沙箱模式，在受限环境中运行代码
-    ${BLUE}--sandbox-net-allow${PLAIN} <spec>                出站白名单，仅放行匹配的出站连接，可多次使用，与黑名单选项互斥
-    ${BLUE}--sandbox-net-deny${PLAIN} <spec>                 出站黑名单，屏蔽匹配的出站连接，可多次使用，与白名单选项互斥
+    ${BLUE}--sandbox-net-allow${PLAIN} <spec>                出站白名单，仅放行匹配的出站连接，可多次使用，可与黑名单选项叠加，屏蔽规则优先
+    ${BLUE}--sandbox-net-deny${PLAIN} <spec>                 出站黑名单，屏蔽匹配的出站连接，可多次使用，可与白名单选项叠加，屏蔽规则优先
     ${BLUE}--sandbox-net-deny-all${PLAIN}                    完全断网，阻断所有出站连接，与其它出站控制/HTTP 过滤选项互斥
     ${BLUE}--sandbox-net-deny-local${PLAIN}                  屏蔽局域网与本机，可与黑名单选项叠加，与白名单/断网选项互斥
     ${BLUE}--sandbox-net-allow-bind${PLAIN} <port>           允许绑定指定端口，放行 TCP 服务端监听，可多次使用
