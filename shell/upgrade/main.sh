@@ -2,8 +2,12 @@
 
 ## 更新项目
 function command_upgrade() {
-    ## 创建日志文件夹
     make_dir $LogDir
+    local log_file="${LogDir}/update-error-$(date "+%Y-%m-%d-%H-%M-%S").log"
+    command_upgrade_main "${log_file}" 2>&1 | tee -a $log_file
+}
+
+function command_upgrade_main() {
     ## 导入配置文件（不检查）
     import_config_not_check
 
@@ -41,8 +45,12 @@ function command_upgrade() {
             if [[ "${project_depend_old}" != "${project_depend_new}" ]]; then
                 $ArcadiaCmd service start
             else
-                sync_prisma_schema || output_error "Prisma 初始化失败（客户端生成或数据库同步），请查看报错并分析原因！"
-                pm2 start ecosystem.config.cjs
+                if sync_prisma_schema; then
+                    rm -f "$1"
+                    pm2 start ecosystem.config.cjs
+                else
+                    $ArcadiaCmd service start
+                fi
             fi
         fi
         ## 后端回调
