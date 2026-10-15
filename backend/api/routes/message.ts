@@ -15,11 +15,13 @@ import { applyReplacements } from '../../core/alert'
 import {
   evaluateMessageAlertRule,
   matchDirectRule,
+  MESSAGE_ALERT_DIRECT_RECEIVER_BATCH_MAX_COUNT,
   MESSAGE_ALERT_DIRECT_RECEIVER_DELETE_MAX_COUNT,
   MESSAGE_ALERT_DIRECT_RECEIVER_IMPORT_MAX_COUNT,
   prepareLines,
   refreshEnabledRuleIndex,
   renderDirectTitle,
+  resolveReceiverPattern,
   validateMessageAlertDirectReceiver,
   validateMessageAlertDirectReceiverImportItem,
   validateMessageAlertDirectRulePayload,
@@ -719,6 +721,7 @@ api.post('/alert/direct/rule', async (request, response) => {
         ['titleTemplate', [false, 'string']],
         ['contentReplace', [false, 'string']],
         ['titleReplace', [false, 'string']],
+        ['commonPattern', [false, 'string']],
         ['alertRuleIds', [false, 'number[]']],
       ] as const,
     }, true)
@@ -730,6 +733,7 @@ api.post('/alert/direct/rule', async (request, response) => {
         title_template: cleaned.titleTemplate,
         content_replace: cleaned.contentReplace,
         title_replace: cleaned.titleReplace,
+        common_pattern: cleaned.commonPattern,
       })
       await tx.messageAlertDirectRuleBinding.createMany({
         data: cleaned.alertRuleIds.map(alertRuleId => ({
@@ -760,6 +764,7 @@ api.put('/alert/direct/rule', async (request, response) => {
         ['titleTemplate', [false, 'string']],
         ['contentReplace', [false, 'string']],
         ['titleReplace', [false, 'string']],
+        ['commonPattern', [false, 'string']],
         ['alertRuleIds', [false, 'number[]']],
       ] as const,
     }, true)
@@ -771,6 +776,7 @@ api.put('/alert/direct/rule', async (request, response) => {
       titleTemplate,
       contentReplace,
       titleReplace,
+      commonPattern,
       alertRuleIds,
     } = params.body
     const exists = await db.messageAlertDirectRule.$getById(id)
@@ -783,6 +789,7 @@ api.put('/alert/direct/rule', async (request, response) => {
       titleTemplate,
       contentReplace,
       titleReplace,
+      commonPattern,
       alertRuleIds,
     ].every(field => field === undefined)) {
       const rule = await db.messageAlertDirectRule.$updateById({ id, data: { enabled } })
@@ -799,6 +806,7 @@ api.put('/alert/direct/rule', async (request, response) => {
           title_template: cleaned.titleTemplate,
           content_replace: cleaned.contentReplace,
           title_replace: cleaned.titleReplace,
+          common_pattern: cleaned.commonPattern,
           ...(enabled !== undefined ? { enabled } : {}),
         },
       })
@@ -1027,6 +1035,38 @@ api.put('/alert/direct/rule/receiver', async (request, response) => {
 })
 
 /**
+ * 批量启停收信人：启用沿用单条启停约束，未关联通知渠道的行自动跳过
+ */
+api.put('/alert/direct/rule/receiver/status', async (request, response) => {
+  try {
+    const params = validateRequestParams(request, {
+      body: [
+        ['ids', [true, 'number[]']],
+        ['enabled', [true, [1, 0]]],
+      ] as const,
+    }, true)
+    const { ids, enabled } = params.body
+    if (ids.length === 0) {
+      throw new Error('参数 ids 不能为空')
+    }
+    if (ids.length > MESSAGE_ALERT_DIRECT_RECEIVER_BATCH_MAX_COUNT) {
+      throw new Error(`单次最多操作 ${MESSAGE_ALERT_DIRECT_RECEIVER_BATCH_MAX_COUNT} 个收信人`)
+    }
+    // 启用要求收信人已绑定通知渠道，未绑定的行保持原状
+    const result = await db.messageAlertDirectRuleReceiver.updateMany({
+      where: enabled === 1
+        ? { id: { in: ids }, channels: { some: {} } }
+        : { id: { in: ids } },
+      data: { enabled },
+    })
+    response.send(API_STATUS_CODE.okData({ updated_count: result.count }))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+/**
  * 删除收信人：ids 批量（单次最多 1000，服务端分块）或 all 清空整份名单，二者必须二选一
  */
 api.delete('/alert/direct/rule/receiver', async (request, response) => {
@@ -1239,8 +1279,11 @@ api.post('/alert/direct/rule/test', async (request, response) => {
     // 替换与真实推送一致：内容替换先于收信人匹配执行，标题替换作用于渲染结果
     const replacedContent = await applyReplacements(content, rule.content_replace)
     const lines = prepareLines(replacedContent)
-    const matchResults = await matchDirectRule(lines, rule.receivers)
-    const matchedReceivers: Array<{ receiver: string, pattern: string, channel_count: number, matched_lines: string[] }> = []
+    const matchResults = await matchDirectRule(lines, rule.receivers.map(receiver => ({
+      ...receiver,
+      pattern: resolveReceiverPattern(receiver.pattern, rule.common_pattern).pattern,
+    })))
+    const matchedReceivers: Array<{ receiver: string, pattern: string, pattern_source: string, channel_count: number, matched_lines: string[] }> = []
     for (const [i, receiver] of rule.receivers.entries()) {
       const matched = matchResults[i]
       // 超时或异常与未命中语义不同，试测需明确报错而不是显示成未命中
@@ -1251,9 +1294,11 @@ api.post('/alert/direct/rule/test', async (request, response) => {
         continue
       }
       // 行文本去重与真实推送的渠道内聚合一致
+      const { pattern, source } = resolveReceiverPattern(receiver.pattern, rule.common_pattern)
       matchedReceivers.push({
         receiver: receiver.receiver,
-        pattern: receiver.pattern,
+        pattern,
+        pattern_source: source,
         channel_count: receiver.channels.length,
         matched_lines: [...new Set(matched.map(item => item.line))],
       })

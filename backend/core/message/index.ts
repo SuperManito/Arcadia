@@ -99,7 +99,7 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
       type: MessageType.ERROR,
       skipAlert: true,
     })).catch((e: any) => {
-      logger.error('[消息中心监控告警] 触发异常', e?.message ?? e)
+      logger.error('[消息中心监控告警] 触发异常', e)
     })
   }
 

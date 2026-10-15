@@ -98,7 +98,7 @@ function topUp(type: string) {
       }
     })().catch((e: any) => {
       // 消费循环是 fire-and-forget，未捕获的 rejection 会直接终止进程
-      logger.error('[消息中心监控告警] 推送队列执行异常', { channelType: type, error: e?.message })
+      logger.error('[消息中心监控告警] 推送队列执行异常', JSON.stringify({ channelType: type }), e)
     })
   }
 }

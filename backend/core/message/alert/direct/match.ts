@@ -15,6 +15,20 @@ export function expandReceiverPattern(pattern: string, receiver: string): string
   return pattern.split(MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_PLACEHOLDER).join(escapeRegExp(receiver))
 }
 
+export type DirectPatternSource = 'receiver' | 'common' | 'identifier'
+
+/**
+ * 收信人生效匹配串的三级回退：专属匹配 > 规则通用匹配 > 标识包含匹配；
+ * 真实触发与试测共用，返回未展开的模板串
+ */
+export function resolveReceiverPattern(receiverPattern: string, commonPattern: string): { pattern: string, source: DirectPatternSource } {
+  if (receiverPattern)
+    return { pattern: receiverPattern, source: 'receiver' }
+  if (commonPattern)
+    return { pattern: commonPattern, source: 'common' }
+  return { pattern: '', source: 'identifier' }
+}
+
 export interface DirectMatchReceiver {
   pattern: string
   receiver: string

@@ -32,7 +32,7 @@ async function loadHitDirectRules(ruleIds: number[]) {
       },
     },
     {
-      select: { id: true, name: true, title_mode: true, title_template: true, content_replace: true, title_replace: true },
+      select: { id: true, name: true, title_mode: true, title_template: true, content_replace: true, title_replace: true, common_pattern: true },
     },
   )
   if (rules.length === 0) {
@@ -153,11 +153,7 @@ export async function processMessageAlert(
         await processDirectRule(directRule, channelsById, alertMessage, session)
       }
       catch (e: any) {
-        logger.error('[消息中心监控告警] 一对一规则处理异常', {
-          directRuleId: directRule.id,
-          directRuleName: directRule.name,
-          error: e?.message,
-        })
+        logger.error('[消息中心监控告警] 一对一规则处理异常', JSON.stringify({ directRuleId: directRule.id, directRuleName: directRule.name }), e)
       }
     }))
   }

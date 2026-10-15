@@ -48,6 +48,6 @@ export async function refreshEnabledRuleIndex() {
     enabledRuleIndex = { allCategories, categories, allTypes, types }
   }
   catch (e: any) {
-    logger.error('[消息中心监控告警] 刷新启用规则索引失败', { error: e?.message })
+    logger.error('[消息中心监控告警] 刷新启用规则索引失败', e)
   }
 }

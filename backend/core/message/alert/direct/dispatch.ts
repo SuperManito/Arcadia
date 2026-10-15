@@ -8,7 +8,7 @@ import {
   MESSAGE_ALERT_DIRECT_RULE_PLACEHOLDER,
   MESSAGE_ALERT_DIRECT_TITLE_RECEIVER_PLACEHOLDER,
 } from './types'
-import { matchDirectRule, prepareLines } from './match'
+import { matchDirectRule, prepareLines, resolveReceiverPattern } from './match'
 
 /**
  * processDirectRule 所需的最小规则结构：调用方传入数据库关联查询结果，字段子集即可；
@@ -21,6 +21,7 @@ export interface DispatchableDirectRule {
   title_template: string
   content_replace: string
   title_replace: string
+  common_pattern: string
   receivers: Array<{
     pattern: string
     receiver: string
@@ -61,7 +62,10 @@ export async function processDirectRule(
   }
   // 内容替换在收信人匹配前对整条消息执行一次，命中行即推送行；执行失败跳过该条替换按原文继续
   const content = await applyReplacements(msg.content, directRule.content_replace)
-  const candidates = directRule.receivers.filter(receiver => receiver.channelIds.length > 0)
+  const candidates = directRule.receivers
+    .filter(receiver => receiver.channelIds.length > 0)
+    // 统一解析生效模式串（专属 > 通用 > 标识包含），留空走主线程标识包含
+    .map(receiver => ({ ...receiver, pattern: resolveReceiverPattern(receiver.pattern, directRule.common_pattern).pattern }))
   // 正文只切分一次供全部收信人共用，匹配内部分批让出事件循环
   const lines = prepareLines(content)
   const matchResults = await matchDirectRule(lines, candidates)

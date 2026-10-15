@@ -10,9 +10,11 @@ import {
   MESSAGE_ALERT_RULE_NAME_MAX_LENGTH,
 } from '../types'
 import {
+  MESSAGE_ALERT_DIRECT_COMMON_PATTERN_MAX_LENGTH,
   MESSAGE_ALERT_DIRECT_RECEIVER_CHANNEL_MAX_COUNT,
   MESSAGE_ALERT_DIRECT_RECEIVER_MAX_LENGTH,
   MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH,
+  MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_PLACEHOLDER,
   MESSAGE_ALERT_DIRECT_RECEIVER_REMARK_MAX_LENGTH,
   MESSAGE_ALERT_DIRECT_RULE_BIND_MAX_COUNT,
   MESSAGE_ALERT_DIRECT_RULE_MAX_COUNT,
@@ -136,6 +138,24 @@ export async function validateMessageAlertDirectRulePayload(
   // 无标题时标题替换永不生效，直接落空串而不是保存一条死配置
   const titleReplace = titleMode === 'none' ? '' : validateReplaceText(body.titleReplace)
 
+  const commonPattern = typeof body.commonPattern === 'string' ? body.commonPattern.trim() : ''
+  if (commonPattern.length > MESSAGE_ALERT_DIRECT_COMMON_PATTERN_MAX_LENGTH) {
+    throw new Error(`通用匹配长度不能超过 ${MESSAGE_ALERT_DIRECT_COMMON_PATTERN_MAX_LENGTH} 个字符`)
+  }
+  // 规则级正则对所有收信人是同一个，不含占位符即每个收信人命中相同的行，属确定的串发
+  if (commonPattern && !commonPattern.includes(MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_PLACEHOLDER)) {
+    throw new Error('通用匹配必须包含 {{receiver}}，否则所有收信人会匹配到相同的行')
+  }
+  // 探针编译只是语法校验，特殊标识展开后仍可能非法，由运行时匹配失败记账兜底
+  if (commonPattern) {
+    try {
+      void new RegExp(expandReceiverPattern(commonPattern, '示例'))
+    }
+    catch {
+      throw new Error('通用匹配不是有效的正则表达式')
+    }
+  }
+
   const alertRuleIds: number[] = []
   for (const rawId of body.alertRuleIds ?? []) {
     const id = Number(rawId)
@@ -188,6 +208,7 @@ export async function validateMessageAlertDirectRulePayload(
     titleTemplate,
     contentReplace,
     titleReplace,
+    commonPattern,
     alertRuleIds,
   }
 }

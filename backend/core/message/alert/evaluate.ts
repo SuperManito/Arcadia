@@ -79,7 +79,7 @@ export async function evaluateRules<T extends EvaluableRule>(
       }
       catch (e: any) {
         // 求值失败不能静默当不命中，触发规则漏判会让一对一与全局推送整体不发且无可见线索
-        logger.error('[消息中心监控告警] 规则求值异常', { ruleId: rule.id, ruleName: rule.name, error: e?.message })
+        logger.error('[消息中心监控告警] 规则求值异常', JSON.stringify({ ruleId: rule.id, ruleName: rule.name }), e)
         if (rule.channels.length > 0) {
           for (const link of rule.channels) {
             recordSessionFailure(session, {

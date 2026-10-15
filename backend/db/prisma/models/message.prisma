@@ -69,6 +69,7 @@ model messageAlertDirectRule {
   title_template  String                           @default("") // title_mode=template 时的标题模板，支持 {{title}} / {{rule}} / {{receiver}}
   content_replace String                           @default("") // 推送内容替换：s/正则/替换串/ 每行一条，匹配前对整条正文替换、推送命中行，空=不启用
   title_replace   String                           @default("") // 推送标题替换单条 s/正则/替换串/，作用于标题模板渲染结果，title_mode=none 时恒为空
+  common_pattern  String                           @default("") // 通用匹配：对本规则下未设置专属匹配的收信人生效，必须含 {{receiver}}，空=不启用
   create_time     DateTime                         @default(now())
   update_time     DateTime                         @default(now()) @updatedAt
   receivers       messageAlertDirectRuleReceiver[]
