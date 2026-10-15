@@ -94,8 +94,8 @@ function sandbox_main() {
             esac
         done
 
-        # opts 用法检查（透传白名单/黑名单可互相组合，deny 规则由引擎保证优先；同侧与高层重复仍视为配置歧义）
-        if [[ "${_raw_has_net_allow}" == "true" && ("${SANDBOX_NET_DENY_ALL}" == "true" || "${SANDBOX_NET_DENY_LOCAL}" == "true" || ${#SANDBOX_NET_ALLOW[@]} -gt 0) ]] ||
+        # opts 用法检查（透传白名单/黑名单可与 deny-local 及对方自由组合，deny 规则由引擎保证优先；同侧与高层重复仍视为配置歧义）
+        if [[ "${_raw_has_net_allow}" == "true" && ("${SANDBOX_NET_DENY_ALL}" == "true" || ${#SANDBOX_NET_ALLOW[@]} -gt 0) ]] ||
             [[ "${_raw_has_net_deny}" == "true" && ("${SANDBOX_NET_DENY_ALL}" == "true" || ${#SANDBOX_NET_DENY[@]} -gt 0) ]] ||
             [[ "${_raw_has_net_allow_bind}" == "true" && ("${SANDBOX_NET_ALLOW_BIND_ALL}" == "true" || ${#SANDBOX_NET_ALLOW_BIND[@]} -gt 0) ]] ||
             [[ "${_raw_has_http_allow}" == "true" && ("${_raw_has_http_deny}" == "true" || ${#SANDBOX_HTTP_ALLOW[@]} -gt 0 || ${#SANDBOX_HTTP_DENY[@]} -gt 0) ]] ||

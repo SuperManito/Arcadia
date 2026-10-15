@@ -75,6 +75,8 @@ const BEHAVIOR_CASES = [
   { name: '网络黑名单协议前缀', args: ['--sandbox', '--sandbox-net-deny', 'udp://192.168.0.0/16'] },
   { name: '网络黑名单与 deny-local 叠加', args: ['--sandbox', '--sandbox-net-deny', '198.51.100.0/24', '--sandbox-net-deny-local'] },
   { name: '网络白名单与黑名单组合', args: ['--sandbox', '--sandbox-net-allow', '1.1.1.1:443', '--sandbox-net-deny', '10.0.0.0/8'] },
+  { name: '网络白名单与 deny-local 叠加', args: ['--sandbox', '--sandbox-net-allow', '1.1.1.1:443', '--sandbox-net-deny-local'] },
+  { name: 'opts 透传白名单与高层 deny-local 组合', args: ['--sandbox', '--sandbox-net-deny-local', '--sandbox-opts', '--net-allow 1.1.1.1:443'] },
   {
     name: 'opts 透传白名单与黑名单组合',
     args: ['--sandbox', '--sandbox-opts', '--net-allow 1.1.1.1:443 --net-deny 10.0.0.0/8'],
@@ -116,11 +118,6 @@ const OPTION_LOGIC_CASES = [
   { name: '环境变量白名单格式错误应报错', args: ['--sandbox', '--sandbox-allow-env-whitelist', 'PATH HOME'], expectError: '格式有误' },
 
   // 高层选项互斥：由 CLI 基础拦截输出
-  {
-    name: '高层 net-allow 与 deny-local 互斥应报错',
-    args: ['--sandbox', '--sandbox-net-allow', '1.1.1.1:443', '--sandbox-net-deny-local'],
-    expectError: '不可同时使用',
-  },
   {
     name: '高层 deny-all 与 net-allow 互斥应报错',
     args: ['--sandbox', '--sandbox-net-deny-all', '--sandbox-net-allow', '1.1.1.1:443'],
