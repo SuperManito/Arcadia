@@ -330,7 +330,7 @@ api.get('/alert/rule/page', async (request, response) => {
     })
     const data = (result.data as Array<any>).map(({ _count, ...rest }) => ({
       ...rest,
-      channelCount: _count?.channels ?? 0,
+      channel_count: _count?.channels ?? 0,
     }))
     response.send(API_STATUS_CODE.okData({ ...result, data }))
   }
@@ -638,8 +638,8 @@ api.get('/alert/direct/rule/page', async (request, response) => {
     })
     const data = (result.data as Array<any>).map(({ _count, bindings, ...rest }) => ({
       ...rest,
-      receiverCount: _count?.receivers ?? 0,
-      alertRules: bindings.map((link: any) => link.alertRule),
+      receiver_count: _count?.receivers ?? 0,
+      alert_rules: bindings.map((link: any) => link.alertRule),
     }))
     response.send(API_STATUS_CODE.okData({ ...result, data }))
   }
@@ -692,13 +692,13 @@ api.get('/alert/direct/rule', async (request, response) => {
     const { bindings, _count, ...rest } = rule
     response.send(API_STATUS_CODE.okData({
       ...rest,
-      receiverCount: _count?.receivers ?? 0,
-      alertRuleIds: bindings.map(link => link.alertRule.id),
-      alertRules: bindings.map(link => ({
+      receiver_count: _count?.receivers ?? 0,
+      alert_rule_ids: bindings.map(link => link.alertRule.id),
+      alert_rules: bindings.map(link => ({
         id: link.alertRule.id,
         name: link.alertRule.name,
         enabled: link.alertRule.enabled,
-        channelCount: link.alertRule._count.channels,
+        channel_count: link.alertRule._count.channels,
       })),
     }))
   }
@@ -1240,7 +1240,7 @@ api.post('/alert/direct/rule/test', async (request, response) => {
     const replacedContent = await applyReplacements(content, rule.content_replace)
     const lines = prepareLines(replacedContent)
     const matchResults = await matchDirectRule(lines, rule.receivers)
-    const matchedReceivers: Array<{ receiver: string, pattern: string, channelCount: number, matchedLines: string[] }> = []
+    const matchedReceivers: Array<{ receiver: string, pattern: string, channel_count: number, matched_lines: string[] }> = []
     for (const [i, receiver] of rule.receivers.entries()) {
       const matched = matchResults[i]
       // 超时或异常与未命中语义不同，试测需明确报错而不是显示成未命中
@@ -1254,8 +1254,8 @@ api.post('/alert/direct/rule/test', async (request, response) => {
       matchedReceivers.push({
         receiver: receiver.receiver,
         pattern: receiver.pattern,
-        channelCount: receiver.channels.length,
-        matchedLines: [...new Set(matched.map(item => item.line))],
+        channel_count: receiver.channels.length,
+        matched_lines: [...new Set(matched.map(item => item.line))],
       })
     }
     // {{receiver}} 预览与真实推送一致：填充命中收信人标识的"、"连接
@@ -1273,7 +1273,7 @@ api.post('/alert/direct/rule/test', async (request, response) => {
       ),
       matched: matchedReceivers.length > 0,
       total: rule.receivers.length,
-      matchedCount: matchedReceivers.length,
+      matched_count: matchedReceivers.length,
       receivers: matchedReceivers,
     }))
   }
