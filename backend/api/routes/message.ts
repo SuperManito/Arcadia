@@ -1254,9 +1254,9 @@ api.delete('/alert/direct/rule', async (request, response) => {
 })
 
 /**
- * 一对一规则命中测试（不落库、不发送）：按 id 读取已保存规则与启用收信人，与真实触发共用同一匹配函数
+ * 收信人命中测试（不落库、不发送）：继承规则的替换、通用匹配与标题配置，按真实推送语义预览单收信人结果
  */
-api.post('/alert/direct/rule/test', async (request, response) => {
+api.post('/alert/direct/rule/receiver/test', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
@@ -1265,14 +1265,11 @@ api.post('/alert/direct/rule/test', async (request, response) => {
       ] as const,
     })
     const { id, message } = params.body
-    const rule = await db.messageAlertDirectRule.$getById(id, 'id', {
-      include: {
-        receivers: {
-          where: { enabled: 1 },
-          include: { channels: { select: { channelId: true } } },
-        },
-      },
-    })
+    const receiver = await db.messageAlertDirectRuleReceiver.$getById(id)
+    if (!receiver) {
+      throw new Error('收信人不存在')
+    }
+    const rule = await db.messageAlertDirectRule.$getById(receiver.directRuleId)
     if (!rule) {
       throw new Error('规则不存在')
     }
@@ -1281,51 +1278,35 @@ api.post('/alert/direct/rule/test', async (request, response) => {
     if (!title && !content) {
       throw new Error('测试消息的标题与内容至少填写一项')
     }
-    // 替换与真实推送一致：内容替换先于收信人匹配执行，标题替换作用于渲染结果
+    // 替换与真实推送一致：内容替换先于收信人匹配执行，命中行即推送行
     const replacedContent = await applyReplacements(content, rule.replaces, 'content')
     const lines = prepareLines(replacedContent)
-    const matchResults = await matchDirectRule(lines, rule.receivers.map(receiver => ({
-      ...receiver,
-      pattern: resolveReceiverPattern(receiver.pattern, rule.common_pattern).pattern,
-    })))
-    const matchedReceivers: Array<{ receiver: string, pattern: string, pattern_source: string, channel_count: number, matched_lines: string[] }> = []
-    for (const [i, receiver] of rule.receivers.entries()) {
-      const matched = matchResults[i]
-      // 超时或异常与未命中语义不同，试测需明确报错而不是显示成未命中
-      if (matched === null) {
-        throw new Error(`收信人「${receiver.receiver}」匹配超时或异常，请稍后重试`)
-      }
-      if (matched.length === 0) {
-        continue
-      }
-      // 行文本去重与真实推送的渠道内聚合一致
-      const { pattern, source } = resolveReceiverPattern(receiver.pattern, rule.common_pattern)
-      matchedReceivers.push({
-        receiver: receiver.receiver,
-        pattern,
-        pattern_source: source,
-        channel_count: receiver.channels.length,
-        matched_lines: [...new Set(matched.map(item => item.line))],
-      })
+    const { pattern, source } = resolveReceiverPattern(receiver.pattern, rule.common_pattern)
+    const [matched] = await matchDirectRule(lines, [{ pattern, receiver: receiver.receiver }])
+    // 超时或异常与未命中语义不同，试测需明确报错而不是显示成未命中
+    if (matched === null) {
+      throw new Error(`收信人「${receiver.receiver}」匹配超时或异常，请稍后重试`)
     }
-    // {{receiver}} 预览与真实推送一致：填充命中收信人标识的"、"连接
-    const receiverLabels = matchedReceivers.map(item => item.receiver)
+    // 行文本去重与真实推送的渠道内聚合一致；未命中不产生推送，标题与正文留空
+    const matchedLines = [...new Set(matched.map(item => item.line))]
     response.send(API_STATUS_CODE.okData({
-      title: await applyReplacements(
-        renderDirectTitle(
-          rule.title_mode as MessageAlertDirectTitleMode,
-          rule.title_template,
-          title,
-          rule.name,
-          receiverLabels.join('、'),
-        ),
-        rule.replaces,
-        'title',
-      ),
-      matched: matchedReceivers.length > 0,
-      total: rule.receivers.length,
-      matched_count: matchedReceivers.length,
-      receivers: matchedReceivers,
+      matched: matchedLines.length > 0,
+      title: matchedLines.length > 0
+        ? await applyReplacements(
+            renderDirectTitle(
+              rule.title_mode as MessageAlertDirectTitleMode,
+              rule.title_template,
+              title,
+              rule.name,
+              receiver.receiver,
+            ),
+            rule.replaces,
+            'title',
+          )
+        : '',
+      content: matchedLines.join('\n'),
+      pattern,
+      pattern_source: source,
     }))
   }
   catch (e: any) {
