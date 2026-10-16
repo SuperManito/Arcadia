@@ -1,7 +1,7 @@
 import type { PushSession } from '../pushSession'
 import type { MessageAlertDirectTitleMode } from './types'
 import { applyReplacements } from '../../../alert'
-import { TEMPLATE_TITLE_PLACEHOLDER } from '../../../channel'
+import { isTitlelessChannel, TEMPLATE_TITLE_PLACEHOLDER } from '../../../channel'
 import { enqueuePush } from '../pushQueue'
 import { recordSessionFailure } from '../pushSession'
 import {
@@ -19,8 +19,8 @@ export interface DispatchableDirectRule {
   name: string
   title_mode: string
   title_template: string
-  content_replace: string
-  title_replace: string
+  title_merge: number
+  replaces: string
   common_pattern: string
   receivers: Array<{
     pattern: string
@@ -38,9 +38,6 @@ export function renderDirectTitle(
   ruleName: string,
   receiver = '',
 ): string {
-  if (titleMode === 'none') {
-    return ''
-  }
   if (titleMode === 'template') {
     return titleTemplate
       .replaceAll(TEMPLATE_TITLE_PLACEHOLDER, originalTitle)
@@ -61,10 +58,10 @@ export async function processDirectRule(
     return
   }
   // 内容替换在收信人匹配前对整条消息执行一次，命中行即推送行；执行失败跳过该条替换按原文继续
-  const content = await applyReplacements(msg.content, directRule.content_replace)
+  const content = await applyReplacements(msg.content, directRule.replaces, 'content')
   const candidates = directRule.receivers
     .filter(receiver => receiver.channelIds.length > 0)
-    // 统一解析生效模式串（专属 > 通用 > 标识包含），留空走主线程标识包含
+    // 统一解析生效模式串（收信人正则 > 全局正则 > 标识包含），留空走主线程标识包含
     .map(receiver => ({ ...receiver, pattern: resolveReceiverPattern(receiver.pattern, directRule.common_pattern).pattern }))
   // 正文只切分一次供全部收信人共用，匹配内部分批让出事件循环
   const lines = prepareLines(content)
@@ -128,12 +125,13 @@ export async function processDirectRule(
     )
     let title = titleCache.get(renderedTitle)
     if (title === undefined) {
-      title = await applyReplacements(renderedTitle, directRule.title_replace)
+      title = await applyReplacements(renderedTitle, directRule.replaces, 'title')
       titleCache.set(renderedTitle, title)
     }
+    // 置空串交由推送层清理拼接残留
     enqueuePush(
       channel,
-      { title, content: pushContent },
+      { title: directRule.title_merge === 0 && isTitlelessChannel(channel.type) ? '' : title, content: pushContent },
       { ruleName: directRule.name },
       session,
     )

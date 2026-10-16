@@ -14,6 +14,7 @@ interface WxPusherConfig extends BaseChannelConfig {
 export const WxPusher = {
   type: 'wxpusher',
   singleBody: true,
+  summaryTitle: true,
   configRules: [
     ['appToken', [true, 'string']],
     ['uids', [false, 'string[]']],

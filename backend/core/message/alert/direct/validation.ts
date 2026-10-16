@@ -5,7 +5,7 @@ import type {
   MessageAlertDirectTitleMode,
 } from './types'
 import db from '../../../../db'
-import { validateReplaceText } from '../../../alert'
+import { stringifyReplacePairs, validateReplacePairs } from '../../../alert'
 import {
   MESSAGE_ALERT_RULE_NAME_MAX_LENGTH,
 } from '../types'
@@ -31,7 +31,7 @@ function cleanReceiverBase(raw: any): { receiver: string, pattern: string, remar
   if (receiver.length > MESSAGE_ALERT_DIRECT_RECEIVER_MAX_LENGTH) {
     throw new Error(`收信人标识长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_MAX_LENGTH} 个字符`)
   }
-  // 留空即按收信人标识包含匹配，库里只存用户填写的内容，不烘焙派生值
+  // 留空即按收信人标识包含匹配，库只存用户填写的原文
   const pattern = typeof raw?.pattern === 'string' ? raw.pattern.trim() : ''
   if (pattern.length > MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH) {
     throw new Error(`收信人的正则匹配表达式长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH} 个字符`)
@@ -134,17 +134,19 @@ export async function validateMessageAlertDirectRulePayload(
   }
 
   const { titleMode, titleTemplate } = validateMessageAlertDirectTitle(body)
-  const contentReplace = validateReplaceText(body.contentReplace)
-  // 无标题时标题替换永不生效，直接落空串而不是保存一条死配置
-  const titleReplace = titleMode === 'none' ? '' : validateReplaceText(body.titleReplace)
+  const titleMerge = body.titleMerge ?? 1
+  if (titleMerge !== 0 && titleMerge !== 1) {
+    throw new Error('参数 titleMerge 无效（参数值类型错误）')
+  }
+  const replaces = stringifyReplacePairs(validateReplacePairs(body.replaces))
 
   const commonPattern = typeof body.commonPattern === 'string' ? body.commonPattern.trim() : ''
   if (commonPattern.length > MESSAGE_ALERT_DIRECT_COMMON_PATTERN_MAX_LENGTH) {
-    throw new Error(`通用匹配长度不能超过 ${MESSAGE_ALERT_DIRECT_COMMON_PATTERN_MAX_LENGTH} 个字符`)
+    throw new Error(`正则匹配长度不能超过 ${MESSAGE_ALERT_DIRECT_COMMON_PATTERN_MAX_LENGTH} 个字符`)
   }
   // 规则级正则对所有收信人是同一个，不含占位符即每个收信人命中相同的行，属确定的串发
   if (commonPattern && !commonPattern.includes(MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_PLACEHOLDER)) {
-    throw new Error('通用匹配必须包含 {{receiver}}，否则所有收信人会匹配到相同的行')
+    throw new Error('正则匹配必须包含 {{receiver}}，否则所有收信人会匹配到相同的行')
   }
   // 探针编译只是语法校验，特殊标识展开后仍可能非法，由运行时匹配失败记账兜底
   if (commonPattern) {
@@ -152,7 +154,7 @@ export async function validateMessageAlertDirectRulePayload(
       void new RegExp(expandReceiverPattern(commonPattern, '示例'))
     }
     catch {
-      throw new Error('通用匹配不是有效的正则表达式')
+      throw new Error('正则匹配不是有效的正则表达式')
     }
   }
 
@@ -168,7 +170,7 @@ export async function validateMessageAlertDirectRulePayload(
     alertRuleIds.push(id)
   }
   if (alertRuleIds.length > MESSAGE_ALERT_DIRECT_RULE_BIND_MAX_COUNT) {
-    throw new Error(`绑定全局规则数量不能超过 ${MESSAGE_ALERT_DIRECT_RULE_BIND_MAX_COUNT} 条`)
+    throw new Error(`关联全局告警规则数量不能超过 ${MESSAGE_ALERT_DIRECT_RULE_BIND_MAX_COUNT} 条`)
   }
 
   if (options?.excludeId === undefined) {
@@ -206,8 +208,8 @@ export async function validateMessageAlertDirectRulePayload(
     name,
     titleMode,
     titleTemplate,
-    contentReplace,
-    titleReplace,
+    titleMerge,
+    replaces,
     commonPattern,
     alertRuleIds,
   }

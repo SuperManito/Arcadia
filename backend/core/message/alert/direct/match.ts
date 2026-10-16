@@ -18,7 +18,7 @@ export function expandReceiverPattern(pattern: string, receiver: string): string
 export type DirectPatternSource = 'receiver' | 'common' | 'identifier'
 
 /**
- * 收信人生效匹配串的三级回退：专属匹配 > 规则通用匹配 > 标识包含匹配；
+ * 收信人生效匹配串的三级回退：收信人正则 > 规则全局正则 > 标识包含匹配；
  * 真实触发与试测共用，返回未展开的模板串
  */
 export function resolveReceiverPattern(receiverPattern: string, commonPattern: string): { pattern: string, source: DirectPatternSource } {

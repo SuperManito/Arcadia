@@ -24,6 +24,20 @@ export const CHANNEL_SINGLE_BODY = new Set(
     .map(def => def.type),
 ) as Set<ChannelType>
 
+// 无独立标题概念的渠道：标题只存在于并入正文一种形态，"无标题渠道仅发正文"开关只作用于这些渠道
+export const CHANNEL_TITLELESS = new Set(
+  Object.values(Channels)
+    .filter(def => (def as ChannelDefinition).singleBody && !(def as ChannelDefinition).summaryTitle)
+    .map(def => def.type),
+) as Set<string>
+
+/**
+ * 判断渠道类型是否为无独立标题渠道
+ */
+export function isTitlelessChannel(type: string) {
+  return CHANNEL_TITLELESS.has(type)
+}
+
 export const CHANNEL_RATE_LIMITS = Object.fromEntries(
   Object.values(Channels)
     .filter(def => (def as ChannelDefinition).rateLimit)

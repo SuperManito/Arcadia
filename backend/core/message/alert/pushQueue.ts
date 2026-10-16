@@ -29,7 +29,7 @@ interface ChannelQueue {
 }
 
 // 按渠道类型分桶，在途消费循环数不超过该类型的节流并发上限、实际速率由节流器统一约束；
-// 全局消息插队头且同优先级保持先进先出；内存态不持久化，重启丢队列符合 best-effort 语义
+// 全局消息插队头且同优先级保持先进先出；内存态不持久化，重启丢失未发送任务
 const queues = new Map<string, ChannelQueue>()
 
 function getQueue(type: string) {

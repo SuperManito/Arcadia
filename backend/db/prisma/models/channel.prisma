@@ -1,7 +1,7 @@
 // 通知渠道
 model notificationChannel {
   id                              Int                                     @id @default(autoincrement())
-  name                            String // 渠道名称，后端保证唯一（DB 不设 unique）
+  name                            String                                  @unique // 渠道名称
   type                            String // 渠道类型唯一键
   config                          String                                  @default("{}") // JSON 字符串，存该渠道除 type 外的全部参数
   tags                            String                                  @default("") // 标签，逗号分隔（首尾各带一个逗号便于 contains 精确过滤）

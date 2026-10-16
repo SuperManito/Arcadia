@@ -15,7 +15,8 @@ import {
   RULE_LOGICS,
   RuleLogic,
   SIMPLE_OPERATORS,
-  validateReplaceText,
+  stringifyReplacePairs,
+  validateReplacePairs,
   VALUE_OPTIONAL_OPERATORS,
 } from '../../alert'
 import { MESSAGE_CATEGORIES, MESSAGE_TYPES } from '../../type/message'
@@ -135,8 +136,11 @@ export async function validateMessageAlertRulePayload(
   }
 
   const core = validateMessageAlertRuleDefinition(body)
-  const contentReplace = validateReplaceText(body.contentReplace)
-  const titleReplace = validateReplaceText(body.titleReplace)
+  const titleMerge = body.titleMerge ?? 1
+  if (titleMerge !== 0 && titleMerge !== 1) {
+    throw new Error('参数 titleMerge 无效（参数值类型错误）')
+  }
+  const replaces = stringifyReplacePairs(validateReplacePairs(body.replaces))
 
   const channelIds: number[] = []
   for (const rawId of body.channelIds ?? []) {
@@ -169,7 +173,7 @@ export async function validateMessageAlertRulePayload(
     throw new Error(`关联渠道数量不能超过 ${MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT} 个`)
   }
 
-  // 仅新建时校验总数，与一对一规则 50 条上限对齐；规则全量参与求值，数量需要收敛
+  // 仅新建时校验总数；规则全量参与求值，数量需要收敛
   if (options?.excludeId === undefined) {
     const count = await db.messageAlertRule.count()
     if (count >= MESSAGE_ALERT_RULE_MAX_COUNT) {
@@ -190,8 +194,8 @@ export async function validateMessageAlertRulePayload(
   return {
     name,
     ...core,
-    contentReplace,
-    titleReplace,
+    titleMerge,
+    replaces,
     channelIds,
   }
 }

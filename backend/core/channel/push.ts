@@ -7,6 +7,15 @@ import { logger } from '../../utils/logger'
 import { TEMPLATE_TIME_PLACEHOLDER } from './constants'
 import { applyTemplate } from './applyTemplate'
 
+const TRIM_PATTERN = /^(?:\s|<br\s*\/?>)+|(?:\s|<br\s*\/?>)+$/gi
+
+/**
+ * 去除首尾换行符与空白字符
+ */
+function trim(value: string): string {
+  return value.replace(TRIM_PATTERN, '')
+}
+
 /**
  * 渠道统一推送入口
  *
@@ -71,6 +80,8 @@ export async function pushChannel(
       else if (CHANNEL_SINGLE_BODY.has(channel.type as ChannelType)) {
         finalPayload = { ...finalPayload, content: `${finalPayload.title}\n\n${finalPayload.content}` }
       }
+
+      finalPayload = { ...finalPayload, title: trim(finalPayload.title), content: trim(finalPayload.content) }
 
       await pusher(config as Record<string, any>, finalPayload)
     }

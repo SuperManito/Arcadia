@@ -2,9 +2,9 @@
 export const MESSAGE_ALERT_DIRECT_RULE_MAX_COUNT = 50
 // 单条规则可绑定的全局规则数量上限
 export const MESSAGE_ALERT_DIRECT_RULE_BIND_MAX_COUNT = 20
-// 收信人专属匹配（正则）长度上限
+// 收信人正则匹配长度上限
 export const MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH = 512
-// 规则通用匹配（正则）长度上限
+// 规则级全局正则匹配长度上限
 export const MESSAGE_ALERT_DIRECT_COMMON_PATTERN_MAX_LENGTH = 512
 // 单个收信人可绑定的通知渠道数量上限
 export const MESSAGE_ALERT_DIRECT_RECEIVER_CHANNEL_MAX_COUNT = 50
@@ -27,7 +27,7 @@ export const MESSAGE_ALERT_DIRECT_RECEIVER_BATCH_MAX_COUNT = 1000
 // 标题模板长度上限
 export const MESSAGE_ALERT_DIRECT_TITLE_TEMPLATE_MAX_LENGTH = 256
 // 标题模式合法取值
-export const MESSAGE_ALERT_DIRECT_TITLE_MODES = ['original', 'template', 'none'] as const
+export const MESSAGE_ALERT_DIRECT_TITLE_MODES = ['original', 'template'] as const
 
 export type MessageAlertDirectTitleMode = typeof MESSAGE_ALERT_DIRECT_TITLE_MODES[number]
 
@@ -35,8 +35,8 @@ export interface MessageAlertDirectRulePayloadInput {
   name?: string
   titleMode?: unknown
   titleTemplate?: unknown
-  contentReplace?: unknown
-  titleReplace?: unknown
+  titleMerge?: unknown
+  replaces?: unknown
   commonPattern?: unknown
   alertRuleIds?: number[]
 }
@@ -53,8 +53,8 @@ export interface CleanedMessageAlertDirectRulePayload {
   name: string
   titleMode: MessageAlertDirectTitleMode
   titleTemplate: string
-  contentReplace: string
-  titleReplace: string
+  titleMerge: 0 | 1
+  replaces: string
   commonPattern: string
   alertRuleIds: number[]
 }

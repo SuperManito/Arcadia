@@ -15,19 +15,19 @@ model message {
 
 // 监控告警规则：描述"什么消息需要告警"以及"告警到哪里"
 model messageAlertRule {
-  id              Int                             @id @default(autoincrement())
-  name            String // 规则名称，后端保证唯一（DB 不设 unique）
-  enabled         Int                             @default(1) // 1 启用 / 0 禁用
-  logic           String                          @default("and") // 条件组合逻辑："and" | "or"
-  categories      String                          @default("") // 消息分类多选，逗号分隔，空=全部
-  types           String                          @default("") // 消息级别多选，逗号分隔，空=全部
-  content_replace String                          @default("") // 推送内容替换：s/正则/替换串/ 每行一条，匹配用原文、只改推送副本，空=不启用
-  title_replace   String                          @default("") // 推送标题替换单条 s/正则/替换串/，空=不启用
-  create_time     DateTime                        @default(now())
-  update_time     DateTime                        @default(now()) @updatedAt
-  conditions      messageAlertRuleCondition[]
-  channels        messageAlertRuleChannel[]
-  directBindings  messageAlertDirectRuleBinding[]
+  id             Int                             @id @default(autoincrement())
+  name           String // 规则名称，后端保证唯一（DB 不设 unique）
+  enabled        Int                             @default(1) // 1 启用 / 0 禁用
+  logic          String                          @default("and") // 条件组合逻辑："and" | "or"
+  categories     String                          @default("") // 消息分类多选，逗号分隔，空=全部
+  types          String                          @default("") // 消息级别多选，逗号分隔，空=全部
+  replaces       String                          @default("") // 推送替换：JSON 数组串 [{pattern,replacement,scope}]，scope: both 标题和内容 / title 仅标题 / content 仅内容，匹配用原文、只改推送副本，空=不启用
+  title_merge    Int                             @default(1) // 无标题渠道仅发正文：0 时无独立标题概念的渠道不再把标题并入正文，1 并入
+  create_time    DateTime                        @default(now())
+  update_time    DateTime                        @default(now()) @updatedAt
+  conditions     messageAlertRuleCondition[]
+  channels       messageAlertRuleChannel[]
+  directBindings messageAlertDirectRuleBinding[]
 
   @@index([enabled])
   @@index([name])
@@ -62,18 +62,18 @@ model messageAlertRuleChannel {
 
 // 一对一规则（二次告警拓展：主规则命中后按关键字把命中行路由给不同渠道）
 model messageAlertDirectRule {
-  id              Int                              @id @default(autoincrement())
-  name            String // 规则名称，后端保证唯一（与全局规则共用命名空间，DB 不设 unique）
-  enabled         Int                              @default(1) // 1 启用 / 0 禁用
-  title_mode      String                           @default("original") // 标题模式："original" 原标题 | "template" 自定义模板 | "none" 不传标题
-  title_template  String                           @default("") // title_mode=template 时的标题模板，支持 {{title}} / {{rule}} / {{receiver}}
-  content_replace String                           @default("") // 推送内容替换：s/正则/替换串/ 每行一条，匹配前对整条正文替换、推送命中行，空=不启用
-  title_replace   String                           @default("") // 推送标题替换单条 s/正则/替换串/，作用于标题模板渲染结果，title_mode=none 时恒为空
-  common_pattern  String                           @default("") // 通用匹配：对本规则下未设置专属匹配的收信人生效，必须含 {{receiver}}，空=不启用
-  create_time     DateTime                         @default(now())
-  update_time     DateTime                         @default(now()) @updatedAt
-  receivers       messageAlertDirectRuleReceiver[]
-  bindings        messageAlertDirectRuleBinding[]
+  id             Int                              @id @default(autoincrement())
+  name           String // 规则名称，后端保证唯一（与全局规则共用命名空间，DB 不设 unique）
+  enabled        Int                              @default(1) // 1 启用 / 0 禁用
+  title_mode     String                           @default("original") // 标题模式："original" 原标题 | "template" 自定义模板
+  title_template String                           @default("") // title_mode=template 时的标题模板，支持 {{title}} / {{rule}} / {{receiver}}
+  replaces       String                           @default("") // 推送替换：JSON 数组串 [{pattern,replacement,scope}]，scope: both 标题和内容 / title 仅标题 / content 仅内容，内容替换在收信人匹配前对整条正文执行、标题替换作用于标题模板渲染结果，空=不启用
+  title_merge    Int                              @default(1) // 无标题渠道仅发正文：0 时无独立标题概念的渠道不再把标题并入正文，1 并入
+  common_pattern String                           @default("") // 全局正则匹配：对本规则下未设置正则匹配的收信人生效，必须含 {{receiver}}，空=不启用
+  create_time    DateTime                         @default(now())
+  update_time    DateTime                         @default(now()) @updatedAt
+  receivers      messageAlertDirectRuleReceiver[]
+  bindings       messageAlertDirectRuleBinding[]
 
   @@index([enabled])
   @@index([name])

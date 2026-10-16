@@ -11,7 +11,7 @@ import { API_STATUS_CODE } from '../../utils/httpUtil'
 import db from '../../db'
 import { validatePageFixedParams, validateRequestParams } from '../../utils'
 import { getUnreadCount, sendUserMessage } from '../../core/message'
-import { applyReplacements } from '../../core/alert'
+import { applyReplacements, parseReplacePairs } from '../../core/alert'
 import {
   evaluateMessageAlertRule,
   matchDirectRule,
@@ -332,6 +332,8 @@ api.get('/alert/rule/page', async (request, response) => {
     })
     const data = (result.data as Array<any>).map(({ _count, ...rest }) => ({
       ...rest,
+      // 替换列落库为 JSON 数组串，对外统一返回数组
+      replaces: parseReplacePairs(rest.replaces),
       channel_count: _count?.channels ?? 0,
     }))
     response.send(API_STATUS_CODE.okData({ ...result, data }))
@@ -367,6 +369,7 @@ api.get('/alert/rule', async (request, response) => {
     const { conditions, channels, ...rest } = rule
     response.send(API_STATUS_CODE.okData({
       ...rest,
+      replaces: parseReplacePairs(rest.replaces),
       conditions,
       channels: channels.map(link => ({
         id: link.id,
@@ -394,8 +397,8 @@ api.post('/alert/rule', async (request, response) => {
         ['types', [false, 'string', true]],
         ['conditions', [false, 'object[]']],
         ['channelIds', [false, 'number[]']],
-        ['contentReplace', [false, 'string']],
-        ['titleReplace', [false, 'string']],
+        ['replaces', [false, 'object[]']],
+        ['titleMerge', [false, 'number']],
       ] as const,
     }, true)
     const cleaned = await validateMessageAlertRulePayload(params.body)
@@ -405,8 +408,8 @@ api.post('/alert/rule', async (request, response) => {
         logic: cleaned.logic,
         categories: cleaned.categories,
         types: cleaned.types,
-        content_replace: cleaned.contentReplace,
-        title_replace: cleaned.titleReplace,
+        replaces: cleaned.replaces,
+        title_merge: cleaned.titleMerge,
       })
       await tx.messageAlertRuleCondition.createMany({
         data: cleaned.conditions.map((condition, index) => ({
@@ -449,8 +452,8 @@ api.put('/alert/rule', async (request, response) => {
         ['types', [false, 'string', true]],
         ['conditions', [false, 'object[]']],
         ['channelIds', [false, 'number[]']],
-        ['contentReplace', [false, 'string']],
-        ['titleReplace', [false, 'string']],
+        ['replaces', [false, 'object[]']],
+        ['titleMerge', [false, 'number']],
       ] as const,
     }, true)
     const {
@@ -462,8 +465,8 @@ api.put('/alert/rule', async (request, response) => {
       types,
       conditions,
       channelIds,
-      contentReplace,
-      titleReplace,
+      replaces,
+      titleMerge,
     } = params.body
     const exists = await db.messageAlertRule.$getById(id)
     if (!exists) {
@@ -476,8 +479,8 @@ api.put('/alert/rule', async (request, response) => {
       types,
       conditions,
       channelIds,
-      contentReplace,
-      titleReplace,
+      replaces,
+      titleMerge,
     ].every(field => field === undefined)) {
       const rule = await db.messageAlertRule.$updateById({ id, data: { enabled } })
       await refreshEnabledRuleIndex()
@@ -493,8 +496,8 @@ api.put('/alert/rule', async (request, response) => {
           logic: cleaned.logic,
           categories: cleaned.categories,
           types: cleaned.types,
-          content_replace: cleaned.contentReplace,
-          title_replace: cleaned.titleReplace,
+          replaces: cleaned.replaces,
+          title_merge: cleaned.titleMerge,
           ...(enabled !== undefined ? { enabled } : {}),
         },
       })
@@ -640,6 +643,7 @@ api.get('/alert/direct/rule/page', async (request, response) => {
     })
     const data = (result.data as Array<any>).map(({ _count, bindings, ...rest }) => ({
       ...rest,
+      replaces: parseReplacePairs(rest.replaces),
       receiver_count: _count?.receivers ?? 0,
       alert_rules: bindings.map((link: any) => link.alertRule),
     }))
@@ -694,6 +698,7 @@ api.get('/alert/direct/rule', async (request, response) => {
     const { bindings, _count, ...rest } = rule
     response.send(API_STATUS_CODE.okData({
       ...rest,
+      replaces: parseReplacePairs(rest.replaces),
       receiver_count: _count?.receivers ?? 0,
       alert_rule_ids: bindings.map(link => link.alertRule.id),
       alert_rules: bindings.map(link => ({
@@ -719,8 +724,8 @@ api.post('/alert/direct/rule', async (request, response) => {
         ['name', [false, 'string']],
         ['titleMode', [false, 'string']],
         ['titleTemplate', [false, 'string']],
-        ['contentReplace', [false, 'string']],
-        ['titleReplace', [false, 'string']],
+        ['titleMerge', [false, 'number']],
+        ['replaces', [false, 'object[]']],
         ['commonPattern', [false, 'string']],
         ['alertRuleIds', [false, 'number[]']],
       ] as const,
@@ -731,8 +736,8 @@ api.post('/alert/direct/rule', async (request, response) => {
         name: cleaned.name,
         title_mode: cleaned.titleMode,
         title_template: cleaned.titleTemplate,
-        content_replace: cleaned.contentReplace,
-        title_replace: cleaned.titleReplace,
+        title_merge: cleaned.titleMerge,
+        replaces: cleaned.replaces,
         common_pattern: cleaned.commonPattern,
       })
       await tx.messageAlertDirectRuleBinding.createMany({
@@ -762,8 +767,8 @@ api.put('/alert/direct/rule', async (request, response) => {
         ['name', [false, 'string']],
         ['titleMode', [false, 'string']],
         ['titleTemplate', [false, 'string']],
-        ['contentReplace', [false, 'string']],
-        ['titleReplace', [false, 'string']],
+        ['titleMerge', [false, 'number']],
+        ['replaces', [false, 'object[]']],
         ['commonPattern', [false, 'string']],
         ['alertRuleIds', [false, 'number[]']],
       ] as const,
@@ -774,8 +779,8 @@ api.put('/alert/direct/rule', async (request, response) => {
       name,
       titleMode,
       titleTemplate,
-      contentReplace,
-      titleReplace,
+      titleMerge,
+      replaces,
       commonPattern,
       alertRuleIds,
     } = params.body
@@ -787,8 +792,8 @@ api.put('/alert/direct/rule', async (request, response) => {
       name,
       titleMode,
       titleTemplate,
-      contentReplace,
-      titleReplace,
+      titleMerge,
+      replaces,
       commonPattern,
       alertRuleIds,
     ].every(field => field === undefined)) {
@@ -804,8 +809,8 @@ api.put('/alert/direct/rule', async (request, response) => {
           name: cleaned.name,
           title_mode: cleaned.titleMode,
           title_template: cleaned.titleTemplate,
-          content_replace: cleaned.contentReplace,
-          title_replace: cleaned.titleReplace,
+          title_merge: cleaned.titleMerge,
+          replaces: cleaned.replaces,
           common_pattern: cleaned.commonPattern,
           ...(enabled !== undefined ? { enabled } : {}),
         },
@@ -1277,7 +1282,7 @@ api.post('/alert/direct/rule/test', async (request, response) => {
       throw new Error('测试消息的标题与内容至少填写一项')
     }
     // 替换与真实推送一致：内容替换先于收信人匹配执行，标题替换作用于渲染结果
-    const replacedContent = await applyReplacements(content, rule.content_replace)
+    const replacedContent = await applyReplacements(content, rule.replaces, 'content')
     const lines = prepareLines(replacedContent)
     const matchResults = await matchDirectRule(lines, rule.receivers.map(receiver => ({
       ...receiver,
@@ -1314,7 +1319,8 @@ api.post('/alert/direct/rule/test', async (request, response) => {
           rule.name,
           receiverLabels.join('、'),
         ),
-        rule.title_replace,
+        rule.replaces,
+        'title',
       ),
       matched: matchedReceivers.length > 0,
       total: rule.receivers.length,

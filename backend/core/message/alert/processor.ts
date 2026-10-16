@@ -3,6 +3,7 @@ import type { ChannelSnapshot } from './direct/dispatch'
 import { db } from '../../../db'
 import { logger } from '../../../utils/logger'
 import { applyReplacements } from '../../alert'
+import { isTitlelessChannel } from '../../channel'
 import { evaluateRules } from './evaluate'
 import { enqueuePush } from './pushQueue'
 import { closeSession, createPushSession } from './pushSession'
@@ -32,7 +33,7 @@ async function loadHitDirectRules(ruleIds: number[]) {
       },
     },
     {
-      select: { id: true, name: true, title_mode: true, title_template: true, content_replace: true, title_replace: true, common_pattern: true },
+      select: { id: true, name: true, title_mode: true, title_template: true, title_merge: true, replaces: true, common_pattern: true },
     },
   )
   if (rules.length === 0) {
@@ -134,13 +135,15 @@ export async function processMessageAlert(
     }
     for (const rule of hits) {
       // 全局规则命中后才替换，替换只作用于推送副本；按规则算一次供全部渠道复用
-      const pushTitle = await applyReplacements(alertMessage.title, rule.title_replace)
-      const pushContent = await applyReplacements(alertMessage.content, rule.content_replace)
+      const pushTitle = await applyReplacements(alertMessage.title, rule.replaces, 'title')
+      const pushContent = await applyReplacements(alertMessage.content, rule.replaces, 'content')
       // 全局消息队头插入优先发送，失败随会话聚合上报
       for (const link of rule.channels) {
+        // 置空串交由推送层清理拼接残留
+        const title = rule.title_merge === 0 && isTitlelessChannel(link.channel.type) ? '' : pushTitle
         enqueuePush(
           link.channel,
-          { title: pushTitle, content: pushContent },
+          { title, content: pushContent },
           { ruleName: rule.name },
           session,
           true,

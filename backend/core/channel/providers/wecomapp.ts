@@ -18,6 +18,7 @@ interface WeComAppConfig extends BaseChannelConfig {
 export const WeComApp = {
   type: 'wecomapp',
   singleBody: true,
+  summaryTitle: true,
   configRules: [
     ['corpId', [true, 'string']],
     ['corpSecret', [true, 'string']],

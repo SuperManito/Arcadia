@@ -1,113 +1,111 @@
 import { logger } from '../../utils/logger'
 import { assertValidRegexPattern } from './matcher'
 import { replaceRegex } from './regexWorker'
-import { REGEX_MAX_LENGTH, REPLACE_REPLACEMENT_MAX_LENGTH, REPLACE_TEXT_MAX_LENGTH } from './constants'
+import { REGEX_MAX_LENGTH, REPLACE_MAX_COUNT, REPLACE_REPLACEMENT_MAX_LENGTH, REPLACE_SCOPES } from './constants'
 
-export interface ParsedReplaceExpression {
+/** 替换作用域：both 标题和内容 / title 仅标题 / content 仅内容 */
+export type ReplaceScope = (typeof REPLACE_SCOPES)[number]
+
+/** 替换成对值：pattern 必填，replacement 可为空串（等价于删除命中内容） */
+export interface ReplacePair {
   pattern: string
   replacement: string
+  scope: ReplaceScope
 }
 
-// 解析单条 s/正则/替换串/：按未转义的 / 切分，要求恰好三段且末段为空（不允许尾随标志）；非法返回 null
-function parseExpression(line: string): ParsedReplaceExpression | null {
-  if (!line.startsWith('s/')) {
-    return null
-  }
-  const parts: string[] = []
-  let current = ''
-  let escaped = false
-  for (const ch of line.slice(2)) {
-    if (escaped) {
-      current += ch
-      escaped = false
-      continue
-    }
-    if (ch === '\\') {
-      current += ch
-      escaped = true
-      continue
-    }
-    if (ch === '/') {
-      parts.push(current)
-      current = ''
-      continue
-    }
-    current += ch
-  }
-  if (escaped) {
-    return null
-  }
-  parts.push(current)
-  if (parts.length !== 3 || parts[2] !== '') {
-    return null
-  }
-  return {
-    // 正则中字面 / 写 \/ ；\n 保持原样作为正则换行元字符
-    pattern: parts[0].replace(/\\\//g, '/'),
-    replacement: parts[1].replace(/\\\//g, '/').replace(/\\n/g, '\n'),
-  }
+function isReplaceScope(value: unknown): value is ReplaceScope {
+  return typeof value === 'string' && (REPLACE_SCOPES as readonly string[]).includes(value)
 }
 
-/**
- * 校验替换文本：空串放行（不启用）；逐行要求合法 s/正则/替换串/，错误信息带行号。
- * 返回 trim 后的规范化文本，供落库使用。
- */
-export function validateReplaceText(value: unknown): string {
-  const text = typeof value === 'string' ? value.trim() : ''
-  if (!text) {
-    return ''
+function validateReplaceField(value: unknown, paramName: string): ReplacePair[] {
+  if (value === undefined || value === null) {
+    return []
   }
-  if (text.length > REPLACE_TEXT_MAX_LENGTH) {
-    throw new Error(`替换表达式总长度不能超过 ${REPLACE_TEXT_MAX_LENGTH} 个字符`)
+  if (!Array.isArray(value)) {
+    throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
   }
-  for (const [index, line] of text.split('\n').entries()) {
-    const trimmed = line.trim()
-    if (!trimmed) {
-      continue
+  return value.map((raw, index): ReplacePair => {
+    const n = index + 1
+    if (!isReplaceScope(raw?.scope)) {
+      throw new Error(`参数 ${paramName} 第 ${n} 项的替换作用域无效`)
     }
-    const parsed = parseExpression(trimmed)
-    if (!parsed) {
-      throw new Error(`替换表达式第 ${index + 1} 行无效，格式应为 s/正则/替换串/`)
+    const pattern = typeof raw?.pattern === 'string' ? raw.pattern : ''
+    // 正则首尾空白可能有语义，保持原值，仅用 trim 判空
+    if (!pattern.trim()) {
+      throw new Error(`参数 ${paramName} 第 ${n} 项的查找内容不能为空`)
     }
-    if (parsed.pattern.length > REGEX_MAX_LENGTH) {
-      throw new Error(`替换表达式第 ${index + 1} 行的正则长度不能超过 ${REGEX_MAX_LENGTH} 个字符`)
+    if (pattern.length > REGEX_MAX_LENGTH) {
+      throw new Error(`参数 ${paramName} 第 ${n} 项的查找内容长度不能超过 ${REGEX_MAX_LENGTH} 个字符`)
     }
     try {
-      assertValidRegexPattern(parsed.pattern)
+      assertValidRegexPattern(pattern)
     }
     catch {
-      throw new Error(`替换表达式第 ${index + 1} 行的正则无效`)
+      throw new Error(`参数 ${paramName} 第 ${n} 项的查找内容不是有效的正则表达式`)
     }
-    if (parsed.replacement.length > REPLACE_REPLACEMENT_MAX_LENGTH) {
-      throw new Error(`替换表达式第 ${index + 1} 行的替换串长度不能超过 ${REPLACE_REPLACEMENT_MAX_LENGTH} 个字符`)
+    const replacement = typeof raw?.replacement === 'string' ? raw.replacement : ''
+    if (replacement.length > REPLACE_REPLACEMENT_MAX_LENGTH) {
+      throw new Error(`参数 ${paramName} 第 ${n} 项的替换内容长度不能超过 ${REPLACE_REPLACEMENT_MAX_LENGTH} 个字符`)
     }
-  }
-  return text
+    return { pattern, replacement, scope: raw.scope }
+  })
 }
 
 /**
- * 链式应用替换文本：每条按行序执行、全量替换（隐含 g），经 worker 执行防灾难性回溯。
- * 空文本原样返回；单条无效或超时仅跳过该条，不中断后续替换。
+ * 校验替换成对值：单数组按 scope 区分作用域，条数即数组长度上限；空数组或未提供 = 不启用。
+ * 返回清洗后的成对值数组，由 stringifyReplacePairs 序列化后落库。
  */
-export async function applyReplacements(input: string, text: string): Promise<string> {
-  const raw = typeof text === 'string' ? text.trim() : ''
-  if (!raw) {
+export function validateReplacePairs(value: unknown): ReplacePair[] {
+  const pairs = validateReplaceField(value, 'replaces')
+  if (pairs.length > REPLACE_MAX_COUNT) {
+    throw new Error(`替换条数不能超过 ${REPLACE_MAX_COUNT} 条`)
+  }
+  return pairs
+}
+
+/** 落库格式：JSON 数组串，空数组存空串 */
+export function stringifyReplacePairs(pairs: ReplacePair[]): string {
+  return pairs.length > 0 ? JSON.stringify(pairs) : ''
+}
+
+/** 读取落库值：空串或条目不完整按未启用处理（保存前已校验，此处只防落库内容损坏） */
+export function parseReplacePairs(json: unknown): ReplacePair[] {
+  const text = typeof json === 'string' ? json.trim() : ''
+  if (!text) {
+    return []
+  }
+  try {
+    const parsed = JSON.parse(text)
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+    return parsed
+      .filter(item => !!item && typeof item === 'object' && typeof item.pattern === 'string' && isReplaceScope(item.scope))
+      .map(item => ({
+        pattern: item.pattern,
+        replacement: typeof item.replacement === 'string' ? item.replacement : '',
+        scope: item.scope,
+      }))
+  }
+  catch {
+    return []
+  }
+}
+
+/**
+ * 链式应用替换成对值：按数组序执行、全量替换（隐含 g），经 worker 执行防灾难性回溯。
+ * 只取 scope 为 both 或与目标一致的条目；空串原样返回；单条超时或异常仅跳过该条，不中断后续替换。
+ */
+export async function applyReplacements(input: string, json: string, scope: ReplaceScope): Promise<string> {
+  const pairs = parseReplacePairs(json).filter(pair => pair.scope === 'both' || pair.scope === scope)
+  if (pairs.length === 0) {
     return input
   }
   let result = input
-  for (const [index, line] of raw.split('\n').entries()) {
-    const trimmed = line.trim()
-    if (!trimmed) {
-      continue
-    }
-    const parsed = parseExpression(trimmed)
-    if (!parsed) {
-      logger.warn('[告警引擎] 替换表达式无效，跳过该条', JSON.stringify({ line: index + 1 }))
-      continue
-    }
-    const replaced = await replaceRegex(parsed.pattern, parsed.replacement, result)
+  for (const [index, pair] of pairs.entries()) {
+    const replaced = await replaceRegex(pair.pattern, pair.replacement, result)
     if (replaced === null) {
-      logger.warn('[告警引擎] 替换执行超时或异常，跳过该条', JSON.stringify({ line: index + 1 }))
+      logger.warn('[告警引擎] 替换执行超时或异常，跳过该条', JSON.stringify({ index: index + 1 }))
       continue
     }
     result = replaced

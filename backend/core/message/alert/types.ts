@@ -36,8 +36,8 @@ export interface MessageAlertRuleDefinitionInput {
 
 export interface MessageAlertRulePayloadInput extends MessageAlertRuleDefinitionInput {
   name?: string
-  contentReplace?: unknown
-  titleReplace?: unknown
+  titleMerge?: unknown
+  replaces?: unknown
   channelIds?: number[]
 }
 
@@ -50,7 +50,7 @@ export interface CleanedMessageAlertRuleDefinition {
 
 export interface CleanedMessageAlertRulePayload extends CleanedMessageAlertRuleDefinition {
   name: string
-  contentReplace: string
-  titleReplace: string
+  titleMerge: 0 | 1
+  replaces: string
   channelIds: number[]
 }
