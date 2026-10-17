@@ -16,10 +16,19 @@ export function mayMatchRule(category: string, type: string): boolean {
     && (enabledRuleIndex.allTypes || enabledRuleIndex.types.has(type))
 }
 
+// 串行化刷新：并发增删改时按序重查，防止旧快照晚于新快照落库把索引回退到失真状态
+let refreshChain: Promise<void> = Promise.resolve()
+
 /**
  * 规则增删改后刷新粗判索引；失败只记日志不抛出，沿用旧索引的失真仅影响额外的查询或漏判，不应阻断调用方
  */
 export async function refreshEnabledRuleIndex() {
+  const next = refreshChain.then(refresh)
+  refreshChain = next
+  await next
+}
+
+async function refresh() {
   try {
     const rules = await db.messageAlertRule.$list(
       { where: { enabled: 1 } },

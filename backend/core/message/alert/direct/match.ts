@@ -48,8 +48,43 @@ export function prepareLines(content: string): DirectMatchedLine[] {
 
 // 留空 pattern 的收信人在主线程 includes，按批让出事件循环，避免千级名单长时间饿死 HTTP/socket/定时器
 const INCLUDES_BATCH_SIZE = 100
-// 收信人模式匹配的有限并发：worker 队列上限 200，数千条自定义模式不能一次性全量提交
+// 收信人模式匹配的有限并发：控制 worker 排队规模与内存占用，提交量与收信人数量同阶
 const PATTERN_MATCH_CONCURRENCY = 4
+
+// 模式串熔断：同一模板超时累计达到阈值后短周期内直接判熔断，
+// 防止灾难性回溯模式在 500ms 超时下反复占满 worker；进程重启即清除
+const PATTERN_BREAK_THRESHOLD = 3
+const PATTERN_BREAK_TTL_MS = 5 * 60 * 1000
+const patternBreaks = new Map<string, { count: number, brokenUntil: number }>()
+
+export function isPatternBroken(pattern: string): boolean {
+  const entry = patternBreaks.get(pattern)
+  if (!entry) {
+    return false
+  }
+  if (entry.brokenUntil <= Date.now()) {
+    patternBreaks.delete(pattern)
+    return false
+  }
+  return true
+}
+
+function recordPatternTimeout(pattern: string) {
+  const entry = patternBreaks.get(pattern)
+  if (!entry || entry.brokenUntil <= Date.now()) {
+    patternBreaks.set(pattern, { count: 1, brokenUntil: 0 })
+    return
+  }
+  entry.count++
+  if (entry.count >= PATTERN_BREAK_THRESHOLD) {
+    entry.brokenUntil = Date.now() + PATTERN_BREAK_TTL_MS
+    logger.warn('[消息中心监控告警] 收信人模式超时触发熔断，周期内按不命中处理', JSON.stringify({ pattern }))
+  }
+}
+
+function recordPatternSuccess(pattern: string) {
+  patternBreaks.delete(pattern)
+}
 
 function yieldEventLoop(): Promise<void> {
   return new Promise(resolve => setImmediate(resolve))
@@ -103,21 +138,25 @@ export async function matchDirectRule(
   }
   await mapWithConcurrency(patternIndexes, PATTERN_MATCH_CONCURRENCY, async index => {
     const { pattern, receiver } = receivers[index]
-    results[index] = await matchReceiverPattern(pattern, receiver, lines)
+    const matched = await matchReceiverPattern(pattern, receiver, lines)
+    if (matched === null) {
+      recordPatternTimeout(pattern)
+    }
+    else {
+      recordPatternSuccess(pattern)
+    }
+    results[index] = matched
   })
   return results
 }
 
-// 有限并发遍历，结果与输入顺序对齐
-async function mapWithConcurrency<T, R>(items: T[], concurrency: number, worker: (item: T) => Promise<R>): Promise<R[]> {
-  const results: R[] = []
+// 有限并发遍历，结果由调用方按索引回填
+async function mapWithConcurrency<T>(items: T[], concurrency: number, worker: (item: T) => Promise<void>): Promise<void> {
   let next = 0
   const runners = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
     while (next < items.length) {
-      const index = next++
-      results[index] = await worker(items[index])
+      await worker(items[next++])
     }
   })
   await Promise.all(runners)
-  return results
 }

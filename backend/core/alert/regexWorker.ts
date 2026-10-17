@@ -9,6 +9,7 @@ const WORKER_SOURCE = `
 const { parentPort } = require('node:worker_threads')
 parentPort.on('message', ({ id, pattern, input, replacement, match }) => {
   let result = false
+  let error = false
   try {
     if (match) {
       const regex = new RegExp(pattern)
@@ -23,8 +24,8 @@ parentPort.on('message', ({ id, pattern, input, replacement, match }) => {
       result = new RegExp(pattern).test(input)
     }
   }
-  catch {}
-  parentPort.postMessage({ id, result })
+  catch { error = true }
+  parentPort.postMessage({ id, result, error })
 })
 `
 
@@ -99,7 +100,7 @@ function pump() {
   }
   const id = nextId++
   const timer = setTimeout(() => {
-    logger.error('[告警引擎] 正则执行超时，按不命中处理', { pattern: job.pattern })
+    logger.error('[告警引擎] 正则执行超时，按不命中处理', { pattern: JSON.stringify(job.pattern) })
     worker = null
     void target.terminate()
     settle(null)
@@ -112,13 +113,13 @@ function spawnWorker(): Worker | null {
   try {
     const instance = new Worker(WORKER_SOURCE, { eval: true })
     instance.unref()
-    instance.on('message', ({ id, result }) => {
+    instance.on('message', ({ id, result, error }) => {
       if (current?.id !== id)
         return
-      settle(result)
+      settle(error ? null : result)
     })
     instance.on('error', (error: Error) => {
-      logger.error('[告警引擎] 正则 worker 异常，按不命中处理', { error: error.message })
+      logger.error('[告警引擎] 正则 worker 异常，按不命中处理', error)
     })
     // error 后必跟 exit，由 exit 统一结算；若卡死则有超时兜底
     instance.on('exit', () => {
@@ -131,7 +132,7 @@ function spawnWorker(): Worker | null {
     return instance
   }
   catch (e: any) {
-    logger.error('[告警引擎] 正则 worker 创建失败，按不命中处理', { error: e?.message })
+    logger.error('[告警引擎] 正则 worker 创建失败，按不命中处理', e)
     return null
   }
 }
