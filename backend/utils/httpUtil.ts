@@ -342,7 +342,7 @@ export async function request(config: RequestOptions) {
       })
   }
   catch (error: any) {
-    returnData.error = error.message || error
+    returnData.error = error?.message || String(error)
   }
   return returnData
 }

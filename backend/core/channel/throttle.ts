@@ -10,6 +10,8 @@ interface TypeThrottle {
   active: number
   waiters: Array<() => void>
   timer?: ReturnType<typeof setTimeout>
+  /** 当前定时器的计划触发时刻，用于判断后算出的更短等待是否需要重排 */
+  timerAt?: number
 }
 
 const throttles = new Map<string, TypeThrottle>()
@@ -31,13 +33,18 @@ export function resolveLimit(type: string): ThrottleLimit {
 // 滑动窗口计数器：任意窗口内请求数不超限，窗口有名额时突发立即放行；等待的请求 FIFO 放行，到点由单个定时器驱动
 function schedule(type: string, limit: ThrottleLimit) {
   const t = throttles.get(type)!
-  if (t.active >= limit.concurrency || t.waiters.length === 0) {
-    return
-  }
   const now = Date.now()
   const maxWindowMs = Math.max(...limit.windows.map(window => window.windowMs))
-  while (t.stamps.length > 0 && t.stamps[0] + maxWindowMs <= now) {
-    t.stamps.shift()
+  // 过期前缀一次性剪掉：无等待者或并发占满提前返回时窗口计数也要收缩，否则 stamps 无界增长
+  let cut = 0
+  while (cut < t.stamps.length && t.stamps[cut] + maxWindowMs <= now) {
+    cut++
+  }
+  if (cut > 0) {
+    t.stamps.splice(0, cut)
+  }
+  if (t.active >= limit.concurrency || t.waiters.length === 0) {
+    return
   }
   let wait = 0
   for (const window of limit.windows) {
@@ -52,12 +59,20 @@ function schedule(type: string, limit: ThrottleLimit) {
     }
   }
   if (wait > 0) {
-    if (!t.timer) {
-      t.timer = setTimeout(() => {
-        t.timer = undefined
-        schedule(type, limit)
-      }, wait)
+    const firesAt = now + wait
+    // 名额释放时刻提前时重排定时器，等待者不被前次算出的更长等待拖住；不早于现有定时器则维持
+    if (t.timer && (t.timerAt ?? Infinity) <= firesAt) {
+      return
     }
+    if (t.timer) {
+      clearTimeout(t.timer)
+    }
+    t.timerAt = firesAt
+    t.timer = setTimeout(() => {
+      t.timer = undefined
+      t.timerAt = undefined
+      schedule(type, limit)
+    }, wait)
     return
   }
   const waiter = t.waiters.shift()!
