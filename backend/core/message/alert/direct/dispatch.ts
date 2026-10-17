@@ -8,7 +8,36 @@ import {
   MESSAGE_ALERT_DIRECT_RULE_PLACEHOLDER,
   MESSAGE_ALERT_DIRECT_TITLE_RECEIVER_PLACEHOLDER,
 } from './types'
-import { matchDirectRule, prepareLines, resolveReceiverPattern } from './match'
+import { isPatternBroken, matchDirectRule, prepareLines, resolveReceiverPattern } from './match'
+
+const DIRECT_TITLE_PLACEHOLDER_PATTERN = new RegExp(
+  `\\{\\{(?:${[
+    TEMPLATE_TITLE_PLACEHOLDER,
+    MESSAGE_ALERT_DIRECT_RULE_PLACEHOLDER,
+    MESSAGE_ALERT_DIRECT_TITLE_RECEIVER_PLACEHOLDER,
+  ].map(name => name.slice(2, -2)).join('|')})\\}\\}`,
+  'g',
+)
+
+export interface ChannelSnapshot { id: number, name: string, type: string, config: string }
+
+export function renderDirectTitle(
+  titleMode: MessageAlertDirectTitleMode,
+  titleTemplate: string,
+  originalTitle: string,
+  ruleName: string,
+  receiver = '',
+): string {
+  if (titleMode === 'template') {
+    // 单遍替换，标题模板或替换值中的字面量占位符不会被二次展开
+    return titleTemplate.replace(DIRECT_TITLE_PLACEHOLDER_PATTERN, matched => matched === TEMPLATE_TITLE_PLACEHOLDER
+      ? originalTitle
+      : matched === MESSAGE_ALERT_DIRECT_RULE_PLACEHOLDER
+        ? ruleName
+        : receiver)
+  }
+  return originalTitle
+}
 
 /**
  * processDirectRule 所需的最小规则结构：调用方传入数据库关联查询结果，字段子集即可；
@@ -29,24 +58,6 @@ export interface DispatchableDirectRule {
   }>
 }
 
-export interface ChannelSnapshot { id: number, name: string, type: string, config: string }
-
-export function renderDirectTitle(
-  titleMode: MessageAlertDirectTitleMode,
-  titleTemplate: string,
-  originalTitle: string,
-  ruleName: string,
-  receiver = '',
-): string {
-  if (titleMode === 'template') {
-    return titleTemplate
-      .replaceAll(TEMPLATE_TITLE_PLACEHOLDER, originalTitle)
-      .replaceAll(MESSAGE_ALERT_DIRECT_RULE_PLACEHOLDER, ruleName)
-      .replaceAll(MESSAGE_ALERT_DIRECT_TITLE_RECEIVER_PLACEHOLDER, receiver)
-  }
-  return originalTitle
-}
-
 // 按渠道聚合命中行：多收信人绑定同一渠道时合并为一次推送，行序按原文还原，行文本去重
 export async function processDirectRule(
   directRule: DispatchableDirectRule,
@@ -65,9 +76,47 @@ export async function processDirectRule(
     .map(receiver => ({ ...receiver, pattern: resolveReceiverPattern(receiver.pattern, directRule.common_pattern).pattern }))
   // 正文只切分一次供全部收信人共用，匹配内部分批让出事件循环
   const lines = prepareLines(content)
-  const matchResults = await matchDirectRule(lines, candidates)
+  // 熔断中的模式不再送 worker，避免每次消息都空耗 500ms 超时；按模式聚合后每个受影响渠道记一行失败
+  const activeCandidates: typeof candidates = []
+  const brokenByPattern = new Map<string, typeof candidates>()
+  for (const receiver of candidates) {
+    if (isPatternBroken(receiver.pattern)) {
+      const group = brokenByPattern.get(receiver.pattern)
+      if (group) {
+        group.push(receiver)
+      }
+      else {
+        brokenByPattern.set(receiver.pattern, [receiver])
+      }
+    }
+    else {
+      activeCandidates.push(receiver)
+    }
+  }
+  for (const [pattern, group] of brokenByPattern) {
+    const label = pattern.length > 50 ? `${pattern.slice(0, 50)}…` : pattern
+    const channelCounts = new Map<number, number>()
+    for (const receiver of group) {
+      for (const channelId of receiver.channelIds) {
+        channelCounts.set(channelId, (channelCounts.get(channelId) ?? 0) + 1)
+      }
+    }
+    for (const [channelId, count] of channelCounts) {
+      const channel = channelsById.get(channelId)
+      if (!channel) {
+        continue
+      }
+      recordSessionFailure(session, {
+        ruleName: directRule.name,
+        channelName: channel.name,
+        channelType: channel.type,
+        reason: `「${label}」已熔断，${count} 个收信人按不命中处理`,
+      })
+    }
+  }
+  const matchResults = activeCandidates.length > 0 ? await matchDirectRule(lines, activeCandidates) : []
   const channelLines = new Map<number, { channel: ChannelSnapshot, indexes: Map<string, number>, receivers: Set<string> }>()
-  for (const [i, receiver] of candidates.entries()) {
+  for (const [i, receiver] of activeCandidates.entries()) {
     const matched = matchResults[i]
     if (matched === null) {
       // 匹配超时或异常记入失败会话，静默漏发会让收信人既收不到也无从排查
@@ -81,7 +130,6 @@ export async function processDirectRule(
           channelName: channel.name,
           channelType: channel.type,
           reason: `收信人「${receiver.receiver}」正则匹配超时或异常，未推送`,
-          content: '',
         })
       }
       continue

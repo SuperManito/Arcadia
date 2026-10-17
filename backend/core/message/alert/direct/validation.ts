@@ -31,7 +31,7 @@ function cleanReceiverBase(raw: any): { receiver: string, pattern: string, remar
   if (receiver.length > MESSAGE_ALERT_DIRECT_RECEIVER_MAX_LENGTH) {
     throw new Error(`收信人标识长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_MAX_LENGTH} 个字符`)
   }
-  // 留空即按收信人标识包含匹配，库只存用户填写的原文
+  // 留空即按收信人标识包含匹配；正文按行 trim 后匹配，首尾空白无语义，入库前去除
   const pattern = typeof raw?.pattern === 'string' ? raw.pattern.trim() : ''
   if (pattern.length > MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH) {
     throw new Error(`收信人的正则匹配表达式长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH} 个字符`)
@@ -140,6 +140,7 @@ export async function validateMessageAlertDirectRulePayload(
   }
   const replaces = stringifyReplacePairs(validateReplacePairs(body.replaces))
 
+  // 正文按行 trim 后匹配，首尾空白无语义，入库前去除
   const commonPattern = typeof body.commonPattern === 'string' ? body.commonPattern.trim() : ''
   if (commonPattern.length > MESSAGE_ALERT_DIRECT_COMMON_PATTERN_MAX_LENGTH) {
     throw new Error(`正则匹配长度不能超过 ${MESSAGE_ALERT_DIRECT_COMMON_PATTERN_MAX_LENGTH} 个字符`)

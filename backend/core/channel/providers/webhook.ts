@@ -2,6 +2,11 @@ import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
 import { TEMPLATE_CONTENT_PLACEHOLDER, TEMPLATE_TITLE_PLACEHOLDER } from '../constants'
 
+const BODY_PLACEHOLDER_PATTERN = new RegExp(
+  `\\{\\{(?:${[TEMPLATE_TITLE_PLACEHOLDER, TEMPLATE_CONTENT_PLACEHOLDER].map(name => name.slice(2, -2)).join('|')})\\}\\}`,
+  'g',
+)
+
 /** 解析 JSON 文本请求头 */
 function parseHeaders(raw: string): Record<string, string> {
   let parsed: unknown
@@ -62,8 +67,11 @@ export const Webhook = {
     const escapeValue = (text: string) => contentType === 'form'
       ? encodeURIComponent(text)
       : JSON.stringify(text).slice(1, -1)
+    // 单遍替换，标题/内容值中的字面量占位符不会被二次展开
+    const renderBody = (text: string) => text.replace(BODY_PLACEHOLDER_PATTERN, matched =>
+      matched === TEMPLATE_TITLE_PLACEHOLDER ? escapeValue(payload.title) : escapeValue(payload.content))
     const body: object | string = config.body?.trim()
-      ? config.body.split(TEMPLATE_TITLE_PLACEHOLDER).join(escapeValue(payload.title)).split(TEMPLATE_CONTENT_PLACEHOLDER).join(escapeValue(payload.content))
+      ? renderBody(config.body)
       : { title: payload.title, content: payload.content }
 
     const result = await request({

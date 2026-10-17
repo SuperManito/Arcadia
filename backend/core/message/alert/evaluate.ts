@@ -87,7 +87,6 @@ export async function evaluateRules<T extends EvaluableRule>(
               channelName: link.channel.name,
               channelType: link.channel.type,
               reason: '规则条件求值超时或异常，未推送',
-              content: '',
             })
           }
         }
@@ -96,9 +95,8 @@ export async function evaluateRules<T extends EvaluableRule>(
           recordSessionFailure(session, {
             ruleName: rule.name,
             channelName: '（一对一触发源）',
-            channelType: '-',
+            channelType: '',
             reason: '规则条件求值超时或异常，未推送',
-            content: '',
           })
         }
       }

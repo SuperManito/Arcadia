@@ -2,7 +2,7 @@ import type { PushResult } from '../../channel'
 import type { PushSession } from './pushSession'
 import { getChannelTypeConcurrency, pushChannel } from '../../channel'
 import { logger } from '../../../utils/logger'
-import { settleSession, truncateSummaryContent } from './pushSession'
+import { settleSession } from './pushSession'
 
 // 队列长度越过阈值时各记一条 warn 提示积压，不改变任何行为：任务只延迟不丢弃
 const QUEUE_BACKLOG_WARN_LEVELS = [1000, 10000]
@@ -23,6 +23,7 @@ export interface PushTask {
 }
 
 interface ChannelQueue {
+  priorityTasks: PushTask[]
   tasks: PushTask[]
   active: number
   warnedLevel: number
@@ -35,20 +36,30 @@ const queues = new Map<string, ChannelQueue>()
 function getQueue(type: string) {
   let queue = queues.get(type)
   if (!queue) {
-    queue = { tasks: [], active: 0, warnedLevel: 0 }
+    queue = { priorityTasks: [], tasks: [], active: 0, warnedLevel: 0 }
     queues.set(type, queue)
   }
   return queue
 }
 
+function queueDepth(queue: ChannelQueue) {
+  return queue.priorityTasks.length + queue.tasks.length
+}
+
+function shiftTask(queue: ChannelQueue) {
+  return queue.priorityTasks.shift() ?? queue.tasks.shift()
+}
+
 function warnBacklog(type: string, queue: ChannelQueue) {
-  const level = QUEUE_BACKLOG_WARN_LEVELS.find(size => queue.tasks.length >= size && queue.warnedLevel < size)
+  const depth = queueDepth(queue)
+  const level = QUEUE_BACKLOG_WARN_LEVELS.find(size => depth >= size && queue.warnedLevel < size)
   if (level !== undefined) {
     queue.warnedLevel = level
-    logger.warn('[消息中心监控告警] 推送队列积压', JSON.stringify({ channelType: type, depth: queue.tasks.length }))
+    logger.warn('[消息中心监控告警] 推送队列积压', JSON.stringify({ channelType: type, depth }))
   }
-  if (queue.tasks.length < queue.warnedLevel) {
-    queue.warnedLevel = 0
+  if (depth < queue.warnedLevel) {
+    // 降回后重置到仍越过的最高水位，同一水位可再次告警
+    queue.warnedLevel = [...QUEUE_BACKLOG_WARN_LEVELS].reverse().find(size => depth >= size) ?? 0
   }
 }
 
@@ -59,7 +70,6 @@ function settle(task: PushTask, error?: string) {
         channelName: task.channel.name,
         channelType: task.channel.type,
         reason: error,
-        content: task.priority ? truncateSummaryContent(task.content) : task.content,
       }
     : undefined)
 }
@@ -70,17 +80,17 @@ function topUp(type: string) {
   if (!queue) {
     return
   }
-  while (queue.active < getChannelTypeConcurrency(type) && queue.tasks.length > 0) {
+  while (queue.active < getChannelTypeConcurrency(type) && queueDepth(queue) > 0) {
     queue.active++
     void (async () => {
       try {
         // 并行循环从队头取任务，同渠道任务可能乱序送达，渠道间消息相互独立
-        let task = queue.tasks.shift()
+        let task = shiftTask(queue)
         while (task) {
           let result: PushResult
           try {
             result = await pushChannel(
-              { type: task.channel.type, config: task.channel.config },
+              { name: task.channel.name, type: task.channel.type, config: task.channel.config },
               { title: task.title, content: task.content },
             )
           }
@@ -89,7 +99,7 @@ function topUp(type: string) {
             result = { success: false, error: `推送失败：${e?.message ?? '未知错误'}` }
           }
           settle(task, result.success ? undefined : result.error)
-          task = queue.tasks.shift()
+          task = shiftTask(queue)
         }
       }
       finally {
@@ -117,13 +127,7 @@ export function enqueuePush(
   session.pending++
   const queue = getQueue(channel.type)
   if (priority) {
-    const idx = queue.tasks.findIndex(item => !item.priority)
-    if (idx === -1) {
-      queue.tasks.push(task)
-    }
-    else {
-      queue.tasks.splice(idx, 0, task)
-    }
+    queue.priorityTasks.push(task)
   }
   else {
     queue.tasks.push(task)

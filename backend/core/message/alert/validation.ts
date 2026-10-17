@@ -154,6 +154,10 @@ export async function validateMessageAlertRulePayload(
     channelIds.push(id)
   }
 
+  if (channelIds.length > MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT) {
+    throw new Error(`关联渠道数量不能超过 ${MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT} 个`)
+  }
+
   // 共用命名空间：告警规则与一对一规则名都不可重名
   const [duplicated, directDuplicated] = await Promise.all([
     db.messageAlertRule.findFirst({
@@ -167,10 +171,6 @@ export async function validateMessageAlertRulePayload(
   ])
   if (duplicated || directDuplicated) {
     throw new Error('规则名称已存在')
-  }
-
-  if (channelIds.length > MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT) {
-    throw new Error(`关联渠道数量不能超过 ${MESSAGE_ALERT_RULE_CHANNEL_MAX_COUNT} 个`)
   }
 
   // 仅新建时校验总数；规则全量参与求值，数量需要收敛
