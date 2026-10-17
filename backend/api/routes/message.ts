@@ -958,6 +958,11 @@ api.post('/alert/direct/rule/receiver', async (request, response) => {
     response.send(API_STATUS_CODE.okData(created))
   }
   catch (e: any) {
+    // 唯一约束兜底并发下的查重竞态
+    if (e?.code === 'P2002') {
+      response.send(API_STATUS_CODE.fail('收信人标识已存在'))
+      return
+    }
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -1035,6 +1040,11 @@ api.put('/alert/direct/rule/receiver', async (request, response) => {
     response.send(API_STATUS_CODE.okData(updated))
   }
   catch (e: any) {
+    // 唯一约束兜底并发下的查重竞态
+    if (e?.code === 'P2002') {
+      response.send(API_STATUS_CODE.fail('收信人标识已存在'))
+      return
+    }
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -1107,7 +1117,7 @@ api.delete('/alert/direct/rule/receiver', async (request, response) => {
     await db.$transaction(async (tx) => {
       for (let start = 0; start < ids.length; start += BATCH_SIZE) {
         const batch = ids.slice(start, start + BATCH_SIZE)
-        await tx.messageAlertDirectRuleReceiverChannel.deleteMany({ where: { receiverId: { in: batch } } })
+        await tx.messageAlertDirectRuleReceiverChannel.deleteMany({ where: { receiverId: { in: batch }, receiver: { directRuleId: ruleId } } })
         await tx.messageAlertDirectRuleReceiver.deleteMany({ where: { id: { in: batch }, directRuleId: ruleId } })
       }
     })
@@ -1159,11 +1169,16 @@ api.post('/alert/direct/rule/receiver/import', async (request, response) => {
     }
     let created = 0
     if (unique.length > 0) {
-      const existed = await db.messageAlertDirectRuleReceiver.$list(
-        { where: { directRuleId: ruleId, receiver: { in: unique.map(item => item.receiver) } } },
-        { select: { receiver: true } },
-      )
-      const existedReceivers = new Set(existed.map(row => row.receiver))
+      // 标识数超过 SQLite 变量上限前分块查询库内已存在项
+      const existedReceivers = new Set<string>()
+      const QUERY_BATCH_SIZE = 500
+      for (let start = 0; start < unique.length; start += QUERY_BATCH_SIZE) {
+        const existed = await db.messageAlertDirectRuleReceiver.$list(
+          { where: { directRuleId: ruleId, receiver: { in: unique.slice(start, start + QUERY_BATCH_SIZE).map(item => item.receiver) } } },
+          { select: { receiver: true } },
+        )
+        existed.map(row => row.receiver).forEach(receiver => existedReceivers.add(receiver))
+      }
       const toCreate = unique.filter(item => !existedReceivers.has(item.receiver))
       skipped += unique.length - toCreate.length
       if (toCreate.length > 0) {

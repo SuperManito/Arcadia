@@ -9,6 +9,7 @@ model message {
   create_time DateTime @default(now())
 
   @@index([category])
+  @@index([type, create_time])
   @@index([status, create_time])
   @@index([create_time])
 }

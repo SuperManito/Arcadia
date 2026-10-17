@@ -50,7 +50,7 @@ export async function notifyTaskFailure(info: taskRunInfo) {
       })
     }
     catch (e: any) {
-      logger.error(`推送定时任务运行失败通知异常 (task: ${info.task.name}):`, e.message || e)
+      logger.error(`推送定时任务运行失败通知异常 (task: ${info.task.name}):`, e)
     }
   }
   if (hasAlertChannels) {
@@ -77,17 +77,23 @@ async function alertTaskFailure(info: taskRunInfo) {
       if (result.success) {
         return
       }
-      logger.error('[定时任务告警] 渠道推送失败', {
+      logger.error('[定时任务告警] 渠道推送失败', JSON.stringify({
         taskId: info.task.id,
         taskName: info.task.name,
         channelId: channel.id,
         channelName: channel.name,
         channelType: channel.type,
         error: result.error,
-      })
+      }))
       void sendMessage({
         title: '告警消息推送失败',
-        content: `触发任务：${info.task.name}\n渠道：${channel.name}（${channel.type}）\n错误：${result.error}`,
+        content: [
+          `触发任务：${info.task.name}`,
+          '',
+          '| 渠道 | 原因 |',
+          '| --- | --- |',
+          `| ${channel.name}（${channel.type}） | ${(result.error ?? '').replace(/\r?\n/g, ' ').replace(/\|/g, '\\|')} |`,
+        ].join('\n'),
         category: MessageCategory.SYSTEM,
         type: MessageType.ERROR,
         skipAlert: true,
@@ -95,6 +101,6 @@ async function alertTaskFailure(info: taskRunInfo) {
     }))
   }
   catch (e: any) {
-    logger.error(`推送定时任务运行失败告警异常 (task: ${info.task.name}):`, e?.message || e)
+    logger.error(`推送定时任务运行失败告警异常 (task: ${info.task.name}):`, e)
   }
 }

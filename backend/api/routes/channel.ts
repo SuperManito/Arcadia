@@ -112,6 +112,11 @@ api.post('/', async (request, response) => {
     response.send(API_STATUS_CODE.okData(channel))
   }
   catch (e: any) {
+    // 唯一约束兜底并发下的查重竞态
+    if (e?.code === 'P2002') {
+      response.send(API_STATUS_CODE.fail('渠道名称已存在'))
+      return
+    }
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
@@ -140,6 +145,11 @@ api.put('/', async (request, response) => {
     response.send(API_STATUS_CODE.okData(channel))
   }
   catch (e: any) {
+    // 唯一约束兜底并发下的查重竞态
+    if (e?.code === 'P2002') {
+      response.send(API_STATUS_CODE.fail('渠道名称已存在'))
+      return
+    }
     response.send(API_STATUS_CODE.fail(e.message || e))
   }
 })
