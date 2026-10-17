@@ -1,5 +1,6 @@
 export * from './direct/dispatch'
 export * from './direct/match'
+export * from './direct/overrides'
 export * from './direct/types'
 export * from './direct/validation'
 export * from './evaluate'

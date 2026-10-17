@@ -6,6 +6,7 @@ import type {
 } from './types'
 import db from '../../../../db'
 import { stringifyReplacePairs, validateReplacePairs } from '../../../alert'
+import { validateReceiverOverrides } from './overrides'
 import {
   MESSAGE_ALERT_RULE_NAME_MAX_LENGTH,
 } from '../types'
@@ -13,7 +14,6 @@ import {
   MESSAGE_ALERT_DIRECT_COMMON_PATTERN_MAX_LENGTH,
   MESSAGE_ALERT_DIRECT_RECEIVER_CHANNEL_MAX_COUNT,
   MESSAGE_ALERT_DIRECT_RECEIVER_MAX_LENGTH,
-  MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH,
   MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_PLACEHOLDER,
   MESSAGE_ALERT_DIRECT_RECEIVER_REMARK_MAX_LENGTH,
   MESSAGE_ALERT_DIRECT_RULE_BIND_MAX_COUNT,
@@ -23,7 +23,7 @@ import {
 } from './types'
 import { expandReceiverPattern } from './match'
 
-function cleanReceiverBase(raw: any): { receiver: string, pattern: string, remark: string } {
+function cleanReceiverBase(raw: any): { receiver: string, remark: string } {
   const receiver = typeof raw?.receiver === 'string' ? raw.receiver.trim() : ''
   if (!receiver) {
     throw new Error('收信人标识不能为空')
@@ -31,25 +31,11 @@ function cleanReceiverBase(raw: any): { receiver: string, pattern: string, remar
   if (receiver.length > MESSAGE_ALERT_DIRECT_RECEIVER_MAX_LENGTH) {
     throw new Error(`收信人标识长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_MAX_LENGTH} 个字符`)
   }
-  // 留空即按收信人标识包含匹配；正文按行 trim 后匹配，首尾空白无语义，入库前去除
-  const pattern = typeof raw?.pattern === 'string' ? raw.pattern.trim() : ''
-  if (pattern.length > MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH) {
-    throw new Error(`收信人的正则匹配表达式长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH} 个字符`)
-  }
-  // {{receiver}} 占位符展开后才是实际参与匹配的正则，语法校验针对展开结果
-  if (pattern) {
-    try {
-      void new RegExp(expandReceiverPattern(pattern, receiver))
-    }
-    catch {
-      throw new Error('收信人的正则匹配表达式不是有效的正则表达式')
-    }
-  }
   const remark = typeof raw?.remark === 'string' ? raw.remark.trim() : ''
   if (remark.length > MESSAGE_ALERT_DIRECT_RECEIVER_REMARK_MAX_LENGTH) {
     throw new Error(`收信人的备注长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_REMARK_MAX_LENGTH} 个字符`)
   }
-  return { receiver, pattern, remark }
+  return { receiver, remark }
 }
 
 function cleanReceiverChannelIds(raw: unknown): number[] {
@@ -71,7 +57,8 @@ function cleanReceiverChannelIds(raw: unknown): number[] {
 
 /**
  * 新增/修改单个收信人的字段校验，不查库；唯一性与渠道存在性由路由层校验。
- * 未提供 enabled 时按禁用处理：新增行默认禁用，启用必须显式关联渠道
+ * 未提供 enabled 时按禁用处理：新增行默认禁用，启用必须显式关联渠道；
+ * overrides 为整体替换语义，键存在=覆盖规则主体
  */
 export function validateMessageAlertDirectReceiver(raw: unknown): CleanedMessageAlertDirectReceiver {
   const base = cleanReceiverBase(raw)
@@ -84,14 +71,8 @@ export function validateMessageAlertDirectReceiver(raw: unknown): CleanedMessage
   if (enabled === 1 && channelIds.length === 0) {
     throw new Error('收信人未关联通知渠道，不能启用')
   }
-  return { ...base, enabled, channelIds }
-}
-
-/**
- * 导入项只接收 receiver/pattern/remark 三个字段，一律按禁用无渠道写入
- */
-export function validateMessageAlertDirectReceiverImportItem(raw: unknown): { receiver: string, pattern: string, remark: string } {
-  return cleanReceiverBase(raw)
+  const overrides = validateReceiverOverrides((raw as any)?.overrides, base.receiver)
+  return { ...base, overrides, enabled, channelIds }
 }
 
 // 保存与试测共用
@@ -138,7 +119,12 @@ export async function validateMessageAlertDirectRulePayload(
   if (titleMerge !== 0 && titleMerge !== 1) {
     throw new Error('参数 titleMerge 无效（参数值类型错误）')
   }
-  const replaces = stringifyReplacePairs(validateReplacePairs(body.replaces))
+  const channelMerge = body.channelMerge ?? 0
+  if (channelMerge !== 0 && channelMerge !== 1) {
+    throw new Error('参数 channelMerge 无效（参数值类型错误）')
+  }
+  const preReplaces = stringifyReplacePairs(validateReplacePairs(body.preReplaces))
+  const postReplaces = stringifyReplacePairs(validateReplacePairs(body.postReplaces, 'postReplaces'))
 
   // 正文按行 trim 后匹配，首尾空白无语义，入库前去除
   const commonPattern = typeof body.commonPattern === 'string' ? body.commonPattern.trim() : ''
@@ -210,7 +196,9 @@ export async function validateMessageAlertDirectRulePayload(
     titleMode,
     titleTemplate,
     titleMerge,
-    replaces,
+    channelMerge,
+    preReplaces,
+    postReplaces,
     commonPattern,
     alertRuleIds,
   }

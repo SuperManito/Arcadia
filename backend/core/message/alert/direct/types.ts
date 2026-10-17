@@ -18,12 +18,10 @@ export const MESSAGE_ALERT_DIRECT_RULE_PLACEHOLDER = '{{rule}}'
 export const MESSAGE_ALERT_DIRECT_TITLE_RECEIVER_PLACEHOLDER = '{{receiver}}'
 // 收信人备注长度上限
 export const MESSAGE_ALERT_DIRECT_RECEIVER_REMARK_MAX_LENGTH = 200
-// 单次批量导入收信人数量上限
-export const MESSAGE_ALERT_DIRECT_RECEIVER_IMPORT_MAX_COUNT = 1000
+// 单次批量添加/启停收信人数量上限
+export const MESSAGE_ALERT_DIRECT_RECEIVER_BATCH_MAX_COUNT = 1000
 // 单次批量删除收信人数量上限
 export const MESSAGE_ALERT_DIRECT_RECEIVER_DELETE_MAX_COUNT = 1000
-// 单次批量启停收信人数量上限
-export const MESSAGE_ALERT_DIRECT_RECEIVER_BATCH_MAX_COUNT = 1000
 // 标题模板长度上限
 export const MESSAGE_ALERT_DIRECT_TITLE_TEMPLATE_MAX_LENGTH = 256
 // 标题模式合法取值
@@ -36,14 +34,16 @@ export interface MessageAlertDirectRulePayloadInput {
   titleMode?: unknown
   titleTemplate?: unknown
   titleMerge?: unknown
-  replaces?: unknown
+  channelMerge?: unknown
+  preReplaces?: unknown
+  postReplaces?: unknown
   commonPattern?: unknown
   alertRuleIds?: number[]
 }
 
 export interface CleanedMessageAlertDirectReceiver {
   receiver: string
-  pattern: string
+  overrides: string
   remark: string
   enabled: 0 | 1
   channelIds: number[]
@@ -54,7 +54,9 @@ export interface CleanedMessageAlertDirectRulePayload {
   titleMode: MessageAlertDirectTitleMode
   titleTemplate: string
   titleMerge: 0 | 1
-  replaces: string
+  channelMerge: 0 | 1
+  preReplaces: string
+  postReplaces: string
   commonPattern: string
   alertRuleIds: number[]
 }

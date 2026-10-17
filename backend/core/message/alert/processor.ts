@@ -33,7 +33,7 @@ async function loadHitDirectRules(ruleIds: number[]) {
       },
     },
     {
-      select: { id: true, name: true, title_mode: true, title_template: true, title_merge: true, replaces: true, common_pattern: true },
+      select: { id: true, name: true, title_mode: true, title_template: true, title_merge: true, channel_merge: true, pre_replaces: true, post_replaces: true, common_pattern: true },
     },
   )
   if (rules.length === 0) {
@@ -43,7 +43,7 @@ async function loadHitDirectRules(ruleIds: number[]) {
   const [receivers, links] = await Promise.all([
     db.messageAlertDirectRuleReceiver.$list(
       { where: { directRuleId: { in: hitRuleIds }, enabled: 1 }, orderBy: { id: 'asc' } },
-      { select: { id: true, directRuleId: true, pattern: true, receiver: true } },
+      { select: { id: true, directRuleId: true, receiver: true, overrides: true } },
     ),
     db.messageAlertDirectRuleReceiverChannel.$list(
       { where: { receiver: { directRuleId: { in: hitRuleIds } } } },
@@ -74,10 +74,10 @@ async function loadHitDirectRules(ruleIds: number[]) {
       )
     : []
   const channelsById = new Map<number, ChannelSnapshot>(channels.map(channel => [channel.id, channel]))
-  const receiversByRule = new Map<number, Array<{ pattern: string, receiver: string, channelIds: number[] }>>()
-  for (const { id, directRuleId, pattern, receiver } of receivers) {
+  const receiversByRule = new Map<number, Array<{ receiver: string, overrides: string, channelIds: number[] }>>()
+  for (const { id, directRuleId, receiver, overrides } of receivers) {
     const list = receiversByRule.get(directRuleId)
-    const entry = { pattern, receiver, channelIds: channelIdsByReceiver.get(id) ?? [] }
+    const entry = { receiver, overrides, channelIds: channelIdsByReceiver.get(id) ?? [] }
     if (list) {
       list.push(entry)
     }
