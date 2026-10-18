@@ -883,8 +883,7 @@ api.get('/alert/direct/rule/receiver/page', async (request, response) => {
       where.enabled = Number.parseInt(enabled)
     }
     const orderBy = request.query.orderBy as string || 'id'
-    // 名单默认按 id 升序，与导出、匹配遍历顺序一致
-    const desc = request.query.order === '1'
+    const desc = request.query.order !== '0'
     const result = await db.messageAlertDirectRuleReceiver.$page({
       where,
       orderBy: [{ [orderBy]: desc ? 'desc' : 'asc' }],
