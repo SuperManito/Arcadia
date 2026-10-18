@@ -24,6 +24,7 @@ import {
   renderDirectTitle,
   resolveReceiverPattern,
   resolveReceiverPushConfig,
+  storedOverridesToInput,
   validateMessageAlertDirectReceiver,
   validateMessageAlertDirectRulePayload,
   validateMessageAlertRuleDefinition,
@@ -854,7 +855,7 @@ api.put('/alert/direct/rule', async (request, response) => {
  */
 api.get('/alert/direct/rule/receiver/page', async (request, response) => {
   try {
-    validatePageFixedParams(request, ['id', 'receiver', 'enabled'])
+    validatePageFixedParams(request, ['id', 'receiver', 'enabled', 'update_time'])
     const params = validateRequestParams(request, {
       query: [
         ['ruleId', [true, 'string']],
@@ -1022,7 +1023,7 @@ api.put('/alert/direct/rule/receiver', async (request, response) => {
     const nextEnabled = enabled ?? (channelIds !== undefined && channelIds.length === 0 ? 0 : exists.enabled)
     const cleaned = validateMessageAlertDirectReceiver({
       receiver: receiver ?? exists.receiver,
-      overrides: overrides ?? readReceiverOverrides(exists.overrides),
+      overrides: overrides ?? storedOverridesToInput(exists.overrides),
       remark: remark ?? exists.remark,
       enabled: nextEnabled,
       channelIds: channelIds ?? currentChannelIds,
@@ -1176,10 +1177,27 @@ api.post('/alert/direct/rule/receiver/batch', async (request, response) => {
         failed.push({ receiver: typeof item?.receiver === 'string' ? item.receiver.trim() : '', reason: `第 ${index + 1} 项：${e.message}` })
       }
     }
+    // 渠道存在性与单条新增同语义，批量一次核验，含不存在渠道的项计失败而非拖垮整批事务
+    const allChannelIds = [...new Set(valid.flatMap(item => item.channelIds))]
+    const existingChannelIds = allChannelIds.length > 0
+      ? new Set((await db.notificationChannel.$list(
+          { where: { id: { in: allChannelIds } } },
+          { select: { id: true } },
+        )).map(row => row.id))
+      : new Set<number>()
+    const checked: CleanedMessageAlertDirectReceiver[] = []
+    for (const item of valid) {
+      if (item.channelIds.every(id => existingChannelIds.has(id))) {
+        checked.push(item)
+      }
+      else {
+        failed.push({ receiver: item.receiver, reason: '渠道不存在' })
+      }
+    }
     // 载荷内重复：首项有效，后续计失败
     const seen = new Set<string>()
     const unique: CleanedMessageAlertDirectReceiver[] = []
-    for (const item of valid) {
+    for (const item of checked) {
       if (seen.has(item.receiver)) {
         failed.push({ receiver: item.receiver, reason: '收信人标识在本次提交中重复' })
         continue

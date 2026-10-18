@@ -1,7 +1,9 @@
 import type { ReplacePair } from '../../../alert'
+import type { ValidateObjectParamType } from '../../../../utils'
 import type { MessageAlertDirectTitleMode } from './types'
 import { parseReplacePairs, stringifyReplacePairs, validateReplacePairs } from '../../../alert'
 import { expandReceiverPattern } from './match'
+import { validateObject } from '../../../../utils'
 import {
   MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH,
   MESSAGE_ALERT_DIRECT_TITLE_MODES,
@@ -10,6 +12,14 @@ import {
 
 // 可覆盖键名与一对一规则表列名对齐；键存在=覆盖规则主体，键缺失=沿用，空对象存空串
 const OVERRIDE_KEYS = ['pattern', 'title_mode', 'title_template', 'title_merge', 'post_replaces'] as const
+
+const OVERRIDE_VALIDATE_RULES: ValidateObjectParamType[] = [
+  ['pattern', [false, 'string']],
+  ['title_mode', [false, [...MESSAGE_ALERT_DIRECT_TITLE_MODES]]],
+  ['title_template', [false, 'string']],
+  ['title_merge', [false, [0, 1]]],
+  ['post_replaces', [false, 'object[]']],
+]
 
 export interface MessageAlertDirectOverrideValues {
   pattern: string
@@ -22,7 +32,7 @@ export interface MessageAlertDirectOverrideValues {
 export type MessageAlertDirectOverrides = Partial<MessageAlertDirectOverrideValues>
 
 /**
- * 推送自定义写入校验：只保留合法键，无有效键返回空串（存库不落 '{}'）；
+ * 推送自定义写入校验：未知键显式拒绝（与前端交换文件校验同一契约），无有效键返回空串（存库不落 '{}'）；
  * pattern 留空视为未自定义；title_template 只在 title_mode=template 下保留
  */
 export function validateReceiverOverrides(raw: unknown, receiver: string): string {
@@ -32,14 +42,17 @@ export function validateReceiverOverrides(raw: unknown, receiver: string): strin
   if (typeof raw !== 'object' || Array.isArray(raw)) {
     throw new Error('推送自定义参数无效（参数值类型错误）')
   }
-  const input = raw as Record<string, unknown>
-  for (const key of Object.keys(input)) {
+  const source = raw as Record<string, unknown>
+  for (const key of Object.keys(source)) {
     if (!(OVERRIDE_KEYS as readonly string[]).includes(key)) {
       throw new Error(`推送自定义包含不支持的配置项 ${key}`)
     }
   }
+  // null 键与键缺失同义（导出响应可直接回导），剔除后再走统一对象校验
+  const input = Object.fromEntries(Object.entries(source).filter(([, value]) => value !== null))
+  validateObject(input, OVERRIDE_VALIDATE_RULES, '推送自定义')
   const result: Record<string, unknown> = {}
-  const pattern = typeof input.pattern === 'string' ? input.pattern.trim() : ''
+  const pattern = input.pattern !== undefined ? (input.pattern as string).trim() : ''
   if (pattern) {
     if (pattern.length > MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH) {
       throw new Error(`推送自定义的正则匹配长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH} 个字符`)
@@ -53,16 +66,12 @@ export function validateReceiverOverrides(raw: unknown, receiver: string): strin
     }
     result.pattern = pattern
   }
-  const hasTitleMode = input.title_mode !== undefined && input.title_mode !== null
-  if (input.title_template !== undefined && input.title_template !== null && !hasTitleMode) {
+  if (input.title_template !== undefined && input.title_mode === undefined) {
     throw new Error('推送自定义的标题模板必须与标题模式同时提供')
   }
-  if (hasTitleMode) {
-    const titleMode = input.title_mode
-    if (typeof titleMode !== 'string' || !(MESSAGE_ALERT_DIRECT_TITLE_MODES as readonly string[]).includes(titleMode)) {
-      throw new Error('推送自定义的标题模式无效')
-    }
-    let titleTemplate = typeof input.title_template === 'string' ? input.title_template.trim() : ''
+  if (input.title_mode !== undefined) {
+    const titleMode = input.title_mode as MessageAlertDirectTitleMode
+    let titleTemplate = input.title_template !== undefined ? (input.title_template as string).trim() : ''
     if (titleMode === 'template') {
       if (!titleTemplate) {
         throw new Error('推送自定义的标题模板不能为空')
@@ -79,14 +88,10 @@ export function validateReceiverOverrides(raw: unknown, receiver: string): strin
       result.title_template = titleTemplate
     }
   }
-  if (input.title_merge !== undefined && input.title_merge !== null) {
-    const titleMerge = input.title_merge
-    if (titleMerge !== 0 && titleMerge !== 1) {
-      throw new Error('推送自定义的无标题渠道仅发正文参数无效（参数值类型错误）')
-    }
-    result.title_merge = titleMerge
+  if (input.title_merge !== undefined) {
+    result.title_merge = input.title_merge
   }
-  if (input.post_replaces !== undefined && input.post_replaces !== null) {
+  if (input.post_replaces !== undefined) {
     const postReplaces = stringifyReplacePairs(validateReplacePairs(input.post_replaces, 'postReplaces'))
     if (postReplaces) {
       result.post_replaces = postReplaces
@@ -126,6 +131,18 @@ export function readReceiverOverrides(json: unknown): MessageAlertDirectOverride
   }
   catch {
     return {}
+  }
+}
+
+/**
+ * 落库值转写入格式：post_replaces 落库为 JSON 串而写入校验只收数组，
+ * 修改收信人缺省沿用现值时须经此转换再入校验，其余键两种格式一致直接透传
+ */
+export function storedOverridesToInput(json: unknown): Record<string, unknown> {
+  const overrides = readReceiverOverrides(json)
+  return {
+    ...overrides,
+    post_replaces: overrides.post_replaces ? parseReplacePairs(overrides.post_replaces) : undefined,
   }
 }
 

@@ -91,6 +91,7 @@ model messageAlertDirectRuleReceiver {
   overrides    String                                  @default("") // 推送自定义：JSON 对象串，键名对齐规则表列名（pattern/title_mode/title_template/title_merge/post_replaces），键存在=覆盖规则主体、缺失=沿用，空=全部沿用；post_replaces 为成对值 JSON 串
   remark       String                                  @default("") // 备注
   enabled      Int                                     @default(1) // 1 启用 / 0 禁用，启用必须至少关联 1 个渠道（校验层保证）
+  update_time  DateTime                                @default(now()) @updatedAt
   channels     messageAlertDirectRuleReceiverChannel[]
 
   @@unique([directRuleId, receiver]) // 同一规则内收信人标识唯一
