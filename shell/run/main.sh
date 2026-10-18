@@ -18,7 +18,7 @@ function command_run_main() {
     # 用户环境变量（加载优先级应高于配置文件）
     load_user_env
     # 配置文件
-    import_config ${FileName}
+    import_config_not_check
 
     ## 检查运行环境
     ensure_runtime_available
