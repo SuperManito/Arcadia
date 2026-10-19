@@ -18,10 +18,8 @@ export const MESSAGE_ALERT_DIRECT_RULE_PLACEHOLDER = '{{rule}}'
 export const MESSAGE_ALERT_DIRECT_TITLE_RECEIVER_PLACEHOLDER = '{{receiver}}'
 // 收信人备注长度上限
 export const MESSAGE_ALERT_DIRECT_RECEIVER_REMARK_MAX_LENGTH = 200
-// 单次批量添加/启停收信人数量上限
+// 单次批量添加收信人数量上限
 export const MESSAGE_ALERT_DIRECT_RECEIVER_BATCH_MAX_COUNT = 1000
-// 单次批量删除收信人数量上限
-export const MESSAGE_ALERT_DIRECT_RECEIVER_DELETE_MAX_COUNT = 1000
 // 标题模板长度上限
 export const MESSAGE_ALERT_DIRECT_TITLE_TEMPLATE_MAX_LENGTH = 256
 // 标题模式合法取值

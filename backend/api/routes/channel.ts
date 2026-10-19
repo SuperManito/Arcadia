@@ -4,8 +4,9 @@ import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
 import db from '../../db'
 import { validatePageFixedParams, validateRequestParams } from '../../utils'
-import { getChannelReferences, pushChannel, TEST_NOTIFY_CONTENT, TEST_NOTIFY_TITLE } from '../../core/channel'
+import { getChannelReferences, getChannelTags, pushChannel, TEST_NOTIFY_CONTENT, TEST_NOTIFY_TITLE } from '../../core/channel'
 import { validateChannelPayload } from '../../core/channel/validation'
+import { buildTagContainsValue } from '../../utils/tagsUtil'
 
 const api: Express = express()
 
@@ -33,7 +34,7 @@ api.get('/page', async (request, response) => {
     const tags = request.query.tags
       ? String(request.query.tags).split(',').filter(Boolean)
       : []
-    tags.forEach(tag => and.push({ tags: { contains: `,${tag},` } }))
+    tags.forEach(tag => and.push({ tags: { contains: buildTagContainsValue(tag) } }))
     if (and.length > 0) {
       where.AND = and
     }
@@ -54,14 +55,27 @@ api.get('/page', async (request, response) => {
 })
 
 /**
- * 渠道全量精简列表（业务表单选渠道）
+ * 渠道全量精简列表（不分页，仅返回标识与展示字段）
  */
 api.get('/list', async (_request, response) => {
   try {
     const result = await db.notificationChannel.$list(
       { orderBy: { id: 'asc' } },
-      { select: { id: true, name: true, type: true, tags: true } },
+      { select: { id: true, name: true, type: true } },
     )
+    response.send(API_STATUS_CODE.okData(result))
+  }
+  catch (e: any) {
+    response.send(API_STATUS_CODE.fail(e.message || e))
+  }
+})
+
+/**
+ * 全量渠道标签列表（按标签名去重后以字母序返回）
+ */
+api.get('/tags', async (_request, response) => {
+  try {
+    const result = await getChannelTags()
     response.send(API_STATUS_CODE.okData(result))
   }
   catch (e: any) {

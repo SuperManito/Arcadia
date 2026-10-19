@@ -75,6 +75,15 @@ export function validateMessageAlertDirectReceiver(raw: unknown): CleanedMessage
   return { ...base, overrides, enabled, channelIds }
 }
 
+/**
+ * 批量添加条目校验：白名单只取名单内容三字段，其余字段（含 enabled、channelIds）不读取，
+ * 缺省语义为禁用且无渠道，与单条新增的缺省一致。
+ */
+export function validateMessageAlertDirectReceiverBatchItem(raw: unknown): CleanedMessageAlertDirectReceiver {
+  const { receiver, overrides, remark } = (raw ?? {}) as Record<string, unknown>
+  return validateMessageAlertDirectReceiver({ receiver, overrides, remark })
+}
+
 // 保存与试测共用
 export function validateMessageAlertDirectTitle(body: { titleMode?: unknown, titleTemplate?: unknown }): {
   titleMode: MessageAlertDirectTitleMode

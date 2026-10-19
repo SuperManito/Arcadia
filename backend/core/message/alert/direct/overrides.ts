@@ -135,18 +135,6 @@ export function readReceiverOverrides(json: unknown): MessageAlertDirectOverride
 }
 
 /**
- * 落库值转写入格式：post_replaces 落库为 JSON 串而写入校验只收数组，
- * 修改收信人缺省沿用现值时须经此转换再入校验，其余键两种格式一致直接透传
- */
-export function storedOverridesToInput(json: unknown): Record<string, unknown> {
-  const overrides = readReceiverOverrides(json)
-  return {
-    ...overrides,
-    post_replaces: overrides.post_replaces ? parseReplacePairs(overrides.post_replaces) : undefined,
-  }
-}
-
-/**
  * 响应格式：键名与写入/落库的 overrides 键对齐，null = 未自定义（沿用规则主体）
  */
 export function receiverOverridesToResponse(json: unknown): {
