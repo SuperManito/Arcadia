@@ -21,14 +21,14 @@ model config {
 }
 
 model openApiAccessKey {
-  id           Int       @id @default(autoincrement())
-  name         String    @default("")
-  value        String
-  expire_time  DateTime?
-  enable       Int       @default(1)
-  permissions  String    @default("")
-  create_time  DateTime  @default(now())
-  update_time  DateTime  @default(now()) @updatedAt
+  id          Int       @id @default(autoincrement())
+  name        String    @default("")
+  value       String
+  expire_time DateTime?
+  enable      Int       @default(1)
+  permissions String    @default("")
+  create_time DateTime  @default(now())
+  update_time DateTime  @default(now()) @updatedAt
 
   @@index([value, enable])
   @@index([enable])

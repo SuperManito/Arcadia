@@ -5,22 +5,22 @@ model taskCore {
 }
 
 model tasks {
-  id            Int       @id @default(autoincrement())
-  name          String
-  cron          String
-  type          String
-  shell         String    @default("")
-  active        Int       @default(1)
-  last_runtime  DateTime?
-  last_run_use  Int?
-  tags          String    @default("")
-  sort          Int       @default(99999)
-  create_time   DateTime  @default(now())
-  config        String    @default("")
-  remark        String    @default("")
-  bind          String    @default("")
-  error_notify  Int       @default(1)
-  error_alert   String    @default("")
+  id           Int       @id @default(autoincrement())
+  name         String
+  cron         String
+  type         String
+  shell        String    @default("")
+  active       Int       @default(1)
+  last_runtime DateTime?
+  last_run_use Int?
+  tags         String    @default("")
+  sort         Int       @default(99999)
+  create_time  DateTime  @default(now())
+  config       String    @default("")
+  remark       String    @default("")
+  bind         String    @default("")
+  error_notify Int       @default(1)
+  error_alert  String    @default("")
 }
 
 model tasksExecutionStats {

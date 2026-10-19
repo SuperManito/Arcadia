@@ -1,4 +1,5 @@
 import type { Express, Request, Response } from 'express'
+import type { Session } from 'better-sse'
 import type { RunEnv, RunOption } from '../../core/executor'
 import { execFile } from 'node:child_process'
 import express from 'express'
@@ -138,6 +139,14 @@ async function createSseSession(request: Request, response: Response) {
 }
 
 /**
+ * 会话断开后丢弃推送，任务本身按非流式接口行为继续运行
+ */
+function safePush(session: Session, data: unknown) {
+  if (session.isConnected)
+    session.push(data)
+}
+
+/**
  * 执行 Shell 命令（返回 runId，日志通过 Socket 推送）
  */
 api.post('/cmd', (request, response) => {
@@ -188,21 +197,21 @@ apiOpen.post('/v1/cmd/stream', async (request, response) => {
     const session = await createSseSession(request, response)
     try {
       const runId = runShellCmd(params.body.cmd, {
-        onStdout(_id, data) { session.push({ type: 'log', stream: 'stdout', log: data }) },
-        onStderr(_id, data) { session.push({ type: 'log', stream: 'stderr', log: data }) },
+        onStdout(_id, data) { safePush(session, { type: 'log', stream: 'stdout', log: data }) },
+        onStderr(_id, data) { safePush(session, { type: 'log', stream: 'stderr', log: data }) },
         async onError(id, err) {
-          session.push({ runId: id, type: 'error', log: err.message })
+          safePush(session, { runId: id, type: 'error', log: err.message })
           response.end()
         },
         async onExit(_id) {
-          session.push({ type: 'exit' })
+          safePush(session, { type: 'exit' })
           response.end()
         },
       })
-      session.push({ runId, type: 'start' })
+      safePush(session, { runId, type: 'start' })
     }
     catch (e: any) {
-      session.push({ type: 'error', log: e?.message || '执行失败' })
+      safePush(session, { type: 'error', log: e?.message || '执行失败' })
       response.end()
     }
   }
@@ -357,21 +366,21 @@ apiOpen.post('/v1/file/stream', async (request, response) => {
     const session = await createSseSession(request, response)
     try {
       const runId = runCodeFile(path, options, envs, {
-        onStdout(_id, data) { session.push({ type: 'log', stream: 'stdout', log: data }) },
-        onStderr(_id, data) { session.push({ type: 'log', stream: 'stderr', log: data }) },
+        onStdout(_id, data) { safePush(session, { type: 'log', stream: 'stdout', log: data }) },
+        onStderr(_id, data) { safePush(session, { type: 'log', stream: 'stderr', log: data }) },
         async onError(id, err) {
-          session.push({ runId: id, type: 'error', log: err.message })
+          safePush(session, { runId: id, type: 'error', log: err.message })
           response.end()
         },
         async onExit(_id) {
-          session.push({ type: 'exit' })
+          safePush(session, { type: 'exit' })
           response.end()
         },
       })
-      session.push({ runId, type: 'start' })
+      safePush(session, { runId, type: 'start' })
     }
     catch (e: any) {
-      session.push({ type: 'error', log: e?.message || '执行失败' })
+      safePush(session, { type: 'error', log: e?.message || '执行失败' })
       response.end()
     }
   }

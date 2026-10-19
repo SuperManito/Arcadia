@@ -33,11 +33,11 @@ export const WPush = {
       proxy: config.general?.proxy,
     })
     if (!result.success) {
-      throw new Error(`WPush请求失败：${result.error ?? '未知错误'}`)
+      throw new Error(`WPush 请求失败：${result.error ?? '未知错误'}`)
     }
     const res = result.data as { code?: number, message?: string } | null
     if (res?.code !== 0) {
-      throw new Error(`WPush返回业务错误 [${res?.code}] ${res?.message ?? ''}`.trim())
+      throw new Error(`WPush 返回业务错误 [${res?.code}] ${res?.message ?? ''}`.trim())
     }
   },
 } satisfies ChannelDefinition<WPushConfig>

@@ -14,16 +14,19 @@ export const Apprise = {
     ['url', [true, 'string']],
   ],
   pusher: async (config, payload) => {
-    const { stdout, stderr, code } = await new Promise<{ stdout: string, stderr: string, code: number | string }>((resolve) => {
-      execFile('apprise', ['-t', payload.title, '-b', payload.content, config.url], { encoding: 'utf8' }, (error, stdout, stderr) => {
-        resolve({ stdout: stdout ?? '', stderr: stderr ?? '', code: error ? (error.code ?? 1) : 0 })
+    const { stdout, stderr, code, errorMessage } = await new Promise<{ stdout: string, stderr: string, code: number | string, errorMessage: string }>((resolve) => {
+      execFile('apprise', ['-t', payload.title, '-b', payload.content, '--', config.url], { encoding: 'utf8', timeout: 60000 }, (error, stdout, stderr) => {
+        resolve({ stdout: stdout ?? '', stderr: stderr ?? '', code: error ? (error.code ?? 1) : 0, errorMessage: error?.message ?? '' })
       })
     })
     if (code === 0) {
       return
     }
     if (typeof code === 'string') {
-      throw new Error(`Apprise 推送失败：无法执行 apprise 命令（${code}），请确认已安装 pip3 install apprise`)
+      if (code === 'ENOENT') {
+        throw new Error(`Apprise 推送失败：无法执行 apprise 命令（${code}），请确认已安装 pip3 install apprise`)
+      }
+      throw new Error(`Apprise 推送失败：${errorMessage || code}`)
     }
     const output = `${stdout}${stderr}`.trim()
     throw new Error(`Apprise 推送失败：${output || `退出码 ${code}`}`)

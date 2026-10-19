@@ -7,7 +7,7 @@ import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
 import { logger } from '../../utils/logger'
 import { validateCronExpression } from '../../core/cron/engine'
-import { normalizeTaskAlertChannelIds } from '../../core/cron/alert'
+import { normalizeTaskAlertChannelIds } from '../../core/cron/alertChannel'
 import {
   applyCron,
   fixOrder,

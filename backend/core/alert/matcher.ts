@@ -1,5 +1,6 @@
 import { logger } from '../../utils/logger'
-import { testRegex } from './regexTester'
+import { matchRegex } from './regexWorker'
+import { REGEX_MAX_LENGTH } from './constants'
 
 export enum RuleLogic {
   AND = 'and',
@@ -33,7 +34,6 @@ export const CONDITION_MODES = Object.values(ConditionMode)
 export const SIMPLE_OPERATORS = Object.values(SimpleOperator)
 export const REGEX_OPERATORS = Object.values(RegexOperator)
 export const VALUE_OPTIONAL_OPERATORS = [SimpleOperator.EMPTY, SimpleOperator.NOT_EMPTY]
-export const REGEX_MAX_LENGTH = 512
 
 export interface ConditionInput {
   mode: string
@@ -46,6 +46,8 @@ export interface ConditionInput {
 export interface ConditionMatchResult {
   sort: number
   matched: boolean
+  /** 该条件求值超时或异常，matched 恒为 false */
+  failed?: boolean
 }
 
 /**
@@ -96,10 +98,15 @@ export async function matchCondition(context: Record<string, string>, condition:
   if (condition.mode === ConditionMode.REGEX) {
     const reg = tryCompileRegex(condition.value)
     if (!reg) {
-      logger.warn('[告警引擎] 条件正则编译失败，按不命中处理', { pattern: condition.value })
+      logger.warn('[告警引擎] 条件正则编译失败，按不命中处理', JSON.stringify({ pattern: condition.value }))
       return false
     }
-    const hit = await testRegex(condition.value, fieldValue)
+    // null 表示超时或 worker 故障，抛给 evaluateConditions 捕获为条件级失败；
+    // 不能静默按不命中处理，也不能参与 NOT_REGEX 取反，否则超时会误判为命中
+    const hit = await matchRegex(condition.value, fieldValue)
+    if (hit === null) {
+      throw new Error(`正则 ${condition.value} 执行超时或异常`)
+    }
     return condition.operator === RegexOperator.NOT_REGEX ? !hit : hit
   }
   switch (condition.operator) {
@@ -124,25 +131,51 @@ export async function matchCondition(context: Record<string, string>, condition:
   }
 }
 
-// matched 仅由 conditions 与 logic 决定，业务范围过滤由各业务域叠加
+// matched 仅由 conditions 与 logic 决定，业务范围过滤由各业务域叠加；
+// failed 表示结果不可判定（AND 无确定假、OR 无确定真时存在求值失败的条件），供调用方决定上报语义
 export async function evaluateConditions(
   context: Record<string, string>,
   logic: string,
   conditions: ConditionInput[],
 ): Promise<{
   matched: boolean
+  failed: boolean
   conditions: ConditionMatchResult[]
 }> {
   const sorted = conditions
     .slice()
     .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
-  const results: ConditionMatchResult[] = await Promise.all(sorted.map(async (condition, index) => ({
-    sort: condition.sort ?? index,
-    matched: await matchCondition(context, condition),
-  })))
-  const hits = results.map(item => item.matched)
-  return {
-    matched: logic === RuleLogic.OR ? hits.some(Boolean) : hits.every(Boolean),
-    conditions: results,
+  // 空条件组防御：保存校验已拦截，脏数据兜底按不命中处理，避免 every 空数组返回 true 造成全量命中
+  if (sorted.length === 0) {
+    return {
+      matched: false,
+      failed: false,
+      conditions: [],
+    }
   }
+  // 条件逐条捕获失败而不是整体抛出：AND 中已确定为假的规则不会命中，OR 中已命中的规则不受其余条件超时影响
+  const results: ConditionMatchResult[] = await Promise.all(sorted.map(async (condition, index) => {
+    try {
+      return {
+        sort: condition.sort ?? index,
+        matched: await matchCondition(context, condition),
+      }
+    }
+    catch {
+      return {
+        sort: condition.sort ?? index,
+        matched: false,
+        failed: true,
+      }
+    }
+  }))
+  // 三值判定：已确定的结果短路求值失败；仅当失败是规则不命中的唯一解释时置位 failed
+  const errored = results.some(item => item.failed)
+  const realHits = results.filter(item => !item.failed).map(item => item.matched)
+  if (logic === RuleLogic.OR) {
+    const matched = realHits.some(Boolean)
+    return { matched, failed: !matched && errored, conditions: results }
+  }
+  const matched = realHits.length === results.length && realHits.every(Boolean)
+  return { matched, failed: errored && realHits.every(Boolean), conditions: results }
 }

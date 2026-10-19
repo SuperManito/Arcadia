@@ -37,7 +37,7 @@ export const Gotify = {
       proxy: config.general?.proxy,
     })
     if (!result.success) {
-      throw new Error(`Gotify请求失败：${result.error ?? '未知错误'}`)
+      throw new Error(`Gotify 请求失败：${result.error ?? '未知错误'}`)
     }
   },
 } satisfies ChannelDefinition<GotifyConfig>

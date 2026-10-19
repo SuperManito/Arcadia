@@ -1,6 +1,5 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
-import { applyTemplate } from '../applyTemplate'
 
 interface FeishuConfig extends BaseChannelConfig {
   webhookUrl: string
@@ -11,18 +10,23 @@ interface FeishuConfig extends BaseChannelConfig {
  */
 export const Feishu = {
   type: 'feishu',
+  singleBody: true,
   configRules: [
     ['webhookUrl', [true, 'string']],
   ],
+  rateLimit: {
+    // 官方双层限制：5 次/秒 + 100 次/分钟
+    concurrency: 1,
+    limits: [
+      { count: 5, seconds: 1 },
+      { count: 100, seconds: 60 },
+    ],
+  },
   pusher: async (config, payload) => {
-    const text = applyTemplate(payload, config.general)
-    if (text === null) {
-      return
-    }
     const body = {
       msg_type: 'text',
       content: {
-        text,
+        text: payload.content,
       },
     }
 

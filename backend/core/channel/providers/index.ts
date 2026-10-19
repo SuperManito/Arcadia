@@ -7,6 +7,7 @@ import { GoogleChat } from './googlechat'
 import { Gotify } from './gotify'
 import { Kook } from './kook'
 import { Pushplus } from './pushplus'
+import { QQBot } from './qqbot'
 import { ServerChan } from './serverchan'
 import { Telegram } from './telegram'
 import { Webhook } from './webhook'
@@ -28,6 +29,7 @@ export const Channels = {
   Gotify,
   Kook,
   Pushplus,
+  QQBot,
   ServerChan,
   Telegram,
   Webhook,

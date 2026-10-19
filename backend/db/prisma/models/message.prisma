@@ -9,22 +9,26 @@ model message {
   create_time DateTime @default(now())
 
   @@index([category])
+  @@index([type, create_time])
   @@index([status, create_time])
   @@index([create_time])
 }
 
 // 监控告警规则：描述"什么消息需要告警"以及"告警到哪里"
 model messageAlertRule {
-  id          Int                         @id @default(autoincrement())
-  name        String // 规则名称，后端保证唯一（DB 不设 unique）
-  enabled     Int                         @default(1) // 1 启用 / 0 禁用
-  logic       String                      @default("and") // 条件组合逻辑："and" | "or"
-  categories  String                      @default("") // 消息分类多选，逗号分隔，空=全部
-  types       String                      @default("") // 消息级别多选，逗号分隔，空=全部
-  create_time DateTime                    @default(now())
-  update_time DateTime                    @default(now()) @updatedAt
-  conditions  messageAlertRuleCondition[]
-  channels    messageAlertRuleChannel[]
+  id             Int                             @id @default(autoincrement())
+  name           String // 规则名称，后端保证唯一（DB 不设 unique）
+  enabled        Int                             @default(1) // 1 启用 / 0 禁用
+  logic          String                          @default("and") // 条件组合逻辑："and" | "or"
+  categories     String                          @default("") // 消息分类多选，逗号分隔，空=全部
+  types          String                          @default("") // 消息级别多选，逗号分隔，空=全部
+  replaces       String                          @default("") // 告警内容替换：JSON 数组串 [{pattern,replacement,scope}]，scope: both 标题和内容 / title 仅标题 / content 仅内容，匹配用原文、只改推送副本，空=不启用
+  title_merge    Int                             @default(1) // 无标题渠道仅发正文：0 时无独立标题概念的渠道不再把标题并入正文，1 并入
+  create_time    DateTime                        @default(now())
+  update_time    DateTime                        @default(now()) @updatedAt
+  conditions     messageAlertRuleCondition[]
+  channels       messageAlertRuleChannel[]
+  directBindings messageAlertDirectRuleBinding[]
 
   @@index([enabled])
   @@index([name])
@@ -46,13 +50,75 @@ model messageAlertRuleCondition {
 
 // 规则与渠道的关联
 model messageAlertRuleChannel {
-  id                 Int              @id @default(autoincrement())
+  id                 Int                 @id @default(autoincrement())
   messageAlertRuleId Int
-  messageAlertRule   messageAlertRule @relation(fields: [messageAlertRuleId], references: [id])
+  messageAlertRule   messageAlertRule    @relation(fields: [messageAlertRuleId], references: [id])
   channelId          Int
   channel            notificationChannel @relation(fields: [channelId], references: [id])
 
   @@unique([messageAlertRuleId, channelId]) // 同一规则不能重复挂同一渠道
   @@index([messageAlertRuleId])
   @@index([channelId])
+}
+
+// 一对一规则（二次告警拓展：主规则命中后按关键字把命中行路由给不同渠道）
+model messageAlertDirectRule {
+  id             Int                              @id @default(autoincrement())
+  name           String // 规则名称，后端保证唯一（与全局规则共用命名空间，DB 不设 unique）
+  enabled        Int                              @default(1) // 1 启用 / 0 禁用
+  title_mode     String                           @default("original") // 标题模式："original" 原标题 | "template" 自定义模板
+  title_template String                           @default("") // title_mode=template 时的标题模板，支持 {{title}} / {{rule}} / {{receiver}}
+  pre_replaces   String                           @default("") // 告警内容替换(匹配前)：JSON 数组串 [{pattern,replacement,scope}]，scope: both 标题和内容 / title 仅标题 / content 仅内容，内容替换在收信人匹配前对整条正文执行、标题替换作用于标题模板渲染结果，空=不启用
+  post_replaces  String                           @default("") // 告警内容替换(匹配后)：JSON 数组串 [{pattern,replacement,scope}]，收信人命中后对推送行（content/both）与标题渲染结果（title/both）执行，不影响匹配；查找内容与替换串支持 {{title}} / {{rule}} / {{receiver}}，空=不启用
+  title_merge    Int                              @default(1) // 无标题渠道仅发正文：0 时无独立标题概念的渠道不再把标题并入正文，1 并入
+  common_pattern String                           @default("") // 全局正则匹配：对本规则下未自定义正则匹配的收信人生效，必须含 {{receiver}}，空=不启用
+  channel_merge  Int                              @default(0) // 同渠道合并推送：1 时同渠道且有效推送形态一致的收信人合并为一条推送，0 逐收信人逐渠道推送
+  create_time    DateTime                         @default(now())
+  update_time    DateTime                         @default(now()) @updatedAt
+  receivers      messageAlertDirectRuleReceiver[]
+  bindings       messageAlertDirectRuleBinding[]
+
+  @@index([enabled])
+  @@index([name])
+}
+
+// 一对一规则收信人：正文按行切割后逐行匹配，命中行推送给绑定的渠道
+model messageAlertDirectRuleReceiver {
+  id           Int                                     @id @default(autoincrement())
+  directRuleId Int
+  directRule   messageAlertDirectRule                  @relation(fields: [directRuleId], references: [id])
+  receiver     String // 收信人标识，校验层必填且同规则内唯一，一身二用：身份判定 + 无自定义正则时的匹配目标
+  overrides    String                                  @default("") // 推送自定义：JSON 对象串，键名对齐规则表列名（pattern/title_mode/title_template/title_merge/post_replaces），键存在=覆盖规则主体、缺失=沿用，空=全部沿用；post_replaces 为成对值 JSON 串
+  remark       String                                  @default("") // 备注
+  enabled      Int                                     @default(1) // 1 启用 / 0 禁用，启用必须至少关联 1 个渠道（校验层保证）
+  update_time  DateTime                                @default(now()) @updatedAt
+  channels     messageAlertDirectRuleReceiverChannel[]
+
+  @@unique([directRuleId, receiver]) // 同一规则内收信人标识唯一
+  @@index([directRuleId, enabled])
+}
+
+// 一对一收信人与渠道的关联
+model messageAlertDirectRuleReceiverChannel {
+  id         Int                            @id @default(autoincrement())
+  receiverId Int
+  receiver   messageAlertDirectRuleReceiver @relation(fields: [receiverId], references: [id])
+  channelId  Int
+  channel    notificationChannel            @relation(fields: [channelId], references: [id])
+
+  @@unique([receiverId, channelId]) // 同一收信人不能重复绑同一渠道
+  @@index([channelId])
+}
+
+// 一对一规则与全局规则的绑定（多对多）：绑定规则命中后，一对一规则按收信人筛行推送
+model messageAlertDirectRuleBinding {
+  id           Int                    @id @default(autoincrement())
+  alertRuleId  Int
+  alertRule    messageAlertRule       @relation(fields: [alertRuleId], references: [id])
+  directRuleId Int
+  directRule   messageAlertDirectRule @relation(fields: [directRuleId], references: [id])
+
+  @@unique([alertRuleId, directRuleId]) // 同一一对一规则不能重复绑定同一全局规则
+  @@index([alertRuleId])
+  @@index([directRuleId])
 }

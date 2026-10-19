@@ -877,7 +877,7 @@ apiOpen.post('/v1/changeStatus', async (request, response) => {
       else {
         await db.envs.$updateById({ id, data: { enable: status } })
       }
-      logger.info('[OpenAPI · Env]', '更改环境变量状态', id, status === 1 ? '启用' : '禁用', record)
+      logger.info('[OpenAPI · Env]', '更改环境变量状态', id, status === 1 ? '启用' : '禁用', JSON.stringify(record))
     }
     response.send(API_STATUS_CODE.ok())
     await onChange(!isComposite)

@@ -13,12 +13,19 @@ export const Pushplus = {
   configRules: [
     ['token', [true, 'string']],
   ],
+  rateLimit: {
+    // 官方限制 1 分钟内 5 次请求
+    concurrency: 1,
+    limits: [
+      { count: 5, seconds: 60 },
+    ],
+  },
   pusher: async (config, payload) => {
     const body = {
       token: config.token,
       title: payload.title,
       content: payload.content,
-      template: 'html',
+      template: 'txt',
     }
 
     const result = await request({
@@ -31,11 +38,11 @@ export const Pushplus = {
       proxy: config.general?.proxy,
     })
     if (!result.success) {
-      throw new Error(`PushPlus请求失败：${result.error ?? '未知错误'}`)
+      throw new Error(`pushplus 请求失败：${result.error ?? '未知错误'}`)
     }
     const res = result.data as { code?: number, msg?: string } | null
     if (res?.code !== 200) {
-      throw new Error(`PushPlus返回业务错误 [${res?.code}] ${res?.msg ?? ''}`.trim())
+      throw new Error(`pushplus 返回业务错误 [${res?.code}] ${res?.msg ?? ''}`.trim())
     }
   },
 } satisfies ChannelDefinition<PushplusConfig>

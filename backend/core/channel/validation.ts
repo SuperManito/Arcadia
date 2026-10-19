@@ -1,9 +1,10 @@
 import type { GeneralConfig } from './types'
 import { validateObject } from '../../utils'
 import db from '../../db'
-import { CHANNEL_CONFIG_RULES, ChannelType } from './registry'
+import { CHANNEL_CONFIG_RULES, CHANNEL_CONFIG_VALIDATORS, ChannelType } from './registry'
+import { cleanChannelTags } from './tags'
 
-export const CHANNEL_NAME_MAX_LENGTH = 50
+const CHANNEL_NAME_MAX_LENGTH = 50
 
 /**
  * 无论前端是否提交都写入 general，缺省空字符串并 trim
@@ -20,7 +21,7 @@ function cleanGeneralConfig(raw: unknown): GeneralConfig {
 /**
  * 保存期配置清洗：字段类型校验 + 白名单过滤 + 字符串 / 数组归一
  */
-export function cleanChannelConfig(type: ChannelType, raw: Record<string, unknown>): Record<string, unknown> {
+function cleanChannelConfig(type: ChannelType, raw: Record<string, unknown>): Record<string, unknown> {
   const rules = CHANNEL_CONFIG_RULES[type]
   try {
     validateObject(raw, rules)
@@ -34,7 +35,7 @@ export function cleanChannelConfig(type: ChannelType, raw: Record<string, unknow
       continue
     }
     const value = raw[key]
-    if (options?.[1]?.[1] === 'string') {
+    if (options?.[1] === 'string') {
       const text = (value as string).trim()
       if (options[0] && !text) {
         throw new Error(`渠道配置无效：${key} 不能为空`)
@@ -49,6 +50,7 @@ export function cleanChannelConfig(type: ChannelType, raw: Record<string, unknow
     }
   }
   result.general = cleanGeneralConfig(raw.general)
+  CHANNEL_CONFIG_VALIDATORS[type]?.(result)
   return result
 }
 
@@ -56,12 +58,14 @@ export interface ChannelPayloadInput {
   name?: string
   type?: string
   config?: string | Record<string, unknown>
+  tags?: string | string[]
 }
 
 export interface CleanedChannelPayload {
   name: string
   type: ChannelType
   config: string
+  tags: string
 }
 
 /**
@@ -118,5 +122,6 @@ export async function validateChannelPayload(
     name,
     type,
     config: JSON.stringify(cleaned),
+    tags: cleanChannelTags(body.tags ?? []),
   }
 }

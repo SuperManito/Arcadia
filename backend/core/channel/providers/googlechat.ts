@@ -1,6 +1,5 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
-import { applyTemplate } from '../applyTemplate'
 
 interface GoogleChatConfig extends BaseChannelConfig {
   webhookUrl: string
@@ -13,17 +12,21 @@ interface GoogleChatConfig extends BaseChannelConfig {
  */
 export const GoogleChat = {
   type: 'googlechat',
+  singleBody: true,
   configRules: [
     ['webhookUrl', [true, 'string']],
     ['maxRetries', [false, 'number']],
   ],
+  rateLimit: {
+    // 每空间写入 60 次/分钟
+    concurrency: 1,
+    limits: [
+      { count: 60, seconds: 60 },
+    ],
+  },
   pusher: async (config, payload) => {
-    const text = applyTemplate(payload, config.general)
-    if (text === null) {
-      return
-    }
     const body = {
-      text,
+      text: payload.content,
     }
 
     const maxRetries = config.maxRetries ?? 1
@@ -52,7 +55,7 @@ export const GoogleChat = {
       })
     }
     if (!result.success) {
-      throw new Error(`Google Chat请求失败：${result.error ?? '未知错误'}`)
+      throw new Error(`Google Chat 请求失败：${result.error ?? '未知错误'}`)
     }
   },
 } satisfies ChannelDefinition<GoogleChatConfig>

@@ -1,6 +1,6 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
-import { applyTemplate } from '../applyTemplate'
+import { truncateChars } from '../truncate'
 
 interface TelegramConfig extends BaseChannelConfig {
   botToken: string
@@ -20,6 +20,7 @@ interface TelegramConfig extends BaseChannelConfig {
  */
 export const Telegram = {
   type: 'telegram',
+  singleBody: true,
   configRules: [
     ['botToken', [true, 'string']],
     ['chatId', [true, 'string']],
@@ -28,16 +29,20 @@ export const Telegram = {
     ['sendSilently', [false, 'boolean']],
     ['protectContent', [false, 'boolean']],
   ],
+  rateLimit: {
+    // Bot API 每 chat 1 条/秒
+    concurrency: 1,
+    limits: [
+      { count: 1, seconds: 1 },
+    ],
+  },
   pusher: async (config, payload) => {
     const serverUrl = (config.serverUrl || 'https://api.telegram.org').replace(/\/+$/, '')
 
-    const text = applyTemplate(payload, config.general)
-    if (text === null) {
-      return
-    }
     const body: Record<string, unknown> = {
       chat_id: config.chatId,
-      text,
+      // sendMessage text 官方上限 4096 字符
+      text: truncateChars(payload.content, 4096),
       link_preview_options: { is_disabled: true },
     }
     if (config.sendSilently) {
@@ -60,11 +65,11 @@ export const Telegram = {
       proxy: config.general?.proxy,
     })
     if (!result.success) {
-      throw new Error(`Telegram请求失败：${result.error ?? '未知错误'}`)
+      throw new Error(`Telegram 请求失败：${result.error ?? '未知错误'}`)
     }
     const res = result.data as { ok?: boolean, description?: string } | null
     if (res?.ok !== true) {
-      throw new Error(`Telegram返回业务错误 ${res?.description ?? ''}`.trim())
+      throw new Error(`Telegram 返回业务错误 ${res?.description ?? ''}`.trim())
     }
   },
 } satisfies ChannelDefinition<TelegramConfig>

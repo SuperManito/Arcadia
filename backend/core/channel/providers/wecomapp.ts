@@ -1,6 +1,6 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
-import { applyTemplate } from '../applyTemplate'
+import { truncateUtf8 } from '../truncate'
 
 interface WeComAppConfig extends BaseChannelConfig {
   corpId: string
@@ -17,6 +17,8 @@ interface WeComAppConfig extends BaseChannelConfig {
  */
 export const WeComApp = {
   type: 'wecomapp',
+  singleBody: true,
+  summaryTitle: true,
   configRules: [
     ['corpId', [true, 'string']],
     ['corpSecret', [true, 'string']],
@@ -25,11 +27,6 @@ export const WeComApp = {
     ['mediaId', [false, 'string']],
   ],
   pusher: async (config, payload) => {
-    // 先判空再取 token，避免空推送浪费请求
-    const content = applyTemplate(payload, config.general)
-    if (content === null)
-      return
-
     // access_token 有效期 2 小时、告警推送低频，按次获取不做缓存
     const tokenResult = await request({
       method: 'GET',
@@ -54,15 +51,20 @@ export const WeComApp = {
           ...base,
           msgtype: 'mpnews',
           mpnews: {
-            thumb_media_id: config.mediaId,
-            title: payload.title,
-            content,
+            articles: [
+              {
+                thumb_media_id: config.mediaId,
+                title: payload.title,
+                content: payload.content,
+              },
+            ],
           },
         }
       : {
           ...base,
           msgtype: 'text',
-          text: { content },
+          // text content 官方上限 2048 字节；mpnews content 上限 666KB，无需截断
+          text: { content: truncateUtf8(payload.content, 2048) },
           safe: 0,
         }
 

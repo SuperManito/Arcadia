@@ -1,5 +1,11 @@
 import type { BaseChannelConfig, ChannelDefinition } from '../types'
 import { request } from '../../../utils/httpUtil'
+import { TEMPLATE_CONTENT_PLACEHOLDER, TEMPLATE_TITLE_PLACEHOLDER } from '../constants'
+
+const BODY_PLACEHOLDER_PATTERN = new RegExp(
+  `\\{\\{(?:${[TEMPLATE_TITLE_PLACEHOLDER, TEMPLATE_CONTENT_PLACEHOLDER].map(name => name.slice(2, -2)).join('|')})\\}\\}`,
+  'g',
+)
 
 /** 解析 JSON 文本请求头 */
 function parseHeaders(raw: string): Record<string, string> {
@@ -48,18 +54,30 @@ export const Webhook = {
       'Content-Type': contentType === 'form' ? 'application/x-www-form-urlencoded' : 'application/json',
     }
     if (config.headers?.trim()) {
-      Object.assign(headers, parseHeaders(config.headers))
+      for (const [key, value] of Object.entries(parseHeaders(config.headers))) {
+        const lowerKey = key.toLowerCase()
+        for (const existing of Object.keys(headers)) {
+          if (existing.toLowerCase() === lowerKey)
+            delete headers[existing]
+        }
+        headers[key] = value
+      }
     }
 
-    // 用 split/join 而非 replace 替换占位符，避免内容中的 $& 等被当作替换模式解释
+    const escapeValue = (text: string) => contentType === 'form'
+      ? encodeURIComponent(text)
+      : JSON.stringify(text).slice(1, -1)
+    // 单遍替换，标题/内容值中的字面量占位符不会被二次展开
+    const renderBody = (text: string) => text.replace(BODY_PLACEHOLDER_PATTERN, matched =>
+      matched === TEMPLATE_TITLE_PLACEHOLDER ? escapeValue(payload.title) : escapeValue(payload.content))
     const body: object | string = config.body?.trim()
-      ? config.body.split('{{title}}').join(payload.title).split('{{content}}').join(payload.content)
+      ? renderBody(config.body)
       : { title: payload.title, content: payload.content }
 
     const result = await request({
       method,
       url: config.url,
-      data: body,
+      ...(method === 'GET' ? {} : { data: body }),
       headers,
       proxy: config.general?.proxy,
     })

@@ -18,7 +18,7 @@ function command_run_main() {
     # 用户环境变量（加载优先级应高于配置文件）
     load_user_env
     # 配置文件
-    import_config ${FileName}
+    import_config_not_check
 
     ## 检查运行环境
     ensure_runtime_available
@@ -166,8 +166,6 @@ function command_run_check_options() {
     check_usability "RUN_OPTION_SANDBOX_NET_DENY_ALL" "RUN_OPTION_SANDBOX_NET_ALLOW" "--sandbox-net-deny-all" "--sandbox-net-allow"
     check_usability "RUN_OPTION_SANDBOX_NET_DENY_ALL" "RUN_OPTION_SANDBOX_NET_DENY" "--sandbox-net-deny-all" "--sandbox-net-deny"
     check_usability "RUN_OPTION_SANDBOX_NET_DENY_ALL" "RUN_OPTION_SANDBOX_NET_DENY_LOCAL" "--sandbox-net-deny-all" "--sandbox-net-deny-local"
-    check_usability "RUN_OPTION_SANDBOX_NET_ALLOW" "RUN_OPTION_SANDBOX_NET_DENY" "--sandbox-net-allow" "--sandbox-net-deny"
-    check_usability "RUN_OPTION_SANDBOX_NET_ALLOW" "RUN_OPTION_SANDBOX_NET_DENY_LOCAL" "--sandbox-net-allow" "--sandbox-net-deny-local"
     check_usability "RUN_OPTION_SANDBOX_NET_ALLOW_BIND_ALL" "RUN_OPTION_SANDBOX_NET_ALLOW_BIND" "--sandbox-net-allow-bind-all" "--sandbox-net-allow-bind"
     check_usability "RUN_OPTION_SANDBOX_HTTP_ALLOW" "RUN_OPTION_SANDBOX_HTTP_DENY" "--sandbox-http-allow" "--sandbox-http-deny"
     check_usability "RUN_OPTION_SANDBOX_NET_DENY_ALL" "RUN_OPTION_SANDBOX_HTTP_ALLOW" "--sandbox-net-deny-all" "--sandbox-http-allow"

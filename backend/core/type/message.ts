@@ -21,6 +21,13 @@ export enum MessageScope {
   USER = 'user',
 }
 
+export const MESSAGE_TITLE_MAX_LENGTH = 200
+export const MESSAGE_CONTENT_MAX_LENGTH = 20000
+// 搜索限长，避免超长关键字放大全表扫描
+export const MESSAGE_SEARCH_MAX_LENGTH = 100
+// 批量操作 id 数量上限，防止超大 in 查询
+export const MESSAGE_BATCH_ID_MAX_COUNT = 1000
+
 export interface MessageData {
   title: string
   content: string

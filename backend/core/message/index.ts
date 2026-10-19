@@ -1,17 +1,23 @@
-import type { messageWhereInput } from '../../db'
+import type { messageModel, messageWhereInput } from '../../db'
 import type { MessageData } from '../type/message'
 import { createHash } from 'node:crypto'
 import { SocketEvent } from '../type/socket'
 import { db } from '../../db'
 import { logger } from '../../utils/logger'
 import { validateObject } from '../../utils'
-import { MessageCategory, MessageScope, MessageType } from '../type/message'
+import {
+  MESSAGE_CONTENT_MAX_LENGTH,
+  MESSAGE_TITLE_MAX_LENGTH,
+  MessageCategory,
+  MessageScope,
+  MessageType,
+} from '../type/message'
 import { processMessageAlert } from './alert'
 import { socketCommon } from '../../server/socketCommon'
 
 // 消息去重缓存（FIFO 淘汰）
-const DEDUP_MAX_SIZE = 50
-const DEDUP_WINDOW_MS = 5 * 60 * 1000 // 5 分钟
+const DEDUP_MAX_SIZE = 100
+const DEDUP_WINDOW_MS = 30 * 1000
 const dedupCache = new Map<string, number>() // fingerprint → timestamp
 
 /**
@@ -28,11 +34,15 @@ function isDuplicate(fingerprint: string): boolean {
   return false
 }
 
-/**
- * 注册新消息到去重缓存
- */
 function registerDedup(fingerprint: string) {
-  dedupCache.set(fingerprint, Date.now())
+  // 借新消息入库时机清理过期项，避免窗口内不重复访问的条目滞留占位
+  const now = Date.now()
+  for (const [key, timestamp] of dedupCache) {
+    if (now - timestamp >= DEDUP_WINDOW_MS) {
+      dedupCache.delete(key)
+    }
+  }
+  dedupCache.set(fingerprint, now)
   if (dedupCache.size > DEDUP_MAX_SIZE) {
     const firstKey = dedupCache.keys().next().value
     if (firstKey !== undefined)
@@ -40,17 +50,19 @@ function registerDedup(fingerprint: string) {
   }
 }
 
-// 内容长度限制，超出部分截断
-const TITLE_MAX_LENGTH = 200
-const CONTENT_MAX_LENGTH = 20000
-
 /**
  * 发送消息
- * @returns true=新消息已创建，false=重复消息已丢弃
+ *
+ * 返回 true 表示新消息已入库，false 表示窗口内重复消息被丢弃
  */
 export async function sendMessage(data: MessageData): Promise<boolean> {
-  const title = (data.title ?? '').trim().slice(0, TITLE_MAX_LENGTH)
-  const content = (data.content ?? '').trim().slice(0, CONTENT_MAX_LENGTH)
+  const rawTitle = (data.title ?? '').trim()
+  const rawContent = (data.content ?? '').trim()
+  const title = rawTitle.slice(0, MESSAGE_TITLE_MAX_LENGTH)
+  const content = rawContent.slice(0, MESSAGE_CONTENT_MAX_LENGTH)
+  if (rawContent.length > MESSAGE_CONTENT_MAX_LENGTH) {
+    logger.warn('[消息中心] 消息内容超长被截断', JSON.stringify({ title: rawTitle, length: rawContent.length, maxLength: MESSAGE_CONTENT_MAX_LENGTH }))
+  }
   const category = data.category || MessageCategory.SYSTEM
   const type = data.type || MessageType.INFO
 
@@ -61,22 +73,33 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
     ['type', [false, Object.values(MessageType)]],
   ])
 
-  // 消息去重
   const contentHash = createHash('md5').update(content).digest('hex')
-  const fingerprint = `${title}:${contentHash}`
+  const fingerprint = `${category}:${type}:${title}:${contentHash}`
   if (isDuplicate(fingerprint))
     return false
-
-  // 插入
-  const msg = await db.message.$create({ title, content, category, type })
-
-  // 注册去重缓存
   registerDedup(fingerprint)
 
-  // 消息中心监控告警：非阻塞触发，外部渠道延迟不影响消息写入路径
+  let msg: messageModel
+  try {
+    msg = await db.message.$create({ title, content, category, type })
+  }
+  catch (e) {
+    dedupCache.delete(fingerprint)
+    throw e
+  }
+
+  // 消息中心监控告警：非阻塞触发，外部渠道延迟不影响消息写入路径；
+  // 告警匹配使用入库截断前的完整正文，超长名单尾部不会静默丢失；
+  // 失败汇总的落库出口就地注入，队列与会话模块不反向依赖消息入库
   if (!data.skipAlert) {
-    void processMessageAlert(msg).catch((e: any) => {
-      logger.error('[消息中心监控告警] 触发异常', e?.message ?? e)
+    void processMessageAlert(msg, rawContent, (title, content) => sendMessage({
+      title,
+      content,
+      category: MessageCategory.SYSTEM,
+      type: MessageType.ERROR,
+      skipAlert: true,
+    })).catch((e: any) => {
+      logger.error('[消息中心监控告警] 触发异常', e)
     })
   }
 
@@ -98,7 +121,7 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
  * category 固定为 user
  * title 和 content 为必填，缺失时直接抛出错误
  */
-export async function pushUserMessage(data: { title: string, content: string, type?: MessageType }) {
+export async function sendUserMessage(data: { title: string, content: string, type?: MessageType }) {
   return await sendMessage({
     title: data.title,
     content: data.content,
