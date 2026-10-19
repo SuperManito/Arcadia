@@ -1,0 +1,1 @@
+var e=function(e){return e.SYSTEM=`system`,e.CRON=`cron`,e.USER=`user`,e}({}),t=Object.values(e),n=function(e){return e.INFO=`info`,e.WARN=`warn`,e.ERROR=`error`,e.SUCCESS=`success`,e}({}),r=Object.values(n);export{n as i,r as n,e as r,t};
