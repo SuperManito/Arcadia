@@ -563,18 +563,21 @@ api.delete('/alert/rule', async (request, response) => {
 })
 
 /**
- * 规则命中测试（不落库、不发送）
+ * 规则命中测试
  */
 api.post('/alert/rule/test', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['rule', [true, 'object']],
+        ['logic', [false, 'string']],
+        ['categories', [false, 'string', true]],
+        ['types', [false, 'string', true]],
+        ['conditions', [false, 'object[]']],
         ['message', [true, 'object']],
       ] as const,
-    })
-    const { rule, message } = params.body
-    const cleanedRule = validateMessageAlertRuleDefinition(rule)
+    }, true)
+    const { logic, categories, types, conditions, message } = params.body
+    const cleanedRule = validateMessageAlertRuleDefinition({ logic, categories, types, conditions })
 
     const title = typeof message.title === 'string' ? message.title.trim() : ''
     const content = typeof message.content === 'string' ? message.content.trim() : ''
@@ -1234,25 +1237,24 @@ api.delete('/alert/direct/rule', async (request, response) => {
 })
 
 /**
- * 收信人命中测试（不落库、不发送）：继承规则的替换、通用匹配与标题配置，按真实推送语义预览单收信人结果
+ * 收信人命中测试
  */
 api.post('/alert/direct/rule/receiver/test', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
+        ['ruleId', [true, 'number']],
+        ['receiver', [true, 'string']],
+        ['overrides', [false, 'object']],
         ['message', [true, 'object']],
       ] as const,
-    })
-    const { id, message } = params.body
-    const receiver = await db.messageAlertDirectRuleReceiver.$getById(id)
-    if (!receiver) {
-      throw new Error('收信人不存在')
-    }
-    const rule = await db.messageAlertDirectRule.$getById(receiver.directRuleId)
+    }, true)
+    const { ruleId, receiver, overrides, message } = params.body
+    const rule = await db.messageAlertDirectRule.$getById(ruleId)
     if (!rule) {
       throw new Error('规则不存在')
     }
+    const cleaned = validateMessageAlertDirectReceiver({ receiver, overrides })
     const title = typeof message.title === 'string' ? message.title.trim() : ''
     const content = typeof message.content === 'string' ? message.content.trim() : ''
     if (!title && !content) {
@@ -1261,16 +1263,16 @@ api.post('/alert/direct/rule/receiver/test', async (request, response) => {
     // 替换与真实推送一致：内容替换先于收信人匹配执行，命中行再经匹配后替换清洗
     const replacedContent = await applyReplacements(content, rule.pre_replaces, 'content')
     const lines = prepareLines(replacedContent)
-    const overrides = readReceiverOverrides(receiver.overrides)
-    const pushConfig = resolveReceiverPushConfig(overrides, rule)
-    const { pattern, source } = resolveReceiverPattern(overrides.pattern ?? '', rule.common_pattern)
-    const [matched] = await matchDirectRule(lines, [{ pattern, receiver: receiver.receiver }])
+    const parsedOverrides = readReceiverOverrides(cleaned.overrides)
+    const pushConfig = resolveReceiverPushConfig(parsedOverrides, rule)
+    const { pattern, source } = resolveReceiverPattern(parsedOverrides.pattern ?? '', rule.common_pattern)
+    const [matched] = await matchDirectRule(lines, [{ pattern, receiver: cleaned.receiver }])
     // 超时或异常与未命中语义不同，试测需明确报错而不是显示成未命中
     if (matched === null) {
-      throw new Error(`收信人「${receiver.receiver}」匹配超时或异常，请稍后重试`)
+      throw new Error(`收信人「${cleaned.receiver}」匹配超时或异常，请稍后重试`)
     }
     // 匹配后替换按命中行逐条执行，去重与清空行跳过同真实推送的渠道内聚合
-    const testVars = { title, rule: rule.name, receiver: receiver.receiver }
+    const testVars = { title, rule: rule.name, receiver: cleaned.receiver }
     const replacedLines: string[] = []
     for (const { line } of matched) {
       const replaced = (await applyReplacements(line, pushConfig.postReplaces, 'content', testVars)).trim()
@@ -1288,7 +1290,7 @@ api.post('/alert/direct/rule/receiver/test', async (request, response) => {
                 pushConfig.titleTemplate,
                 title,
                 rule.name,
-                receiver.receiver,
+                cleaned.receiver,
               ),
               rule.pre_replaces,
               'title',
