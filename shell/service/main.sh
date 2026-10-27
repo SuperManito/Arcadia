@@ -14,10 +14,11 @@ function service_manage() {
         output_error "Prisma 初始化失败（客户端生成或数据库同步），请查看报错并分析原因！"
     }
 
+    import utils/pm2
+
     local service_status
-    pm2_list_all_services
-    cat $FilePm2List | awk -F '|' '{print$3}' | grep "arcadia_server" -wq
-    local ExitStatusSERVER=$?
+    has_pm2_service arcadia_server
+    local exit_status=$?
     case $1 in
     ## 开启/重启服务
     start | restart)
@@ -25,8 +26,8 @@ function service_manage() {
         ulimit -c 0 >/dev/null 2>&1
         ## 删除日志
         rm -rf /root/.pm2/logs/arcadia_server-*.log
-        if [[ ${ExitStatusSERVER} -eq 0 ]]; then
-            local service_status="$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')"
+        if [[ ${exit_status} -eq 0 ]]; then
+            local service_status="$(get_pm2_service_status arcadia_server)"
             if [[ "${service_status}" == "errored" ]]; then
                 echo -e "\n$WARN 检测到服务状态异常，开始尝试修复...\n"
                 install_dependencies
@@ -35,8 +36,7 @@ function service_manage() {
             sync_prisma_schema || output_db_error
             cd $SrcDir
             pm2 start ecosystem.config.cjs && sleep 3
-            pm2_list_all_services
-            local service_new_status="$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')"
+            local service_new_status="$(get_pm2_service_status arcadia_server)"
             if [[ "${service_new_status}" == "online" ]]; then
                 if [[ "${service_status}" == "online" ]]; then
                     echo -e "\n$SUCCESS Arcadia 服务已重启\n"
@@ -51,8 +51,7 @@ function service_manage() {
             sync_prisma_schema || output_db_error
             cd $SrcDir
             pm2 start ecosystem.config.cjs && sleep 1
-            pm2_list_all_services
-            local service_status="$(cat $FilePm2List | grep "arcadia_server" -w | awk -F '|' '{print$10}')"
+            local service_status="$(get_pm2_service_status arcadia_server)"
             if [[ "${service_status}" == "online" ]]; then
                 echo -e "\n$SUCCESS Arcadia 服务已启动\n"
             else
@@ -62,7 +61,7 @@ function service_manage() {
         ;;
     ## 关闭服务
     stop)
-        if [[ ${ExitStatusSERVER} -eq 0 ]]; then
+        if [[ ${exit_status} -eq 0 ]]; then
             pm2 stop arcadia_server >/dev/null 2>&1
             pm2 list
             echo -e "\n$COMPLETE Arcadia 服务已关闭\n"
@@ -83,12 +82,16 @@ function service_manage() {
         echo -e "\n$COMPLETE 已重置用户名和密码\n\n[用户名]：${username}\n[密  码]：${password}\n"
         ;;
     esac
-    ## 删除 PM2 进程日志清单
-    [ -f $FilePm2List ] && rm -rf $FilePm2List
 }
 
 ## 列出各服务状态
 function service_status() {
+
+    function pm2_list_all_services() {
+        pm2 list | sed "/─/d" | sed "s# ##g; s#│#|#g" | sed "1d" >$FilePm2List
+    }
+
+    local FilePm2List=$LogTmpDir/.pm2_list.log
     local Services ServiceName StatusJudge Status CreateTime CPUOccupancy MemoryOccupancy RunTime
     local SERVICE_ONLINE="${GREEN}正在运行${PLAIN}"
     local SERVICE_STOPPED="${YELLOW}未在运行${PLAIN}"
@@ -144,11 +147,6 @@ function service_status() {
     ## 删除 PM2 进程日志清单
     [ -f $FilePm2List ] && rm -rf $FilePm2List
     echo ''
-}
-
-## 生成 pm2 list 日志清单，以此判断各服务状态
-function pm2_list_all_services() {
-    pm2 list | sed "/─/d" | sed "s# ##g; s#│#|#g" | sed "1d" >$FilePm2List
 }
 
 function command_service() {

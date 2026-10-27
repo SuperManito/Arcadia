@@ -29,9 +29,7 @@ FileUpdateExtra=$ConfigDir/update_extra.sh
 FileInitExtra=$ConfigDir/init_extra.sh
 FileTaskBeforeExtra=$ConfigDir/task_before_extra.sh
 FileTaskAfterExtra=$ConfigDir/task_after_extra.sh
-FileSendMark=$RootDir/send_mark
-FilePm2List=$RootDir/.pm2_list.log
-FileProcessList=$RootDir/.process_list.log
+FileProcessList=$LogTmpDir/.process_list.log
 FileSSHConfigUser=/root/.ssh/config
 
 ## 清单

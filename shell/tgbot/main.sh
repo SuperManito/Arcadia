@@ -45,25 +45,25 @@ function command_tgbot_main() {
     }
 
     import_config_not_check
+    import utils/pm2
+
     if [[ -z $(grep -E "123456789" $ConfigDir/bot.json) ]]; then
-        pm2_list_all_services
-        cat $FilePm2List | awk -F '|' '{print$3}' | grep "tgbot" -wq
-        local ExitStatustgbot=$?
+        has_pm2_service tgbot
+        local exit_status=$?
         case $1 in
         ## 开启/重启服务
         start | restart)
             ## 删除日志
             rm -rf $BotLogDir/up.log /root/.pm2/logs/tgbot-*.log
-            if [[ ${ExitStatustgbot} -eq 0 ]]; then
-                local ServiceStatus=$(cat $FilePm2List | grep "tgbot" -w | awk -F '|' '{print$10}')
-                case ${ServiceStatus} in
+            if [[ ${exit_status} -eq 0 ]]; then
+                local service_status="$(get_pm2_service_status tgbot)"
+                case ""${service_status}"" in
                 online)
                     pm2 delete tgbot >/dev/null 2>&1
                     ## 启动 bot
                     cd $BotDir && pm2 start ecosystem.config.js && sleep 1
-                    pm2_list_all_services
-                    local ServiceNewStatus=$(cat $FilePm2List | grep "tgbot" -w | awk -F '|' '{print$10}')
-                    if [[ "${ServiceNewStatus}" == "online" ]]; then
+                    local service_new_status="$(get_pm2_service_status tgbot)"
+                    if [[ "${service_new_status}" == "online" ]]; then
                         echo -e "\n$COMPLETE 电报机器人已重启\n"
                     else
                         echo -e "\n$FAIL 重启失败，请检查原因后重试！\n"
@@ -71,9 +71,8 @@ function command_tgbot_main() {
                     ;;
                 stopped)
                     pm2 start tgbot
-                    pm2_list_all_services
-                    local ServiceNewStatus=$(cat $FilePm2List | grep "tgbot" -w | awk -F '|' '{print$10}')
-                    if [[ "${ServiceNewStatus}" == "online" ]]; then
+                    local service_new_status="$(get_pm2_service_status tgbot)"
+                    if [[ "${service_new_status}" == "online" ]]; then
                         echo -e "\n$COMPLETE 电报机器人已重新启动\n"
                     else
                         echo -e "\n$FAIL 启动失败，请检查原因后重试！\n"
@@ -97,9 +96,8 @@ function command_tgbot_main() {
                     cp -rf $BotSrcDir/tgbot $RootDir
                     ## 启动 bot
                     cd $BotDir && pm2 start ecosystem.config.js && sleep 1
-                    pm2_list_all_services
-                    local ServiceNewStatus=$(cat $FilePm2List | grep "tgbot" -w | awk -F '|' '{print$10}')
-                    if [[ "${ServiceNewStatus}" == "online" ]]; then
+                    local service_new_status="$(get_pm2_service_status tgbot)"
+                    if [[ "${service_new_status}" == "online" ]]; then
                         echo -e "\n$SUCCESS 已修复错误，服务恢复正常运行！\n"
                     else
                         echo -e "\n$FAIL 未能自动修复错误，请检查原因后重试！\n"
@@ -122,8 +120,8 @@ function command_tgbot_main() {
                 cp -rf $BotSrcDir/tgbot $RootDir
                 ## 启动 bot
                 cd $BotDir && pm2 start ecosystem.config.js && sleep 1
-                local ServiceStatus=$(pm2 describe tgbot | grep status | awk '{print $4}')
-                if [[ ${ServiceStatus} == "online" ]]; then
+                local service_status="$(get_pm2_service_status tgbot)"
+                if [[ "${service_status}" == "online" ]]; then
                     echo -e "\n$SUCCESS 电报机器人已启动\n"
                 else
                     echo -e "\n$FAIL 电报机器人启动失败，请检查原因后重试！\n"
@@ -133,7 +131,7 @@ function command_tgbot_main() {
 
         ## 关闭服务
         stop)
-            if [[ ${ExitStatustgbot} -eq 0 ]]; then
+            if [[ ${exit_status} -eq 0 ]]; then
                 pm2 stop tgbot >/dev/null 2>&1
                 pm2 list
                 echo -e "\n$COMPLETE 电报机器人已停止\n"
@@ -144,7 +142,7 @@ function command_tgbot_main() {
 
         ## 更新
         update)
-            if [[ ${ExitStatustgbot} -eq 0 ]]; then
+            if [[ ${exit_status} -eq 0 ]]; then
                 pm2 delete tgbot >/dev/null 2>&1
                 ## 删除日志
                 rm -rf $BotLogDir/up.log
@@ -163,8 +161,8 @@ function command_tgbot_main() {
                 cp -rf $BotSrcDir/tgbot $RootDir
                 ## 启动 bot
                 cd $BotDir && pm2 start ecosystem.config.js && sleep 1
-                local ServiceStatus=$(pm2 describe tgbot | grep status | awk '{print $4}')
-                if [[ ${ServiceStatus} == "online" ]]; then
+                local service_status="$(get_pm2_service_status tgbot)"
+                if [[ "${service_status}" == "online" ]]; then
                     echo -e "\n$SUCCESS 电报机器人已更新至最新版本\n"
                 else
                     echo -e "\n$FAIL 电报机器人更新后启动异常，请检查原因后重试！\n"
@@ -185,16 +183,9 @@ function command_tgbot_main() {
             fi
             ;;
         esac
-        ## 删除 PM2 进程日志清单
-        [ -f $FilePm2List ] && rm -rf $FilePm2List
     else
         output_error "请先在 $ConfigDir/bot.json 中配置好您的 Bot ！"
     fi
-}
-
-## 生成 pm2 list 日志清单，以此判断各服务状态
-function pm2_list_all_services() {
-    pm2 list | sed "/─/d" | sed "s# ##g; s#│#|#g" | sed "1d" >$FilePm2List
 }
 
 function command_tgbot() {
