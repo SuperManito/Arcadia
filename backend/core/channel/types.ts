@@ -1,4 +1,4 @@
-import type { ValidateObjectParamType } from '../../utils'
+import type { ValidateObjectRules } from '../../utils'
 
 /**
  * 随各渠道 config 一同存储
@@ -39,7 +39,7 @@ export interface ChannelDefinition<C extends BaseChannelConfig = BaseChannelConf
   /**
    * 配置规则，用于校验渠道配置的合法性
    */
-  configRules: ReadonlyArray<ValidateObjectParamType>
+  configRules: ValidateObjectRules
   /**
    * 保存期校验：规则表达不了的跨字段约束（如互备字段至少填一项），在配置清洗后调用
    */

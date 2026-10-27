@@ -10,12 +10,9 @@ interface ServerChanConfig extends BaseChannelConfig {
  */
 export const ServerChan = {
   type: 'serverchan',
-  configRules: [
-    [
-      'sendKey',
-      [true, 'string'],
-    ],
-  ],
+  configRules: {
+    sendKey: [true, 'string'],
+  },
   rateLimit: {
     // 免费/付费口径冲突（5 或 50 条/分钟），取保守值
     concurrency: 1,

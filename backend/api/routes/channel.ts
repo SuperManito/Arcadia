@@ -22,16 +22,10 @@ api.get('/page', async (request, response) => {
       'update_time',
     ])
     validateRequestParams(request, {
-      query: [
-        [
-          'type',
-          [false, 'string'],
-        ],
-        [
-          'tags',
-          [false, 'string'],
-        ],
-      ],
+      query: {
+        type: [false, 'string'],
+        tags: [false, 'string'],
+      },
     })
     const where: notificationChannelWhereInput = {}
     const and: notificationChannelWhereInput[] = []
@@ -123,12 +117,9 @@ api.get('/tags', async (_request, response) => {
 api.get('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'id',
-          [true, 'string'],
-        ],
-      ] as const,
+      query: {
+        id: [true, 'string'],
+      } as const,
     })
     const { id } = params.query
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
@@ -151,24 +142,12 @@ api.get('/', async (request, response) => {
 api.post('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'name',
-          [false, 'string'],
-        ],
-        [
-          'type',
-          [false, 'string'],
-        ],
-        [
-          'config',
-          [false, 'string | object'],
-        ],
-        [
-          'tags',
-          [false, 'string | string[]'],
-        ],
-      ] as const,
+      body: {
+        name: [false, 'string'],
+        type: [false, 'string'],
+        config: [false, 'string | object'],
+        tags: [false, 'string | string[]'],
+      } as const,
     }, true)
     const cleaned = await validateChannelPayload(params.body)
     const channel = await db.notificationChannel.$create(cleaned)
@@ -190,28 +169,13 @@ api.post('/', async (request, response) => {
 api.put('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
-        ],
-        [
-          'name',
-          [false, 'string'],
-        ],
-        [
-          'type',
-          [false, 'string'],
-        ],
-        [
-          'config',
-          [false, 'string | object'],
-        ],
-        [
-          'tags',
-          [false, 'string | string[]'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number'],
+        name: [false, 'string'],
+        type: [false, 'string'],
+        config: [false, 'string | object'],
+        tags: [false, 'string | string[]'],
+      } as const,
     }, true)
     const { id } = params.body
     const exists = await db.notificationChannel.$getById(id)
@@ -238,12 +202,9 @@ api.put('/', async (request, response) => {
 api.delete('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number'],
+      } as const,
     })
     const { id } = params.body
     const exists = await db.notificationChannel.$getById(id)
@@ -278,32 +239,14 @@ api.delete('/', async (request, response) => {
 api.post('/test', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [false, 'number'],
-        ],
-        [
-          'name',
-          [false, 'string'],
-        ],
-        [
-          'type',
-          [false, 'string'],
-        ],
-        [
-          'config',
-          [false, 'string | object'],
-        ],
-        [
-          'title',
-          [false, 'string'],
-        ],
-        [
-          'content',
-          [false, 'string'],
-        ],
-      ] as const,
+      body: {
+        id: [false, 'number'],
+        name: [false, 'string'],
+        type: [false, 'string'],
+        config: [false, 'string | object'],
+        title: [false, 'string'],
+        content: [false, 'string'],
+      } as const,
     }, true)
     let type: string
     let config: string

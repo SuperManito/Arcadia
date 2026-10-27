@@ -140,16 +140,10 @@ api.get('/openapi', async (request, response) => {
 api.post('/cleanup', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'days',
-          [false, 'number'],
-        ],
-        [
-          'types',
-          [false, 'string[]'],
-        ],
-      ] as const,
+      body: {
+        days: [false, 'number'],
+        types: [false, 'string[]'],
+      } as const,
     })
     const { days, types } = params.body
     if (typeof days === 'number' && days <= 0) {
@@ -173,15 +167,12 @@ api.post('/cleanup', async (request, response) => {
 api.delete('/clear', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'type',
-          [
-            true,
-            ['server', 'login', 'openapi'],
-          ],
+      body: {
+        type: [
+          true,
+          ['server', 'login', 'openapi'],
         ],
-      ] as const,
+      } as const,
     })
     const { type } = params.body
     const clearFunctions = {

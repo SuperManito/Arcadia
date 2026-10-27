@@ -62,80 +62,26 @@ API.get('/', async (_request: Request, response: Response) => {
 API.post('/save', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [false, 'number'],
-        ],
-        [
-          'name',
-          [false, 'string'],
-        ],
-        [
-          'file_path',
-          [false, 'string'],
-        ],
-        [
-          'description',
-          [false, 'string', true],
-        ],
-        [
-          'boot_start',
-          [false, 'number'],
-        ],
-        [
-          'max_restarts',
-          [false, 'number'],
-        ],
-        [
-          'restart_delay',
-          [false, 'number'],
-        ],
-        [
-          'restart_cron',
-          [false, 'string', true],
-        ],
-        [
-          'autorestart',
-          [false, 'number'],
-        ],
-        [
-          'max_memory_restart',
-          [false, 'number'],
-        ],
-        [
-          'stop_exit_codes',
-          [false, 'number'],
-        ],
-        [
-          'exp_backoff_restart_delay',
-          [false, 'number'],
-        ],
-        [
-          'envs',
-          [false, 'string', true],
-        ],
-        [
-          'options',
-          [false, 'string', true],
-        ],
-        [
-          'log_dir',
-          [false, 'string', true],
-        ],
-        [
-          'log_name',
-          [false, 'string', true],
-        ],
-        [
-          'log_max_lines',
-          [false, 'number'],
-        ],
-        [
-          'active',
-          [false, 'number'],
-        ],
-      ] as const,
+      body: {
+        id: [false, 'number'],
+        name: [false, 'string'],
+        file_path: [false, 'string'],
+        description: [false, 'string', true],
+        boot_start: [false, 'number'],
+        max_restarts: [false, 'number'],
+        restart_delay: [false, 'number'],
+        restart_cron: [false, 'string', true],
+        autorestart: [false, 'number'],
+        max_memory_restart: [false, 'number'],
+        stop_exit_codes: [false, 'number'],
+        exp_backoff_restart_delay: [false, 'number'],
+        envs: [false, 'string', true],
+        options: [false, 'string', true],
+        log_dir: [false, 'string', true],
+        log_name: [false, 'string', true],
+        log_max_lines: [false, 'number'],
+        active: [false, 'number'],
+      } as const,
     }, true)
 
     const { id, ...bodyParams } = params.body
@@ -234,12 +180,9 @@ API.post('/save', async (request: Request, response: Response) => {
 API.delete('/', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number'],
+      } as const,
     })
     await deleteDaemonTask(params.body.id)
     response.send(API_STATUS_CODE.ok())
@@ -255,16 +198,10 @@ API.delete('/', async (request: Request, response: Response) => {
 API.post('/action', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
-        ],
-        [
-          'action',
-          [true, 'string'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number'],
+        action: [true, 'string'],
+      } as const,
     })
 
     const { id, action } = params.body
@@ -299,16 +236,10 @@ API.post('/action', async (request: Request, response: Response) => {
 API.get('/check', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'name',
-          [true, 'string'],
-        ],
-        [
-          'excludeId',
-          [false, 'string'],
-        ],
-      ] as const,
+      query: {
+        name: [true, 'string'],
+        excludeId: [false, 'string'],
+      } as const,
     })
     const excludeId = params.query.excludeId
       ? Number.parseInt(params.query.excludeId)
@@ -327,16 +258,10 @@ API.get('/check', async (request: Request, response: Response) => {
 API.get('/log', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'id',
-          [true, 'string'],
-        ],
-        [
-          'startLine',
-          [false, 'string'],
-        ],
-      ] as const,
+      query: {
+        id: [true, 'string'],
+        startLine: [false, 'string'],
+      } as const,
     })
     const id = Number.parseInt(params.query.id)
     if (Number.isNaN(id) || id <= 0) {
@@ -359,12 +284,9 @@ API.get('/log', async (request: Request, response: Response) => {
 API.post('/log/trim', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number'],
+      } as const,
     })
     await trimDaemonTaskLog(params.body.id)
     response.send(API_STATUS_CODE.ok())

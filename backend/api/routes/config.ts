@@ -42,56 +42,20 @@ API.get('/cli', async (_request: Request, response: Response) => {
 API.post('/cli', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'REMOVE_LOG_DAYS_AGO',
-          [false, 'string', true],
-        ],
-        [
-          'ENABLE_UPDATE_EXTRA',
-          [false, 'string', true],
-        ],
-        [
-          'ENABLE_UPDATE_EXTRA_SYNC_FILE',
-          [false, 'string', true],
-        ],
-        [
-          'UPDATE_EXTRA_SYNC_FILE_URL',
-          [false, 'string', true],
-        ],
-        [
-          'ENABLE_INIT_EXTRA',
-          [false, 'string', true],
-        ],
-        [
-          'ENABLE_TASK_BEFORE_EXTRA',
-          [false, 'string', true],
-        ],
-        [
-          'ENABLE_TASK_AFTER_EXTRA',
-          [false, 'string', true],
-        ],
-        [
-          'ENABLE_AUTO_DELETE_REMOTE_FILE',
-          [false, 'string', true],
-        ],
-        [
-          'RUN_DELAY_MAX_SECONDS',
-          [false, 'string', true],
-        ],
-        [
-          'DEFAULT_JS_RUNTIME',
-          [false, 'string', true],
-        ],
-        [
-          'DEFAULT_TS_RUNTIME',
-          [false, 'string', true],
-        ],
-        [
-          'ENABLE_PYTHON_UV',
-          [false, 'string', true],
-        ],
-      ] as const,
+      body: {
+        REMOVE_LOG_DAYS_AGO: [false, 'string', true],
+        ENABLE_UPDATE_EXTRA: [false, 'string', true],
+        ENABLE_UPDATE_EXTRA_SYNC_FILE: [false, 'string', true],
+        UPDATE_EXTRA_SYNC_FILE_URL: [false, 'string', true],
+        ENABLE_INIT_EXTRA: [false, 'string', true],
+        ENABLE_TASK_BEFORE_EXTRA: [false, 'string', true],
+        ENABLE_TASK_AFTER_EXTRA: [false, 'string', true],
+        ENABLE_AUTO_DELETE_REMOTE_FILE: [false, 'string', true],
+        RUN_DELAY_MAX_SECONDS: [false, 'string', true],
+        DEFAULT_JS_RUNTIME: [false, 'string', true],
+        DEFAULT_TS_RUNTIME: [false, 'string', true],
+        ENABLE_PYTHON_UV: [false, 'string', true],
+      } as const,
     }, true)
     const body = params.body
     const validKeys = new Set(Object.values(ConfigKeyCli))
@@ -133,56 +97,20 @@ API.get('/system', async (_request: Request, response: Response) => {
 API.post('/system', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'timezone',
-          [false, 'string'],
-        ],
-        [
-          'npmRegistry',
-          [false, 'string', true],
-        ],
-        [
-          'pipIndexUrl',
-          [false, 'string', true],
-        ],
-        [
-          'aptMirrorUrl',
-          [false, 'string', true],
-        ],
-        [
-          'gemRegistry',
-          [false, 'string', true],
-        ],
-        [
-          'serverLogRetentionDays',
-          [false, 'string', true],
-        ],
-        [
-          'loginLogRetentionDays',
-          [false, 'string', true],
-        ],
-        [
-          'openApiLogRetentionDays',
-          [false, 'string', true],
-        ],
-        [
-          'messageRetentionDays',
-          [false, 'string', true],
-        ],
-        [
-          'taskHistoryRetentionDays',
-          [false, 'string', true],
-        ],
-        [
-          'cleanupCronExpression',
-          [false, 'string', true],
-        ],
-        [
-          'cleanupCronEnabled',
-          [false, 'string', true],
-        ],
-      ] as const,
+      body: {
+        timezone: [false, 'string'],
+        npmRegistry: [false, 'string', true],
+        pipIndexUrl: [false, 'string', true],
+        aptMirrorUrl: [false, 'string', true],
+        gemRegistry: [false, 'string', true],
+        serverLogRetentionDays: [false, 'string', true],
+        loginLogRetentionDays: [false, 'string', true],
+        openApiLogRetentionDays: [false, 'string', true],
+        messageRetentionDays: [false, 'string', true],
+        taskHistoryRetentionDays: [false, 'string', true],
+        cleanupCronExpression: [false, 'string', true],
+        cleanupCronEnabled: [false, 'string', true],
+      } as const,
     }, true)
     const body = params.body
     const validKeys = new Set(Object.values(ConfigKeySystem))

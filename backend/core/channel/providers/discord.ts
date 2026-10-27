@@ -22,35 +22,17 @@ interface DiscordConfig extends BaseChannelConfig {
 export const Discord = {
   type: 'discord',
   singleBody: true,
-  configRules: [
-    [
-      'webhookUrl',
-      [true, 'string'],
+  configRules: {
+    webhookUrl: [true, 'string'],
+    username: [false, 'string'],
+    channelType: [
+      false,
+      ['channel', 'createNewForumPost', 'postToThread'],
     ],
-    [
-      'username',
-      [false, 'string'],
-    ],
-    [
-      'channelType',
-      [
-        false,
-        ['channel', 'createNewForumPost', 'postToThread'],
-      ],
-    ],
-    [
-      'postName',
-      [false, 'string'],
-    ],
-    [
-      'threadId',
-      [false, 'string'],
-    ],
-    [
-      'suppressNotifications',
-      [false, 'boolean'],
-    ],
-  ],
+    postName: [false, 'string'],
+    threadId: [false, 'string'],
+    suppressNotifications: [false, 'boolean'],
+  },
   rateLimit: {
     // 每 webhook 约 5 请求 / 2秒
     concurrency: 1,

@@ -9,7 +9,7 @@ import type {
   PageResult,
 } from '../../db'
 import type { EnvTag, TypeCategory } from '../../core/env'
-import type { ValidateObjectParamType } from '../../utils'
+import type { ValidateObjectRules } from '../../utils'
 import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
 import { logger } from '../../utils/logger'
@@ -228,30 +228,18 @@ apiOpen.get('/v1/page', async (request, response) => {
     // 传参校验
     validatePageFixedParams(request, ['sort', 'update_time'])
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'category',
-          [
-            true,
-            [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
-          ],
+      query: {
+        category: [
+          true,
+          [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
         ],
-        [
-          'enable',
-          [
-            false,
-            ['1', '0', '1,0', '0,1'],
-          ],
+        enable: [
+          false,
+          ['1', '0', '1,0', '0,1'],
         ],
-        [
-          'tags',
-          [false, 'string'],
-        ],
-        [
-          'compositeId',
-          [false, 'string'],
-        ],
-      ] as const,
+        tags: [false, 'string'],
+        compositeId: [false, 'string'],
+      } as const,
     })
     const where: envsGroupWhereInput & envsWhereInput = {}
     const { category, compositeId } = params.query
@@ -400,20 +388,11 @@ apiOpen.get('/v1/query', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'name',
-          [false, 'string'],
-        ],
-        [
-          'type',
-          [false, 'string'],
-        ],
-        [
-          'description',
-          [false, 'string'],
-        ],
-      ] as const,
+      query: {
+        name: [false, 'string'],
+        type: [false, 'string'],
+        description: [false, 'string'],
+      } as const,
     })
     const { name, type, description } = params.query
     if (!name && !type && !description) {
@@ -502,20 +481,11 @@ apiOpen.get('/v1/queryMember', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'id',
-          [true, 'string'],
-        ],
-        [
-          'value',
-          [false, 'string'],
-        ],
-        [
-          'remark',
-          [false, 'string'],
-        ],
-      ] as const,
+      query: {
+        id: [true, 'string'],
+        value: [false, 'string'],
+        remark: [false, 'string'],
+      } as const,
     })
     const { id, value, remark } = params.query
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
@@ -555,19 +525,13 @@ apiOpen.get('/v1/queryById', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'category',
-          [
-            true,
-            [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
-          ],
+      query: {
+        category: [
+          true,
+          [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
         ],
-        [
-          'id',
-          [true, 'string'],
-        ],
-      ] as const,
+        id: [true, 'string'],
+      } as const,
     })
     const { category, id } = params.query
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
@@ -719,23 +683,14 @@ apiOpen.post('/v1/create', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'category',
-          [
-            true,
-            [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
-          ],
+      body: {
+        category: [
+          true,
+          [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
         ],
-        [
-          'compositeId',
-          [false, 'number'],
-        ],
-        [
-          'data',
-          [true, 'object'],
-        ],
-      ] as const,
+        compositeId: [false, 'number'],
+        data: [true, 'object'],
+      } as const,
     })
     const { category, compositeId } = params.body
     let data: (envsModel | envsGroupModel)[]
@@ -748,53 +703,29 @@ apiOpen.post('/v1/create', async (request, response) => {
       ]
     }
     // 过滤数据
-    let validateRules: ValidateObjectParamType[] = []
+    let validateRules: ValidateObjectRules = {}
     switch (category) {
       case EnvTypes.ORDINARY:
-        validateRules = [
-          [
-            'type',
-            [true, 'string'],
+        validateRules = {
+          type: [true, 'string'],
+          description: [false, 'string'],
+          value: [false, 'string'],
+          enable: [
+            false,
+            [1, 0],
           ],
-          [
-            'description',
-            [false, 'string'],
-          ],
-          [
-            'value',
-            [false, 'string'],
-          ],
-          [
-            'enable',
-            [
-              false,
-              [1, 0],
-            ],
-          ],
-        ]
+        }
         break
       case EnvTypes.COMPOSITE:
-        validateRules = [
-          [
-            'type',
-            [true, 'string'],
+        validateRules = {
+          type: [true, 'string'],
+          description: [false, 'string'],
+          separator: [false, 'string'],
+          enable: [
+            false,
+            [1, 0],
           ],
-          [
-            'description',
-            [false, 'string'],
-          ],
-          [
-            'separator',
-            [false, 'string'],
-          ],
-          [
-            'enable',
-            [
-              false,
-              [1, 0],
-            ],
-          ],
-        ]
+        }
         break
       case EnvTypes.COMPOSITE_VALUE:
         if (typeof compositeId === 'undefined') {
@@ -803,26 +734,17 @@ apiOpen.post('/v1/create', async (request, response) => {
         if (compositeId <= 0) {
           throw new Error('参数 compositeId 无效（参数值类型错误）')
         }
-        validateRules = [
-          [
-            'remark',
-            [false, 'string'],
+        validateRules = {
+          remark: [false, 'string'],
+          value: [false, 'string'],
+          enable: [
+            false,
+            [1, 0],
           ],
-          [
-            'value',
-            [false, 'string'],
-          ],
-          [
-            'enable',
-            [
-              false,
-              [1, 0],
-            ],
-          ],
-        ]
+        }
         break
     }
-    const fields = validateRules.map((rule) => rule[0])
+    const fields = Object.keys(validateRules)
     const formatData: (envsModel | envsGroupModel)[] = []
     for (let obj of data) {
       // 属性校验
@@ -866,19 +788,13 @@ apiOpen.post('/v1/update', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'category',
-          [
-            true,
-            [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
-          ],
+      body: {
+        category: [
+          true,
+          [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
         ],
-        [
-          'data',
-          [true, 'object'],
-        ],
-      ] as const,
+        data: [true, 'object'],
+      } as const,
     })
     const { category } = params.body
     let data: (envsModel | envsGroupModel)[]
@@ -891,91 +807,46 @@ apiOpen.post('/v1/update', async (request, response) => {
       ]
     }
     // 过滤数据
-    let validateRules: ValidateObjectParamType[] = []
+    let validateRules: ValidateObjectRules = {}
     switch (category) {
       case EnvTypes.ORDINARY:
-        validateRules = [
-          [
-            'id',
-            [true, 'number'],
+        validateRules = {
+          id: [true, 'number'],
+          type: [true, 'string'],
+          description: [false, 'string'],
+          value: [false, 'string'],
+          enable: [
+            false,
+            [1, 0],
           ],
-          [
-            'type',
-            [true, 'string'],
-          ],
-          [
-            'description',
-            [false, 'string'],
-          ],
-          [
-            'value',
-            [false, 'string'],
-          ],
-          [
-            'enable',
-            [
-              false,
-              [1, 0],
-            ],
-          ],
-        ]
+        }
         break
       case EnvTypes.COMPOSITE:
-        validateRules = [
-          [
-            'id',
-            [true, 'number'],
+        validateRules = {
+          id: [true, 'number'],
+          type: [true, 'string'],
+          description: [false, 'string'],
+          separator: [false, 'string'],
+          enable: [
+            false,
+            [1, 0],
           ],
-          [
-            'type',
-            [true, 'string'],
-          ],
-          [
-            'description',
-            [false, 'string'],
-          ],
-          [
-            'separator',
-            [false, 'string'],
-          ],
-          [
-            'enable',
-            [
-              false,
-              [1, 0],
-            ],
-          ],
-        ]
+        }
         break
       case EnvTypes.COMPOSITE_VALUE:
-        validateRules = [
-          [
-            'id',
-            [true, 'number'],
+        validateRules = {
+          id: [true, 'number'],
+          group_id: [true, 'number'],
+          remark: [false, 'string'],
+          value: [false, 'string'],
+          enable: [
+            false,
+            [1, 0],
           ],
-          [
-            'group_id',
-            [true, 'number'],
-          ],
-          [
-            'remark',
-            [false, 'string'],
-          ],
-          [
-            'value',
-            [false, 'string'],
-          ],
-          [
-            'enable',
-            [
-              false,
-              [1, 0],
-            ],
-          ],
-        ]
+        }
         break
     }
-    const fields = validateRules.map((rule) => rule[0])
+    const fields = Object.keys(validateRules)
     const existGroupIds: number[] = [] // 已存在的复合变量(组) id（临时）
     const formatData: (envsModel | envsGroupModel)[] = []
     for (let obj of data) {
@@ -1126,23 +997,14 @@ apiOpen.post('/v1/changeStatus', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number | number[]'],
+      body: {
+        id: [true, 'number | number[]'],
+        status: [
+          true,
+          [1, 0],
         ],
-        [
-          'status',
-          [
-            true,
-            [1, 0],
-          ],
-        ],
-        [
-          'isComposite',
-          [false, 'boolean'],
-        ],
-      ] as const,
+        isComposite: [false, 'boolean'],
+      } as const,
     })
     const { id, status, isComposite } = params.body
     const ids = Array.isArray(id)
@@ -1193,12 +1055,9 @@ api.delete('/delete', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number | number[]'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number | number[]'],
+      } as const,
     })
     const { id } = params.body
     const ids = Array.isArray(id)
@@ -1226,12 +1085,9 @@ api.delete('/deleteItem', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number | number[]'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number | number[]'],
+      } as const,
     })
     const { id } = params.body
     const ids = Array.isArray(id)
@@ -1258,16 +1114,10 @@ apiOpen.post('/v1/delete', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number | number[]'],
-        ],
-        [
-          'isComposite',
-          [false, 'boolean'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number | number[]'],
+        isComposite: [false, 'boolean'],
+      } as const,
     })
     const { id, isComposite } = params.body
     const ids = Array.isArray(id)
@@ -1298,20 +1148,11 @@ api.put('/order', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
-        ],
-        [
-          'order',
-          [false, 'number'],
-        ],
-        [
-          'moveToEnd',
-          [false, 'boolean'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number'],
+        order: [false, 'number'],
+        moveToEnd: [false, 'boolean'],
+      } as const,
     })
     const { id, order, moveToEnd } = params.body
     let orderValue = order
@@ -1346,20 +1187,11 @@ api.put('/orderItem', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
-        ],
-        [
-          'order',
-          [false, 'number'],
-        ],
-        [
-          'moveToEnd',
-          [false, 'boolean'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number'],
+        order: [false, 'number'],
+        moveToEnd: [false, 'boolean'],
+      } as const,
     })
     const { id, order, moveToEnd } = params.body
     let orderValue = order
@@ -1394,24 +1226,12 @@ apiOpen.post('/v1/order', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
-        ],
-        [
-          'order',
-          [false, 'number'],
-        ],
-        [
-          'moveToEnd',
-          [false, 'boolean'],
-        ],
-        [
-          'isComposite',
-          [false, 'boolean'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number'],
+        order: [false, 'number'],
+        moveToEnd: [false, 'boolean'],
+        isComposite: [false, 'boolean'],
+      } as const,
     })
     const { id, order, moveToEnd, isComposite } = params.body
     let orderValue = order
@@ -1463,12 +1283,9 @@ apiOpen.post('/v1/order', async (request, response) => {
 api.get('/tagsItem', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'group_id',
-          [false, 'string'],
-        ],
-      ] as const,
+      query: {
+        group_id: [false, 'string'],
+      } as const,
     })
     const { group_id } = params.query
     let compositeId: number
@@ -1502,19 +1319,13 @@ api.get('/tags', async (_request, response) => {
 apiOpen.get('/v1/tags', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'category',
-          [
-            true,
-            [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
-          ],
+      query: {
+        category: [
+          true,
+          [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
         ],
-        [
-          'compositeId',
-          [false, 'string'],
-        ],
-      ] as const,
+        compositeId: [false, 'string'],
+      } as const,
     })
     const { category, compositeId } = params.query
     let result: EnvTag[]

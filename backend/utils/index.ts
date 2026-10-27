@@ -1,4 +1,3 @@
-/* eslint-disable ts/no-empty-object-type */
 import type { Request } from 'express'
 
 /**
@@ -161,7 +160,10 @@ export function checkType(value: any, type: string) {
 /**
  * 传参格式校验类型定义
  */
-export type ValidateParamsOptions = [required?: boolean, type?: string | Array<string | number>, allowEmptyString?: boolean]
+export type ValidateParamsOptions = readonly [required?: boolean, type?: string | ReadonlyArray<string | number>, allowEmptyString?: boolean]
+
+/** 参数名校验配置：键为参数名，值为该参数的校验选项 */
+export type ValidateParamsConfig = Readonly<Record<string, ValidateParamsOptions>>
 
 type TypeStringToTS<T extends string>
   = T extends 'string' ? string
@@ -183,28 +185,23 @@ type InferParamType<TOptions extends ValidateParamsOptions | undefined>
         : string
     : string
 
-// 从参数配置项推导类型（考虑 required）
-type InferParam<TParam extends readonly [string, ValidateParamsOptions?]>
-  = TParam extends readonly [infer Name extends string, infer Options extends ValidateParamsOptions]
-    ? Options extends readonly [infer R, ...any]
-      ? R extends true
-        ? { [K in Name]: InferParamType<Options> }
-        : { [K in Name]?: InferParamType<Options> }
-      : { [K in Name]?: string }
-    : TParam extends readonly [infer Name extends string]
-      ? { [K in Name]?: string }
-      : {}
+// required 决定推导出的参数键是否必选
+type IsRequiredParam<TOptions extends ValidateParamsOptions | undefined>
+  = TOptions extends readonly [infer R, ...any] ? R extends true ? true : false : false
+
+type Simplify<T> = { [K in keyof T]: T[K] }
 
 // 合并参数对象类型
-type MergeParams<T extends ReadonlyArray<readonly [string, ValidateParamsOptions?]>>
-  = T extends readonly [infer First extends readonly [string, ValidateParamsOptions?], ...infer Rest extends ReadonlyArray<readonly [string, ValidateParamsOptions?]>]
-    ? InferParam<First> & MergeParams<Rest>
-    : {}
+type MergeParams<TConfig extends ValidateParamsConfig>
+  = Simplify<
+    & { -readonly [K in keyof TConfig as IsRequiredParam<TConfig[K]> extends true ? K : never]: InferParamType<TConfig[K]> }
+    & { -readonly [K in keyof TConfig as IsRequiredParam<TConfig[K]> extends true ? never : K]?: InferParamType<TConfig[K]> }
+  >
 
 // 参数配置类型
 interface ParamsConfig<
-  TQuery extends ReadonlyArray<readonly [string, ValidateParamsOptions?]> | undefined = undefined,
-  TBody extends ReadonlyArray<readonly [string, ValidateParamsOptions?]> | undefined = undefined,
+  TQuery extends ValidateParamsConfig | undefined = undefined,
+  TBody extends ValidateParamsConfig | undefined = undefined,
 > {
   query?: TQuery
   body?: TBody
@@ -212,15 +209,11 @@ interface ParamsConfig<
 
 // 从配置推导验证后的参数类型
 export interface ValidatedParams<
-  TQuery extends ReadonlyArray<readonly [string, ValidateParamsOptions?]> | undefined,
-  TBody extends ReadonlyArray<readonly [string, ValidateParamsOptions?]> | undefined,
+  TQuery extends ValidateParamsConfig | undefined,
+  TBody extends ValidateParamsConfig | undefined,
 > {
-  query: TQuery extends ReadonlyArray<readonly [string, ValidateParamsOptions?]>
-    ? MergeParams<TQuery>
-    : Record<string, any>
-  body: TBody extends ReadonlyArray<readonly [string, ValidateParamsOptions?]>
-    ? MergeParams<TBody>
-    : Record<string, any>
+  query: TQuery extends ValidateParamsConfig ? MergeParams<TQuery> : Record<string, any>
+  body: TBody extends ValidateParamsConfig ? MergeParams<TBody> : Record<string, any>
 }
 
 /**
@@ -230,8 +223,8 @@ export interface ValidatedParams<
  * @description clean=true 时仅返回声明参数（等价 cleanProperties）
  */
 export function validateRequestParams<
-  TQuery extends ReadonlyArray<readonly [string, ValidateParamsOptions?]> | undefined = undefined,
-  TBody extends ReadonlyArray<readonly [string, ValidateParamsOptions?]> | undefined = undefined,
+  TQuery extends ValidateParamsConfig | undefined = undefined,
+  TBody extends ValidateParamsConfig | undefined = undefined,
 >(
   req: Request,
   config: ParamsConfig<TQuery, TBody>,
@@ -259,7 +252,7 @@ export function validateRequestParams<
     }
     const source = (req[paramType] ?? {}) as Record<string, unknown>
     const picked = result[paramType]
-    paramList.forEach(([paramName, options = []]) => {
+    Object.entries(paramList as ValidateParamsConfig).forEach(([paramName, options]) => {
       const [required = false, type = 'string', allowEmptyString = false] = options
 
       if (!Object.prototype.hasOwnProperty.call(source, paramName)) {
@@ -281,18 +274,18 @@ export function validateRequestParams<
           }
         }
       }
-      if (Array.isArray(type)) {
-        if (!type.includes(paramValue)) {
+      if (typeof type === 'string') {
+        if (type.includes('|')) {
+          const types = type.replace(/\s/g, '').split('|')
+          if (!types.some((t) => checkType(paramValue, t))) {
+            throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
+          }
+        }
+        else if (!checkType(paramValue, type)) {
           throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
         }
       }
-      else if (type.includes('|')) {
-        const types = type.replace(/\s/g, '').split('|')
-        if (!types.some((t) => checkType(paramValue, t))) {
-          throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
-        }
-      }
-      else if (!checkType(paramValue, type)) {
+      else if (!type.includes(paramValue as string | number)) {
         throw new Error(`参数 ${paramName} 无效（参数值类型错误）`)
       }
       // clean=true 时仅收集声明参数
@@ -313,31 +306,16 @@ const PAGE_SIZE_MAX = 9999
  */
 export function validatePageFixedParams(req: Request, orderByFields?: (string | number)[]) {
   validateRequestParams(req, {
-    query: [
-      [
-        'search',
-        [false, 'string', true],
+    query: {
+      search: [false, 'string', true],
+      page: [false, 'string'],
+      size: [false, 'string'],
+      order: [
+        false,
+        ['1', '0'],
       ],
-      [
-        'page',
-        [false, 'string'],
-      ],
-      [
-        'size',
-        [false, 'string'],
-      ],
-      [
-        'order',
-        [
-          false,
-          ['1', '0'],
-        ],
-      ],
-      [
-        'orderBy',
-        [false, orderByFields ?? 'string'],
-      ],
-    ],
+      orderBy: [false, orderByFields ?? 'string'],
+    },
   })
   for (const param of ['page', 'size']) {
     const keyValue = req.query[param] as string
@@ -356,20 +334,23 @@ export function validatePageFixedParams(req: Request, orderByFields?: (string | 
 /**
  * 对象格式校验（拦截器）
  */
-export type ValidateObjectParamType = [paramName: string, options?: [required: boolean, type: string | Array<string | number>]]
+export type ValidateObjectRule = readonly [required: boolean, type: string | ReadonlyArray<string | number>]
+
+/** 属性名校验配置：键为属性名，值为该属性的校验选项 */
+export type ValidateObjectRules = Readonly<Record<string, ValidateObjectRule>>
 
 /**
  * 对象格式校验（拦截器），仅校验不修改源对象
  */
 export function validateObject<T extends object>(
   obj: T,
-  params: ReadonlyArray<ValidateObjectParamType>,
+  params: ValidateObjectRules,
   objName: string = '',
 ): void {
   if (objName) {
     objName = ` ${objName} `
   }
-  params.forEach(([paramName, options = []]) => {
+  Object.entries(params).forEach(([paramName, options]) => {
     const [required = false, type = 'string'] = options
 
     if (!Object.prototype.hasOwnProperty.call(obj, paramName)) {
@@ -384,18 +365,18 @@ export function validateObject<T extends object>(
         throw new Error(`源对象${objName}中的属性 ${paramName} 无效（属性值不能为空）`)
       }
     }
-    if (Array.isArray(type)) {
-      if (!type.includes(paramValue)) {
+    if (typeof type === 'string') {
+      if (type.includes('|')) {
+        const types = type.replace(/\s/g, '').split('|')
+        if (!types.some((t) => checkType(paramValue, t))) {
+          throw new Error(`源对象${objName}中的属性 ${paramName} 无效（属性值类型错误）`)
+        }
+      }
+      else if (!checkType(paramValue, type)) {
         throw new Error(`源对象${objName}中的属性 ${paramName} 无效（属性值类型错误）`)
       }
     }
-    else if (type.includes('|')) {
-      const types = type.replace(/\s/g, '').split('|')
-      if (!types.some((t) => checkType(paramValue, t))) {
-        throw new Error(`源对象${objName}中的属性 ${paramName} 无效（属性值类型错误）`)
-      }
-    }
-    else if (!checkType(paramValue, type)) {
+    else if (!type.includes(paramValue)) {
       throw new Error(`源对象${objName}中的属性 ${paramName} 无效（属性值类型错误）`)
     }
   })

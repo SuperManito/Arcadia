@@ -66,30 +66,18 @@ export async function sendMessage(data: MessageData): Promise<boolean> {
   const category = data.category || MessageCategory.SYSTEM
   const type = data.type || MessageType.INFO
 
-  validateObject({ title, content, category, type }, [
-    [
-      'title',
-      [true, 'string'],
+  validateObject({ title, content, category, type }, {
+    title: [true, 'string'],
+    content: [true, 'string'],
+    category: [
+      false,
+      Object.values(MessageCategory),
     ],
-    [
-      'content',
-      [true, 'string'],
+    type: [
+      false,
+      Object.values(MessageType),
     ],
-    [
-      'category',
-      [
-        false,
-        Object.values(MessageCategory),
-      ],
-    ],
-    [
-      'type',
-      [
-        false,
-        Object.values(MessageType),
-      ],
-    ],
-  ])
+  })
 
   const contentHash = createHash('md5').update(content).digest('hex')
   const fingerprint = `${category}:${type}:${title}:${contentHash}`

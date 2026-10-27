@@ -11,12 +11,9 @@ interface FeishuConfig extends BaseChannelConfig {
 export const Feishu = {
   type: 'feishu',
   singleBody: true,
-  configRules: [
-    [
-      'webhookUrl',
-      [true, 'string'],
-    ],
-  ],
+  configRules: {
+    webhookUrl: [true, 'string'],
+  },
   rateLimit: {
     // 官方双层限制：5 次/秒 + 100 次/分钟
     concurrency: 1,

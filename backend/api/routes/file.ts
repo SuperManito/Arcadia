@@ -58,19 +58,13 @@ api.get('/list', (request, response) => {
 apiOpen.get('/v1/list', (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'path',
-          [false, 'string'],
+      query: {
+        path: [false, 'string'],
+        showCount: [
+          false,
+          ['1', '0'],
         ],
-        [
-          'showCount',
-          [
-            false,
-            ['1', '0'],
-          ],
-        ],
-      ] as const,
+      } as const,
     })
     const path = params.query.path || APP_ROOT_DIR
     const { showCount } = params.query
@@ -191,12 +185,9 @@ api.get('/content', (request, response) => {
 apiOpen.get('/v1/content', (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'path',
-          [true, 'string'],
-        ],
-      ] as const,
+      query: {
+        path: [true, 'string'],
+      } as const,
     })
     const { path } = params.query
     checkPathAccess(path, true)
@@ -226,16 +217,10 @@ api.post('/content', (request, response) => {
 apiOpen.post('/v1/content', (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'path',
-          [true, 'string'],
-        ],
-        [
-          'content',
-          [true, 'string', true],
-        ],
-      ] as const,
+      body: {
+        path: [true, 'string'],
+        content: [true, 'string', true],
+      } as const,
     })
     const { path, content } = params.body
     checkPathAccess(path, true)
@@ -264,12 +249,9 @@ api.get('/info', (request, response) => {
 apiOpen.get('/v1/info', (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'path',
-          [true, 'string'],
-        ],
-      ] as const,
+      query: {
+        path: [true, 'string'],
+      } as const,
     })
     const { path } = params.query
     checkPathAccess(path, true)
@@ -299,16 +281,10 @@ api.post('/rename', (request, response) => {
 apiOpen.post('/v1/rename', (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'path',
-          [true, 'string'],
-        ],
-        [
-          'name',
-          [true, 'string'],
-        ],
-      ] as const,
+      body: {
+        path: [true, 'string'],
+        name: [true, 'string'],
+      } as const,
     })
     const { path, name } = params.body
     checkPathAccess(path, true)
@@ -370,23 +346,14 @@ api.post('/create', (request, response) => {
 apiOpen.post('/v1/create', (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'path',
-          [true, 'string'],
+      body: {
+        path: [true, 'string'],
+        name: [true, 'string'],
+        type: [
+          true,
+          ['folder', 'file'],
         ],
-        [
-          'name',
-          [true, 'string'],
-        ],
-        [
-          'type',
-          [
-            true,
-            ['folder', 'file'],
-          ],
-        ],
-      ] as const,
+      } as const,
     })
     const { path, name, type } = params.body
     checkPathBoundary(path, true)
@@ -426,12 +393,9 @@ api.delete('/delete', (request, response) => {
 apiOpen.post('/v1/delete', (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'path',
-          [true, 'string | string[]'],
-        ],
-      ] as const,
+      body: {
+        path: [true, 'string | string[]'],
+      } as const,
     })
     const { path } = params.body
     let files: string[]
@@ -471,12 +435,9 @@ api.get('/download', (request, response) => {
 apiOpen.get('/v1/download', (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'path',
-          [true, 'string'],
-        ],
-      ] as const,
+      query: {
+        path: [true, 'string'],
+      } as const,
     })
     const { path } = params.query
     checkPathAccess(path, true)

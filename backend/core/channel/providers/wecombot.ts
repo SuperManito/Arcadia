@@ -12,12 +12,9 @@ interface WeComBotConfig extends BaseChannelConfig {
 export const WeComBot = {
   type: 'wecombot',
   singleBody: true,
-  configRules: [
-    [
-      'webhookUrl',
-      [true, 'string'],
-    ],
-  ],
+  configRules: {
+    webhookUrl: [true, 'string'],
+  },
   rateLimit: {
     // 群机器人 20 条/分钟
     concurrency: 1,

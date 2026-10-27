@@ -23,20 +23,11 @@ const apiOpen: Express = express()
 api.get('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'search',
-          [false, 'string', true],
-        ],
-        [
-          'ecosystem',
-          [false, 'string', true],
-        ],
-        [
-          'status',
-          [false, 'string', true],
-        ],
-      ] as const,
+      query: {
+        search: [false, 'string', true],
+        ecosystem: [false, 'string', true],
+        status: [false, 'string', true],
+      } as const,
     })
     const { search, ecosystem, status } = params.query
     const where: dependencyManageWhereInput = {}
@@ -105,23 +96,14 @@ apiOpen.get('/v1/page', async (request, response) => {
       'update_time',
     ])
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'search',
-          [false, 'string', true],
+      query: {
+        search: [false, 'string', true],
+        ecosystem: [false, ECOSYSTEMS],
+        status: [
+          false,
+          ['0', '1', '2', '3', '4'],
         ],
-        [
-          'ecosystem',
-          [false, ECOSYSTEMS],
-        ],
-        [
-          'status',
-          [
-            false,
-            ['0', '1', '2', '3', '4'],
-          ],
-        ],
-      ] as const,
+      } as const,
     }, true)
     const { search, ecosystem, status } = params.query
     const where: dependencyManageWhereInput = {}
@@ -184,20 +166,11 @@ apiOpen.get('/v1/page', async (request, response) => {
 api.post('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'name',
-          [true, 'string | string[]'],
-        ],
-        [
-          'ecosystem',
-          [true, ECOSYSTEMS],
-        ],
-        [
-          'remark',
-          [false, 'string'],
-        ],
-      ] as const,
+      body: {
+        name: [true, 'string | string[]'],
+        ecosystem: [true, ECOSYSTEMS],
+        remark: [false, 'string'],
+      } as const,
     })
     const { name, ecosystem, remark } = params.body
     const names = Array.isArray(name)
@@ -242,20 +215,11 @@ apiOpen.post('/v1/create', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'name',
-          [true, 'string | string[]'],
-        ],
-        [
-          'ecosystem',
-          [true, ECOSYSTEMS],
-        ],
-        [
-          'remark',
-          [false, 'string'],
-        ],
-      ] as const,
+      body: {
+        name: [true, 'string | string[]'],
+        ecosystem: [true, ECOSYSTEMS],
+        remark: [false, 'string'],
+      } as const,
     }, true)
     const { name, ecosystem, remark } = params.body
     const names = Array.isArray(name)
@@ -300,12 +264,9 @@ apiOpen.post('/v1/create', async (request, response) => {
 api.delete('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number | number[]'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number | number[]'],
+      } as const,
     })
     const { id } = params.body
     const ids = Array.isArray(id)
@@ -338,12 +299,9 @@ apiOpen.post('/v1/delete', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number | number[]'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number | number[]'],
+      } as const,
     }, true)
     const { id } = params.body
     const ids = Array.isArray(id)
@@ -376,19 +334,13 @@ apiOpen.post('/v1/delete', async (request, response) => {
 api.post('/operate', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'action',
-          [
-            true,
-            ['install', 'uninstall', 'sync'],
-          ],
+      body: {
+        action: [
+          true,
+          ['install', 'uninstall', 'sync'],
         ],
-        [
-          'ids',
-          [false, 'number[]'],
-        ],
-      ] as const,
+        ids: [false, 'number[]'],
+      } as const,
     })
     const { action, ids } = params.body
     // sync 同步已安装版本
@@ -441,19 +393,13 @@ apiOpen.post('/v1/operate', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'action',
-          [
-            true,
-            ['install', 'uninstall', 'sync'],
-          ],
+      body: {
+        action: [
+          true,
+          ['install', 'uninstall', 'sync'],
         ],
-        [
-          'ids',
-          [false, 'number[]'],
-        ],
-      ] as const,
+        ids: [false, 'number[]'],
+      } as const,
     }, true)
     const { action, ids } = params.body
     // sync 同步已安装版本
@@ -507,12 +453,9 @@ apiOpen.post('/v1/operate', async (request, response) => {
 api.get('/error', async (request, response) => {
   try {
     validateRequestParams(request, {
-      query: [
-        [
-          'id',
-          [true, 'string'],
-        ],
-      ] as const,
+      query: {
+        id: [true, 'string'],
+      } as const,
     })
     const idStr = request.query.id as string
     if (!/^\d+$/.test(idStr) || Number.parseInt(idStr) <= 0)
@@ -532,12 +475,9 @@ apiOpen.get('/v1/error', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'id',
-          [true, 'string'],
-        ],
-      ] as const,
+      query: {
+        id: [true, 'string'],
+      } as const,
     })
     const { id } = params.query
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0)
@@ -559,12 +499,9 @@ apiOpen.get('/v1/query', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'id',
-          [true, 'string'],
-        ],
-      ] as const,
+      query: {
+        id: [true, 'string'],
+      } as const,
     })
     const { id } = params.query
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0)

@@ -13,16 +13,10 @@ interface GoogleChatConfig extends BaseChannelConfig {
 export const GoogleChat = {
   type: 'googlechat',
   singleBody: true,
-  configRules: [
-    [
-      'webhookUrl',
-      [true, 'string'],
-    ],
-    [
-      'maxRetries',
-      [false, 'number'],
-    ],
-  ],
+  configRules: {
+    webhookUrl: [true, 'string'],
+    maxRetries: [false, 'number'],
+  },
   rateLimit: {
     // 每空间写入 60 次/分钟
     concurrency: 1,

@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from 'express'
 import type { tasksModel, tasksWhereInput } from '../../db'
 import type { CodeFileResolveResult } from '../../core/file'
-import type { ValidateObjectParamType } from '../../utils'
+import type { ValidateObjectRules } from '../../utils'
 import type { TaskConfigModel, TasksType } from '../../core/type/cron'
 import express from 'express'
 import { API_STATUS_CODE } from '../../utils/httpUtil'
@@ -57,31 +57,16 @@ type TaskPayload<T> = Omit<T, 'config'> & { config?: string }
 type CreateTaskPayload<T> = TaskPayload<T> & { type: TasksTypeEnum, create_time: Date }
 
 function handleSaveTaskConfig(config: TaskConfigModel): string {
-  const cronConfigValidateRules: ValidateObjectParamType[] = [
-    [
-      'before_task_shell',
-      [false, 'string'],
-    ],
-    [
-      'after_task_shell',
-      [false, 'string'],
-    ],
-    [
-      'log_directory',
-      [false, 'string'],
-    ],
-    [
-      'source_file',
-      [false, 'string'],
-    ],
-    [
-      'allow_concurrency',
-      [false, 'boolean'],
-    ],
-  ]
+  const cronConfigValidateRules: ValidateObjectRules = {
+    before_task_shell: [false, 'string'],
+    after_task_shell: [false, 'string'],
+    log_directory: [false, 'string'],
+    source_file: [false, 'string'],
+    allow_concurrency: [false, 'boolean'],
+  }
 
   validateObject(config, cronConfigValidateRules, 'config')
-  const conf = cleanProperties(config, cronConfigValidateRules.map((rule) => rule[0]))
+  const conf = cleanProperties(config, Object.keys(cronConfigValidateRules))
   return Object.keys(conf).length === 0
     ? ''
     : JSON.stringify(conf) // 转为字符串（空配置对象存储为空字符串）
@@ -208,26 +193,17 @@ apiOpen.get('/v1/page', async (request, response) => {
     // 传参校验
     validatePageFixedParams(request, ['sort', 'last_runtime', 'last_run_use'])
     validateRequestParams(request, {
-      query: [
-        [
-          'type',
-          [
-            false,
-            [TasksTypeEnum.USER, TasksTypeEnum.SYSTEM],
-          ],
+      query: {
+        type: [
+          false,
+          [TasksTypeEnum.USER, TasksTypeEnum.SYSTEM],
         ],
-        [
-          'active',
-          [
-            false,
-            ['1', '0'],
-          ],
+        active: [
+          false,
+          ['1', '0'],
         ],
-        [
-          'tags',
-          [false, 'string', true],
-        ],
-      ],
+        tags: [false, 'string', true],
+      },
     })
     const active = request.query.active
       ? (request.query.active as string).split(',')
@@ -324,12 +300,9 @@ apiOpen.get('/v1/query', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'id',
-          [true, 'string'],
-        ],
-      ] as const,
+      query: {
+        id: [true, 'string'],
+      } as const,
     })
     const { id } = params.query
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
@@ -378,42 +351,21 @@ apiOpen.post('/v1/create', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'name',
-          [true, 'string'],
+      body: {
+        name: [true, 'string'],
+        cron: [true, 'string'],
+        shell: [true, 'string'],
+        active: [
+          false,
+          [1, 0],
         ],
-        [
-          'cron',
-          [true, 'string'],
+        remark: [false, 'string'],
+        config: [false, 'object'],
+        error_notify: [
+          false,
+          [1, 0],
         ],
-        [
-          'shell',
-          [true, 'string'],
-        ],
-        [
-          'active',
-          [
-            false,
-            [1, 0],
-          ],
-        ],
-        [
-          'remark',
-          [false, 'string'],
-        ],
-        [
-          'config',
-          [false, 'object'],
-        ],
-        [
-          'error_notify',
-          [
-            false,
-            [1, 0],
-          ],
-        ],
-      ] as const,
+      } as const,
     }, true)
     const { cron } = params.body
     const data = Object.assign({}, params.body, {
@@ -504,46 +456,22 @@ apiOpen.post('/v1/update', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
+      body: {
+        id: [true, 'number'],
+        name: [false, 'string'],
+        cron: [false, 'string'],
+        shell: [false, 'string'],
+        active: [
+          false,
+          [1, 0],
         ],
-        [
-          'name',
-          [false, 'string'],
+        remark: [false, 'string'],
+        config: [false, 'object'],
+        error_notify: [
+          false,
+          [1, 0],
         ],
-        [
-          'cron',
-          [false, 'string'],
-        ],
-        [
-          'shell',
-          [false, 'string'],
-        ],
-        [
-          'active',
-          [
-            false,
-            [1, 0],
-          ],
-        ],
-        [
-          'remark',
-          [false, 'string'],
-        ],
-        [
-          'config',
-          [false, 'object'],
-        ],
-        [
-          'error_notify',
-          [
-            false,
-            [1, 0],
-          ],
-        ],
-      ] as const,
+      } as const,
     }, true)
     const { id, cron } = params.body
     if (id <= 0) {
@@ -603,12 +531,9 @@ apiOpen.post('/v1/delete', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number | number[]'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number | number[]'],
+      } as const,
     })
     const { id } = params.body
     const ids: number[] = Array.isArray(id)
@@ -639,20 +564,11 @@ async function order(request: Request, response: Response, useOpenApiHandler = f
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
-        ],
-        [
-          'order',
-          [false, 'number'],
-        ],
-        [
-          'moveToEnd',
-          [false, 'boolean'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number'],
+        order: [false, 'number'],
+        moveToEnd: [false, 'boolean'],
+      } as const,
     })
     const { id, order, moveToEnd } = params.body
     let orderValue = order

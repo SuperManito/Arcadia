@@ -14,16 +14,10 @@ interface KookConfig extends BaseChannelConfig {
 export const Kook = {
   type: 'kook',
   singleBody: true,
-  configRules: [
-    [
-      'botToken',
-      [true, 'string'],
-    ],
-    [
-      'channelId',
-      [true, 'string'],
-    ],
-  ],
+  configRules: {
+    botToken: [true, 'string'],
+    channelId: [true, 'string'],
+  },
   rateLimit: {
     // bot API 未实名 60 次/分钟
     concurrency: 1,

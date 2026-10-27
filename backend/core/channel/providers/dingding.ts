@@ -19,31 +19,16 @@ interface DingDingConfig extends BaseChannelConfig {
  */
 export const DingDing = {
   type: 'dingding',
-  configRules: [
-    [
-      'webhookUrl',
-      [true, 'string'],
+  configRules: {
+    webhookUrl: [true, 'string'],
+    secret: [false, 'string'],
+    mentionType: [
+      false,
+      ['none', 'all', 'mobiles', 'users'],
     ],
-    [
-      'secret',
-      [false, 'string'],
-    ],
-    [
-      'mentionType',
-      [
-        false,
-        ['none', 'all', 'mobiles', 'users'],
-      ],
-    ],
-    [
-      'mobiles',
-      [false, 'string[]'],
-    ],
-    [
-      'users',
-      [false, 'string[]'],
-    ],
-  ],
+    mobiles: [false, 'string[]'],
+    users: [false, 'string[]'],
+  },
   rateLimit: {
     // 自定义机器人 20 条/分钟，超限限流 10 分钟
     concurrency: 1,

@@ -19,28 +19,13 @@ export const WeComApp = {
   type: 'wecomapp',
   singleBody: true,
   summaryTitle: true,
-  configRules: [
-    [
-      'corpId',
-      [true, 'string'],
-    ],
-    [
-      'corpSecret',
-      [true, 'string'],
-    ],
-    [
-      'agentId',
-      [true, 'number'],
-    ],
-    [
-      'toUser',
-      [true, 'string[]'],
-    ],
-    [
-      'mediaId',
-      [false, 'string'],
-    ],
-  ],
+  configRules: {
+    corpId: [true, 'string'],
+    corpSecret: [true, 'string'],
+    agentId: [true, 'number'],
+    toUser: [true, 'string[]'],
+    mediaId: [false, 'string'],
+  },
   pusher: async (config, payload) => {
     // access_token 有效期 2 小时、告警推送低频，按次获取不做缓存
     const tokenResult = await request({

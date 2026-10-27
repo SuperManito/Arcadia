@@ -38,7 +38,7 @@ function cleanChannelConfig(type: ChannelType, raw: Record<string, unknown>): Re
     throw new Error(`渠道配置无效：${e?.message ?? '字段类型错误'}`)
   }
   const result: Record<string, unknown> = {}
-  for (const [key, options] of rules) {
+  for (const [key, options] of Object.entries(rules)) {
     if (!Object.prototype.hasOwnProperty.call(raw, key)) {
       continue
     }

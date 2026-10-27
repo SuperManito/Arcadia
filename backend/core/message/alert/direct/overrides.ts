@@ -1,5 +1,5 @@
 import type { ReplacePair } from '../../../alert'
-import type { ValidateObjectParamType } from '../../../../utils'
+import type { ValidateObjectRules } from '../../../../utils'
 import type { MessageAlertDirectTitleMode } from './types'
 import { parseReplacePairs, stringifyReplacePairs, validateReplacePairs } from '../../../alert'
 import { expandReceiverPattern } from './match'
@@ -19,34 +19,19 @@ const OVERRIDE_KEYS = [
   'post_replaces',
 ] as const
 
-const OVERRIDE_VALIDATE_RULES: ValidateObjectParamType[] = [
-  [
-    'pattern',
-    [false, 'string'],
+const OVERRIDE_VALIDATE_RULES: ValidateObjectRules = {
+  pattern: [false, 'string'],
+  title_mode: [
+    false,
+    [...MESSAGE_ALERT_DIRECT_TITLE_MODES],
   ],
-  [
-    'title_mode',
-    [
-      false,
-      [...MESSAGE_ALERT_DIRECT_TITLE_MODES],
-    ],
+  title_template: [false, 'string'],
+  title_merge: [
+    false,
+    [0, 1],
   ],
-  [
-    'title_template',
-    [false, 'string'],
-  ],
-  [
-    'title_merge',
-    [
-      false,
-      [0, 1],
-    ],
-  ],
-  [
-    'post_replaces',
-    [false, 'object[]'],
-  ],
-]
+  post_replaces: [false, 'object[]'],
+}
 
 export interface MessageAlertDirectOverrideValues {
   pattern: string

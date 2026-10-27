@@ -187,23 +187,14 @@ async function handleDelete(ids: number[], scope: MessageScope) {
 api.get('/list', async (request, response) => {
   try {
     validateRequestParams(request, {
-      query: [
-        [
-          'category',
-          [false, 'string'],
+      query: {
+        category: [false, 'string'],
+        type: [false, 'string'],
+        status: [
+          false,
+          ['1', '0'],
         ],
-        [
-          'type',
-          [false, 'string'],
-        ],
-        [
-          'status',
-          [
-            false,
-            ['1', '0'],
-          ],
-        ],
-      ],
+      },
     })
     const result = await handleMessageList(request, MessageScope.ALL)
     response.send(API_STATUS_CODE.okData(result))
@@ -232,12 +223,9 @@ api.get('/unread/count', async (_request, response) => {
 api.get('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'id',
-          [true, 'string'],
-        ],
-      ] as const,
+      query: {
+        id: [true, 'string'],
+      } as const,
     })
     const { id } = params.query
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
@@ -257,12 +245,9 @@ api.get('/', async (request, response) => {
 api.delete('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number | number[]'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number | number[]'],
+      } as const,
     })
     const { id } = params.body
     const ids = parseBatchIds(id)
@@ -280,15 +265,12 @@ api.delete('/', async (request, response) => {
 api.put('/status/all', async (request, response) => {
   try {
     validateRequestParams(request, {
-      body: [
-        [
-          'status',
-          [
-            false,
-            [1, 0],
-          ],
+      body: {
+        status: [
+          false,
+          [1, 0],
         ],
-      ] as const,
+      } as const,
     })
     const status = request.body.status ?? 1
     await handleMarkRead(null, MessageScope.ALL, status)
@@ -305,19 +287,13 @@ api.put('/status/all', async (request, response) => {
 api.put('/status', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number | number[]'],
+      body: {
+        id: [true, 'number | number[]'],
+        status: [
+          true,
+          [1, 0],
         ],
-        [
-          'status',
-          [
-            true,
-            [1, 0],
-          ],
-        ],
-      ] as const,
+      } as const,
     })
     const { id, status } = params.body
     const ids = parseBatchIds(id)
@@ -335,15 +311,12 @@ api.put('/status', async (request, response) => {
 api.delete('/all', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'status',
-          [
-            false,
-            [1, 0],
-          ],
+      body: {
+        status: [
+          false,
+          [1, 0],
         ],
-      ] as const,
+      } as const,
     })
     const { status } = params.body
     const where: messageWhereInput = {}
@@ -365,15 +338,12 @@ api.get('/alert/rule/page', async (request, response) => {
   try {
     validatePageFixedParams(request, ['create_time', 'update_time'])
     validateRequestParams(request, {
-      query: [
-        [
-          'enabled',
-          [
-            false,
-            ['1', '0'],
-          ],
+      query: {
+        enabled: [
+          false,
+          ['1', '0'],
         ],
-      ],
+      },
     })
     const where: messageAlertRuleWhereInput = {}
     const and: messageAlertRuleWhereInput[] = []
@@ -420,12 +390,9 @@ api.get('/alert/rule/page', async (request, response) => {
 api.get('/alert/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'id',
-          [true, 'string'],
-        ],
-      ] as const,
+      query: {
+        id: [true, 'string'],
+      } as const,
     })
     const { id } = params.query
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
@@ -469,47 +436,20 @@ api.get('/alert/rule', async (request, response) => {
 api.post('/alert/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'name',
-          [false, 'string'],
+      body: {
+        name: [false, 'string'],
+        enabled: [
+          true,
+          [1, 0],
         ],
-        [
-          'enabled',
-          [
-            true,
-            [1, 0],
-          ],
-        ],
-        [
-          'logic',
-          [false, 'string'],
-        ],
-        [
-          'categories',
-          [false, 'string', true],
-        ],
-        [
-          'types',
-          [false, 'string', true],
-        ],
-        [
-          'conditions',
-          [false, 'object[]'],
-        ],
-        [
-          'channelIds',
-          [false, 'number[]'],
-        ],
-        [
-          'replaces',
-          [false, 'object[]'],
-        ],
-        [
-          'titleMerge',
-          [false, 'number'],
-        ],
-      ] as const,
+        logic: [false, 'string'],
+        categories: [false, 'string', true],
+        types: [false, 'string', true],
+        conditions: [false, 'object[]'],
+        channelIds: [false, 'number[]'],
+        replaces: [false, 'object[]'],
+        titleMerge: [false, 'number'],
+      } as const,
     }, true)
     const { enabled } = params.body
     const cleaned = await validateMessageAlertRulePayload(params.body)
@@ -555,51 +495,21 @@ api.post('/alert/rule', async (request, response) => {
 api.put('/alert/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
+      body: {
+        id: [true, 'number'],
+        enabled: [
+          false,
+          [1, 0],
         ],
-        [
-          'enabled',
-          [
-            false,
-            [1, 0],
-          ],
-        ],
-        [
-          'name',
-          [false, 'string'],
-        ],
-        [
-          'logic',
-          [false, 'string'],
-        ],
-        [
-          'categories',
-          [false, 'string', true],
-        ],
-        [
-          'types',
-          [false, 'string', true],
-        ],
-        [
-          'conditions',
-          [false, 'object[]'],
-        ],
-        [
-          'channelIds',
-          [false, 'number[]'],
-        ],
-        [
-          'replaces',
-          [false, 'object[]'],
-        ],
-        [
-          'titleMerge',
-          [false, 'number'],
-        ],
-      ] as const,
+        name: [false, 'string'],
+        logic: [false, 'string'],
+        categories: [false, 'string', true],
+        types: [false, 'string', true],
+        conditions: [false, 'object[]'],
+        channelIds: [false, 'number[]'],
+        replaces: [false, 'object[]'],
+        titleMerge: [false, 'number'],
+      } as const,
     }, true)
     const {
       id,
@@ -692,12 +602,9 @@ api.put('/alert/rule', async (request, response) => {
 api.delete('/alert/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number'],
+      } as const,
     })
     const { id } = params.body
     const exists = await db.messageAlertRule.$getById(id)
@@ -734,28 +641,13 @@ api.delete('/alert/rule', async (request, response) => {
 api.post('/alert/rule/test', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'logic',
-          [false, 'string'],
-        ],
-        [
-          'categories',
-          [false, 'string', true],
-        ],
-        [
-          'types',
-          [false, 'string', true],
-        ],
-        [
-          'conditions',
-          [false, 'object[]'],
-        ],
-        [
-          'message',
-          [true, 'object'],
-        ],
-      ] as const,
+      body: {
+        logic: [false, 'string'],
+        categories: [false, 'string', true],
+        types: [false, 'string', true],
+        conditions: [false, 'object[]'],
+        message: [true, 'object'],
+      } as const,
     }, true)
     const { logic, categories, types, conditions, message } = params.body
     const cleanedRule = validateMessageAlertRuleDefinition({ logic, categories, types, conditions })
@@ -806,15 +698,12 @@ api.get('/alert/direct/rule/page', async (request, response) => {
   try {
     validatePageFixedParams(request, ['create_time', 'update_time'])
     validateRequestParams(request, {
-      query: [
-        [
-          'enabled',
-          [
-            false,
-            ['1', '0'],
-          ],
+      query: {
+        enabled: [
+          false,
+          ['1', '0'],
         ],
-      ],
+      },
     })
     const where: messageAlertDirectRuleWhereInput = {}
     const and: messageAlertDirectRuleWhereInput[] = []
@@ -887,12 +776,9 @@ api.get('/alert/rule/list', async (_request, response) => {
 api.get('/alert/direct/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'id',
-          [true, 'string'],
-        ],
-      ] as const,
+      query: {
+        id: [true, 'string'],
+      } as const,
     })
     const { id } = params.query
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
@@ -927,51 +813,21 @@ api.get('/alert/direct/rule', async (request, response) => {
 api.post('/alert/direct/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'name',
-          [false, 'string'],
+      body: {
+        name: [false, 'string'],
+        enabled: [
+          true,
+          [1, 0],
         ],
-        [
-          'enabled',
-          [
-            true,
-            [1, 0],
-          ],
-        ],
-        [
-          'titleMode',
-          [false, 'string'],
-        ],
-        [
-          'titleTemplate',
-          [false, 'string'],
-        ],
-        [
-          'titleMerge',
-          [false, 'number'],
-        ],
-        [
-          'channelMerge',
-          [false, 'number'],
-        ],
-        [
-          'preReplaces',
-          [false, 'object[]'],
-        ],
-        [
-          'postReplaces',
-          [false, 'object[]'],
-        ],
-        [
-          'commonPattern',
-          [false, 'string'],
-        ],
-        [
-          'alertRuleIds',
-          [false, 'number[]'],
-        ],
-      ] as const,
+        titleMode: [false, 'string'],
+        titleTemplate: [false, 'string'],
+        titleMerge: [false, 'number'],
+        channelMerge: [false, 'number'],
+        preReplaces: [false, 'object[]'],
+        postReplaces: [false, 'object[]'],
+        commonPattern: [false, 'string'],
+        alertRuleIds: [false, 'number[]'],
+      } as const,
     }, true)
     const { enabled } = params.body
     const cleaned = await validateMessageAlertDirectRulePayload(params.body)
@@ -1008,55 +864,22 @@ api.post('/alert/direct/rule', async (request, response) => {
 api.put('/alert/direct/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
+      body: {
+        id: [true, 'number'],
+        enabled: [
+          false,
+          [1, 0],
         ],
-        [
-          'enabled',
-          [
-            false,
-            [1, 0],
-          ],
-        ],
-        [
-          'name',
-          [false, 'string'],
-        ],
-        [
-          'titleMode',
-          [false, 'string'],
-        ],
-        [
-          'titleTemplate',
-          [false, 'string'],
-        ],
-        [
-          'titleMerge',
-          [false, 'number'],
-        ],
-        [
-          'channelMerge',
-          [false, 'number'],
-        ],
-        [
-          'preReplaces',
-          [false, 'object[]'],
-        ],
-        [
-          'postReplaces',
-          [false, 'object[]'],
-        ],
-        [
-          'commonPattern',
-          [false, 'string'],
-        ],
-        [
-          'alertRuleIds',
-          [false, 'number[]'],
-        ],
-      ] as const,
+        name: [false, 'string'],
+        titleMode: [false, 'string'],
+        titleTemplate: [false, 'string'],
+        titleMerge: [false, 'number'],
+        channelMerge: [false, 'number'],
+        preReplaces: [false, 'object[]'],
+        postReplaces: [false, 'object[]'],
+        commonPattern: [false, 'string'],
+        alertRuleIds: [false, 'number[]'],
+      } as const,
     }, true)
     const {
       id,
@@ -1139,19 +962,13 @@ api.get('/alert/direct/rule/receiver/page', async (request, response) => {
   try {
     validatePageFixedParams(request, ['receiver', 'update_time'])
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'ruleId',
-          [true, 'string'],
+      query: {
+        ruleId: [true, 'string'],
+        enabled: [
+          false,
+          ['1', '0'],
         ],
-        [
-          'enabled',
-          [
-            false,
-            ['1', '0'],
-          ],
-        ],
-      ] as const,
+      } as const,
     })
     const { ruleId, enabled } = params.query
     if (!/^\d+$/.test(ruleId) || Number.parseInt(ruleId) <= 0) {
@@ -1268,35 +1085,17 @@ async function assertChannelsExist(channelIds: number[]) {
 api.post('/alert/direct/rule/receiver', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'ruleId',
-          [true, 'number'],
+      body: {
+        ruleId: [true, 'number'],
+        receiver: [true, 'string'],
+        overrides: [false, 'object'],
+        remark: [false, 'string'],
+        enabled: [
+          false,
+          [1, 0],
         ],
-        [
-          'receiver',
-          [true, 'string'],
-        ],
-        [
-          'overrides',
-          [false, 'object'],
-        ],
-        [
-          'remark',
-          [false, 'string'],
-        ],
-        [
-          'enabled',
-          [
-            false,
-            [1, 0],
-          ],
-        ],
-        [
-          'channelIds',
-          [false, 'number[]'],
-        ],
-      ] as const,
+        channelIds: [false, 'number[]'],
+      } as const,
     }, true)
     const { ruleId } = params.body
     const rule = await db.messageAlertDirectRule.$getById(ruleId, 'id', {
@@ -1341,35 +1140,17 @@ api.post('/alert/direct/rule/receiver', async (request, response) => {
 api.put('/alert/direct/rule/receiver', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
+      body: {
+        id: [true, 'number'],
+        enabled: [
+          true,
+          [1, 0],
         ],
-        [
-          'enabled',
-          [
-            true,
-            [1, 0],
-          ],
-        ],
-        [
-          'receiver',
-          [false, 'string'],
-        ],
-        [
-          'overrides',
-          [false, 'object'],
-        ],
-        [
-          'remark',
-          [false, 'string'],
-        ],
-        [
-          'channelIds',
-          [false, 'number[]'],
-        ],
-      ] as const,
+        receiver: [false, 'string'],
+        overrides: [false, 'object'],
+        remark: [false, 'string'],
+        channelIds: [false, 'number[]'],
+      } as const,
     }, true)
     const { id, receiver, overrides, remark, enabled, channelIds } = params.body
     const exists = await db.messageAlertDirectRuleReceiver.$getById(id)
@@ -1444,19 +1225,13 @@ api.put('/alert/direct/rule/receiver', async (request, response) => {
 api.put('/alert/direct/rule/receiver/status', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'ids',
-          [true, 'number[]'],
+      body: {
+        ids: [true, 'number[]'],
+        enabled: [
+          true,
+          [1, 0],
         ],
-        [
-          'enabled',
-          [
-            true,
-            [1, 0],
-          ],
-        ],
-      ] as const,
+      } as const,
     }, true)
     const { ids, enabled } = params.body
     if (ids.length === 0) {
@@ -1487,16 +1262,10 @@ api.put('/alert/direct/rule/receiver/status', async (request, response) => {
 api.delete('/alert/direct/rule/receiver', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'ruleId',
-          [true, 'number'],
-        ],
-        [
-          'ids',
-          [true, 'number[]'],
-        ],
-      ] as const,
+      body: {
+        ruleId: [true, 'number'],
+        ids: [true, 'number[]'],
+      } as const,
     }, true)
     const { ruleId, ids } = params.body
     const rule = await db.messageAlertDirectRule.$getById(ruleId, 'id', {
@@ -1536,16 +1305,10 @@ api.delete('/alert/direct/rule/receiver', async (request, response) => {
 api.post('/alert/direct/rule/receiver/batch', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'ruleId',
-          [true, 'number'],
-        ],
-        [
-          'receivers',
-          [true, 'object[]'],
-        ],
-      ] as const,
+      body: {
+        ruleId: [true, 'number'],
+        receivers: [true, 'object[]'],
+      } as const,
     }, true)
     const { ruleId, receivers } = params.body
     const rule = await db.messageAlertDirectRule.$getById(ruleId, 'id', {
@@ -1632,12 +1395,9 @@ api.post('/alert/direct/rule/receiver/batch', async (request, response) => {
 api.get('/alert/direct/rule/receiver/export', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'ruleId',
-          [true, 'string'],
-        ],
-      ] as const,
+      query: {
+        ruleId: [true, 'string'],
+      } as const,
     })
     const { ruleId } = params.query
     if (!/^\d+$/.test(ruleId) || Number.parseInt(ruleId) <= 0) {
@@ -1680,12 +1440,9 @@ api.get('/alert/direct/rule/receiver/export', async (request, response) => {
 api.delete('/alert/direct/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number'],
+      } as const,
     })
     const { id } = params.body
     const exists = await db.messageAlertDirectRule.$getById(id)
@@ -1726,24 +1483,12 @@ api.delete('/alert/direct/rule', async (request, response) => {
 api.post('/alert/direct/rule/receiver/test', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'ruleId',
-          [true, 'number'],
-        ],
-        [
-          'receiver',
-          [true, 'string'],
-        ],
-        [
-          'overrides',
-          [false, 'object'],
-        ],
-        [
-          'message',
-          [true, 'object'],
-        ],
-      ] as const,
+      body: {
+        ruleId: [true, 'number'],
+        receiver: [true, 'string'],
+        overrides: [false, 'object'],
+        message: [true, 'object'],
+      } as const,
     }, true)
     const { ruleId, receiver, overrides, message } = params.body
     const rule = await db.messageAlertDirectRule.$getById(ruleId)
@@ -1817,23 +1562,14 @@ api.post('/alert/direct/rule/receiver/test', async (request, response) => {
 apiOpen.post('/v1/create', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'title',
-          [true, 'string'],
+      body: {
+        title: [true, 'string'],
+        content: [true, 'string'],
+        type: [
+          false,
+          Object.values(MessageType),
         ],
-        [
-          'content',
-          [true, 'string'],
-        ],
-        [
-          'type',
-          [
-            false,
-            Object.values(MessageType),
-          ],
-        ],
-      ] as const,
+      } as const,
     })
     const { title, content, type } = params.body
     await sendUserMessage({ title, content, type: type as MessageType })
@@ -1850,19 +1586,13 @@ apiOpen.post('/v1/create', async (request, response) => {
 apiOpen.get('/v1/list', async (request, response) => {
   try {
     validateRequestParams(request, {
-      query: [
-        [
-          'type',
-          [false, 'string'],
+      query: {
+        type: [false, 'string'],
+        status: [
+          false,
+          ['1', '0'],
         ],
-        [
-          'status',
-          [
-            false,
-            ['1', '0'],
-          ],
-        ],
-      ],
+      },
     })
     const result = await handleMessageList(request, MessageScope.USER)
     response.send(API_STATUS_CODE.okData(result))
@@ -1891,12 +1621,9 @@ apiOpen.get('/v1/unreadCount', async (_request, response) => {
 apiOpen.get('/v1/detail', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      query: [
-        [
-          'id',
-          [true, 'string'],
-        ],
-      ] as const,
+      query: {
+        id: [true, 'string'],
+      } as const,
     })
     const { id } = params.query
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0) {
@@ -1916,19 +1643,13 @@ apiOpen.get('/v1/detail', async (request, response) => {
 apiOpen.post('/v1/readStatus', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number | number[]'],
+      body: {
+        id: [true, 'number | number[]'],
+        status: [
+          true,
+          [1, 0],
         ],
-        [
-          'status',
-          [
-            true,
-            [1, 0],
-          ],
-        ],
-      ] as const,
+      } as const,
     })
     const { id, status } = params.body
     const ids = parseBatchIds(id)
@@ -1946,15 +1667,12 @@ apiOpen.post('/v1/readStatus', async (request, response) => {
 apiOpen.post('/v1/readAll', async (request, response) => {
   try {
     validateRequestParams(request, {
-      body: [
-        [
-          'status',
-          [
-            false,
-            [1, 0],
-          ],
+      body: {
+        status: [
+          false,
+          [1, 0],
         ],
-      ] as const,
+      } as const,
     })
     const status = request.body.status ?? 1
     await handleMarkRead(null, MessageScope.USER, status)
@@ -1971,12 +1689,9 @@ apiOpen.post('/v1/readAll', async (request, response) => {
 apiOpen.post('/v1/delete', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'id',
-          [true, 'number | number[]'],
-        ],
-      ] as const,
+      body: {
+        id: [true, 'number | number[]'],
+      } as const,
     })
     const { id } = params.body
     const ids = parseBatchIds(id)
@@ -1994,23 +1709,14 @@ apiOpen.post('/v1/delete', async (request, response) => {
 apiInner.post('/push', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'title',
-          [true, 'string'],
+      body: {
+        title: [true, 'string'],
+        content: [true, 'string'],
+        type: [
+          false,
+          Object.values(MessageType),
         ],
-        [
-          'content',
-          [true, 'string'],
-        ],
-        [
-          'type',
-          [
-            false,
-            Object.values(MessageType),
-          ],
-        ],
-      ] as const,
+      } as const,
     })
     const { title, content, type } = params.body
     await sendUserMessage({ title, content, type: type as MessageType })

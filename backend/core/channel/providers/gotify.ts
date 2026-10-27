@@ -13,20 +13,11 @@ interface GotifyConfig extends BaseChannelConfig {
  */
 export const Gotify = {
   type: 'gotify',
-  configRules: [
-    [
-      'serverUrl',
-      [true, 'string'],
-    ],
-    [
-      'token',
-      [true, 'string'],
-    ],
-    [
-      'priority',
-      [false, 'number'],
-    ],
-  ],
+  configRules: {
+    serverUrl: [true, 'string'],
+    token: [true, 'string'],
+    priority: [false, 'number'],
+  },
   pusher: async (config, payload) => {
     const serverUrl = config.serverUrl.replace(/\/+$/, '')
     const body = {

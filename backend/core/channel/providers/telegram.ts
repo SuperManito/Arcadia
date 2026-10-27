@@ -21,32 +21,14 @@ interface TelegramConfig extends BaseChannelConfig {
 export const Telegram = {
   type: 'telegram',
   singleBody: true,
-  configRules: [
-    [
-      'botToken',
-      [true, 'string'],
-    ],
-    [
-      'chatId',
-      [true, 'string'],
-    ],
-    [
-      'messageThreadId',
-      [false, 'string'],
-    ],
-    [
-      'serverUrl',
-      [false, 'string'],
-    ],
-    [
-      'sendSilently',
-      [false, 'boolean'],
-    ],
-    [
-      'protectContent',
-      [false, 'boolean'],
-    ],
-  ],
+  configRules: {
+    botToken: [true, 'string'],
+    chatId: [true, 'string'],
+    messageThreadId: [false, 'string'],
+    serverUrl: [false, 'string'],
+    sendSilently: [false, 'boolean'],
+    protectContent: [false, 'boolean'],
+  },
   rateLimit: {
     // Bot API 每 chat 1 条/秒
     concurrency: 1,

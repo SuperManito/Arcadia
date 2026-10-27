@@ -39,34 +39,19 @@ interface WebhookConfig extends BaseChannelConfig {
 
 export const Webhook = {
   type: 'webhook',
-  configRules: [
-    [
-      'url',
-      [true, 'string'],
+  configRules: {
+    url: [true, 'string'],
+    method: [
+      false,
+      ['POST', 'GET', 'PUT'],
     ],
-    [
-      'method',
-      [
-        false,
-        ['POST', 'GET', 'PUT'],
-      ],
+    contentType: [
+      false,
+      ['json', 'form'],
     ],
-    [
-      'contentType',
-      [
-        false,
-        ['json', 'form'],
-      ],
-    ],
-    [
-      'headers',
-      [false, 'string'],
-    ],
-    [
-      'body',
-      [false, 'string'],
-    ],
-  ],
+    headers: [false, 'string'],
+    body: [false, 'string'],
+  },
   pusher: async (config, payload) => {
     const method = config.method ?? 'POST'
     const contentType = config.contentType ?? 'json'

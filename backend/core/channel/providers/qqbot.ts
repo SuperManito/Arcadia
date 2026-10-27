@@ -16,27 +16,15 @@ interface QQBotConfig extends BaseChannelConfig {
 export const QQBot = {
   type: 'qqbot',
   singleBody: true,
-  configRules: [
-    [
-      'appId',
-      [true, 'string'],
+  configRules: {
+    appId: [true, 'string'],
+    clientSecret: [true, 'string'],
+    targetType: [
+      false,
+      ['group', 'c2c', 'channel'],
     ],
-    [
-      'clientSecret',
-      [true, 'string'],
-    ],
-    [
-      'targetType',
-      [
-        false,
-        ['group', 'c2c', 'channel'],
-      ],
-    ],
-    [
-      'targetId',
-      [true, 'string'],
-    ],
-  ],
+    targetId: [true, 'string'],
+  },
   rateLimit: {
     // 发送方频控未认证 30 条/分钟
     concurrency: 1,

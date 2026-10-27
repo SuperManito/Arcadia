@@ -60,12 +60,9 @@ function execStatusHandler(request: Request, response: Response) {
 function execFileStopHandler(request: Request, response: Response, useOpenApiHandler = false) {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'path',
-          [true, 'string'],
-        ],
-      ] as const,
+      body: {
+        path: [true, 'string'],
+      } as const,
     })
     const { path } = params.body
     checkPathBoundary(path) // 注：不能强制检查文件是否存在，前端可能传入的是相对路径
@@ -116,16 +113,10 @@ function parseOptions(raw: RunOption[]): RunOption[] {
   return raw
     .filter((item) => item != null && typeof item === 'object')
     .map((item) => {
-      validateObject(item, [
-        [
-          'key',
-          [true, 'string'],
-        ],
-        [
-          'value',
-          [false, 'string'],
-        ],
-      ], 'options')
+      validateObject(item, {
+        key: [true, 'string'],
+        value: [false, 'string'],
+      }, 'options')
       const key = item.key as string
       return {
         key,
@@ -145,16 +136,10 @@ function parseEnvs(raw: RunEnv[]): RunEnv[] {
   return raw
     .filter((item) => item != null && typeof item === 'object')
     .map((item) => {
-      validateObject(item, [
-        [
-          'key',
-          [true, 'string'],
-        ],
-        [
-          'value',
-          [false, 'string'],
-        ],
-      ], 'envs')
+      validateObject(item, {
+        key: [true, 'string'],
+        value: [false, 'string'],
+      }, 'envs')
       const key = item.key as string
       validateEnvName(key)
       return {
@@ -190,12 +175,9 @@ function safePush(session: Session, data: unknown) {
 api.post('/cmd', (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'cmd',
-          [true, 'string'],
-        ],
-      ] as const,
+      body: {
+        cmd: [true, 'string'],
+      } as const,
     })
     const { cmd } = params.body
     const runId = runShellCmd(cmd, makeSocketRunCallbacks())
@@ -212,12 +194,9 @@ api.post('/cmd', (request, response) => {
 apiOpen.post('/v1/cmd', (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'cmd',
-          [true, 'string'],
-        ],
-      ] as const,
+      body: {
+        cmd: [true, 'string'],
+      } as const,
     })
     const runId = runShellCmd(params.body.cmd, makeNoopRunCallbacks())
     response.send(API_STATUS_CODE.okData(runId))
@@ -233,12 +212,9 @@ apiOpen.post('/v1/cmd', (request, response) => {
 apiOpen.post('/v1/cmd/stream', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'cmd',
-          [true, 'string'],
-        ],
-      ] as const,
+      body: {
+        cmd: [true, 'string'],
+      } as const,
     })
 
     const session = await createSseSession(request, response)
@@ -279,20 +255,11 @@ apiOpen.get('/v1/status', execStatusHandler)
 api.post('/file', (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'path',
-          [true, 'string'],
-        ],
-        [
-          'options',
-          [false, 'object'],
-        ],
-        [
-          'envs',
-          [false, 'object'],
-        ],
-      ] as const,
+      body: {
+        path: [true, 'string'],
+        options: [false, 'object'],
+        envs: [false, 'object'],
+      } as const,
     })
     const { path } = params.body
     checkPathAccess(path)
@@ -312,20 +279,11 @@ api.post('/file', (request, response) => {
 api.post('/file/command', (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'path',
-          [true, 'string'],
-        ],
-        [
-          'options',
-          [false, 'object'],
-        ],
-        [
-          'envs',
-          [false, 'object'],
-        ],
-      ] as const,
+      body: {
+        path: [true, 'string'],
+        options: [false, 'object'],
+        envs: [false, 'object'],
+      } as const,
     })
     const { path } = params.body
     checkPathAccess(path)
@@ -354,24 +312,12 @@ api.post('/file/debug', (request, response) => {
   }
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'path',
-          [true, 'string'],
-        ],
-        [
-          'content',
-          [true, 'string'],
-        ],
-        [
-          'options',
-          [false, 'object'],
-        ],
-        [
-          'envs',
-          [false, 'object'],
-        ],
-      ] as const,
+      body: {
+        path: [true, 'string'],
+        content: [true, 'string'],
+        options: [false, 'object'],
+        envs: [false, 'object'],
+      } as const,
     })
     const { path, content } = params.body
     checkPathAccess(path)
@@ -408,20 +354,11 @@ api.post('/file/debug', (request, response) => {
 apiOpen.post('/v1/file', (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'path',
-          [true, 'string'],
-        ],
-        [
-          'options',
-          [false, 'object'],
-        ],
-        [
-          'envs',
-          [false, 'object'],
-        ],
-      ] as const,
+      body: {
+        path: [true, 'string'],
+        options: [false, 'object'],
+        envs: [false, 'object'],
+      } as const,
     })
     const { path } = params.body
     checkPathAccess(path)
@@ -441,20 +378,11 @@ apiOpen.post('/v1/file', (request, response) => {
 apiOpen.post('/v1/file/stream', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
-      body: [
-        [
-          'path',
-          [true, 'string'],
-        ],
-        [
-          'options',
-          [false, 'object'],
-        ],
-        [
-          'envs',
-          [false, 'object'],
-        ],
-      ] as const,
+      body: {
+        path: [true, 'string'],
+        options: [false, 'object'],
+        envs: [false, 'object'],
+      } as const,
     })
     const { path } = params.body
     checkPathAccess(path)

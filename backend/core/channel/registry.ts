@@ -1,4 +1,4 @@
-import type { ValidateObjectParamType } from '../../utils'
+import type { ValidateObjectRules } from '../../utils'
 import type { ChannelDefinition, Pusher } from './types'
 import { Channels } from './providers'
 type Definitions = (typeof Channels)[keyof typeof Channels]
@@ -12,7 +12,7 @@ export { ChannelTypeMap as ChannelType }
 
 export const CHANNEL_CONFIG_RULES = Object.fromEntries(
   Object.values(Channels).map(def => [def.type, def.configRules]),
-) as Record<ChannelType, ReadonlyArray<ValidateObjectParamType>>
+) as Record<ChannelType, ValidateObjectRules>
 
 export const CHANNEL_CONFIG_VALIDATORS = Object.fromEntries(
   Object.values(Channels).map(def => [def.type, (def as ChannelDefinition).validateConfig]),
