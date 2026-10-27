@@ -18,12 +18,19 @@ export interface PushSession {
 }
 
 export function createPushSession(title: string, onFlush: PushSession['onFlush']): PushSession {
-  return { title, pending: 1, failures: [], onFlush }
+  return {
+    title,
+    pending: 1,
+    failures: [],
+    onFlush,
+  }
 }
 
 // channelType 为空表示失败发生在无渠道环节（如一对一触发源），不渲染类型括号
 function buildFailureRow({ ruleName, channelName, channelType, reason }: PushFailure) {
-  return `- ${ruleName} · ${channelName}${channelType ? `（${channelType}）` : ''}：${reason}`
+  return `- ${ruleName} · ${channelName}${channelType
+    ? `（${channelType}）`
+    : ''}：${reason}`
 }
 
 async function flushSession(session: PushSession) {

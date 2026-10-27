@@ -87,7 +87,12 @@ export async function pushChannel(
       ? rawFooter.split('\\n').join('\n').split(TEMPLATE_TIME_PLACEHOLDER).join(dateToString(new Date()))
       : ''
     let finalPayload = footer
-      ? { ...payload, content: payload.content ? `${payload.content}\n\n${footer}` : footer }
+      ? {
+          ...payload,
+          content: payload.content
+            ? `${payload.content}\n\n${footer}`
+            : footer,
+        }
       : payload
 
     const general = (config as Record<string, any>).general as GeneralConfig | undefined
@@ -105,7 +110,11 @@ export async function pushChannel(
       finalPayload = { ...finalPayload, content: `${finalPayload.title}\n\n${finalPayload.content}` }
     }
 
-    finalPayload = { ...finalPayload, title: trim(finalPayload.title), content: trim(finalPayload.content) }
+    finalPayload = {
+      ...finalPayload,
+      title: trim(finalPayload.title),
+      content: trim(finalPayload.content),
+    }
 
     await withTimeout(pusher(config as Record<string, any>, finalPayload))
     return { success: true }

@@ -20,11 +20,26 @@ export const WeComApp = {
   singleBody: true,
   summaryTitle: true,
   configRules: [
-    ['corpId', [true, 'string']],
-    ['corpSecret', [true, 'string']],
-    ['agentId', [true, 'number']],
-    ['toUser', [true, 'string[]']],
-    ['mediaId', [false, 'string']],
+    [
+      'corpId',
+      [true, 'string'],
+    ],
+    [
+      'corpSecret',
+      [true, 'string'],
+    ],
+    [
+      'agentId',
+      [true, 'number'],
+    ],
+    [
+      'toUser',
+      [true, 'string[]'],
+    ],
+    [
+      'mediaId',
+      [false, 'string'],
+    ],
   ],
   pusher: async (config, payload) => {
     // access_token 有效期 2 小时、告警推送低频，按次获取不做缓存
@@ -64,7 +79,9 @@ export const WeComApp = {
           ...base,
           msgtype: 'text',
           // text content 官方上限 2048 字节；mpnews content 上限 666KB，无需截断
-          text: { content: truncateUtf8(payload.content, 2048) },
+          text: {
+            content: truncateUtf8(payload.content, 2048),
+          },
           safe: 0,
         }
 

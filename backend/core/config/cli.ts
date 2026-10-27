@@ -10,7 +10,9 @@ const CLI_CONFIG_PREFIX = 'CLI_CONFIG_'
  * 输出文件：.arcadia_cli_config.sh
  */
 export async function generateCliConfigSh(): Promise<void> {
-  const configs = await db.config.$list({ where: { module: ConfigModule.CLI } })
+  const configs = await db.config.$list({
+    where: { module: ConfigModule.CLI },
+  })
 
   const configMap: Record<string, string> = {}
   for (const item of configs) {

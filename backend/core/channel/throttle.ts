@@ -2,7 +2,12 @@ import type { ChannelType } from './registry'
 import { CHANNEL_RATE_LIMITS } from './registry'
 
 // 未声明 rateLimit 的渠道统一走小额并发 + 每秒 10 次的默认窗口
-export const DEFAULT_RATE_LIMIT = { concurrency: 3, limits: [{ count: 10, seconds: 1 }] }
+export const DEFAULT_RATE_LIMIT = {
+  concurrency: 3,
+  limits: [
+    { count: 10, seconds: 1 },
+  ],
+}
 
 interface TypeThrottle {
   /** 请求开始时刻升序数组，按最大窗口裁剪，供各窗口计数 */

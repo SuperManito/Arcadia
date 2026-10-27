@@ -74,11 +74,15 @@ export function validateMessageAlertRuleDefinition(
       throw new Error(`条件 ${n} 的匹配字段无效`)
     }
     const operator = condition.operator
-    const allowedOperators: readonly string[] = mode === ConditionMode.REGEX ? REGEX_OPERATORS : SIMPLE_OPERATORS
+    const allowedOperators: readonly string[] = mode === ConditionMode.REGEX
+      ? REGEX_OPERATORS
+      : SIMPLE_OPERATORS
     if (!allowedOperators.includes(operator as string)) {
       throw new Error(`条件 ${n} 的匹配运算符无效`)
     }
-    let value = typeof condition.value === 'string' ? condition.value : ''
+    let value = typeof condition.value === 'string'
+      ? condition.value
+      : ''
     if (mode === ConditionMode.REGEX) {
       // 正则首尾空白可能有语义，保持原值；非空与长度由 assertValidRegexPattern 校验
       if (!value) {
@@ -127,7 +131,9 @@ export async function validateMessageAlertRulePayload(
   body: MessageAlertRulePayloadInput,
   options?: { excludeId?: number },
 ): Promise<CleanedMessageAlertRulePayload> {
-  const name = typeof body.name === 'string' ? body.name.trim() : ''
+  const name = typeof body.name === 'string'
+    ? body.name.trim()
+    : ''
   if (!name) {
     throw new Error('规则名称不能为空')
   }
@@ -163,11 +169,18 @@ export async function validateMessageAlertRulePayload(
     db.messageAlertRule.findFirst({
       where: {
         name,
-        ...(options?.excludeId !== undefined ? { id: { not: options.excludeId } } : {}),
+        ...(options?.excludeId !== undefined
+          ? {
+              id: { not: options.excludeId },
+            }
+          : {}),
       },
       select: { id: true },
     }),
-    db.messageAlertDirectRule.findFirst({ where: { name }, select: { id: true } }),
+    db.messageAlertDirectRule.findFirst({
+      where: { name },
+      select: { id: true },
+    }),
   ])
   if (duplicated || directDuplicated) {
     throw new Error('规则名称已存在')
@@ -183,8 +196,14 @@ export async function validateMessageAlertRulePayload(
 
   if (channelIds.length > 0) {
     const channels = await db.notificationChannel.$list(
-      { where: { id: { in: channelIds } } },
-      { select: { id: true } },
+      {
+        where: {
+          id: { in: channelIds },
+        },
+      },
+      {
+        select: { id: true },
+      },
     )
     if (channels.length !== channelIds.length) {
       throw new Error('渠道不存在')

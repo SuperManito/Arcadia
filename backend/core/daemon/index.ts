@@ -398,7 +398,9 @@ export async function getDaemonTaskLog(id: number, startLine?: number): Promise<
  */
 export async function initDaemonTask(): Promise<void> {
   // 自启任务
-  const bootTasks = await db.daemonTask.$list({ where: { boot_start: 1, active: 1 } })
+  const bootTasks = await db.daemonTask.$list({
+    where: { boot_start: 1, active: 1 },
+  })
   for (const task of bootTasks) {
     try {
       const list = await withPm2(() => pm2Describe(task.name))
@@ -414,7 +416,12 @@ export async function initDaemonTask(): Promise<void> {
   }
 
   // 注册定时重启
-  const cronTasks = await db.daemonTask.$list({ where: { restart_cron: { not: '' }, active: 1 } })
+  const cronTasks = await db.daemonTask.$list({
+    where: {
+      restart_cron: { not: '' },
+      active: 1,
+    },
+  })
   for (const task of cronTasks) {
     try {
       validateCronExpression(task.restart_cron)

@@ -11,7 +11,10 @@ interface PushplusConfig extends BaseChannelConfig {
 export const Pushplus = {
   type: 'pushplus',
   configRules: [
-    ['token', [true, 'string']],
+    [
+      'token',
+      [true, 'string'],
+    ],
   ],
   rateLimit: {
     // 官方限制 1 分钟内 5 次请求

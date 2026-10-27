@@ -59,7 +59,12 @@ export async function evaluateRules<T extends EvaluableRule>(
   msg: MessageAlertContext,
   session: PushSession,
 ): Promise<T[]> {
-  const context = { title: msg.title, content: msg.content, category: msg.category, type: msg.type }
+  const context = {
+    title: msg.title,
+    content: msg.content,
+    category: msg.category,
+    type: msg.type,
+  }
   const hits: T[] = []
   for (let start = 0; start < rules.length; start += RULE_EVAL_BATCH_SIZE) {
     await Promise.all(rules.slice(start, start + RULE_EVAL_BATCH_SIZE).map(async (rule) => {

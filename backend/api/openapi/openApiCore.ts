@@ -44,24 +44,114 @@ export interface PermissionMeta {
 }
 
 export const PERMISSION_META: Record<PermissionKey, PermissionMeta> = {
-  'cron:query': { group: 'cron', label: '查询定时任务', desc: '允许查询、分页列表、获取标签和运行状态', dangerous: false },
-  'cron:manage': { group: 'cron', label: '管理定时任务', desc: '允许创建、修改、删除定时任务及调整排序', dangerous: true },
-  'cron:run': { group: 'cron', label: '运行定时任务', desc: '允许手动触发或终止定时任务的执行', dangerous: true },
-  'env:query': { group: 'env', label: '查询环境变量', desc: '允许查询、分页列表及获取环境变量详情', dangerous: false },
-  'env:manage': { group: 'env', label: '管理环境变量', desc: '允许创建、修改、删除、排序及批量导入导出', dangerous: false },
-  'file:list': { group: 'file', label: '列出文件目录', desc: '允许获取目录列表、文件树和文件属性', dangerous: false },
-  'file:read': { group: 'file', label: '读取文件内容', desc: '允许读取任意文件的内容及下载文件', dangerous: true },
-  'file:write': { group: 'file', label: '写入文件系统', desc: '允许创建、修改、重命名、移动、删除文件', dangerous: true },
-  'exec:cmd': { group: 'exec', label: '执行 Shell 命令', desc: '允许执行 Shell 命令', dangerous: true },
-  'exec:file': { group: 'exec', label: '运行代码文件', desc: '允许运行指定路径的代码文件', dangerous: true },
-  'exec:status': { group: 'exec', label: '查询执行状态', desc: '允许查询命令或代码文件的当前运行状态', dangerous: true },
-  'message:query': { group: 'message', label: '查询消息', desc: '允许分页查询、获取未读消息计数和消息详情', dangerous: false },
-  'message:push': { group: 'message', label: '推送消息', desc: '允许向消息中心推送用户消息', dangerous: false },
-  'message:manage': { group: 'message', label: '管理消息', desc: '允许标记消息已读和删除消息', dangerous: false },
-  'dependency:query': { group: 'dependency', label: '查询依赖', desc: '允许分页查询、获取依赖详情和错误日志', dangerous: false },
-  'dependency:manage': { group: 'dependency', label: '管理依赖记录', desc: '允许创建、删除依赖记录', dangerous: true },
-  'dependency:operate': { group: 'dependency', label: '操作依赖包', desc: '允许安装、卸载依赖包及同步安装状态', dangerous: true },
-  'extra:use': { group: 'extra', label: '调用编程接口', desc: '允许调用用户通过 extra_server.js 自定义封装的接口', dangerous: true },
+  'cron:query': {
+    group: 'cron',
+    label: '查询定时任务',
+    desc: '允许查询、分页列表、获取标签和运行状态',
+    dangerous: false,
+  },
+  'cron:manage': {
+    group: 'cron',
+    label: '管理定时任务',
+    desc: '允许创建、修改、删除定时任务及调整排序',
+    dangerous: true,
+  },
+  'cron:run': {
+    group: 'cron',
+    label: '运行定时任务',
+    desc: '允许手动触发或终止定时任务的执行',
+    dangerous: true,
+  },
+  'env:query': {
+    group: 'env',
+    label: '查询环境变量',
+    desc: '允许查询、分页列表及获取环境变量详情',
+    dangerous: false,
+  },
+  'env:manage': {
+    group: 'env',
+    label: '管理环境变量',
+    desc: '允许创建、修改、删除、排序及批量导入导出',
+    dangerous: false,
+  },
+  'file:list': {
+    group: 'file',
+    label: '列出文件目录',
+    desc: '允许获取目录列表、文件树和文件属性',
+    dangerous: false,
+  },
+  'file:read': {
+    group: 'file',
+    label: '读取文件内容',
+    desc: '允许读取任意文件的内容及下载文件',
+    dangerous: true,
+  },
+  'file:write': {
+    group: 'file',
+    label: '写入文件系统',
+    desc: '允许创建、修改、重命名、移动、删除文件',
+    dangerous: true,
+  },
+  'exec:cmd': {
+    group: 'exec',
+    label: '执行 Shell 命令',
+    desc: '允许执行 Shell 命令',
+    dangerous: true,
+  },
+  'exec:file': {
+    group: 'exec',
+    label: '运行代码文件',
+    desc: '允许运行指定路径的代码文件',
+    dangerous: true,
+  },
+  'exec:status': {
+    group: 'exec',
+    label: '查询执行状态',
+    desc: '允许查询命令或代码文件的当前运行状态',
+    dangerous: true,
+  },
+  'message:query': {
+    group: 'message',
+    label: '查询消息',
+    desc: '允许分页查询、获取未读消息计数和消息详情',
+    dangerous: false,
+  },
+  'message:push': {
+    group: 'message',
+    label: '推送消息',
+    desc: '允许向消息中心推送用户消息',
+    dangerous: false,
+  },
+  'message:manage': {
+    group: 'message',
+    label: '管理消息',
+    desc: '允许标记消息已读和删除消息',
+    dangerous: false,
+  },
+  'dependency:query': {
+    group: 'dependency',
+    label: '查询依赖',
+    desc: '允许分页查询、获取依赖详情和错误日志',
+    dangerous: false,
+  },
+  'dependency:manage': {
+    group: 'dependency',
+    label: '管理依赖记录',
+    desc: '允许创建、删除依赖记录',
+    dangerous: true,
+  },
+  'dependency:operate': {
+    group: 'dependency',
+    label: '操作依赖包',
+    desc: '允许安装、卸载依赖包及同步安装状态',
+    dangerous: true,
+  },
+  'extra:use': {
+    group: 'extra',
+    label: '调用编程接口',
+    desc: '允许调用用户通过 extra_server.js 自定义封装的接口',
+    dangerous: true,
+  },
 }
 
 // 创建令牌时默认启用的权限（不含危险权限）
@@ -98,8 +188,16 @@ const ROUTE_PERM_RULES: RoutePermRule[] = [
   { pattern: /^\/env\/v1\/(create|update|delete|order|changeStatus)$/, permission: 'env:manage' },
   // File
   { pattern: /^\/file\/v1\/(list|info)$/, permission: 'file:list' },
-  { pattern: /^\/file\/v1\/(content|download)$/, methods: ['GET'], permission: 'file:read' },
-  { pattern: /^\/file\/v1\/content$/, methods: ['POST'], permission: 'file:write' },
+  {
+    pattern: /^\/file\/v1\/(content|download)$/,
+    methods: ['GET'],
+    permission: 'file:read',
+  },
+  {
+    pattern: /^\/file\/v1\/content$/,
+    methods: ['POST'],
+    permission: 'file:write',
+  },
   { pattern: /^\/file\/v1\/(rename|move|create|delete|upload)$/, permission: 'file:write' },
   // Exec
   { pattern: /^\/exec\/v1\/(cmd|cmd\/stream)$/, permission: 'exec:cmd' },
@@ -188,7 +286,10 @@ function getCachedToken(token: string): openApiAccessKeyModel | null | undefined
 }
 
 function setCachedToken(token: string, record: openApiAccessKeyModel | null) {
-  tokenCache.set(token, { record, cachedAt: Date.now() })
+  tokenCache.set(token, {
+    record,
+    cachedAt: Date.now(),
+  })
   if (tokenCache.size > TOKEN_CACHE_MAX) {
     const oldestKey = tokenCache.keys().next().value
     if (oldestKey !== undefined)
@@ -290,7 +391,9 @@ export async function deleteToken(id: number) {
 
 export async function initTokenCache() {
   try {
-    const records = await db.openApiAccessKey.$list({ where: { enable: 1 } })
+    const records = await db.openApiAccessKey.$list({
+      where: { enable: 1 },
+    })
     for (const record of records) {
       setCachedToken(record.value, record)
     }
@@ -313,7 +416,15 @@ export const openApiLogMiddleware: RequestHandler = (req, res, next) => {
     const ua = req.headers['user-agent'] || ''
     const { browser, os, device } = parseUserAgent(ua)
     void ip2AddressCached(ip).then(({ address }) => {
-      enqueueOpenApiLog({ method, path, ip, address, browser, os, device })
+      enqueueOpenApiLog({
+        method,
+        path,
+        ip,
+        address,
+        browser,
+        os,
+        device,
+      })
     }).catch(() => {})
   })
   next()
@@ -331,7 +442,9 @@ export const openApiLogMiddleware: RequestHandler = (req, res, next) => {
 export function handleOpenApiError(error: unknown, response: Response, context?: string, prefix?: string): void {
   try {
     const tag = context || 'OpenAPI 错误'
-    const raw = error instanceof Error ? error.stack || error.message : String(error)
+    const raw = error instanceof Error
+      ? error.stack || error.message
+      : String(error)
     const { message, kind, code, syscall } = resolveErrorMessage(error)
 
     switch (kind) {
@@ -351,7 +464,9 @@ export function handleOpenApiError(error: unknown, response: Response, context?:
         logger.error(tag, raw)
     }
 
-    response.send(API_STATUS_CODE.fail(prefix ? `${prefix}：${message}` : message))
+    response.send(API_STATUS_CODE.fail(prefix
+      ? `${prefix}：${message}`
+      : message))
   }
   catch {
     response.send(API_STATUS_CODE.fail('服务内部错误'))

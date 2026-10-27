@@ -12,11 +12,17 @@ import { processDirectRule } from './direct/dispatch'
 
 async function loadEnabledRules() {
   return db.messageAlertRule.$list(
-    { where: { enabled: 1 } },
+    {
+      where: { enabled: 1 },
+    },
     {
       include: {
-        conditions: { orderBy: { sort: 'asc' } },
-        channels: { include: { channel: true } },
+        conditions: {
+          orderBy: { sort: 'asc' },
+        },
+        channels: {
+          include: { channel: true },
+        },
       },
     },
   )
@@ -29,25 +35,63 @@ async function loadHitDirectRules(ruleIds: number[]) {
     {
       where: {
         enabled: 1,
-        bindings: { some: { alertRuleId: { in: ruleIds } } },
+        bindings: {
+          some: {
+            alertRuleId: { in: ruleIds },
+          },
+        },
       },
     },
     {
-      select: { id: true, name: true, title_mode: true, title_template: true, title_merge: true, channel_merge: true, pre_replaces: true, post_replaces: true, common_pattern: true },
+      select: {
+        id: true,
+        name: true,
+        title_mode: true,
+        title_template: true,
+        title_merge: true,
+        channel_merge: true,
+        pre_replaces: true,
+        post_replaces: true,
+        common_pattern: true,
+      },
     },
   )
   if (rules.length === 0) {
-    return { directRules: [], channelsById: new Map<number, ChannelSnapshot>() }
+    return {
+      directRules: [],
+      channelsById: new Map<number, ChannelSnapshot>(),
+    }
   }
   const hitRuleIds = rules.map(rule => rule.id)
   const [receivers, links] = await Promise.all([
     db.messageAlertDirectRuleReceiver.$list(
-      { where: { directRuleId: { in: hitRuleIds }, enabled: 1 }, orderBy: { id: 'asc' } },
-      { select: { id: true, directRuleId: true, receiver: true, overrides: true } },
+      {
+        where: {
+          directRuleId: { in: hitRuleIds },
+          enabled: 1,
+        },
+        orderBy: { id: 'asc' },
+      },
+      {
+        select: {
+          id: true,
+          directRuleId: true,
+          receiver: true,
+          overrides: true,
+        },
+      },
     ),
     db.messageAlertDirectRuleReceiverChannel.$list(
-      { where: { receiver: { directRuleId: { in: hitRuleIds } } } },
-      { select: { receiverId: true, channelId: true } },
+      {
+        where: {
+          receiver: {
+            directRuleId: { in: hitRuleIds },
+          },
+        },
+      },
+      {
+        select: { receiverId: true, channelId: true },
+      },
     ),
   ])
   const enabledReceiverIds = new Set(receivers.map(receiver => receiver.id))
@@ -69,8 +113,21 @@ async function loadHitDirectRules(ruleIds: number[]) {
   }
   const channels = allChannelIds.size > 0
     ? await db.notificationChannel.$list(
-        { where: { id: { in: [...allChannelIds] } } },
-        { select: { id: true, name: true, type: true, config: true } },
+        {
+          where: {
+            id: {
+              in: [...allChannelIds],
+            },
+          },
+        },
+        {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            config: true,
+          },
+        },
       )
     : []
   const channelsById = new Map<number, ChannelSnapshot>(channels.map(channel => [channel.id, channel]))
@@ -107,14 +164,23 @@ export async function processMessageAlert(
   if (!mayMatchRule(msg.category, msg.type)) {
     return
   }
-  const alertMessage = { title: msg.title, content: rawContent, category: msg.category, type: msg.type }
+  const alertMessage = {
+    title: msg.title,
+    content: rawContent,
+    category: msg.category,
+    type: msg.type,
+  }
   const rules = await loadEnabledRules()
   // 无渠道且未绑定一对一的规则不会产生任何推送，求值前过滤避免白白占用正则 worker 队列
   const candidateRules = rules.filter(rule => rule.channels.length > 0)
   if (candidateRules.length < rules.length) {
     const boundRuleIds = new Set(
       (await db.messageAlertDirectRuleBinding.findMany({
-        where: { alertRuleId: { in: rules.filter(rule => rule.channels.length === 0).map(rule => rule.id) } },
+        where: {
+          alertRuleId: {
+            in: rules.filter(rule => rule.channels.length === 0).map(rule => rule.id),
+          },
+        },
         select: { alertRuleId: true },
       })).map(link => link.alertRuleId),
     )
@@ -140,7 +206,9 @@ export async function processMessageAlert(
       // 全局消息队头插入优先发送，失败随会话聚合上报
       for (const link of rule.channels) {
         // 置空串交由推送层清理拼接残留
-        const title = rule.title_merge === 0 && isTitlelessChannel(link.channel.type) ? '' : pushTitle
+        const title = rule.title_merge === 0 && isTitlelessChannel(link.channel.type)
+          ? ''
+          : pushTitle
         enqueuePush(
           link.channel,
           { title, content: pushContent },

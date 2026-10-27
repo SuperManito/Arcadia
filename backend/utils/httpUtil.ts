@@ -50,13 +50,21 @@ export const userAgentTools = {
 export function parseUserAgent(ua: string): { browser: string, os: string, device: string } {
   const result = UAParser(ua)
   const browser = result.browser.name
-    ? `${result.browser.name}${result.browser.version ? ` ${result.browser.version.split('.')[0]}` : ''}`
+    ? `${result.browser.name}${result.browser.version
+      ? ` ${result.browser.version.split('.')[0]}`
+      : ''}`
     : ''
   const os = result.os.name
-    ? `${result.os.name}${result.os.version ? ` ${result.os.version}` : ''}`
+    ? `${result.os.name}${result.os.version
+      ? ` ${result.os.version}`
+      : ''}`
     : ''
   const device = result.device.type
-    ? (result.device.type === 'mobile' ? 'Mobile' : result.device.type === 'tablet' ? 'Tablet' : result.device.type)
+    ? (result.device.type === 'mobile'
+        ? 'Mobile'
+        : result.device.type === 'tablet'
+          ? 'Tablet'
+          : result.device.type)
     : 'Desktop'
   return { browser, os, device }
 }
@@ -140,7 +148,9 @@ export async function ip2Address(ip: string) {
       },
     })
     if (data) {
-      let address = data.location === '* ' ? '' : data.location
+      let address = data.location === '* '
+        ? ''
+        : data.location
       address = address.replace(/\t/g, ' ')
       return {
         ip,
@@ -228,7 +238,12 @@ export async function request(config: RequestOptions) {
 
     // 代理配置处理（自动清理空配置）
     const { proxy, ...rest } = config
-    const axiosConfig: AxiosRequestConfig = proxy ? { ...rest, proxy: _parseRequestProxyString(proxy) } : rest
+    const axiosConfig: AxiosRequestConfig = proxy
+      ? {
+          ...rest,
+          proxy: _parseRequestProxyString(proxy),
+        }
+      : rest
 
     await axios(axiosConfig)
       .then((response) => {
@@ -357,7 +372,9 @@ function _parseRequestProxyString(proxy: string): AxiosProxyConfig | undefined {
   }
   let url: URL
   try {
-    url = new URL(address.includes('://') ? address : `http://${address}`)
+    url = new URL(address.includes('://')
+      ? address
+      : `http://${address}`)
   }
   catch {
     throw new Error(`代理地址无效：${proxy}`)
@@ -366,9 +383,13 @@ function _parseRequestProxyString(proxy: string): AxiosProxyConfig | undefined {
     throw new Error(`代理地址无效：${proxy}`)
   }
   const proxyConfig: AxiosProxyConfig = {
-    protocol: url.protocol === 'https:' ? 'https' : 'http',
+    protocol: url.protocol === 'https:'
+      ? 'https'
+      : 'http',
     host: url.hostname,
-    port: Number(url.port || (url.protocol === 'https:' ? 443 : 80)),
+    port: Number(url.port || (url.protocol === 'https:'
+      ? 443
+      : 80)),
   }
   if (url.username || url.password) {
     proxyConfig.auth = {

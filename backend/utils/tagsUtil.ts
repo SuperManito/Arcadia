@@ -4,7 +4,9 @@ const TAG_SEPARATOR = ','
  * 标签列统一存为 `,a,b,`：首尾各带一个逗号使 contains 能整段精确匹配，因此标签本身不得含逗号
  */
 export function formatTagColumn(labels: string[]): string {
-  return labels.length > 0 ? `${TAG_SEPARATOR}${labels.join(TAG_SEPARATOR)}${TAG_SEPARATOR}` : ''
+  return labels.length > 0
+    ? `${TAG_SEPARATOR}${labels.join(TAG_SEPARATOR)}${TAG_SEPARATOR}`
+    : ''
 }
 
 export function parseTagColumn(raw: string): string[] {
@@ -45,7 +47,9 @@ export function normalizeTagLabels(raw: unknown, subject: string): string[] {
   if (!Array.isArray(list) || !list.every(item => typeof item === 'string')) {
     throw new Error(`${subject}无效：必须是字符串数组或逗号分隔字符串`)
   }
-  const labels = [...new Set((list as string[]).map(item => item.trim()).filter(Boolean))]
+  const labels = [
+    ...new Set((list as string[]).map(item => item.trim()).filter(Boolean)),
+  ]
   if (labels.some(label => label.includes(TAG_SEPARATOR))) {
     throw new Error(`${subject}不能包含逗号`)
   }

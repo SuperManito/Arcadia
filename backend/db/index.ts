@@ -33,13 +33,20 @@ export function flattenIncludeRelationCount<T>(
     const { _count, ...rest } = obj
     if (!_count || typeof _count !== 'object')
       return obj
-    return { ...rest, ..._count }
+    return {
+      ...rest,
+      ..._count,
+    }
   }
-  return (Array.isArray(data) ? data.map(flattenOne) : flattenOne(data)) as any
+  return (Array.isArray(data)
+    ? data.map(flattenOne)
+    : flattenOne(data)) as any
 }
 
 export function flattenEnvsGroupPageResult(
   result: PageResult<ComboEnvsGroupWithCountRaw[]>,
 ): PageResult<ComboEnvsGroupWithCount[]> {
-  return Object.assign({}, result, { data: flattenIncludeRelationCount(result.data) })
+  return Object.assign({}, result, {
+    data: flattenIncludeRelationCount(result.data),
+  })
 }

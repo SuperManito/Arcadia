@@ -9,7 +9,9 @@ export async function getChannelReferences(channelId: number): Promise<{
   directRuleCount: number
   taskCount: number
 }> {
-  const alertRuleCount = await db.messageAlertRuleChannel.count({ where: { channelId } })
+  const alertRuleCount = await db.messageAlertRuleChannel.count({
+    where: { channelId },
+  })
   // 收信人-渠道关联按收信人去重到规则，渠道被同规则多个收信人绑定时只计一条；
   // 计数在库端完成，避免把全量关联行连收信人对象拉回内存
   const rows = await db.$queryRaw<Array<{ count: bigint }>>`

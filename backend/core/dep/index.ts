@@ -20,12 +20,23 @@ export type DepStatusValue = (typeof DepStatus)[keyof typeof DepStatus]
 
 const DEP_SCRIPT = path.join(APP_DIR_PATH.SHELL, 'utils/dep.sh')
 
-export const ECOSYSTEMS = ['npm', 'pnpm', 'pip', 'apt', 'luarocks', 'gem']
+export const ECOSYSTEMS = [
+  'npm',
+  'pnpm',
+  'pip',
+  'apt',
+  'luarocks',
+  'gem',
+]
 
 // 按生态解析包名基础名（去除版本表达式），用于 uninstall / version 查询
 const ECOSYSTEM_BASE_NAME: Record<string, (name: string) => string> = {
-  npm: name => name.replace(/@[\^~><=\s].*/u, '').replace(/@[^@]*$/u, name.startsWith('@') ? `@${name.split('@')[1] ?? ''}` : ''),
-  pnpm: name => name.replace(/@[\^~><=\s].*/u, '').replace(/@[^@]*$/u, name.startsWith('@') ? `@${name.split('@')[1] ?? ''}` : ''),
+  npm: name => name.replace(/@[\^~><=\s].*/u, '').replace(/@[^@]*$/u, name.startsWith('@')
+    ? `@${name.split('@')[1] ?? ''}`
+    : ''),
+  pnpm: name => name.replace(/@[\^~><=\s].*/u, '').replace(/@[^@]*$/u, name.startsWith('@')
+    ? `@${name.split('@')[1] ?? ''}`
+    : ''),
   pip: name => name.replace(/[><=!;[\s].*/u, ''),
   apt: name => name.replace(/[=><!].*/u, '').trim(),
   gem: name => name.replace(/:.*$/u, '').replace(/[><=!].*/u, '').trim(),
@@ -129,7 +140,13 @@ function spawnDepScript(args: string[]): Promise<{ stdout: string, stderr: strin
   return new Promise((resolve) => {
     execFile('bash', [DEP_SCRIPT, ...args], { encoding: 'utf8', maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
       const code = error?.code ?? (error ? 1 : 0)
-      resolve({ stdout: stdout ?? '', stderr: stderr ?? '', code: typeof code === 'number' ? code : 0 })
+      resolve({
+        stdout: stdout ?? '',
+        stderr: stderr ?? '',
+        code: typeof code === 'number'
+          ? code
+          : 0,
+      })
     })
   })
 }
@@ -159,7 +176,9 @@ async function syncDepsCore(): Promise<{ updated: number }> {
   try {
     for (const eco of ECOSYSTEMS) {
       const installedMap = await _fetchInstalledMap(eco)
-      const deps = await db.dependencyManage.$list({ where: { ecosystem: eco } })
+      const deps = await db.dependencyManage.$list({
+        where: { ecosystem: eco },
+      })
       for (const dep of deps) {
         // 跳过正在操作中的记录，避免覆盖进行中的状态
         if (dep.status === DepStatus.INSTALLING || dep.status === DepStatus.UNINSTALLING)
@@ -240,7 +259,10 @@ export function enqueueInstall(deps: Array<{ id: number, name: string, ecosystem
 
 async function _runInstallOne(dep: { id: number, name: string, ecosystem: string }) {
   try {
-    await db.dependencyManage.$updateById({ id: dep.id, data: { status: DepStatus.INSTALLING, last_error: '' } })
+    await db.dependencyManage.$updateById({
+      id: dep.id,
+      data: { status: DepStatus.INSTALLING, last_error: '' },
+    })
     socketCommon.emit(socketEventName, { id: dep.id, status: DepStatus.INSTALLING })
 
     const { stdout, stderr, code } = await spawnDepScript(['install', dep.ecosystem, dep.name])
@@ -263,15 +285,28 @@ async function _runInstallOne(dep: { id: number, name: string, ecosystem: string
     else {
       await db.dependencyManage.$updateById({
         id: dep.id,
-        data: { status: DepStatus.FAILED, last_error: output.slice(0, 8000) },
+        data: {
+          status: DepStatus.FAILED,
+          last_error: output.slice(0, 8000),
+        },
       })
-      socketCommon.emit(socketEventName, { id: dep.id, status: DepStatus.FAILED, last_error: output.slice(0, 8000) })
+      socketCommon.emit(socketEventName, {
+        id: dep.id,
+        status: DepStatus.FAILED,
+        last_error: output.slice(0, 8000),
+      })
     }
   }
   catch (e: any) {
     logger.error(`[依赖管理] 安装 ${dep.ecosystem}/${dep.name} 失败`, e?.message ?? e)
     try {
-      await db.dependencyManage.$updateById({ id: dep.id, data: { status: DepStatus.FAILED, last_error: String(e?.message ?? e).slice(0, 8000) } })
+      await db.dependencyManage.$updateById({
+        id: dep.id,
+        data: {
+          status: DepStatus.FAILED,
+          last_error: String(e?.message ?? e).slice(0, 8000),
+        },
+      })
       socketCommon.emit(socketEventName, { id: dep.id, status: DepStatus.FAILED })
     }
     catch {}
@@ -286,7 +321,10 @@ export function enqueueUninstall(deps: Array<{ id: number, name: string, ecosyst
 
 async function _runUninstallOne(dep: { id: number, name: string, ecosystem: string }) {
   try {
-    await db.dependencyManage.$updateById({ id: dep.id, data: { status: DepStatus.UNINSTALLING, last_error: '' } })
+    await db.dependencyManage.$updateById({
+      id: dep.id,
+      data: { status: DepStatus.UNINSTALLING, last_error: '' },
+    })
     socketCommon.emit(socketEventName, { id: dep.id, status: DepStatus.UNINSTALLING })
 
     const base = getBaseName(dep.ecosystem, dep.name)
@@ -303,15 +341,28 @@ async function _runUninstallOne(dep: { id: number, name: string, ecosystem: stri
     else {
       await db.dependencyManage.$updateById({
         id: dep.id,
-        data: { status: DepStatus.FAILED, last_error: output.slice(0, 8000) },
+        data: {
+          status: DepStatus.FAILED,
+          last_error: output.slice(0, 8000),
+        },
       })
-      socketCommon.emit(socketEventName, { id: dep.id, status: DepStatus.FAILED, last_error: output.slice(0, 8000) })
+      socketCommon.emit(socketEventName, {
+        id: dep.id,
+        status: DepStatus.FAILED,
+        last_error: output.slice(0, 8000),
+      })
     }
   }
   catch (e: any) {
     logger.error(`[依赖管理] 卸载 ${dep.ecosystem}/${dep.name} 失败`, e?.message ?? e)
     try {
-      await db.dependencyManage.$updateById({ id: dep.id, data: { status: DepStatus.FAILED, last_error: String(e?.message ?? e).slice(0, 8000) } })
+      await db.dependencyManage.$updateById({
+        id: dep.id,
+        data: {
+          status: DepStatus.FAILED,
+          last_error: String(e?.message ?? e).slice(0, 8000),
+        },
+      })
       socketCommon.emit(socketEventName, { id: dep.id, status: DepStatus.FAILED })
     }
     catch { /* ignore db error in recovery */ }

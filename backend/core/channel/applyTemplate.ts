@@ -33,5 +33,7 @@ export function applyTemplate(payload: PushPayload, general: GeneralConfig | und
           return dateToString(new Date())
       }
     })
-  return rendered.trim() ? rendered : null
+  return rendered.trim()
+    ? rendered
+    : null
 }

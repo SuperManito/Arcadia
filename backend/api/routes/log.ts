@@ -21,14 +21,22 @@ api.get('/server', async (request, response) => {
     const where: serverLogWhereInput = {}
     const and: serverLogWhereInput[] = []
     // 类型过滤
-    const types = request.query.type ? (request.query.type as string).split(',') : []
+    const types = request.query.type
+      ? (request.query.type as string).split(',')
+      : []
     if (types.length > 0) {
-      and.push({ OR: types.map(t => ({ type: { equals: t } })) })
+      and.push({
+        OR: types.map(t => ({
+          type: { equals: t },
+        })),
+      })
     }
     // 搜索过滤
     if (request.query.search) {
       const search = request.query.search as string
-      and.push({ content: { contains: search } })
+      and.push({
+        content: { contains: search },
+      })
     }
     if (and.length > 0) {
       where.AND = and
@@ -40,7 +48,9 @@ api.get('/server', async (request, response) => {
     }
     const result = await db.serverLog.$page({
       where,
-      orderBy: { time: desc ? 'desc' : 'asc' },
+      orderBy: {
+        time: desc ? 'desc' : 'asc',
+      },
       page: String(request.query.page),
       size: String(request.query.size),
     })
@@ -56,10 +66,16 @@ api.get('/server', async (request, response) => {
  */
 api.get('/login', async (request, response) => {
   try {
-    const results = request.query.result ? (request.query.result as string).split(',') : []
+    const results = request.query.result
+      ? (request.query.result as string).split(',')
+      : []
     const where: loginLogWhereInput = {}
     if (results.length > 0) {
-      where.OR = results.map(r => ({ result: { equals: Number(r) } }))
+      where.OR = results.map(r => ({
+        result: {
+          equals: Number(r),
+        },
+      }))
     }
     // 排序
     let desc = true // desc 降序，asc 升序
@@ -68,7 +84,9 @@ api.get('/login', async (request, response) => {
     }
     const result = await db.loginLog.$page({
       where,
-      orderBy: { time: desc ? 'desc' : 'asc' },
+      orderBy: {
+        time: desc ? 'desc' : 'asc',
+      },
       page: String(request.query.page),
       size: String(request.query.size),
     })
@@ -86,9 +104,15 @@ api.get('/openapi', async (request, response) => {
   try {
     const where: openApiLogWhereInput = {}
     // 请求方法过滤
-    const methods = request.query.method ? (request.query.method as string).split(',') : []
+    const methods = request.query.method
+      ? (request.query.method as string).split(',')
+      : []
     if (methods.length > 0) {
-      where.OR = methods.map(m => ({ method: { equals: m.toUpperCase() } }))
+      where.OR = methods.map(m => ({
+        method: {
+          equals: m.toUpperCase(),
+        },
+      }))
     }
     // 排序
     let desc = true
@@ -97,7 +121,9 @@ api.get('/openapi', async (request, response) => {
     }
     const result = await db.openApiLog.$page({
       where,
-      orderBy: { time: desc ? 'desc' : 'asc' },
+      orderBy: {
+        time: desc ? 'desc' : 'asc',
+      },
       page: String(request.query.page),
       size: String(request.query.size),
     })
@@ -115,8 +141,14 @@ api.post('/cleanup', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['days', [false, 'number']],
-        ['types', [false, 'string[]']],
+        [
+          'days',
+          [false, 'number'],
+        ],
+        [
+          'types',
+          [false, 'string[]'],
+        ],
       ] as const,
     })
     const { days, types } = params.body
@@ -142,7 +174,13 @@ api.delete('/clear', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['type', [true, ['server', 'login', 'openapi']]],
+        [
+          'type',
+          [
+            true,
+            ['server', 'login', 'openapi'],
+          ],
+        ],
       ] as const,
     })
     const { type } = params.body

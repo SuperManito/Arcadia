@@ -63,21 +63,35 @@ export async function updateConfigValues(entries: ConfigUpdateItem[]): Promise<v
 
   // 查询现有记录，区分新增和更新
   const keys = normalized.map(({ key }) => key)
-  const modules = [...new Set(normalized.map(({ module }) => module))]
+  const modules = [
+    ...new Set(normalized.map(({ module }) => module)),
+  ]
   const existing = await db.config.$list({
-    where: { module: { in: modules }, key: { in: keys } },
+    where: {
+      module: { in: modules },
+      key: { in: keys },
+    },
   })
   const existingMap = new Map(existing.map(item => [`${item.module}:${item.key}`, item]))
 
   for (const { key, module, value } of normalized) {
     const record = existingMap.get(`${module}:${key}`)
     if (record) {
-      await db.config.$updateById({ id: record.id, data: { value: String(value) } })
+      await db.config.$updateById({
+        id: record.id,
+        data: {
+          value: String(value),
+        },
+      })
     }
   }
   const toCreate = normalized.filter(({ key, module }) => !existingMap.has(`${module}:${key}`))
   if (toCreate.length > 0) {
-    await db.config.$create(toCreate.map(({ key, module, value }) => ({ key, module, value: String(value) })))
+    await db.config.$create(toCreate.map(({ key, module, value }) => ({
+      key,
+      module,
+      value: String(value),
+    })))
   }
 }
 

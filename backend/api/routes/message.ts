@@ -93,8 +93,12 @@ async function handleMessageList(request: Request, scope: MessageScope) {
     }
     where.AND = {
       OR: [
-        { title: { contains: search } },
-        { content: { contains: search } },
+        {
+          title: { contains: search },
+        },
+        {
+          content: { contains: search },
+        },
       ],
     }
   }
@@ -106,7 +110,11 @@ async function handleMessageList(request: Request, scope: MessageScope) {
   }
   const result = await db.message.$page({
     where,
-    orderBy: [{ [orderBy]: desc ? 'desc' : 'asc' }],
+    orderBy: [
+      {
+        [orderBy]: desc ? 'desc' : 'asc',
+      },
+    ],
     page: String(request.query.page),
     size: String(request.query.size),
   })
@@ -127,7 +135,9 @@ async function handleMessageDetail(id: number, scope: MessageScope) {
 
 // 批量端点 id 归一：逐项必须为正整数，数组长度受限
 function parseBatchIds(id: unknown): number[] {
-  const ids = Array.isArray(id) ? id : [id]
+  const ids = Array.isArray(id)
+    ? id
+    : [id]
   if (ids.length > MESSAGE_BATCH_ID_MAX_COUNT) {
     throw new Error(`批量操作 id 数量不能超过 ${MESSAGE_BATCH_ID_MAX_COUNT}`)
   }
@@ -144,19 +154,28 @@ function parseBatchIds(id: unknown): number[] {
  * 标记已读（支持批量和全部）
  */
 async function handleMarkRead(ids: number[] | null, scope: MessageScope, status: number) {
-  const where: messageWhereInput = { status: status === 1 ? 0 : 1 }
+  const where: messageWhereInput = {
+    status: status === 1
+      ? 0
+      : 1,
+  }
   if (scope === MessageScope.USER)
     where.category = MessageCategory.USER
   if (ids)
     where.id = { in: ids }
-  await db.message.updateMany({ where, data: { status } })
+  await db.message.updateMany({
+    where,
+    data: { status },
+  })
 }
 
 /**
  * 删除消息
  */
 async function handleDelete(ids: number[], scope: MessageScope) {
-  const where: messageWhereInput = { id: { in: ids } }
+  const where: messageWhereInput = {
+    id: { in: ids },
+  }
   if (scope === MessageScope.USER)
     where.category = MessageCategory.USER
   await db.message.deleteMany({ where })
@@ -169,9 +188,21 @@ api.get('/list', async (request, response) => {
   try {
     validateRequestParams(request, {
       query: [
-        ['category', [false, 'string']],
-        ['type', [false, 'string']],
-        ['status', [false, ['1', '0']]],
+        [
+          'category',
+          [false, 'string'],
+        ],
+        [
+          'type',
+          [false, 'string'],
+        ],
+        [
+          'status',
+          [
+            false,
+            ['1', '0'],
+          ],
+        ],
       ],
     })
     const result = await handleMessageList(request, MessageScope.ALL)
@@ -202,7 +233,10 @@ api.get('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['id', [true, 'string']],
+        [
+          'id',
+          [true, 'string'],
+        ],
       ] as const,
     })
     const { id } = params.query
@@ -224,7 +258,10 @@ api.delete('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number | number[]']],
+        [
+          'id',
+          [true, 'number | number[]'],
+        ],
       ] as const,
     })
     const { id } = params.body
@@ -244,7 +281,13 @@ api.put('/status/all', async (request, response) => {
   try {
     validateRequestParams(request, {
       body: [
-        ['status', [false, [1, 0]]],
+        [
+          'status',
+          [
+            false,
+            [1, 0],
+          ],
+        ],
       ] as const,
     })
     const status = request.body.status ?? 1
@@ -263,8 +306,17 @@ api.put('/status', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number | number[]']],
-        ['status', [true, [1, 0]]],
+        [
+          'id',
+          [true, 'number | number[]'],
+        ],
+        [
+          'status',
+          [
+            true,
+            [1, 0],
+          ],
+        ],
       ] as const,
     })
     const { id, status } = params.body
@@ -284,7 +336,13 @@ api.delete('/all', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['status', [false, [1, 0]]],
+        [
+          'status',
+          [
+            false,
+            [1, 0],
+          ],
+        ],
       ] as const,
     })
     const { status } = params.body
@@ -308,16 +366,26 @@ api.get('/alert/rule/page', async (request, response) => {
     validatePageFixedParams(request, ['create_time', 'update_time'])
     validateRequestParams(request, {
       query: [
-        ['enabled', [false, ['1', '0']]],
+        [
+          'enabled',
+          [
+            false,
+            ['1', '0'],
+          ],
+        ],
       ],
     })
     const where: messageAlertRuleWhereInput = {}
     const and: messageAlertRuleWhereInput[] = []
     if (request.query.search) {
-      and.push({ name: { contains: request.query.search as string } })
+      and.push({
+        name: { contains: request.query.search as string },
+      })
     }
     if (request.query.enabled !== undefined) {
-      and.push({ enabled: Number.parseInt(request.query.enabled as string) })
+      and.push({
+        enabled: Number.parseInt(request.query.enabled as string),
+      })
     }
     if (and.length > 0) {
       where.AND = and
@@ -326,7 +394,11 @@ api.get('/alert/rule/page', async (request, response) => {
     const desc = request.query.order !== '0'
     const result = await db.messageAlertRule.$page({
       where,
-      orderBy: [{ [orderBy]: desc ? 'desc' : 'asc' }],
+      orderBy: [
+        {
+          [orderBy]: desc ? 'desc' : 'asc',
+        },
+      ],
       page: String(request.query.page),
       size: String(request.query.size),
     })
@@ -349,7 +421,10 @@ api.get('/alert/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['id', [true, 'string']],
+        [
+          'id',
+          [true, 'string'],
+        ],
       ] as const,
     })
     const { id } = params.query
@@ -358,8 +433,18 @@ api.get('/alert/rule', async (request, response) => {
     }
     const rule = await db.messageAlertRule.$getById(Number.parseInt(id), 'id', {
       include: {
-        conditions: { select: { mode: true, field: true, operator: true, value: true }, orderBy: { sort: 'asc' } },
-        channels: { select: { channelId: true } },
+        conditions: {
+          select: {
+            mode: true,
+            field: true,
+            operator: true,
+            value: true,
+          },
+          orderBy: { sort: 'asc' },
+        },
+        channels: {
+          select: { channelId: true },
+        },
       },
     })
     if (!rule) {
@@ -385,15 +470,45 @@ api.post('/alert/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['name', [false, 'string']],
-        ['enabled', [true, [1, 0]]],
-        ['logic', [false, 'string']],
-        ['categories', [false, 'string', true]],
-        ['types', [false, 'string', true]],
-        ['conditions', [false, 'object[]']],
-        ['channelIds', [false, 'number[]']],
-        ['replaces', [false, 'object[]']],
-        ['titleMerge', [false, 'number']],
+        [
+          'name',
+          [false, 'string'],
+        ],
+        [
+          'enabled',
+          [
+            true,
+            [1, 0],
+          ],
+        ],
+        [
+          'logic',
+          [false, 'string'],
+        ],
+        [
+          'categories',
+          [false, 'string', true],
+        ],
+        [
+          'types',
+          [false, 'string', true],
+        ],
+        [
+          'conditions',
+          [false, 'object[]'],
+        ],
+        [
+          'channelIds',
+          [false, 'number[]'],
+        ],
+        [
+          'replaces',
+          [false, 'object[]'],
+        ],
+        [
+          'titleMerge',
+          [false, 'number'],
+        ],
       ] as const,
     }, true)
     const { enabled } = params.body
@@ -441,16 +556,49 @@ api.put('/alert/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
-        ['enabled', [false, [1, 0]]],
-        ['name', [false, 'string']],
-        ['logic', [false, 'string']],
-        ['categories', [false, 'string', true]],
-        ['types', [false, 'string', true]],
-        ['conditions', [false, 'object[]']],
-        ['channelIds', [false, 'number[]']],
-        ['replaces', [false, 'object[]']],
-        ['titleMerge', [false, 'number']],
+        [
+          'id',
+          [true, 'number'],
+        ],
+        [
+          'enabled',
+          [
+            false,
+            [1, 0],
+          ],
+        ],
+        [
+          'name',
+          [false, 'string'],
+        ],
+        [
+          'logic',
+          [false, 'string'],
+        ],
+        [
+          'categories',
+          [false, 'string', true],
+        ],
+        [
+          'types',
+          [false, 'string', true],
+        ],
+        [
+          'conditions',
+          [false, 'object[]'],
+        ],
+        [
+          'channelIds',
+          [false, 'number[]'],
+        ],
+        [
+          'replaces',
+          [false, 'object[]'],
+        ],
+        [
+          'titleMerge',
+          [false, 'number'],
+        ],
       ] as const,
     }, true)
     const {
@@ -479,7 +627,10 @@ api.put('/alert/rule', async (request, response) => {
       replaces,
       titleMerge,
     ].every(field => field === undefined)) {
-      const rule = await db.messageAlertRule.$updateById({ id, data: { enabled } })
+      const rule = await db.messageAlertRule.$updateById({
+        id,
+        data: { enabled },
+      })
       await refreshEnabledRuleIndex()
       response.send(API_STATUS_CODE.okData(rule))
       return
@@ -495,10 +646,14 @@ api.put('/alert/rule', async (request, response) => {
           types: cleaned.types,
           replaces: cleaned.replaces,
           title_merge: cleaned.titleMerge,
-          ...(enabled !== undefined ? { enabled } : {}),
+          ...(enabled !== undefined
+            ? { enabled }
+            : {}),
         },
       })
-      await tx.messageAlertRuleCondition.deleteMany({ where: { messageAlertRuleId: id } })
+      await tx.messageAlertRuleCondition.deleteMany({
+        where: { messageAlertRuleId: id },
+      })
       await tx.messageAlertRuleCondition.createMany({
         data: cleaned.conditions.map((condition, index) => ({
           messageAlertRuleId: id,
@@ -511,7 +666,9 @@ api.put('/alert/rule', async (request, response) => {
       })
       // 未显式提供 channelIds 时保留原关联；清空需显式传空数组，避免整存漏传被静默清空
       if (channelIds !== undefined) {
-        await tx.messageAlertRuleChannel.deleteMany({ where: { messageAlertRuleId: id } })
+        await tx.messageAlertRuleChannel.deleteMany({
+          where: { messageAlertRuleId: id },
+        })
         await tx.messageAlertRuleChannel.createMany({
           data: cleaned.channelIds.map(channelId => ({
             messageAlertRuleId: id,
@@ -536,7 +693,10 @@ api.delete('/alert/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
+        [
+          'id',
+          [true, 'number'],
+        ],
       ] as const,
     })
     const { id } = params.body
@@ -545,13 +705,19 @@ api.delete('/alert/rule', async (request, response) => {
       throw new Error('规则不存在')
     }
     // 一对一规则可能绑定本规则，静默解绑会让用户无从发现一对一规则失效
-    const boundCount = await db.messageAlertDirectRuleBinding.count({ where: { alertRuleId: id } })
+    const boundCount = await db.messageAlertDirectRuleBinding.count({
+      where: { alertRuleId: id },
+    })
     if (boundCount > 0) {
       throw new Error(`该规则被 ${boundCount} 条一对一规则绑定，请先解除绑定`)
     }
     await db.$transaction(async (tx) => {
-      await tx.messageAlertRuleChannel.deleteMany({ where: { messageAlertRuleId: id } })
-      await tx.messageAlertRuleCondition.deleteMany({ where: { messageAlertRuleId: id } })
+      await tx.messageAlertRuleChannel.deleteMany({
+        where: { messageAlertRuleId: id },
+      })
+      await tx.messageAlertRuleCondition.deleteMany({
+        where: { messageAlertRuleId: id },
+      })
       await tx.messageAlertRule.$deleteById(id)
     })
     await refreshEnabledRuleIndex()
@@ -569,26 +735,49 @@ api.post('/alert/rule/test', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['logic', [false, 'string']],
-        ['categories', [false, 'string', true]],
-        ['types', [false, 'string', true]],
-        ['conditions', [false, 'object[]']],
-        ['message', [true, 'object']],
+        [
+          'logic',
+          [false, 'string'],
+        ],
+        [
+          'categories',
+          [false, 'string', true],
+        ],
+        [
+          'types',
+          [false, 'string', true],
+        ],
+        [
+          'conditions',
+          [false, 'object[]'],
+        ],
+        [
+          'message',
+          [true, 'object'],
+        ],
       ] as const,
     }, true)
     const { logic, categories, types, conditions, message } = params.body
     const cleanedRule = validateMessageAlertRuleDefinition({ logic, categories, types, conditions })
 
-    const title = typeof message.title === 'string' ? message.title.trim() : ''
-    const content = typeof message.content === 'string' ? message.content.trim() : ''
+    const title = typeof message.title === 'string'
+      ? message.title.trim()
+      : ''
+    const content = typeof message.content === 'string'
+      ? message.content.trim()
+      : ''
     if (!title && !content) {
       throw new Error('测试消息的标题与内容至少填写一项')
     }
     const msg: MessageAlertContext = {
       title,
       content,
-      category: typeof message.category === 'string' ? message.category : '',
-      type: typeof message.type === 'string' ? message.type : '',
+      category: typeof message.category === 'string'
+        ? message.category
+        : '',
+      type: typeof message.type === 'string'
+        ? message.type
+        : '',
     }
     const result = await evaluateMessageAlertRule(msg, {
       logic: cleanedRule.logic,
@@ -618,16 +807,26 @@ api.get('/alert/direct/rule/page', async (request, response) => {
     validatePageFixedParams(request, ['create_time', 'update_time'])
     validateRequestParams(request, {
       query: [
-        ['enabled', [false, ['1', '0']]],
+        [
+          'enabled',
+          [
+            false,
+            ['1', '0'],
+          ],
+        ],
       ],
     })
     const where: messageAlertDirectRuleWhereInput = {}
     const and: messageAlertDirectRuleWhereInput[] = []
     if (request.query.search) {
-      and.push({ name: { contains: request.query.search as string } })
+      and.push({
+        name: { contains: request.query.search as string },
+      })
     }
     if (request.query.enabled !== undefined) {
-      and.push({ enabled: Number.parseInt(request.query.enabled as string) })
+      and.push({
+        enabled: Number.parseInt(request.query.enabled as string),
+      })
     }
     if (and.length > 0) {
       where.AND = and
@@ -636,11 +835,17 @@ api.get('/alert/direct/rule/page', async (request, response) => {
     const desc = request.query.order !== '0'
     const result = await db.messageAlertDirectRule.$page({
       where,
-      orderBy: [{ [orderBy]: desc ? 'desc' : 'asc' }],
+      orderBy: [
+        {
+          [orderBy]: desc ? 'desc' : 'asc',
+        },
+      ],
       page: String(request.query.page),
       size: String(request.query.size),
       include: {
-        _count: { select: { receivers: true } },
+        _count: {
+          select: { receivers: true },
+        },
       },
     })
     const data = (result.data as Array<any>).map(({ _count, ...rest }) => ({
@@ -662,8 +867,12 @@ api.get('/alert/direct/rule/page', async (request, response) => {
 api.get('/alert/rule/list', async (_request, response) => {
   try {
     const result = await db.messageAlertRule.$list(
-      { orderBy: { id: 'asc' } },
-      { select: { id: true, name: true, enabled: true } },
+      {
+        orderBy: { id: 'asc' },
+      },
+      {
+        select: { id: true, name: true, enabled: true },
+      },
     )
     response.send(API_STATUS_CODE.okData(result))
   }
@@ -679,7 +888,10 @@ api.get('/alert/direct/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['id', [true, 'string']],
+        [
+          'id',
+          [true, 'string'],
+        ],
       ] as const,
     })
     const { id } = params.query
@@ -688,7 +900,9 @@ api.get('/alert/direct/rule', async (request, response) => {
     }
     const rule = await db.messageAlertDirectRule.$getById(Number.parseInt(id), 'id', {
       include: {
-        bindings: { select: { alertRuleId: true } },
+        bindings: {
+          select: { alertRuleId: true },
+        },
       },
     })
     if (!rule) {
@@ -714,16 +928,49 @@ api.post('/alert/direct/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['name', [false, 'string']],
-        ['enabled', [true, [1, 0]]],
-        ['titleMode', [false, 'string']],
-        ['titleTemplate', [false, 'string']],
-        ['titleMerge', [false, 'number']],
-        ['channelMerge', [false, 'number']],
-        ['preReplaces', [false, 'object[]']],
-        ['postReplaces', [false, 'object[]']],
-        ['commonPattern', [false, 'string']],
-        ['alertRuleIds', [false, 'number[]']],
+        [
+          'name',
+          [false, 'string'],
+        ],
+        [
+          'enabled',
+          [
+            true,
+            [1, 0],
+          ],
+        ],
+        [
+          'titleMode',
+          [false, 'string'],
+        ],
+        [
+          'titleTemplate',
+          [false, 'string'],
+        ],
+        [
+          'titleMerge',
+          [false, 'number'],
+        ],
+        [
+          'channelMerge',
+          [false, 'number'],
+        ],
+        [
+          'preReplaces',
+          [false, 'object[]'],
+        ],
+        [
+          'postReplaces',
+          [false, 'object[]'],
+        ],
+        [
+          'commonPattern',
+          [false, 'string'],
+        ],
+        [
+          'alertRuleIds',
+          [false, 'number[]'],
+        ],
       ] as const,
     }, true)
     const { enabled } = params.body
@@ -762,17 +1009,53 @@ api.put('/alert/direct/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
-        ['enabled', [false, [1, 0]]],
-        ['name', [false, 'string']],
-        ['titleMode', [false, 'string']],
-        ['titleTemplate', [false, 'string']],
-        ['titleMerge', [false, 'number']],
-        ['channelMerge', [false, 'number']],
-        ['preReplaces', [false, 'object[]']],
-        ['postReplaces', [false, 'object[]']],
-        ['commonPattern', [false, 'string']],
-        ['alertRuleIds', [false, 'number[]']],
+        [
+          'id',
+          [true, 'number'],
+        ],
+        [
+          'enabled',
+          [
+            false,
+            [1, 0],
+          ],
+        ],
+        [
+          'name',
+          [false, 'string'],
+        ],
+        [
+          'titleMode',
+          [false, 'string'],
+        ],
+        [
+          'titleTemplate',
+          [false, 'string'],
+        ],
+        [
+          'titleMerge',
+          [false, 'number'],
+        ],
+        [
+          'channelMerge',
+          [false, 'number'],
+        ],
+        [
+          'preReplaces',
+          [false, 'object[]'],
+        ],
+        [
+          'postReplaces',
+          [false, 'object[]'],
+        ],
+        [
+          'commonPattern',
+          [false, 'string'],
+        ],
+        [
+          'alertRuleIds',
+          [false, 'number[]'],
+        ],
       ] as const,
     }, true)
     const {
@@ -803,7 +1086,10 @@ api.put('/alert/direct/rule', async (request, response) => {
       commonPattern,
       alertRuleIds,
     ].every(field => field === undefined)) {
-      const rule = await db.messageAlertDirectRule.$updateById({ id, data: { enabled } })
+      const rule = await db.messageAlertDirectRule.$updateById({
+        id,
+        data: { enabled },
+      })
       response.send(API_STATUS_CODE.okData(rule))
       return
     }
@@ -820,12 +1106,16 @@ api.put('/alert/direct/rule', async (request, response) => {
           pre_replaces: cleaned.preReplaces,
           post_replaces: cleaned.postReplaces,
           common_pattern: cleaned.commonPattern,
-          ...(enabled !== undefined ? { enabled } : {}),
+          ...(enabled !== undefined
+            ? { enabled }
+            : {}),
         },
       })
       // 未显式提供 alertRuleIds 时保留原绑定；清空需显式传空数组，避免整存漏传被静默清空
       if (alertRuleIds !== undefined) {
-        await tx.messageAlertDirectRuleBinding.deleteMany({ where: { directRuleId: id } })
+        await tx.messageAlertDirectRuleBinding.deleteMany({
+          where: { directRuleId: id },
+        })
         await tx.messageAlertDirectRuleBinding.createMany({
           data: cleaned.alertRuleIds.map(alertRuleId => ({
             alertRuleId,
@@ -850,25 +1140,50 @@ api.get('/alert/direct/rule/receiver/page', async (request, response) => {
     validatePageFixedParams(request, ['receiver', 'update_time'])
     const params = validateRequestParams(request, {
       query: [
-        ['ruleId', [true, 'string']],
-        ['enabled', [false, ['1', '0']]],
+        [
+          'ruleId',
+          [true, 'string'],
+        ],
+        [
+          'enabled',
+          [
+            false,
+            ['1', '0'],
+          ],
+        ],
       ] as const,
     })
     const { ruleId, enabled } = params.query
     if (!/^\d+$/.test(ruleId) || Number.parseInt(ruleId) <= 0) {
       throw new Error('参数 ruleId 无效（参数值类型错误）')
     }
-    const rule = await db.messageAlertDirectRule.$getById(Number.parseInt(ruleId), 'id', { select: { id: true } })
+    const rule = await db.messageAlertDirectRule.$getById(Number.parseInt(ruleId), 'id', {
+      select: { id: true },
+    })
     if (!rule) {
       throw new Error('规则不存在')
     }
-    const where: messageAlertDirectRuleReceiverWhereInput = { directRuleId: Number.parseInt(ruleId) }
+    const where: messageAlertDirectRuleReceiverWhereInput = {
+      directRuleId: Number.parseInt(ruleId),
+    }
     if (request.query.search) {
       const search = request.query.search as string
       where.OR = [
-        { receiver: { contains: search } },
-        { remark: { contains: search } },
-        { channels: { some: { channel: { name: { contains: search } } } } },
+        {
+          receiver: { contains: search },
+        },
+        {
+          remark: { contains: search },
+        },
+        {
+          channels: {
+            some: {
+              channel: {
+                name: { contains: search },
+              },
+            },
+          },
+        },
       ]
     }
     if (enabled !== undefined) {
@@ -878,10 +1193,22 @@ api.get('/alert/direct/rule/receiver/page', async (request, response) => {
     const desc = request.query.order !== '0'
     const result = await db.messageAlertDirectRuleReceiver.$page({
       where,
-      orderBy: [{ [orderBy]: desc ? 'desc' : 'asc' }],
+      orderBy: [
+        {
+          [orderBy]: desc ? 'desc' : 'asc',
+        },
+      ],
       page: String(request.query.page),
       size: String(request.query.size),
-      include: { channels: { select: { channel: { select: { id: true, name: true } } } } },
+      include: {
+        channels: {
+          select: {
+            channel: {
+              select: { id: true, name: true },
+            },
+          },
+        },
+      },
     })
     const data = (result.data as Array<any>).map(({ channels, overrides, directRuleId, ...rest }) => ({
       ...rest,
@@ -903,7 +1230,11 @@ async function assertDirectReceiverUnique(directRuleId: number, receiver: string
     where: {
       directRuleId,
       receiver,
-      ...(excludeId !== undefined ? { id: { not: excludeId } } : {}),
+      ...(excludeId !== undefined
+        ? {
+            id: { not: excludeId },
+          }
+        : {}),
     },
     select: { id: true },
   })
@@ -917,8 +1248,14 @@ async function assertChannelsExist(channelIds: number[]) {
     return
   }
   const channels = await db.notificationChannel.$list(
-    { where: { id: { in: channelIds } } },
-    { select: { id: true } },
+    {
+      where: {
+        id: { in: channelIds },
+      },
+    },
+    {
+      select: { id: true },
+    },
   )
   if (channels.length !== channelIds.length) {
     throw new Error('渠道不存在')
@@ -932,16 +1269,39 @@ api.post('/alert/direct/rule/receiver', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['ruleId', [true, 'number']],
-        ['receiver', [true, 'string']],
-        ['overrides', [false, 'object']],
-        ['remark', [false, 'string']],
-        ['enabled', [false, [1, 0]]],
-        ['channelIds', [false, 'number[]']],
+        [
+          'ruleId',
+          [true, 'number'],
+        ],
+        [
+          'receiver',
+          [true, 'string'],
+        ],
+        [
+          'overrides',
+          [false, 'object'],
+        ],
+        [
+          'remark',
+          [false, 'string'],
+        ],
+        [
+          'enabled',
+          [
+            false,
+            [1, 0],
+          ],
+        ],
+        [
+          'channelIds',
+          [false, 'number[]'],
+        ],
       ] as const,
     }, true)
     const { ruleId } = params.body
-    const rule = await db.messageAlertDirectRule.$getById(ruleId, 'id', { select: { id: true } })
+    const rule = await db.messageAlertDirectRule.$getById(ruleId, 'id', {
+      select: { id: true },
+    })
     if (!rule) {
       throw new Error('规则不存在')
     }
@@ -982,12 +1342,33 @@ api.put('/alert/direct/rule/receiver', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
-        ['enabled', [true, [1, 0]]],
-        ['receiver', [false, 'string']],
-        ['overrides', [false, 'object']],
-        ['remark', [false, 'string']],
-        ['channelIds', [false, 'number[]']],
+        [
+          'id',
+          [true, 'number'],
+        ],
+        [
+          'enabled',
+          [
+            true,
+            [1, 0],
+          ],
+        ],
+        [
+          'receiver',
+          [false, 'string'],
+        ],
+        [
+          'overrides',
+          [false, 'object'],
+        ],
+        [
+          'remark',
+          [false, 'string'],
+        ],
+        [
+          'channelIds',
+          [false, 'number[]'],
+        ],
       ] as const,
     }, true)
     const { id, receiver, overrides, remark, enabled, channelIds } = params.body
@@ -995,18 +1376,34 @@ api.put('/alert/direct/rule/receiver', async (request, response) => {
     if (!exists) {
       throw new Error('收信人不存在')
     }
-    if ([receiver, overrides, remark, channelIds].every(field => field === undefined)) {
+    if ([
+      receiver,
+      overrides,
+      remark,
+      channelIds,
+    ].every(field => field === undefined)) {
       if (enabled === 1) {
-        const channelCount = await db.messageAlertDirectRuleReceiverChannel.count({ where: { receiverId: id } })
+        const channelCount = await db.messageAlertDirectRuleReceiverChannel.count({
+          where: { receiverId: id },
+        })
         if (channelCount === 0) {
           throw new Error('收信人未关联通知渠道，不能启用')
         }
       }
-      const updated = await db.messageAlertDirectRuleReceiver.$updateById({ id, data: { enabled } })
+      const updated = await db.messageAlertDirectRuleReceiver.$updateById({
+        id,
+        data: { enabled },
+      })
       response.send(API_STATUS_CODE.okData(updated))
       return
     }
-    const cleaned = validateMessageAlertDirectReceiver({ receiver, overrides, remark, enabled, channelIds })
+    const cleaned = validateMessageAlertDirectReceiver({
+      receiver,
+      overrides,
+      remark,
+      enabled,
+      channelIds,
+    })
     await assertDirectReceiverUnique(exists.directRuleId, cleaned.receiver, id)
     await assertChannelsExist(cleaned.channelIds)
     const updated = await db.$transaction(async (tx) => {
@@ -1019,7 +1416,9 @@ api.put('/alert/direct/rule/receiver', async (request, response) => {
           enabled: cleaned.enabled,
         },
       })
-      await tx.messageAlertDirectRuleReceiverChannel.deleteMany({ where: { receiverId: id } })
+      await tx.messageAlertDirectRuleReceiverChannel.deleteMany({
+        where: { receiverId: id },
+      })
       if (cleaned.channelIds.length > 0) {
         await tx.messageAlertDirectRuleReceiverChannel.createMany({
           data: cleaned.channelIds.map(channelId => ({ receiverId: id, channelId })),
@@ -1046,8 +1445,17 @@ api.put('/alert/direct/rule/receiver/status', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['ids', [true, 'number[]']],
-        ['enabled', [true, [1, 0]]],
+        [
+          'ids',
+          [true, 'number[]'],
+        ],
+        [
+          'enabled',
+          [
+            true,
+            [1, 0],
+          ],
+        ],
       ] as const,
     }, true)
     const { ids, enabled } = params.body
@@ -1057,8 +1465,13 @@ api.put('/alert/direct/rule/receiver/status', async (request, response) => {
     // 启用要求收信人已绑定通知渠道，未绑定的行保持原状
     const result = await db.messageAlertDirectRuleReceiver.updateMany({
       where: enabled === 1
-        ? { id: { in: ids }, channels: { some: {} } }
-        : { id: { in: ids } },
+        ? {
+            id: { in: ids },
+            channels: { some: {} },
+          }
+        : {
+            id: { in: ids },
+          },
       data: { enabled },
     })
     response.send(API_STATUS_CODE.okData({ count: result.count }))
@@ -1075,12 +1488,20 @@ api.delete('/alert/direct/rule/receiver', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['ruleId', [true, 'number']],
-        ['ids', [true, 'number[]']],
+        [
+          'ruleId',
+          [true, 'number'],
+        ],
+        [
+          'ids',
+          [true, 'number[]'],
+        ],
       ] as const,
     }, true)
     const { ruleId, ids } = params.body
-    const rule = await db.messageAlertDirectRule.$getById(ruleId, 'id', { select: { id: true } })
+    const rule = await db.messageAlertDirectRule.$getById(ruleId, 'id', {
+      select: { id: true },
+    })
     if (!rule) {
       throw new Error('规则不存在')
     }
@@ -1089,8 +1510,18 @@ api.delete('/alert/direct/rule/receiver', async (request, response) => {
     }
     // 先删渠道关联再删行
     await db.$transaction(async (tx) => {
-      await tx.messageAlertDirectRuleReceiverChannel.deleteMany({ where: { receiverId: { in: ids }, receiver: { directRuleId: ruleId } } })
-      await tx.messageAlertDirectRuleReceiver.deleteMany({ where: { id: { in: ids }, directRuleId: ruleId } })
+      await tx.messageAlertDirectRuleReceiverChannel.deleteMany({
+        where: {
+          receiverId: { in: ids },
+          receiver: { directRuleId: ruleId },
+        },
+      })
+      await tx.messageAlertDirectRuleReceiver.deleteMany({
+        where: {
+          id: { in: ids },
+          directRuleId: ruleId,
+        },
+      })
     })
     response.send(API_STATUS_CODE.ok())
   }
@@ -1106,12 +1537,20 @@ api.post('/alert/direct/rule/receiver/batch', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['ruleId', [true, 'number']],
-        ['receivers', [true, 'object[]']],
+        [
+          'ruleId',
+          [true, 'number'],
+        ],
+        [
+          'receivers',
+          [true, 'object[]'],
+        ],
       ] as const,
     }, true)
     const { ruleId, receivers } = params.body
-    const rule = await db.messageAlertDirectRule.$getById(ruleId, 'id', { select: { id: true } })
+    const rule = await db.messageAlertDirectRule.$getById(ruleId, 'id', {
+      select: { id: true },
+    })
     if (!rule) {
       throw new Error('规则不存在')
     }
@@ -1128,7 +1567,12 @@ api.post('/alert/direct/rule/receiver/batch', async (request, response) => {
         valid.push(validateMessageAlertDirectReceiverBatchItem(item))
       }
       catch (e: any) {
-        failed.push({ receiver: typeof item?.receiver === 'string' ? item.receiver.trim() : '', reason: `第 ${index + 1} 项：${e.message}` })
+        failed.push({
+          receiver: typeof item?.receiver === 'string'
+            ? item.receiver.trim()
+            : '',
+          reason: `第 ${index + 1} 项：${e.message}`,
+        })
       }
     }
     // 载荷内重复：首项有效，后续计失败
@@ -1145,8 +1589,17 @@ api.post('/alert/direct/rule/receiver/batch', async (request, response) => {
     // 库内同名收信人计失败，合法项单事务批量落库
     const existedReceivers = unique.length > 0
       ? new Set((await db.messageAlertDirectRuleReceiver.$list(
-          { where: { directRuleId: ruleId, receiver: { in: unique.map(item => item.receiver) } } },
-          { select: { receiver: true } },
+          {
+            where: {
+              directRuleId: ruleId,
+              receiver: {
+                in: unique.map(item => item.receiver),
+              },
+            },
+          },
+          {
+            select: { receiver: true },
+          },
         )).map(row => row.receiver))
       : new Set<string>()
     const toCreate = unique.filter(item => !existedReceivers.has(item.receiver))
@@ -1156,7 +1609,13 @@ api.post('/alert/direct/rule/receiver/batch', async (request, response) => {
     let created = 0
     if (toCreate.length > 0) {
       await db.messageAlertDirectRuleReceiver.createMany({
-        data: toCreate.map(({ receiver, overrides, remark, enabled }) => ({ directRuleId: ruleId, receiver, overrides, remark, enabled })),
+        data: toCreate.map(({ receiver, overrides, remark, enabled }) => ({
+          directRuleId: ruleId,
+          receiver,
+          overrides,
+          remark,
+          enabled,
+        })),
       })
       created = toCreate.length
     }
@@ -1174,20 +1633,32 @@ api.get('/alert/direct/rule/receiver/export', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['ruleId', [true, 'string']],
+        [
+          'ruleId',
+          [true, 'string'],
+        ],
       ] as const,
     })
     const { ruleId } = params.query
     if (!/^\d+$/.test(ruleId) || Number.parseInt(ruleId) <= 0) {
       throw new Error('参数 ruleId 无效（参数值类型错误）')
     }
-    const rule = await db.messageAlertDirectRule.$getById(Number.parseInt(ruleId), 'id', { select: { id: true } })
+    const rule = await db.messageAlertDirectRule.$getById(Number.parseInt(ruleId), 'id', {
+      select: { id: true },
+    })
     if (!rule) {
       throw new Error('规则不存在')
     }
     const receivers = await db.messageAlertDirectRuleReceiver.$list(
-      { where: { directRuleId: Number.parseInt(ruleId) }, orderBy: { id: 'asc' } },
-      { select: { receiver: true, overrides: true, remark: true } },
+      {
+        where: {
+          directRuleId: Number.parseInt(ruleId),
+        },
+        orderBy: { id: 'asc' },
+      },
+      {
+        select: { receiver: true, overrides: true, remark: true },
+      },
     )
     // 导出与批量添加共用同一对象结构，overrides 键名与推送自定义接口一致
     response.send(API_STATUS_CODE.okData({
@@ -1210,7 +1681,10 @@ api.delete('/alert/direct/rule', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
+        [
+          'id',
+          [true, 'number'],
+        ],
       ] as const,
     })
     const { id } = params.body
@@ -1219,14 +1693,24 @@ api.delete('/alert/direct/rule', async (request, response) => {
       throw new Error('规则不存在')
     }
     // 收信人是用户逐行维护的名单，随规则静默清空会造成不可恢复的数据丢失
-    const receiverCount = await db.messageAlertDirectRuleReceiver.count({ where: { directRuleId: id } })
+    const receiverCount = await db.messageAlertDirectRuleReceiver.count({
+      where: { directRuleId: id },
+    })
     if (receiverCount > 0) {
       throw new Error('该规则仍有收信人，请先删除全部收信人')
     }
     await db.$transaction(async (tx) => {
-      await tx.messageAlertDirectRuleBinding.deleteMany({ where: { directRuleId: id } })
-      await tx.messageAlertDirectRuleReceiverChannel.deleteMany({ where: { receiver: { directRuleId: id } } })
-      await tx.messageAlertDirectRuleReceiver.deleteMany({ where: { directRuleId: id } })
+      await tx.messageAlertDirectRuleBinding.deleteMany({
+        where: { directRuleId: id },
+      })
+      await tx.messageAlertDirectRuleReceiverChannel.deleteMany({
+        where: {
+          receiver: { directRuleId: id },
+        },
+      })
+      await tx.messageAlertDirectRuleReceiver.deleteMany({
+        where: { directRuleId: id },
+      })
       await tx.messageAlertDirectRule.$deleteById(id)
     })
     response.send(API_STATUS_CODE.ok())
@@ -1243,10 +1727,22 @@ api.post('/alert/direct/rule/receiver/test', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['ruleId', [true, 'number']],
-        ['receiver', [true, 'string']],
-        ['overrides', [false, 'object']],
-        ['message', [true, 'object']],
+        [
+          'ruleId',
+          [true, 'number'],
+        ],
+        [
+          'receiver',
+          [true, 'string'],
+        ],
+        [
+          'overrides',
+          [false, 'object'],
+        ],
+        [
+          'message',
+          [true, 'object'],
+        ],
       ] as const,
     }, true)
     const { ruleId, receiver, overrides, message } = params.body
@@ -1255,8 +1751,12 @@ api.post('/alert/direct/rule/receiver/test', async (request, response) => {
       throw new Error('规则不存在')
     }
     const cleaned = validateMessageAlertDirectReceiver({ receiver, overrides })
-    const title = typeof message.title === 'string' ? message.title.trim() : ''
-    const content = typeof message.content === 'string' ? message.content.trim() : ''
+    const title = typeof message.title === 'string'
+      ? message.title.trim()
+      : ''
+    const content = typeof message.content === 'string'
+      ? message.content.trim()
+      : ''
     if (!title && !content) {
       throw new Error('测试消息的标题与内容至少填写一项')
     }
@@ -1266,7 +1766,9 @@ api.post('/alert/direct/rule/receiver/test', async (request, response) => {
     const parsedOverrides = readReceiverOverrides(cleaned.overrides)
     const pushConfig = resolveReceiverPushConfig(parsedOverrides, rule)
     const { pattern, source } = resolveReceiverPattern(parsedOverrides.pattern ?? '', rule.common_pattern)
-    const [matched] = await matchDirectRule(lines, [{ pattern, receiver: cleaned.receiver }])
+    const [matched] = await matchDirectRule(lines, [
+      { pattern, receiver: cleaned.receiver },
+    ])
     // 超时或异常与未命中语义不同，试测需明确报错而不是显示成未命中
     if (matched === null) {
       throw new Error(`收信人「${cleaned.receiver}」匹配超时或异常，请稍后重试`)
@@ -1316,9 +1818,21 @@ apiOpen.post('/v1/create', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['title', [true, 'string']],
-        ['content', [true, 'string']],
-        ['type', [false, Object.values(MessageType)]],
+        [
+          'title',
+          [true, 'string'],
+        ],
+        [
+          'content',
+          [true, 'string'],
+        ],
+        [
+          'type',
+          [
+            false,
+            Object.values(MessageType),
+          ],
+        ],
       ] as const,
     })
     const { title, content, type } = params.body
@@ -1337,8 +1851,17 @@ apiOpen.get('/v1/list', async (request, response) => {
   try {
     validateRequestParams(request, {
       query: [
-        ['type', [false, 'string']],
-        ['status', [false, ['1', '0']]],
+        [
+          'type',
+          [false, 'string'],
+        ],
+        [
+          'status',
+          [
+            false,
+            ['1', '0'],
+          ],
+        ],
       ],
     })
     const result = await handleMessageList(request, MessageScope.USER)
@@ -1369,7 +1892,10 @@ apiOpen.get('/v1/detail', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['id', [true, 'string']],
+        [
+          'id',
+          [true, 'string'],
+        ],
       ] as const,
     })
     const { id } = params.query
@@ -1391,8 +1917,17 @@ apiOpen.post('/v1/readStatus', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number | number[]']],
-        ['status', [true, [1, 0]]],
+        [
+          'id',
+          [true, 'number | number[]'],
+        ],
+        [
+          'status',
+          [
+            true,
+            [1, 0],
+          ],
+        ],
       ] as const,
     })
     const { id, status } = params.body
@@ -1412,7 +1947,13 @@ apiOpen.post('/v1/readAll', async (request, response) => {
   try {
     validateRequestParams(request, {
       body: [
-        ['status', [false, [1, 0]]],
+        [
+          'status',
+          [
+            false,
+            [1, 0],
+          ],
+        ],
       ] as const,
     })
     const status = request.body.status ?? 1
@@ -1431,7 +1972,10 @@ apiOpen.post('/v1/delete', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number | number[]']],
+        [
+          'id',
+          [true, 'number | number[]'],
+        ],
       ] as const,
     })
     const { id } = params.body
@@ -1451,9 +1995,21 @@ apiInner.post('/push', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['title', [true, 'string']],
-        ['content', [true, 'string']],
-        ['type', [false, Object.values(MessageType)]],
+        [
+          'title',
+          [true, 'string'],
+        ],
+        [
+          'content',
+          [true, 'string'],
+        ],
+        [
+          'type',
+          [
+            false,
+            Object.values(MessageType),
+          ],
+        ],
       ] as const,
     })
     const { title, content, type } = params.body

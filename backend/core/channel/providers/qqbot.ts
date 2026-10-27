@@ -17,10 +17,25 @@ export const QQBot = {
   type: 'qqbot',
   singleBody: true,
   configRules: [
-    ['appId', [true, 'string']],
-    ['clientSecret', [true, 'string']],
-    ['targetType', [false, ['group', 'c2c', 'channel']]],
-    ['targetId', [true, 'string']],
+    [
+      'appId',
+      [true, 'string'],
+    ],
+    [
+      'clientSecret',
+      [true, 'string'],
+    ],
+    [
+      'targetType',
+      [
+        false,
+        ['group', 'c2c', 'channel'],
+      ],
+    ],
+    [
+      'targetId',
+      [true, 'string'],
+    ],
   ],
   rateLimit: {
     // 发送方频控未认证 30 条/分钟
@@ -52,8 +67,12 @@ export const QQBot = {
     const targetType = config.targetType ?? 'group'
     const url = targetType === 'channel'
       ? `https://api.sgroup.qq.com/channels/${config.targetId}/messages`
-      : `https://api.sgroup.qq.com/v2/${targetType === 'group' ? 'groups' : 'users'}/${config.targetId}/messages`
-    const body = targetType === 'channel' ? { content: payload.content } : { msg_type: 0, content: payload.content }
+      : `https://api.sgroup.qq.com/v2/${targetType === 'group'
+        ? 'groups'
+        : 'users'}/${config.targetId}/messages`
+    const body = targetType === 'channel'
+      ? { content: payload.content }
+      : { msg_type: 0, content: payload.content }
 
     const result = await request({
       method: 'POST',

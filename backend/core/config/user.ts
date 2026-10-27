@@ -67,7 +67,10 @@ export async function saveUserCredentials(config: Partial<ConfigDataUser>) {
     entries.push({ key: ConfigKeyUser.USERNAME, value: config.username as string })
   }
   if (isNotEmpty(config.password)) {
-    entries.push({ key: ConfigKeyUser.PASSWORD, value: hashPassword(config.password as string) })
+    entries.push({
+      key: ConfigKeyUser.PASSWORD,
+      value: hashPassword(config.password as string),
+    })
   }
   if (entries.length > 0) {
     await updateUserConfigValues(entries)

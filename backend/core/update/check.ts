@@ -81,10 +81,17 @@ export async function checkForUpdate(): Promise<UpdateCheckResult> {
     latestRelease = await fetchLatestRelease()
   }
   catch {}
-  const targetVersionTag = latestRelease?.tag_name ? latestRelease.tag_name.replace(/^v/, '') : null
+  const targetVersionTag = latestRelease?.tag_name
+    ? latestRelease.tag_name.replace(/^v/, '')
+    : null
   // 更新说明始终取最新正式 Release 正文，不做版本匹配
   const changelog = latestRelease?.body ?? null
-  const target = { versionTag: targetVersionTag, commit: remoteHead.slice(0, 7), fullCommit: remoteHead, changelog }
+  const target = {
+    versionTag: targetVersionTag,
+    commit: remoteHead.slice(0, 7),
+    fullCommit: remoteHead,
+    changelog,
+  }
 
   return { status: UpdateCheckStatus.UPDATE_AVAILABLE, current, target }
 }
@@ -144,7 +151,10 @@ async function runCheckAndPersist(source: UpdateCheckSource): Promise<UpdateChec
   // 成功检测刷新检测时间并清除失败标记；失败记录失败时间，停止被动重试
   if (result.status !== UpdateCheckStatus.ERROR) {
     await updateRuntimeConfigValues([
-      { key: ConfigKeyRuntime.UPDATE_CHECK_LAST_AT, value: String(Date.now()) },
+      {
+        key: ConfigKeyRuntime.UPDATE_CHECK_LAST_AT,
+        value: String(Date.now()),
+      },
       { key: ConfigKeyRuntime.UPDATE_CHECK_FAILED_AT, value: '' },
     ])
   }

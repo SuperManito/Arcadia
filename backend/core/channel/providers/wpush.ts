@@ -12,8 +12,24 @@ interface WPushConfig extends BaseChannelConfig {
 export const WPush = {
   type: 'wpush',
   configRules: [
-    ['apiKey', [true, 'string']],
-    ['channel', [true, ['wechat', 'sms', 'mail', 'feishu', 'dingtalk', 'wechat_work']]],
+    [
+      'apiKey',
+      [true, 'string'],
+    ],
+    [
+      'channel',
+      [
+        true,
+        [
+          'wechat',
+          'sms',
+          'mail',
+          'feishu',
+          'dingtalk',
+          'wechat_work',
+        ],
+      ],
+    ],
   ],
   pusher: async (config, payload) => {
     const body = {

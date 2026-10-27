@@ -25,7 +25,9 @@ api.post('/', async (request: Request, response: Response) => {
         : []
     const token = await createToken({
       name: name?.trim(),
-      expire_time: expire_time ? new Date(expire_time) : null,
+      expire_time: expire_time
+        ? new Date(expire_time)
+        : null,
       permissions: validPermissions,
     })
     response.send(API_STATUS_CODE.okData(token))
@@ -62,10 +64,14 @@ api.put('/', async (request: Request, response: Response) => {
       updateData.name = name.trim()
     }
     if (expire_time !== undefined) {
-      updateData.expire_time = expire_time ? new Date(expire_time) : null
+      updateData.expire_time = expire_time
+        ? new Date(expire_time)
+        : null
     }
     if (enable !== undefined) {
-      updateData.enable = enable === 0 ? 0 : 1
+      updateData.enable = enable === 0
+        ? 0
+        : 1
     }
     if (permissions !== undefined) {
       updateData.permissions = Array.isArray(permissions)

@@ -10,11 +10,19 @@ const CHANNEL_NAME_MAX_LENGTH = 50
  * 无论前端是否提交都写入 general，缺省空字符串并 trim
  */
 function cleanGeneralConfig(raw: unknown): GeneralConfig {
-  const source = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {}
+  const source = raw && typeof raw === 'object' && !Array.isArray(raw)
+    ? raw as Record<string, unknown>
+    : {}
   return {
-    footer: typeof source.footer === 'string' ? source.footer.trim() : '',
-    messageTemplate: typeof source.messageTemplate === 'string' ? source.messageTemplate.trim() : '',
-    proxy: typeof source.proxy === 'string' ? source.proxy.trim() : '',
+    footer: typeof source.footer === 'string'
+      ? source.footer.trim()
+      : '',
+    messageTemplate: typeof source.messageTemplate === 'string'
+      ? source.messageTemplate.trim()
+      : '',
+    proxy: typeof source.proxy === 'string'
+      ? source.proxy.trim()
+      : '',
   }
 }
 
@@ -43,7 +51,11 @@ function cleanChannelConfig(type: ChannelType, raw: Record<string, unknown>): Re
       result[key] = text
     }
     else if (Array.isArray(value)) {
-      result[key] = [...new Set(value.map(item => (typeof item === 'string' ? item.trim() : item)).filter(item => item !== ''))]
+      result[key] = [
+        ...new Set(value.map(item => (typeof item === 'string'
+          ? item.trim()
+          : item)).filter(item => item !== '')),
+      ]
     }
     else {
       result[key] = value
@@ -76,7 +88,9 @@ export async function validateChannelPayload(
   options?: { excludeId?: number, skipNameCheck?: boolean },
 ): Promise<CleanedChannelPayload> {
   const checkName = !options?.skipNameCheck
-  const name = typeof body.name === 'string' ? body.name.trim() : ''
+  const name = typeof body.name === 'string'
+    ? body.name.trim()
+    : ''
   if (checkName) {
     if (!name) {
       throw new Error('渠道名称不能为空')
@@ -109,7 +123,11 @@ export async function validateChannelPayload(
     const duplicated = await db.notificationChannel.findFirst({
       where: {
         name,
-        ...(options?.excludeId !== undefined ? { id: { not: options.excludeId } } : {}),
+        ...(options?.excludeId !== undefined
+          ? {
+              id: { not: options.excludeId },
+            }
+          : {}),
       },
       select: { id: true },
     })

@@ -42,7 +42,10 @@ export interface DirectMatchedLine {
 export function prepareLines(content: string): DirectMatchedLine[] {
   return content
     .split('\n')
-    .map((line, index) => ({ line: line.trim(), index }))
+    .map((line, index) => ({
+      line: line.trim(),
+      index,
+    }))
     .filter(item => item.line.length > 0)
 }
 
@@ -153,7 +156,9 @@ export async function matchDirectRule(
 // 有限并发遍历，结果由调用方按索引回填
 async function mapWithConcurrency<T>(items: T[], concurrency: number, worker: (item: T) => Promise<void>): Promise<void> {
   let next = 0
-  const runners = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+  const runners = Array.from({
+    length: Math.min(concurrency, items.length),
+  }, async () => {
     while (next < items.length) {
       await worker(items[next++])
     }

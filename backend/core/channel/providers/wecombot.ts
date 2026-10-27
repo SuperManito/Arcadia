@@ -13,7 +13,10 @@ export const WeComBot = {
   type: 'wecombot',
   singleBody: true,
   configRules: [
-    ['webhookUrl', [true, 'string']],
+    [
+      'webhookUrl',
+      [true, 'string'],
+    ],
   ],
   rateLimit: {
     // 群机器人 20 条/分钟

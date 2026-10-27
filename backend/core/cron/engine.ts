@@ -78,6 +78,8 @@ export function removeTask(id: string) {
 export function validateCronExpression(cronExpression: string) {
   const validation = cronValidateCronExpression(cronExpression)
   if (!validation.valid) {
-    throw new Error(validation.error ? `定时规则错误：${validation.error.message || validation.error}` : '定时规则错误')
+    throw new Error(validation.error
+      ? `定时规则错误：${validation.error.message || validation.error}`
+      : '定时规则错误')
   }
 }

@@ -59,8 +59,17 @@ apiOpen.get('/v1/list', (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['path', [false, 'string']],
-        ['showCount', [false, ['1', '0']]],
+        [
+          'path',
+          [false, 'string'],
+        ],
+        [
+          'showCount',
+          [
+            false,
+            ['1', '0'],
+          ],
+        ],
       ] as const,
     })
     const path = params.query.path || APP_ROOT_DIR
@@ -83,7 +92,13 @@ function handleFileTreeParams(query: Request['query']): FileTreeParams {
   const startTime = query.startTime as string || ''
   const endTime = query.endTime as string || ''
   const onlyDir = query.onlyDir as string === 'true'
-  return { type, search, startTime, endTime, onlyDir }
+  return {
+    type,
+    search,
+    startTime,
+    endTime,
+    onlyDir,
+  }
 }
 
 /**
@@ -146,7 +161,9 @@ api.get('/tree/:type', (request, response) => {
     const params = handleFileTreeParams(request.query)
     params.type = type
     if (Object.keys(APP_DIR_TYPE).includes(type.toUpperCase()) || type === APP_DIR_TYPE.ALL) {
-      response.send(API_STATUS_CODE.okData(getFileTree(type, type === APP_DIR_TYPE.ALL ? APP_ROOT_DIR : APP_DIR_PATH[type.toUpperCase()], params)))
+      response.send(API_STATUS_CODE.okData(getFileTree(type, type === APP_DIR_TYPE.ALL
+        ? APP_ROOT_DIR
+        : APP_DIR_PATH[type.toUpperCase()], params)))
     }
     else {
       response.send(API_STATUS_CODE.fail('参数错误'))
@@ -175,7 +192,10 @@ apiOpen.get('/v1/content', (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['path', [true, 'string']],
+        [
+          'path',
+          [true, 'string'],
+        ],
       ] as const,
     })
     const { path } = params.query
@@ -207,8 +227,14 @@ apiOpen.post('/v1/content', (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['path', [true, 'string']],
-        ['content', [true, 'string', true]],
+        [
+          'path',
+          [true, 'string'],
+        ],
+        [
+          'content',
+          [true, 'string', true],
+        ],
       ] as const,
     })
     const { path, content } = params.body
@@ -239,7 +265,10 @@ apiOpen.get('/v1/info', (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['path', [true, 'string']],
+        [
+          'path',
+          [true, 'string'],
+        ],
       ] as const,
     })
     const { path } = params.query
@@ -271,8 +300,14 @@ apiOpen.post('/v1/rename', (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['path', [true, 'string']],
-        ['name', [true, 'string']],
+        [
+          'path',
+          [true, 'string'],
+        ],
+        [
+          'name',
+          [true, 'string'],
+        ],
       ] as const,
     })
     const { path, name } = params.body
@@ -336,9 +371,21 @@ apiOpen.post('/v1/create', (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['path', [true, 'string']],
-        ['name', [true, 'string']],
-        ['type', [true, ['folder', 'file']]],
+        [
+          'path',
+          [true, 'string'],
+        ],
+        [
+          'name',
+          [true, 'string'],
+        ],
+        [
+          'type',
+          [
+            true,
+            ['folder', 'file'],
+          ],
+        ],
       ] as const,
     })
     const { path, name, type } = params.body
@@ -380,7 +427,10 @@ apiOpen.post('/v1/delete', (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['path', [true, 'string | string[]']],
+        [
+          'path',
+          [true, 'string | string[]'],
+        ],
       ] as const,
     })
     const { path } = params.body
@@ -422,7 +472,10 @@ apiOpen.get('/v1/download', (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['path', [true, 'string']],
+        [
+          'path',
+          [true, 'string'],
+        ],
       ] as const,
     })
     const { path } = params.query

@@ -29,7 +29,9 @@ export function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void
     next(new Error('unauthorized'))
     return
   }
-  jwt.verify(token, getJwtSecretSync(), { algorithms: ['HS256'] }, ((err, decoded) => {
+  jwt.verify(token, getJwtSecretSync(), {
+    algorithms: ['HS256'],
+  }, ((err, decoded) => {
     if (err) {
       next(new Error('unauthorized'))
     }

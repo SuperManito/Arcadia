@@ -71,13 +71,19 @@ async function onChange(isItem: boolean) {
 
 api.get('/page', async (request, response) => {
   try {
-    const enable = request.query.enable ? (request.query.enable as string).split(',') : []
+    const enable = request.query.enable
+      ? (request.query.enable as string).split(',')
+      : []
     const where: envsGroupWhereInput = {}
     // 启用/禁用状态过滤
     if (enable.length > 0) {
       const or: envsGroupWhereInput[] = []
       enable.forEach((value) => {
-        or.push({ enable: { equals: Number.parseInt(value) } })
+        or.push({
+          enable: {
+            equals: Number.parseInt(value),
+          },
+        })
       })
       where.OR = or
     }
@@ -88,8 +94,16 @@ api.get('/page', async (request, response) => {
     if (request.query.search) {
       andConditionsPage.push({
         OR: [
-          { type: { contains: String(request.query.search) } },
-          { description: { contains: String(request.query.search) } },
+          {
+            type: {
+              contains: String(request.query.search),
+            },
+          },
+          {
+            description: {
+              contains: String(request.query.search),
+            },
+          },
         ],
       })
     }
@@ -110,9 +124,13 @@ api.get('/page', async (request, response) => {
       where,
       page: String(request.query.page),
       size: String(request.query.size),
-      orderBy: { [orderBy]: desc ? 'desc' : 'asc' },
+      orderBy: {
+        [orderBy]: desc ? 'desc' : 'asc',
+      },
       include: {
-        _count: { select: { envs: true } },
+        _count: {
+          select: { envs: true },
+        },
       },
     })
     const result = flattenEnvsGroupPageResult(envsGroupPageResult)
@@ -126,18 +144,26 @@ api.get('/page', async (request, response) => {
 api.get('/pageItem', async (request, response) => {
   try {
     const where: envsWhereInput = {}
-    const enable = request.query.enable ? (request.query.enable as string).split(',') : []
+    const enable = request.query.enable
+      ? (request.query.enable as string).split(',')
+      : []
     // 启用/禁用状态过滤
     if (enable.length > 0) {
       const or: envsWhereInput[] = []
       enable.forEach((value) => {
-        or.push({ enable: { equals: Number.parseInt(value) } })
+        or.push({
+          enable: {
+            equals: Number.parseInt(value),
+          },
+        })
       })
       where.OR = or
     }
     // group_id
     if (request.query.group_id) {
-      where.group_id = { equals: Number.parseInt(request.query.group_id as string) }
+      where.group_id = {
+        equals: Number.parseInt(request.query.group_id as string),
+      }
     }
     else {
       where.group_id = { equals: 0 } // 默认值
@@ -149,13 +175,23 @@ api.get('/pageItem', async (request, response) => {
       andConditionsPageItem.push({
         OR: request.query.group_id === '0'
           ? [
-              { type: { contains: search } },
-              { value: { contains: search } },
-              { description: { contains: search } },
+              {
+                type: { contains: search },
+              },
+              {
+                value: { contains: search },
+              },
+              {
+                description: { contains: search },
+              },
             ]
           : [
-              { value: { contains: search } },
-              { remark: { contains: search } },
+              {
+                value: { contains: search },
+              },
+              {
+                remark: { contains: search },
+              },
             ],
       })
     }
@@ -176,7 +212,9 @@ api.get('/pageItem', async (request, response) => {
       where,
       page: request.query.page as string,
       size: request.query.size as string,
-      orderBy: { [orderBy]: desc ? 'desc' : 'asc' },
+      orderBy: {
+        [orderBy]: desc ? 'desc' : 'asc',
+      },
     })
     response.send(API_STATUS_CODE.okData(result))
   }
@@ -191,10 +229,28 @@ apiOpen.get('/v1/page', async (request, response) => {
     validatePageFixedParams(request, ['sort', 'update_time'])
     const params = validateRequestParams(request, {
       query: [
-        ['category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
-        ['enable', [false, ['1', '0', '1,0', '0,1']]],
-        ['tags', [false, 'string']],
-        ['compositeId', [false, 'string']],
+        [
+          'category',
+          [
+            true,
+            [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
+          ],
+        ],
+        [
+          'enable',
+          [
+            false,
+            ['1', '0', '1,0', '0,1'],
+          ],
+        ],
+        [
+          'tags',
+          [false, 'string'],
+        ],
+        [
+          'compositeId',
+          [false, 'string'],
+        ],
       ] as const,
     })
     const where: envsGroupWhereInput & envsWhereInput = {}
@@ -212,9 +268,15 @@ apiOpen.get('/v1/page', async (request, response) => {
         if (search) {
           andOrdinary.push({
             OR: [
-              { type: { contains: search } },
-              { value: { contains: search } },
-              { description: { contains: search } },
+              {
+                type: { contains: search },
+              },
+              {
+                value: { contains: search },
+              },
+              {
+                description: { contains: search },
+              },
             ],
           })
         }
@@ -232,8 +294,12 @@ apiOpen.get('/v1/page', async (request, response) => {
         if (search) {
           andComposite.push({
             OR: [
-              { type: { contains: search } },
-              { description: { contains: search } },
+              {
+                type: { contains: search },
+              },
+              {
+                description: { contains: search },
+              },
             ],
           })
         }
@@ -250,14 +316,20 @@ apiOpen.get('/v1/page', async (request, response) => {
         if (!/^\d+$/.test(compositeId) || Number.parseInt(compositeId) <= 0) {
           throw new Error('参数 compositeId 无效（参数值类型错误）')
         }
-        where.group_id = { equals: Number.parseInt(compositeId) }
+        where.group_id = {
+          equals: Number.parseInt(compositeId),
+        }
         // 搜索 + tag_list 过滤
         const andCompositeValue: envsWhereInput[] = []
         if (search) {
           andCompositeValue.push({
             OR: [
-              { value: { contains: search } },
-              { remark: { contains: search } },
+              {
+                value: { contains: search },
+              },
+              {
+                remark: { contains: search },
+              },
             ],
           })
         }
@@ -269,11 +341,17 @@ apiOpen.get('/v1/page', async (request, response) => {
       }
     }
     // 启用/禁用状态过滤
-    const enable = params.query.enable ? params.query.enable.split(',') : []
+    const enable = params.query.enable
+      ? params.query.enable.split(',')
+      : []
     if (enable.length > 0) {
       const or: (envsGroupWhereInput & envsWhereInput)[] = []
       enable.forEach((value) => {
-        or.push({ enable: { equals: Number.parseInt(value) } })
+        or.push({
+          enable: {
+            equals: Number.parseInt(value),
+          },
+        })
       })
       where.OR = or
     }
@@ -289,9 +367,13 @@ apiOpen.get('/v1/page', async (request, response) => {
         where,
         page: request.query.page as string,
         size: request.query.size as string,
-        orderBy: { [orderBy]: (desc ? 'desc' : 'asc') },
+        orderBy: {
+          [orderBy]: (desc ? 'desc' : 'asc'),
+        },
         include: {
-          _count: { select: { envs: true } },
+          _count: {
+            select: { envs: true },
+          },
         },
       })
       result = flattenEnvsGroupPageResult(envsGroupPageResult)
@@ -301,7 +383,9 @@ apiOpen.get('/v1/page', async (request, response) => {
         where,
         page: request.query.page as string,
         size: request.query.size as string,
-        orderBy: { [orderBy]: (desc ? 'desc' : 'asc') },
+        orderBy: {
+          [orderBy]: (desc ? 'desc' : 'asc'),
+        },
       })
     }
     // 返回数据
@@ -317,9 +401,18 @@ apiOpen.get('/v1/query', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       query: [
-        ['name', [false, 'string']],
-        ['type', [false, 'string']],
-        ['description', [false, 'string']],
+        [
+          'name',
+          [false, 'string'],
+        ],
+        [
+          'type',
+          [false, 'string'],
+        ],
+        [
+          'description',
+          [false, 'string'],
+        ],
       ] as const,
     })
     const { name, type, description } = params.query
@@ -330,13 +423,19 @@ apiOpen.get('/v1/query', async (request, response) => {
     // 构建查询条件
     const queryConditions: (envsWhereInput & envsGroupWhereInput)[] = []
     if (type) {
-      queryConditions.push({ type: { contains: type } }) // 优先使用 type
+      queryConditions.push({
+        type: { contains: type },
+      }) // 优先使用 type
     }
     else if (name) {
-      queryConditions.push({ type: { contains: name } })
+      queryConditions.push({
+        type: { contains: name },
+      })
     }
     if (description) {
-      queryConditions.push({ description: { contains: description } })
+      queryConditions.push({
+        description: { contains: description },
+      })
     }
     // 查询 envs 表
     const envsResult = await db.envs.$list({
@@ -354,14 +453,24 @@ apiOpen.get('/v1/query', async (request, response) => {
         id: { not: 0 },
         AND: queryConditions,
       },
-    }, { include: { _count: { select: { envs: true } } } }) || []
+    }, {
+      include: {
+        _count: {
+          select: { envs: true },
+        },
+      },
+    }) || []
     if (envsGroupResult.length > 0) {
       result.push(...flattenIncludeRelationCount(envsGroupResult))
     }
     // 二次过滤（注：SQLite 的 contains 操作符不区分大小写）
     const filteredData = result.filter((item: envsModel | ComboEnvsGroupWithCount) => {
-      const matchesName = name ? item.type.includes(name) : true
-      const matchesDescription = description ? item.description.includes(description) : true
+      const matchesName = name
+        ? item.type.includes(name)
+        : true
+      const matchesDescription = description
+        ? item.description.includes(description)
+        : true
       return matchesName && matchesDescription
     })
     // 返回数据
@@ -394,9 +503,18 @@ apiOpen.get('/v1/queryMember', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       query: [
-        ['id', [true, 'string']],
-        ['value', [false, 'string']],
-        ['remark', [false, 'string']],
+        [
+          'id',
+          [true, 'string'],
+        ],
+        [
+          'value',
+          [false, 'string'],
+        ],
+        [
+          'remark',
+          [false, 'string'],
+        ],
       ] as const,
     })
     const { id, value, remark } = params.query
@@ -409,10 +527,14 @@ apiOpen.get('/v1/queryMember', async (request, response) => {
     // 构建查询条件
     const queryConditions: envsWhereInput[] = []
     if (value) {
-      queryConditions.push({ value: { contains: value } })
+      queryConditions.push({
+        value: { contains: value },
+      })
     }
     if (remark) {
-      queryConditions.push({ remark: { contains: remark } })
+      queryConditions.push({
+        remark: { contains: remark },
+      })
     }
     // 查询 envs 表
     const result = await db.envs.$list({
@@ -434,8 +556,17 @@ apiOpen.get('/v1/queryById', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       query: [
-        ['category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
-        ['id', [true, 'string']],
+        [
+          'category',
+          [
+            true,
+            [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
+          ],
+        ],
+        [
+          'id',
+          [true, 'string'],
+        ],
       ] as const,
     })
     const { category, id } = params.query
@@ -445,7 +576,11 @@ apiOpen.get('/v1/queryById', async (request, response) => {
     let record: envsModel | ComboEnvsGroupWithCount | null = null
     if (category === EnvTypes.COMPOSITE) {
       const envsGroupResult = await db.envsGroup.$getById(String(id), undefined, {
-        include: { _count: { select: { envs: true } } },
+        include: {
+          _count: {
+            select: { envs: true },
+          },
+        },
       })
       if (envsGroupResult) {
         record = flattenIncludeRelationCount(envsGroupResult)
@@ -531,7 +666,9 @@ api.post('/create', async (request, response) => {
       data = request.body.map((e: any) => Object.assign({}, e))
     }
     else {
-      data = [Object.assign({}, request.body)]
+      data = [
+        Object.assign({}, request.body),
+      ]
     }
     const formatData: envsGroupModel[] = []
     for (const obj of data) {
@@ -556,7 +693,9 @@ api.post('/createItem', async (request, response) => {
       data = request.body.map((e: any) => Object.assign({}, e))
     }
     else {
-      data = [Object.assign({}, request.body)]
+      data = [
+        Object.assign({}, request.body),
+      ]
     }
     const formatData: envsModel[] = []
     for (const obj of data) {
@@ -581,9 +720,21 @@ apiOpen.post('/v1/create', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
-        ['compositeId', [false, 'number']],
-        ['data', [true, 'object']],
+        [
+          'category',
+          [
+            true,
+            [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
+          ],
+        ],
+        [
+          'compositeId',
+          [false, 'number'],
+        ],
+        [
+          'data',
+          [true, 'object'],
+        ],
       ] as const,
     })
     const { category, compositeId } = params.body
@@ -592,25 +743,57 @@ apiOpen.post('/v1/create', async (request, response) => {
       data = params.body.data.map((e: any) => Object.assign({}, e))
     }
     else {
-      data = [Object.assign({}, params.body.data)]
+      data = [
+        Object.assign({}, params.body.data),
+      ]
     }
     // 过滤数据
     let validateRules: ValidateObjectParamType[] = []
     switch (category) {
       case EnvTypes.ORDINARY:
         validateRules = [
-          ['type', [true, 'string']],
-          ['description', [false, 'string']],
-          ['value', [false, 'string']],
-          ['enable', [false, [1, 0]]],
+          [
+            'type',
+            [true, 'string'],
+          ],
+          [
+            'description',
+            [false, 'string'],
+          ],
+          [
+            'value',
+            [false, 'string'],
+          ],
+          [
+            'enable',
+            [
+              false,
+              [1, 0],
+            ],
+          ],
         ]
         break
       case EnvTypes.COMPOSITE:
         validateRules = [
-          ['type', [true, 'string']],
-          ['description', [false, 'string']],
-          ['separator', [false, 'string']],
-          ['enable', [false, [1, 0]]],
+          [
+            'type',
+            [true, 'string'],
+          ],
+          [
+            'description',
+            [false, 'string'],
+          ],
+          [
+            'separator',
+            [false, 'string'],
+          ],
+          [
+            'enable',
+            [
+              false,
+              [1, 0],
+            ],
+          ],
         ]
         break
       case EnvTypes.COMPOSITE_VALUE:
@@ -621,9 +804,21 @@ apiOpen.post('/v1/create', async (request, response) => {
           throw new Error('参数 compositeId 无效（参数值类型错误）')
         }
         validateRules = [
-          ['remark', [false, 'string']],
-          ['value', [false, 'string']],
-          ['enable', [false, [1, 0]]],
+          [
+            'remark',
+            [false, 'string'],
+          ],
+          [
+            'value',
+            [false, 'string'],
+          ],
+          [
+            'enable',
+            [
+              false,
+              [1, 0],
+            ],
+          ],
         ]
         break
     }
@@ -657,7 +852,9 @@ apiOpen.post('/v1/create', async (request, response) => {
       result = await db.envs.$create(formatData as envsModel[])
     }
     response.send(API_STATUS_CODE.okData(result))
-    logger.info('[OpenAPI · Env]', '创建环境变量', JSON.stringify(data.length === 1 ? formatData[0] : formatData))
+    logger.info('[OpenAPI · Env]', '创建环境变量', JSON.stringify(data.length === 1
+      ? formatData[0]
+      : formatData))
     await onChange(category !== EnvTypes.COMPOSITE)
   }
   catch (e: any) {
@@ -670,8 +867,17 @@ apiOpen.post('/v1/update', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
-        ['data', [true, 'object']],
+        [
+          'category',
+          [
+            true,
+            [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
+          ],
+        ],
+        [
+          'data',
+          [true, 'object'],
+        ],
       ] as const,
     })
     const { category } = params.body
@@ -680,36 +886,92 @@ apiOpen.post('/v1/update', async (request, response) => {
       data = params.body.data.map((e: any) => Object.assign({}, e))
     }
     else {
-      data = [Object.assign({}, params.body.data)]
+      data = [
+        Object.assign({}, params.body.data),
+      ]
     }
     // 过滤数据
     let validateRules: ValidateObjectParamType[] = []
     switch (category) {
       case EnvTypes.ORDINARY:
         validateRules = [
-          ['id', [true, 'number']],
-          ['type', [true, 'string']],
-          ['description', [false, 'string']],
-          ['value', [false, 'string']],
-          ['enable', [false, [1, 0]]],
+          [
+            'id',
+            [true, 'number'],
+          ],
+          [
+            'type',
+            [true, 'string'],
+          ],
+          [
+            'description',
+            [false, 'string'],
+          ],
+          [
+            'value',
+            [false, 'string'],
+          ],
+          [
+            'enable',
+            [
+              false,
+              [1, 0],
+            ],
+          ],
         ]
         break
       case EnvTypes.COMPOSITE:
         validateRules = [
-          ['id', [true, 'number']],
-          ['type', [true, 'string']],
-          ['description', [false, 'string']],
-          ['separator', [false, 'string']],
-          ['enable', [false, [1, 0]]],
+          [
+            'id',
+            [true, 'number'],
+          ],
+          [
+            'type',
+            [true, 'string'],
+          ],
+          [
+            'description',
+            [false, 'string'],
+          ],
+          [
+            'separator',
+            [false, 'string'],
+          ],
+          [
+            'enable',
+            [
+              false,
+              [1, 0],
+            ],
+          ],
         ]
         break
       case EnvTypes.COMPOSITE_VALUE:
         validateRules = [
-          ['id', [true, 'number']],
-          ['group_id', [true, 'number']],
-          ['remark', [false, 'string']],
-          ['value', [false, 'string']],
-          ['enable', [false, [1, 0]]],
+          [
+            'id',
+            [true, 'number'],
+          ],
+          [
+            'group_id',
+            [true, 'number'],
+          ],
+          [
+            'remark',
+            [false, 'string'],
+          ],
+          [
+            'value',
+            [false, 'string'],
+          ],
+          [
+            'enable',
+            [
+              false,
+              [1, 0],
+            ],
+          ],
         ]
         break
     }
@@ -730,7 +992,9 @@ apiOpen.post('/v1/update', async (request, response) => {
           throw new Error('参数 group_id 无效（参数值类型错误）')
         }
         // 检查变量是否存在
-        const envsItems = await db.envs.$list({ where: { id: obj.id } }) || []
+        const envsItems = await db.envs.$list({
+          where: { id: obj.id },
+        }) || []
         if (envsItems.length <= 0) {
           throw new Error(`参数 id 无效，复合变量的值 ${obj.id} 不存在`)
         }
@@ -756,7 +1020,9 @@ apiOpen.post('/v1/update', async (request, response) => {
         }
         if (category === EnvTypes.ORDINARY) {
           // 检查变量是否存在
-          const envsItems = await db.envs.$list({ where: { id: obj.id } }) || []
+          const envsItems = await db.envs.$list({
+            where: { id: obj.id },
+          }) || []
           if (envsItems.length <= 0) {
             throw new Error(`参数 id 无效，普通变量 ${obj.id} 不存在`)
           }
@@ -765,7 +1031,9 @@ apiOpen.post('/v1/update', async (request, response) => {
         }
         else if (category === EnvTypes.COMPOSITE) {
           // 检查变量是否存在
-          const envsGroupItems = await db.envsGroup.$list({ where: { id: obj.id } }) || []
+          const envsGroupItems = await db.envsGroup.$list({
+            where: { id: obj.id },
+          }) || []
           if (envsGroupItems.length <= 0) {
             throw new Error(`参数 id 无效，复合变量(组) ${obj.id} 不存在`)
           }
@@ -784,7 +1052,9 @@ apiOpen.post('/v1/update', async (request, response) => {
       }
     }
     response.send(API_STATUS_CODE.okData(result))
-    logger.info('[OpenAPI · Env]', '修改环境变量', JSON.stringify(data.length === 1 ? formatData[0] : formatData))
+    logger.info('[OpenAPI · Env]', '修改环境变量', JSON.stringify(data.length === 1
+      ? formatData[0]
+      : formatData))
     await onChange(category !== EnvTypes.COMPOSITE)
   }
   catch (e: any) {
@@ -795,7 +1065,9 @@ apiOpen.post('/v1/update', async (request, response) => {
 api.put('/changeStatus', async (request, response) => {
   try {
     const id = request.body.id
-    const ids = Array.isArray(id) ? id : [id]
+    const ids = Array.isArray(id)
+      ? id
+      : [id]
     ids.forEach((id) => {
       if (id <= 0) {
         throw new Error('参数 id 无效（参数值类型错误）')
@@ -807,7 +1079,10 @@ api.put('/changeStatus', async (request, response) => {
       if (!record) {
         throw new Error('变量不存在')
       }
-      await db.envsGroup.$updateById({ id, data: { enable: status } })
+      await db.envsGroup.$updateById({
+        id,
+        data: { enable: status },
+      })
     }
     response.send(API_STATUS_CODE.ok())
     await onChange(false)
@@ -820,7 +1095,9 @@ api.put('/changeStatus', async (request, response) => {
 api.put('/changeStatusItem', async (request, response) => {
   try {
     const id = request.body.id
-    const ids = Array.isArray(id) ? id : [id]
+    const ids = Array.isArray(id)
+      ? id
+      : [id]
     ids.forEach((id) => {
       if (id <= 0) {
         throw new Error('参数 id 无效（参数值类型错误）')
@@ -832,7 +1109,10 @@ api.put('/changeStatusItem', async (request, response) => {
       if (!record) {
         throw new Error('变量不存在')
       }
-      await db.envs.$updateById({ id, data: { enable: status } })
+      await db.envs.$updateById({
+        id,
+        data: { enable: status },
+      })
     }
     response.send(API_STATUS_CODE.ok())
     await onChange(true)
@@ -847,13 +1127,27 @@ apiOpen.post('/v1/changeStatus', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number | number[]']],
-        ['status', [true, [1, 0]]],
-        ['isComposite', [false, 'boolean']],
+        [
+          'id',
+          [true, 'number | number[]'],
+        ],
+        [
+          'status',
+          [
+            true,
+            [1, 0],
+          ],
+        ],
+        [
+          'isComposite',
+          [false, 'boolean'],
+        ],
       ] as const,
     })
     const { id, status, isComposite } = params.body
-    const ids = Array.isArray(id) ? id : [id]
+    const ids = Array.isArray(id)
+      ? id
+      : [id]
     ids.forEach((id) => {
       if (id <= 0) {
         throw new Error('参数 id 无效（参数值类型错误）')
@@ -872,12 +1166,20 @@ apiOpen.post('/v1/changeStatus', async (request, response) => {
       }
       record.enable = status
       if (isComposite) {
-        await db.envsGroup.$updateById({ id, data: { enable: status } })
+        await db.envsGroup.$updateById({
+          id,
+          data: { enable: status },
+        })
       }
       else {
-        await db.envs.$updateById({ id, data: { enable: status } })
+        await db.envs.$updateById({
+          id,
+          data: { enable: status },
+        })
       }
-      logger.info('[OpenAPI · Env]', '更改环境变量状态', id, status === 1 ? '启用' : '禁用', JSON.stringify(record))
+      logger.info('[OpenAPI · Env]', '更改环境变量状态', id, status === 1
+        ? '启用'
+        : '禁用', JSON.stringify(record))
     }
     response.send(API_STATUS_CODE.ok())
     await onChange(!isComposite)
@@ -892,11 +1194,16 @@ api.delete('/delete', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number | number[]']],
+        [
+          'id',
+          [true, 'number | number[]'],
+        ],
       ] as const,
     })
     const { id } = params.body
-    const ids = Array.isArray(id) ? id : [id]
+    const ids = Array.isArray(id)
+      ? id
+      : [id]
     ids.forEach((id) => {
       if (id <= 0) {
         throw new Error('参数 id 无效（参数值类型错误）')
@@ -920,11 +1227,16 @@ api.delete('/deleteItem', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number | number[]']],
+        [
+          'id',
+          [true, 'number | number[]'],
+        ],
       ] as const,
     })
     const { id } = params.body
-    const ids = Array.isArray(id) ? id : [id]
+    const ids = Array.isArray(id)
+      ? id
+      : [id]
     ids.forEach((id) => {
       if (id <= 0) {
         throw new Error('参数 id 无效（参数值类型错误）')
@@ -947,12 +1259,20 @@ apiOpen.post('/v1/delete', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number | number[]']],
-        ['isComposite', [false, 'boolean']],
+        [
+          'id',
+          [true, 'number | number[]'],
+        ],
+        [
+          'isComposite',
+          [false, 'boolean'],
+        ],
       ] as const,
     })
     const { id, isComposite } = params.body
-    const ids = Array.isArray(id) ? id : [id]
+    const ids = Array.isArray(id)
+      ? id
+      : [id]
     ids.forEach((id) => {
       if (id <= 0) {
         throw new Error('参数 id 无效（参数值类型错误）')
@@ -979,9 +1299,18 @@ api.put('/order', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
-        ['order', [false, 'number']],
-        ['moveToEnd', [false, 'boolean']],
+        [
+          'id',
+          [true, 'number'],
+        ],
+        [
+          'order',
+          [false, 'number'],
+        ],
+        [
+          'moveToEnd',
+          [false, 'boolean'],
+        ],
       ] as const,
     })
     const { id, order, moveToEnd } = params.body
@@ -1018,9 +1347,18 @@ api.put('/orderItem', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
-        ['order', [false, 'number']],
-        ['moveToEnd', [false, 'boolean']],
+        [
+          'id',
+          [true, 'number'],
+        ],
+        [
+          'order',
+          [false, 'number'],
+        ],
+        [
+          'moveToEnd',
+          [false, 'boolean'],
+        ],
       ] as const,
     })
     const { id, order, moveToEnd } = params.body
@@ -1057,10 +1395,22 @@ apiOpen.post('/v1/order', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
-        ['order', [false, 'number']],
-        ['moveToEnd', [false, 'boolean']],
-        ['isComposite', [false, 'boolean']],
+        [
+          'id',
+          [true, 'number'],
+        ],
+        [
+          'order',
+          [false, 'number'],
+        ],
+        [
+          'moveToEnd',
+          [false, 'boolean'],
+        ],
+        [
+          'isComposite',
+          [false, 'boolean'],
+        ],
       ] as const,
     })
     const { id, order, moveToEnd, isComposite } = params.body
@@ -1114,7 +1464,10 @@ api.get('/tagsItem', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['group_id', [false, 'string']],
+        [
+          'group_id',
+          [false, 'string'],
+        ],
       ] as const,
     })
     const { group_id } = params.query
@@ -1150,8 +1503,17 @@ apiOpen.get('/v1/tags', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['category', [true, [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE]]],
-        ['compositeId', [false, 'string']],
+        [
+          'category',
+          [
+            true,
+            [EnvTypes.ORDINARY, EnvTypes.COMPOSITE, EnvTypes.COMPOSITE_VALUE],
+          ],
+        ],
+        [
+          'compositeId',
+          [false, 'string'],
+        ],
       ] as const,
     })
     const { category, compositeId } = params.query

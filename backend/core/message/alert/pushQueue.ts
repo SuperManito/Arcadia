@@ -36,7 +36,12 @@ const queues = new Map<string, ChannelQueue>()
 function getQueue(type: string) {
   let queue = queues.get(type)
   if (!queue) {
-    queue = { priorityTasks: [], tasks: [], active: 0, warnedLevel: 0 }
+    queue = {
+      priorityTasks: [],
+      tasks: [],
+      active: 0,
+      warnedLevel: 0,
+    }
     queues.set(type, queue)
   }
   return queue
@@ -123,7 +128,13 @@ export function enqueuePush(
   session: PushSession,
   priority = false,
 ): void {
-  const task: PushTask = { channel, ...payload, ...meta, priority, session }
+  const task: PushTask = {
+    channel,
+    ...payload,
+    ...meta,
+    priority,
+    session,
+  }
   session.pending++
   const queue = getQueue(channel.type)
   if (priority) {

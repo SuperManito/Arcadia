@@ -61,9 +61,17 @@ export async function getRuntimeConfigValue(key: ConfigKeyRuntime) {
 export async function updateConfigValue(key: ConfigKey, module: ConfigModule, value: string | number) {
   validateConfigFieldKey(key, module)
   return await db.config.upsert({
-    where: { key_module: { key, module } },
-    update: { value: String(value) },
-    create: { key, module, value: String(value) },
+    where: {
+      key_module: { key, module },
+    },
+    update: {
+      value: String(value),
+    },
+    create: {
+      key,
+      module,
+      value: String(value),
+    },
   })
 }
 export async function updateUserConfigValue(key: ConfigKeyUser, value: string | number) {
@@ -121,7 +129,9 @@ export async function rotateJwtSecret(): Promise<void> {
  * 获取模块配置并转换为键值对映射
  */
 async function getModuleConfigMap(module: ConfigModule): Promise<Record<string, string>> {
-  const configs = await db.config.$list({ where: { module } })
+  const configs = await db.config.$list({
+    where: { module },
+  })
   const defaultKeys = Object.keys(DEFAULT_CONFIG_VALUES[module])
 
   // 补充对应模块缺失的配置字段记录
@@ -183,7 +193,9 @@ export async function getRuntimeModuleConfig() {
  * 只读版本：列出 RUNTIME 模块现有记录并合并默认值，不补写缺失配置行
  */
 export async function getRuntimeModuleConfigReadonly(): Promise<ConfigDataRuntime> {
-  const configs = await db.config.$list({ where: { module: ConfigModule.RUNTIME } })
+  const configs = await db.config.$list({
+    where: { module: ConfigModule.RUNTIME },
+  })
   const map = new Map(configs.map(c => [c.key, c.value]))
   const result = {} as ConfigDataRuntime
   for (const key of Object.values(ConfigKeyRuntime)) {

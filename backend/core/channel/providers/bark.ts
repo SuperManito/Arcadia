@@ -25,15 +25,50 @@ interface BarkConfig extends BaseChannelConfig {
 export const Bark = {
   type: 'bark',
   configRules: [
-    ['deviceKey', [true, 'string']],
-    ['server', [false, 'string']],
-    ['url', [false, 'string']],
-    ['group', [false, 'string']],
-    ['sound', [false, 'string']],
-    ['icon', [false, 'string']],
-    ['level', [false, ['active', 'timeSensitive', 'passive', 'critical']]],
-    ['call', [false, 'boolean']],
-    ['badge', [false, 'number']],
+    [
+      'deviceKey',
+      [true, 'string'],
+    ],
+    [
+      'server',
+      [false, 'string'],
+    ],
+    [
+      'url',
+      [false, 'string'],
+    ],
+    [
+      'group',
+      [false, 'string'],
+    ],
+    [
+      'sound',
+      [false, 'string'],
+    ],
+    [
+      'icon',
+      [false, 'string'],
+    ],
+    [
+      'level',
+      [
+        false,
+        [
+          'active',
+          'timeSensitive',
+          'passive',
+          'critical',
+        ],
+      ],
+    ],
+    [
+      'call',
+      [false, 'boolean'],
+    ],
+    [
+      'badge',
+      [false, 'number'],
+    ],
   ],
   pusher: async (config, payload) => {
     const body: Record<string, unknown> = {

@@ -23,12 +23,33 @@ export const Discord = {
   type: 'discord',
   singleBody: true,
   configRules: [
-    ['webhookUrl', [true, 'string']],
-    ['username', [false, 'string']],
-    ['channelType', [false, ['channel', 'createNewForumPost', 'postToThread']]],
-    ['postName', [false, 'string']],
-    ['threadId', [false, 'string']],
-    ['suppressNotifications', [false, 'boolean']],
+    [
+      'webhookUrl',
+      [true, 'string'],
+    ],
+    [
+      'username',
+      [false, 'string'],
+    ],
+    [
+      'channelType',
+      [
+        false,
+        ['channel', 'createNewForumPost', 'postToThread'],
+      ],
+    ],
+    [
+      'postName',
+      [false, 'string'],
+    ],
+    [
+      'threadId',
+      [false, 'string'],
+    ],
+    [
+      'suppressNotifications',
+      [false, 'boolean'],
+    ],
   ],
   rateLimit: {
     // 每 webhook 约 5 请求 / 2秒

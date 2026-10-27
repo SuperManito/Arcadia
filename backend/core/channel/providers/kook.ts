@@ -15,8 +15,14 @@ export const Kook = {
   type: 'kook',
   singleBody: true,
   configRules: [
-    ['botToken', [true, 'string']],
-    ['channelId', [true, 'string']],
+    [
+      'botToken',
+      [true, 'string'],
+    ],
+    [
+      'channelId',
+      [true, 'string'],
+    ],
   ],
   rateLimit: {
     // bot API 未实名 60 次/分钟

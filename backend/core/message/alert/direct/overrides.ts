@@ -11,14 +11,41 @@ import {
 } from './types'
 
 // 可覆盖键名与一对一规则表列名对齐；键存在=覆盖规则主体，键缺失=沿用，空对象存空串
-const OVERRIDE_KEYS = ['pattern', 'title_mode', 'title_template', 'title_merge', 'post_replaces'] as const
+const OVERRIDE_KEYS = [
+  'pattern',
+  'title_mode',
+  'title_template',
+  'title_merge',
+  'post_replaces',
+] as const
 
 const OVERRIDE_VALIDATE_RULES: ValidateObjectParamType[] = [
-  ['pattern', [false, 'string']],
-  ['title_mode', [false, [...MESSAGE_ALERT_DIRECT_TITLE_MODES]]],
-  ['title_template', [false, 'string']],
-  ['title_merge', [false, [0, 1]]],
-  ['post_replaces', [false, 'object[]']],
+  [
+    'pattern',
+    [false, 'string'],
+  ],
+  [
+    'title_mode',
+    [
+      false,
+      [...MESSAGE_ALERT_DIRECT_TITLE_MODES],
+    ],
+  ],
+  [
+    'title_template',
+    [false, 'string'],
+  ],
+  [
+    'title_merge',
+    [
+      false,
+      [0, 1],
+    ],
+  ],
+  [
+    'post_replaces',
+    [false, 'object[]'],
+  ],
 ]
 
 export interface MessageAlertDirectOverrideValues {
@@ -52,7 +79,9 @@ export function validateReceiverOverrides(raw: unknown, receiver: string): strin
   const input = Object.fromEntries(Object.entries(source).filter(([, value]) => value !== null))
   validateObject(input, OVERRIDE_VALIDATE_RULES, '推送自定义')
   const result: Record<string, unknown> = {}
-  const pattern = input.pattern !== undefined ? (input.pattern as string).trim() : ''
+  const pattern = input.pattern !== undefined
+    ? (input.pattern as string).trim()
+    : ''
   if (pattern) {
     if (pattern.length > MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH) {
       throw new Error(`推送自定义的正则匹配长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_PATTERN_MAX_LENGTH} 个字符`)
@@ -71,7 +100,9 @@ export function validateReceiverOverrides(raw: unknown, receiver: string): strin
   }
   if (input.title_mode !== undefined) {
     const titleMode = input.title_mode as MessageAlertDirectTitleMode
-    let titleTemplate = input.title_template !== undefined ? (input.title_template as string).trim() : ''
+    let titleTemplate = input.title_template !== undefined
+      ? (input.title_template as string).trim()
+      : ''
     if (titleMode === 'template') {
       if (!titleTemplate) {
         throw new Error('推送自定义的标题模板不能为空')
@@ -97,12 +128,16 @@ export function validateReceiverOverrides(raw: unknown, receiver: string): strin
       result.post_replaces = postReplaces
     }
   }
-  return Object.keys(result).length > 0 ? JSON.stringify(result) : ''
+  return Object.keys(result).length > 0
+    ? JSON.stringify(result)
+    : ''
 }
 
 /** 落库值读取：损坏或字段类型不符按未自定义处理（保存前已校验，此处只防落库内容损坏） */
 export function readReceiverOverrides(json: unknown): MessageAlertDirectOverrides {
-  const text = typeof json === 'string' ? json.trim() : ''
+  const text = typeof json === 'string'
+    ? json.trim()
+    : ''
   if (!text) {
     return {}
   }
@@ -148,9 +183,13 @@ export function receiverOverridesToResponse(json: unknown): {
   return {
     pattern: overrides.pattern ?? null,
     title_mode: overrides.title_mode ?? null,
-    title_template: overrides.title_mode === 'template' ? (overrides.title_template ?? null) : null,
+    title_template: overrides.title_mode === 'template'
+      ? (overrides.title_template ?? null)
+      : null,
     title_merge: overrides.title_merge ?? null,
-    post_replaces: overrides.post_replaces ? parseReplacePairs(overrides.post_replaces) : null,
+    post_replaces: overrides.post_replaces
+      ? parseReplacePairs(overrides.post_replaces)
+      : null,
   }
 }
 
@@ -168,19 +207,25 @@ export function resolveReceiverPushConfig(
   overrides: MessageAlertDirectOverrides,
   rule: { title_mode: string, title_template: string, title_merge: number, post_replaces: string },
 ): ReceiverPushConfig {
-  const titleMerge = overrides.title_merge ?? (rule.title_merge === 1 ? 1 : 0)
+  const titleMerge = overrides.title_merge ?? (rule.title_merge === 1
+    ? 1
+    : 0)
   const postReplaces = overrides.post_replaces ?? rule.post_replaces
   if (overrides.title_mode) {
     return {
       titleMode: overrides.title_mode,
-      titleTemplate: overrides.title_mode === 'template' ? (overrides.title_template ?? '') : '',
+      titleTemplate: overrides.title_mode === 'template'
+        ? (overrides.title_template ?? '')
+        : '',
       titleMerge,
       postReplaces,
     }
   }
   return {
     titleMode: rule.title_mode as MessageAlertDirectTitleMode,
-    titleTemplate: rule.title_mode === 'template' ? rule.title_template : '',
+    titleTemplate: rule.title_mode === 'template'
+      ? rule.title_template
+      : '',
     titleMerge,
     postReplaces,
   }

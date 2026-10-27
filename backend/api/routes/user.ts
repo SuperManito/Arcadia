@@ -42,7 +42,11 @@ async function checkAuthLimit(curTime: Date) {
       limitTime: getAuthLimitRemainingTime(curTime),
     }
   }
-  return { limited: false, showCaptcha: shouldShowCaptcha(), limitTime: 0 }
+  return {
+    limited: false,
+    showCaptcha: shouldShowCaptcha(),
+    limitTime: 0,
+  }
 }
 
 /**
@@ -97,7 +101,10 @@ function checkTOTPCodeFormat(totpCode: string):
     if (!/^\d{6}$/.test(codeStr)) {
       return { valid: false, message: '动态验证码须为 6 位数字' }
     }
-    return { valid: true, code: ''.concat(codeStr) }
+    return {
+      valid: true,
+      code: ''.concat(codeStr),
+    }
   }
   catch {
     return { valid: false, message: '动态验证码格式错误' }
@@ -125,7 +132,14 @@ async function completeLogin(username: string, password: string, request: Reques
   const ua = request.headers['user-agent'] || ''
   const { browser, os, device } = parseUserAgent(ua)
   void ip2AddressCached(clientIP).then(({ ip, address }) => {
-    void addLoginLog({ ip, address, result: 1, browser, os, device })
+    void addLoginLog({
+      ip,
+      address,
+      result: 1,
+      browser,
+      os,
+      device,
+    })
     if (ip !== '127.0.0.1' && ip !== 'localhost') {
       logger.info(`用户 ${username} 已登录，登录地址：${ip} ${address}`)
     }
@@ -175,11 +189,23 @@ api.post('/auth', async (request, response) => {
   // 验证用户名和密码
   const credentialsCheck = await validateCredentials(username, password, userConfig, curTime)
   if (!credentialsCheck.valid) {
-    logger.warn('登录认证失败', JSON.stringify({ username, ip: clientIP, reason: credentialsCheck.message, attemptCount: getAuthErrorCount() }))
+    logger.warn('登录认证失败', JSON.stringify({
+      username,
+      ip: clientIP,
+      reason: credentialsCheck.message,
+      attemptCount: getAuthErrorCount(),
+    }))
     // 记录登录失败日志
     const ua = request.headers['user-agent'] || ''
     const { browser, os, device } = parseUserAgent(ua)
-    void ip2AddressCached(clientIP).then(({ ip, address }) => addLoginLog({ ip, address, result: 0, browser, os, device })).catch(() => {})
+    void ip2AddressCached(clientIP).then(({ ip, address }) => addLoginLog({
+      ip,
+      address,
+      result: 0,
+      browser,
+      os,
+      device,
+    })).catch(() => {})
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData(credentialsCheck.message, responseData))
   }
@@ -235,11 +261,23 @@ api.post('/auth/twoFactor', async (request, response) => {
   // 验证用户名和密码（防止跳过第一步）
   const credentialsCheck = await validateCredentials(username, password, userConfig, curTime)
   if (!credentialsCheck.valid) {
-    logger.warn('登录认证失败 (双重认证)', JSON.stringify({ username, ip: clientIP, reason: credentialsCheck.message, attemptCount: getAuthErrorCount() + 1 }))
+    logger.warn('登录认证失败 (双重认证)', JSON.stringify({
+      username,
+      ip: clientIP,
+      reason: credentialsCheck.message,
+      attemptCount: getAuthErrorCount() + 1,
+    }))
     // 记录登录失败日志
     const ua = request.headers['user-agent'] || ''
     const { browser, os, device } = parseUserAgent(ua)
-    void ip2AddressCached(clientIP).then(({ ip, address }) => addLoginLog({ ip, address, result: 0, browser, os, device })).catch(() => {})
+    void ip2AddressCached(clientIP).then(({ ip, address }) => addLoginLog({
+      ip,
+      address,
+      result: 0,
+      browser,
+      os,
+      device,
+    })).catch(() => {})
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData(credentialsCheck.message, responseData))
   }
@@ -265,11 +303,22 @@ api.post('/auth/twoFactor', async (request, response) => {
   const isValid = verifyTOTPCode(codeCheck.code, totpSecret)
   if (!isValid) {
     incrementAuthError(curTime.getTime())
-    logger.warn('2FA 双重认证失败', JSON.stringify({ username, ip: clientIP, attemptCount: getAuthErrorCount() }))
+    logger.warn('2FA 双重认证失败', JSON.stringify({
+      username,
+      ip: clientIP,
+      attemptCount: getAuthErrorCount(),
+    }))
     // 记录登录失败日志
     const ua = request.headers['user-agent'] || ''
     const { browser, os, device } = parseUserAgent(ua)
-    void ip2AddressCached(clientIP).then(({ ip, address }) => addLoginLog({ ip, address, result: 0, browser, os, device })).catch(() => {})
+    void ip2AddressCached(clientIP).then(({ ip, address }) => addLoginLog({
+      ip,
+      address,
+      result: 0,
+      browser,
+      os,
+      device,
+    })).catch(() => {})
     responseData.limitTime = 0
     return response.send(API_STATUS_CODE.failData('动态验证码无效', responseData))
   }

@@ -12,7 +12,9 @@ export function clean(model: any, o: any): any {
     return o
 
   // 获取当前模型的字段信息
-  const validFields = model.fields ? Object.keys(model.fields) : []
+  const validFields = model.fields
+    ? Object.keys(model.fields)
+    : []
   const specialFields = ['AND', 'OR', 'NOT']
 
   return Object.keys(o as any)
@@ -45,7 +47,9 @@ export function cleanId(model: any, value: any, fieldName: string): string | num
   switch (field.typeName) {
     case 'Int': {
       const num = Number(value)
-      return Number.isNaN(num) ? undefined : num
+      return Number.isNaN(num)
+        ? undefined
+        : num
     }
     case 'String':
       return String(value)
@@ -68,11 +72,15 @@ export function withMyFunc() {
             const context = Prisma.getExtensionContext(this)
             if (typeof data !== 'string' && Array.isArray(data)) {
               if (data.length > 1) {
-                return await (context as any).createMany(args ? { data, ...args } : { data })
+                return await (context as any).createMany(args
+                  ? { data, ...args }
+                  : { data })
               }
               data = data[0]
             }
-            return await (context as any).create(args ? { data, ...args } : { data })
+            return await (context as any).create(args
+              ? { data, ...args }
+              : { data })
           },
 
           async $updateById<T, O extends Omit<Prisma.Args<T, 'update'>, 'where' | 'data'> | NonNullable<unknown> = NonNullable<unknown>>(
@@ -225,7 +233,9 @@ export function withMyFunc() {
             const res = await Promise.all(p)
             return {
               data: res[0],
-              total: res.length > 1 ? res[1] : -1,
+              total: res.length > 1
+                ? res[1]
+                : -1,
               page,
               size,
             }

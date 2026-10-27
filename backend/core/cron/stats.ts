@@ -7,7 +7,9 @@ import { logger } from '../../utils/logger'
  */
 export async function persistTaskExecution(task: Pick<tasksModel, 'id' | 'name' | 'type'>, duration: number, success: boolean) {
   const execTimestamp = Date.now()
-  const formattedDuration = duration < 1 ? 0 : Math.round(duration)
+  const formattedDuration = duration < 1
+    ? 0
+    : Math.round(duration)
 
   const record = {
     task_id: task.id,

@@ -243,7 +243,14 @@ function runTaskModel(
       const endTime = new Date().getTime()
       const duration = endTime - startTime
       const success = code === 0 || code === null
-      const info: taskRunInfo = { task, startTime, endTime, duration, success, manual }
+      const info: taskRunInfo = {
+        task,
+        startTime,
+        endTime,
+        duration,
+        success,
+        manual,
+      }
 
       try {
         cleanupRunningTaskState(task, runId, startTime, duration, allowConcurrency)

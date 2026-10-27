@@ -17,14 +17,24 @@ log4js.configure({
   categories: {
     default: {
       appenders: ['console', 'file'],
-      level: process.env.DEBUG_LOG === 'true' ? 'debug' : 'info',
+      level: process.env.DEBUG_LOG === 'true'
+        ? 'debug'
+        : 'info',
     },
   },
 })
 
 const _logger = log4js.getLogger('MAIN')
 
-const LOG_METHODS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'log'] as const
+const LOG_METHODS = [
+  'trace',
+  'debug',
+  'info',
+  'warn',
+  'error',
+  'fatal',
+  'log',
+] as const
 
 type DbLogHandler = (type: string, content: string) => void
 let _dbHandler: DbLogHandler | null = null
@@ -55,7 +65,9 @@ export const logger = new Proxy(_logger, {
         (target as any)[prop](...args)
         if (_dbHandler) {
           const content = formatLogArgs(args)
-          const type = prop === 'log' ? 'info' : prop
+          const type = prop === 'log'
+            ? 'info'
+            : prop
           _dbHandler(type, content)
         }
       }

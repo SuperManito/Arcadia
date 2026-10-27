@@ -192,8 +192,22 @@ export async function updateSortById(taskId: number, newOrder: number) {
     return true
   }
   const args = newOrder > oldRecord.sort
-    ? [oldRecord.sort, newOrder, -1, oldRecord.sort + 1, newOrder, oldRecord.type]
-    : [oldRecord.sort, newOrder, 1, newOrder, oldRecord.sort - 1, oldRecord.type]
+    ? [
+        oldRecord.sort,
+        newOrder,
+        -1,
+        oldRecord.sort + 1,
+        newOrder,
+        oldRecord.type,
+      ]
+    : [
+        oldRecord.sort,
+        newOrder,
+        1,
+        newOrder,
+        oldRecord.sort - 1,
+        oldRecord.type,
+      ]
   await db.$executeRaw`BEGIN TRANSACTION;`
   if (newOrder > oldRecord.sort) {
     await db.$executeRaw`UPDATE tasks

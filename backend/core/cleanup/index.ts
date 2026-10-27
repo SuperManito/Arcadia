@@ -33,12 +33,18 @@ export async function runCleanup(
   const result: Record<string, any> = {}
 
   // 一次性查询所有系统配置（仅在需要读取配置时）
-  const config = typeof days === 'number' ? null : await getSystemModuleConfig()
+  const config = typeof days === 'number'
+    ? null
+    : await getSystemModuleConfig()
 
   // 代码文件运行日志（arcadia rmlog）
   if (types.includes('log')) {
     try {
-      const args = typeof days === 'number' ? [String(days)] : []
+      const args = typeof days === 'number'
+        ? [
+            String(days),
+          ]
+        : []
       await promisify(exec)(`${CLI_CMD.RMLOG} ${args.join(' ')}`.trim(), {
         cwd: APP_ROOT_DIR,
         timeout: 60_000,
@@ -71,7 +77,11 @@ export async function runCleanup(
     cutoffDate.setDate(cutoffDate.getDate() - retentionDays)
     cutoffDate.setHours(0, 0, 0, 0)
     const taskResult = await db.tasksExecutionStats.deleteMany({
-      where: { exec_timestamp: { lt: cutoffDate.getTime() } },
+      where: {
+        exec_timestamp: {
+          lt: cutoffDate.getTime(),
+        },
+      },
     })
     result.taskHistory = { count: taskResult.count }
   }
@@ -90,5 +100,7 @@ function getRetentionDays(config: ConfigDataSystem | null, key: ConfigKeySystem,
  */
 function parseRetentionDays(value: string): number {
   const days = Number.parseInt(value, 10)
-  return Number.isFinite(days) && days > 0 ? days : 7
+  return Number.isFinite(days) && days > 0
+    ? days
+    : 7
 }

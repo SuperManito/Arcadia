@@ -27,7 +27,9 @@ export function isComposite(
 export async function convertToCLIExport() {
   const envsGroupResult = await db.envsGroup.$list(
     {
-      where: { id: { not: 0 } },
+      where: {
+        id: { not: 0 },
+      },
       orderBy: { sort: 'asc' }, // 升序
     },
     {
@@ -71,15 +73,21 @@ export async function getCurrentMaxSortValue(isEnvsGroup: boolean) {
   const result = isEnvsGroup
     ? await db.envsGroup.$page(
         {
-          where: { id: { not: 0 } },
-          orderBy: [{ sort: 'desc' }],
+          where: {
+            id: { not: 0 },
+          },
+          orderBy: [
+            { sort: 'desc' },
+          ],
           page: 1,
           size: 1,
         },
       )
     : await db.envs.$page(
         {
-          orderBy: [{ sort: 'desc' }],
+          orderBy: [
+            { sort: 'desc' },
+          ],
           page: 1,
           size: 1,
         },
@@ -96,8 +104,20 @@ export async function updateSortById(id: number, newOrder: number) {
     return true
   }
   const args = newOrder > oldRecord.sort
-    ? [oldRecord.sort, newOrder, -1, oldRecord.sort + 1, newOrder]
-    : [oldRecord.sort, newOrder, 1, newOrder, oldRecord.sort - 1]
+    ? [
+        oldRecord.sort,
+        newOrder,
+        -1,
+        oldRecord.sort + 1,
+        newOrder,
+      ]
+    : [
+        oldRecord.sort,
+        newOrder,
+        1,
+        newOrder,
+        oldRecord.sort - 1,
+      ]
 
   await db.$executeRaw`BEGIN TRANSACTION;`
   if (newOrder > oldRecord.sort) {
@@ -127,8 +147,22 @@ export async function updateItemSortById(id: number, newOrder: number) {
     return true
   }
   const args = newOrder > oldRecord.sort
-    ? [oldRecord.sort, newOrder, -1, oldRecord.sort + 1, newOrder, oldRecord.group_id]
-    : [oldRecord.sort, newOrder, 1, newOrder, oldRecord.sort - 1, oldRecord.group_id]
+    ? [
+        oldRecord.sort,
+        newOrder,
+        -1,
+        oldRecord.sort + 1,
+        newOrder,
+        oldRecord.group_id,
+      ]
+    : [
+        oldRecord.sort,
+        newOrder,
+        1,
+        newOrder,
+        oldRecord.sort - 1,
+        oldRecord.group_id,
+      ]
 
   await db.$executeRaw`BEGIN TRANSACTION;`
   if (newOrder > oldRecord.sort) {
@@ -198,7 +232,9 @@ export function parseTagList(raw: string): EnvTag[] {
 export function tagLabelContainsFilter(
   label: string,
 ): { tag_list: { contains: string } } {
-  return { tag_list: { contains: `"label":"${label}"` } }
+  return {
+    tag_list: { contains: `"label":"${label}"` },
+  }
 }
 
 /**
@@ -206,15 +242,27 @@ export function tagLabelContainsFilter(
  */
 export async function getTagsList() {
   const rows = await db.envsGroup.$list(
-    { where: { id: { not: 0 } } },
-    { select: { tag_list: true } },
+    {
+      where: {
+        id: { not: 0 },
+      },
+    },
+    {
+      select: { tag_list: true },
+    },
   )
   return handleTagsListFilter(rows)
 }
 export async function getTagsListItem(group_id: number) {
   const rows = await db.envs.$list(
-    { where: { group_id: { equals: group_id } } },
-    { select: { tag_list: true } },
+    {
+      where: {
+        group_id: { equals: group_id },
+      },
+    },
+    {
+      select: { tag_list: true },
+    },
   )
   return handleTagsListFilter(rows)
 }

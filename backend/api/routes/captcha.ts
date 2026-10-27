@@ -22,7 +22,9 @@ function clamp(value: number, min: number, max: number): number {
  */
 api.get('/flag', async (_request, response) => {
   try {
-    response.send(API_STATUS_CODE.okData({ showCaptcha: shouldShowCaptcha() }))
+    response.send(API_STATUS_CODE.okData({
+      showCaptcha: shouldShowCaptcha(),
+    }))
   }
   catch {
     response.send(API_STATUS_CODE.okData({ showCaptcha: false }))

@@ -18,7 +18,9 @@ export function dateFormat(fmt: string, date: Date) {
   for (const k in opt) {
     ret = new RegExp(`(${k})`).exec(fmt)
     if (ret) {
-      fmt = fmt.replace(ret[1], (ret[1].length === 1) ? (opt[k]) : (opt[k].padStart(ret[1].length, '0')))
+      fmt = fmt.replace(ret[1], (ret[1].length === 1)
+        ? (opt[k])
+        : (opt[k].padStart(ret[1].length, '0')))
     }
   }
   return fmt
@@ -61,7 +63,9 @@ export function randomNumber(min = 0, max = 100) {
  */
 export function arrayObjectSort(field: string, array: any[] = [], isAsc: boolean = true): any[] {
   field && array.sort((a, b) => {
-    return isAsc ? a[field] - b[field] : b[field] - a[field]
+    return isAsc
+      ? a[field] - b[field]
+      : b[field] - a[field]
   })
   return array
 }
@@ -238,7 +242,14 @@ export function validateRequestParams<
     body: Record<string, unknown>
   } = clean
     ? { query: {}, body: {} }
-    : { query: { ...(req.query ?? {}) }, body: { ...(req.body ?? {}) } }
+    : {
+        query: {
+          ...(req.query ?? {}),
+        },
+        body: {
+          ...(req.body ?? {}),
+        },
+      }
   Object.entries(config).forEach(([paramType, paramList]) => {
     if (paramType !== 'query' && paramType !== 'body') {
       return
@@ -303,11 +314,29 @@ const PAGE_SIZE_MAX = 9999
 export function validatePageFixedParams(req: Request, orderByFields?: (string | number)[]) {
   validateRequestParams(req, {
     query: [
-      ['search', [false, 'string', true]],
-      ['page', [false, 'string']],
-      ['size', [false, 'string']],
-      ['order', [false, ['1', '0']]],
-      ['orderBy', [false, orderByFields ?? 'string']],
+      [
+        'search',
+        [false, 'string', true],
+      ],
+      [
+        'page',
+        [false, 'string'],
+      ],
+      [
+        'size',
+        [false, 'string'],
+      ],
+      [
+        'order',
+        [
+          false,
+          ['1', '0'],
+        ],
+      ],
+      [
+        'orderBy',
+        [false, orderByFields ?? 'string'],
+      ],
     ],
   })
   for (const param of ['page', 'size']) {
@@ -415,15 +444,21 @@ export function randomString(length?: number, options?: {
   }
   else {
     if (options.numbers !== false) {
-      chars += (typeof options.numbers == 'string') ? options.numbers : numbers
+      chars += (typeof options.numbers == 'string')
+        ? options.numbers
+        : numbers
     }
 
     if (options.letters !== false) {
-      chars += (typeof options.letters == 'string') ? options.letters : letters
+      chars += (typeof options.letters == 'string')
+        ? options.letters
+        : letters
     }
 
     if (options.specials) {
-      chars += (typeof options.specials == 'string') ? options.specials : specials
+      chars += (typeof options.specials == 'string')
+        ? options.specials
+        : specials
     }
   }
 

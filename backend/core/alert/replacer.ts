@@ -29,7 +29,9 @@ function validateReplaceField(value: unknown, paramName: string): ReplacePair[] 
     if (!isReplaceScope(raw?.scope)) {
       throw new Error(`参数 ${paramName} 第 ${n} 项的替换作用域无效`)
     }
-    const pattern = typeof raw?.pattern === 'string' ? raw.pattern : ''
+    const pattern = typeof raw?.pattern === 'string'
+      ? raw.pattern
+      : ''
     // 正则首尾空白可能有语义，保持原值，仅用 trim 判空
     if (!pattern.trim()) {
       throw new Error(`参数 ${paramName} 第 ${n} 项的查找内容不能为空`)
@@ -43,7 +45,9 @@ function validateReplaceField(value: unknown, paramName: string): ReplacePair[] 
     catch {
       throw new Error(`参数 ${paramName} 第 ${n} 项的查找内容不是有效的正则表达式`)
     }
-    const replacement = typeof raw?.replacement === 'string' ? raw.replacement : ''
+    const replacement = typeof raw?.replacement === 'string'
+      ? raw.replacement
+      : ''
     if (replacement.length > REPLACE_REPLACEMENT_MAX_LENGTH) {
       throw new Error(`参数 ${paramName} 第 ${n} 项的替换内容长度不能超过 ${REPLACE_REPLACEMENT_MAX_LENGTH} 个字符`)
     }
@@ -65,12 +69,16 @@ export function validateReplacePairs(value: unknown, paramName = 'replaces'): Re
 
 /** 落库格式：JSON 数组串，空数组存空串 */
 export function stringifyReplacePairs(pairs: ReplacePair[]): string {
-  return pairs.length > 0 ? JSON.stringify(pairs) : ''
+  return pairs.length > 0
+    ? JSON.stringify(pairs)
+    : ''
 }
 
 /** 读取落库值：空串或条目不完整按未启用处理（保存前已校验，此处只防落库内容损坏） */
 export function parseReplacePairs(json: unknown): ReplacePair[] {
-  const text = typeof json === 'string' ? json.trim() : ''
+  const text = typeof json === 'string'
+    ? json.trim()
+    : ''
   if (!text) {
     return []
   }
@@ -83,7 +91,9 @@ export function parseReplacePairs(json: unknown): ReplacePair[] {
       .filter(item => !!item && typeof item === 'object' && typeof item.pattern === 'string' && isReplaceScope(item.scope))
       .map(item => ({
         pattern: item.pattern,
-        replacement: typeof item.replacement === 'string' ? item.replacement : '',
+        replacement: typeof item.replacement === 'string'
+          ? item.replacement
+          : '',
         scope: item.scope,
       }))
   }
@@ -123,9 +133,13 @@ export async function applyReplacements(input: string, json: string, scope: Repl
   }
   let result = input
   for (const [index, pair] of pairs.entries()) {
-    const pattern = vars ? expandReplaceVars(pair.pattern, vars, escapeRegExp) : pair.pattern
+    const pattern = vars
+      ? expandReplaceVars(pair.pattern, vars, escapeRegExp)
+      : pair.pattern
     // $$$$ 经字符串替换产出 $$，后续作为替换串时还原为一个字面 $
-    const replacement = vars ? expandReplaceVars(pair.replacement, vars, value => value.replace(/\$/g, '$$$$')) : pair.replacement
+    const replacement = vars
+      ? expandReplaceVars(pair.replacement, vars, value => value.replace(/\$/g, '$$$$'))
+      : pair.replacement
     const replaced = await replaceRegex(pattern, replacement, result)
     if (replaced === null) {
       logger.warn('[告警引擎] 替换执行超时或异常，跳过该条', JSON.stringify({ index: index + 1 }))

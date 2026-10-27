@@ -20,11 +20,29 @@ interface DingDingConfig extends BaseChannelConfig {
 export const DingDing = {
   type: 'dingding',
   configRules: [
-    ['webhookUrl', [true, 'string']],
-    ['secret', [false, 'string']],
-    ['mentionType', [false, ['none', 'all', 'mobiles', 'users']]],
-    ['mobiles', [false, 'string[]']],
-    ['users', [false, 'string[]']],
+    [
+      'webhookUrl',
+      [true, 'string'],
+    ],
+    [
+      'secret',
+      [false, 'string'],
+    ],
+    [
+      'mentionType',
+      [
+        false,
+        ['none', 'all', 'mobiles', 'users'],
+      ],
+    ],
+    [
+      'mobiles',
+      [false, 'string[]'],
+    ],
+    [
+      'users',
+      [false, 'string[]'],
+    ],
   ],
   rateLimit: {
     // 自定义机器人 20 条/分钟，超限限流 10 分钟
@@ -35,8 +53,12 @@ export const DingDing = {
   },
   pusher: async (config, payload) => {
     const mentionType = config.mentionType ?? 'none'
-    const atMobiles = mentionType === 'mobiles' ? (config.mobiles ?? []) : []
-    const atUserIds = mentionType === 'users' ? (config.users ?? []) : []
+    const atMobiles = mentionType === 'mobiles'
+      ? (config.mobiles ?? [])
+      : []
+    const atUserIds = mentionType === 'users'
+      ? (config.users ?? [])
+      : []
 
     // markdown 中单个换行不换行渲染，统一补成段落换行；已连续换行的保持原样
     let text = payload.content.replace(/(?<!\n)\n(?!\n)/g, '\n\n')

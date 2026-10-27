@@ -139,7 +139,9 @@ export function getFileList(dirPath: string, showCount: boolean = false): FileLi
         const item: FileListItem = {
           path: subPath,
           name: file,
-          type: stats.isDirectory() ? APP_FILE_TYPES.FOLDER : APP_FILE_TYPES.FILE,
+          type: stats.isDirectory()
+            ? APP_FILE_TYPES.FOLDER
+            : APP_FILE_TYPES.FILE,
           updated_at: stats.mtime,
           created_at: stats.birthtime,
         }
@@ -454,7 +456,9 @@ export function searchLogFileTree(params: SearchLogFileTreeParams): (FileTree | 
 function sortFilesAndFolders(array: any[] = [], isAsc: boolean = true): any[] {
   array.sort((a, b) => {
     const typeOrder = { [APP_FILE_TYPES.FOLDER]: 0, [APP_FILE_TYPES.FILE]: 1 }
-    return isAsc ? typeOrder[a.type] - typeOrder[b.type] : typeOrder[b.type] - typeOrder[a.type]
+    return isAsc
+      ? typeOrder[a.type] - typeOrder[b.type]
+      : typeOrder[b.type] - typeOrder[a.type]
   })
   return array
 }
@@ -583,7 +587,9 @@ function checkConfigSave(oldContent: string) {
  * @param {boolean} isBak - 是否备份
  */
 export function saveNewConf(filePath: string, content: string, isBak: boolean = true) {
-  const oldContent = isBak ? bakConfigFile(filePath) : ''
+  const oldContent = isBak
+    ? bakConfigFile(filePath)
+    : ''
   try {
     fs.writeFileSync(filePath, content)
   }
@@ -660,7 +666,9 @@ export function createDebugTempFile(originalFilePath: string, runId: string, con
   const dir = nodePath.dirname(resolvedOriginal)
   const ext = nodePath.extname(resolvedOriginal).slice(1)
   const baseName = nodePath.basename(resolvedOriginal, `.${ext}`)
-  const tempFileName = `${baseName.startsWith('.') ? baseName : `.${baseName}`}_debug_${runId}.${ext}`
+  const tempFileName = `${baseName.startsWith('.')
+    ? baseName
+    : `.${baseName}`}_debug_${runId}.${ext}`
   const tempFilePath = nodePath.join(dir, tempFileName)
   checkPathBoundary(tempFilePath)
   try {
@@ -850,7 +858,9 @@ export function fileDownload(fileOrFolderPath: string, response: Response) {
     // logger.info(`开始生成压缩包：${fileName}.zip`)
     response.attachment(`${fileName}.zip`)
     archive.pipe(response)
-    archive.directory(fileOrFolderPath, fileName, entry => excludeRegExp.test(entry.name) ? false : entry)
+    archive.directory(fileOrFolderPath, fileName, entry => excludeRegExp.test(entry.name)
+      ? false
+      : entry)
     archive.finalize().catch((err: Error) => {
       logger.error(`压缩归档完成失败: ${err?.message ?? err}`)
       if (!response.headersSent) {
@@ -938,9 +948,13 @@ export function fileInfo(filePath: string): FileInfo {
   catch (err) {
     transferFsError(err)
   }
-  const size = !stat.isDirectory() ? stat.size : getDirectorySize(filePath)
+  const size = !stat.isDirectory()
+    ? stat.size
+    : getDirectorySize(filePath)
   return {
-    type: stat.isDirectory() ? APP_FILE_TYPES.FOLDER : APP_FILE_TYPES.FILE,
+    type: stat.isDirectory()
+      ? APP_FILE_TYPES.FOLDER
+      : APP_FILE_TYPES.FILE,
     name: nodePath.basename(filePath),
     parent_path: nodePath.join(filePath, '../').slice(0, -1),
     mode: (stat.mode & 0o777).toString(8),

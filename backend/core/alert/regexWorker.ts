@@ -47,7 +47,13 @@ interface WorkerRequest {
 }
 
 function buildRequest(id: number, job: RegexJob): WorkerRequest {
-  return { id, pattern: job.pattern, input: job.input, replacement: job.replacement, match: job.match }
+  return {
+    id,
+    pattern: job.pattern,
+    input: job.input,
+    replacement: job.replacement,
+    match: job.match,
+  }
 }
 
 // 同一时刻只允许一个任务在 worker 中执行，其余排队；
@@ -100,7 +106,9 @@ function pump() {
   }
   const id = nextId++
   const timer = setTimeout(() => {
-    logger.error('[告警引擎] 正则执行超时，按不命中处理', { pattern: JSON.stringify(job.pattern) })
+    logger.error('[告警引擎] 正则执行超时，按不命中处理', {
+      pattern: JSON.stringify(job.pattern),
+    })
     worker = null
     void target.terminate()
     settle(null)
@@ -143,7 +151,13 @@ function spawnWorker(): Worker | null {
  */
 export function matchRegex(pattern: string, input: string): Promise<boolean | null> {
   return new Promise((resolve) => {
-    enqueue({ pattern, input, resolve: result => resolve(typeof result === 'boolean' ? result : null) })
+    enqueue({
+      pattern,
+      input,
+      resolve: result => resolve(typeof result === 'boolean'
+        ? result
+        : null),
+    })
   })
 }
 
@@ -153,7 +167,14 @@ export function matchRegex(pattern: string, input: string): Promise<boolean | nu
  */
 export function replaceRegex(pattern: string, replacement: string, input: string): Promise<string | null> {
   return new Promise((resolve) => {
-    enqueue({ pattern, input, replacement, resolve: result => resolve(typeof result === 'string' ? result : null) })
+    enqueue({
+      pattern,
+      input,
+      replacement,
+      resolve: result => resolve(typeof result === 'string'
+        ? result
+        : null),
+    })
   })
 }
 
@@ -167,7 +188,9 @@ export function matchRegexLines(pattern: string, inputs: string[]): Promise<Arra
       pattern,
       input: inputs,
       match: true,
-      resolve: result => resolve(Array.isArray(result) ? result as Array<boolean> : null),
+      resolve: result => resolve(Array.isArray(result)
+        ? result as Array<boolean>
+        : null),
     })
   })
 }

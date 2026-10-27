@@ -24,14 +24,18 @@ import {
 import { expandReceiverPattern } from './match'
 
 function cleanReceiverBase(raw: any): { receiver: string, remark: string } {
-  const receiver = typeof raw?.receiver === 'string' ? raw.receiver.trim() : ''
+  const receiver = typeof raw?.receiver === 'string'
+    ? raw.receiver.trim()
+    : ''
   if (!receiver) {
     throw new Error('收信人标识不能为空')
   }
   if (receiver.length > MESSAGE_ALERT_DIRECT_RECEIVER_MAX_LENGTH) {
     throw new Error(`收信人标识长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_MAX_LENGTH} 个字符`)
   }
-  const remark = typeof raw?.remark === 'string' ? raw.remark.trim() : ''
+  const remark = typeof raw?.remark === 'string'
+    ? raw.remark.trim()
+    : ''
   if (remark.length > MESSAGE_ALERT_DIRECT_RECEIVER_REMARK_MAX_LENGTH) {
     throw new Error(`收信人的备注长度不能超过 ${MESSAGE_ALERT_DIRECT_RECEIVER_REMARK_MAX_LENGTH} 个字符`)
   }
@@ -40,7 +44,9 @@ function cleanReceiverBase(raw: any): { receiver: string, remark: string } {
 
 function cleanReceiverChannelIds(raw: unknown): number[] {
   const channelIds: number[] = []
-  for (const rawId of Array.isArray(raw) ? raw : []) {
+  for (const rawId of Array.isArray(raw)
+    ? raw
+    : []) {
     const id = Number(rawId)
     if (!Number.isSafeInteger(id) || id <= 0) {
       throw new Error('收信人的渠道参数无效（参数值类型错误）')
@@ -72,7 +78,12 @@ export function validateMessageAlertDirectReceiver(raw: unknown): CleanedMessage
     throw new Error('收信人未关联通知渠道，不能启用')
   }
   const overrides = validateReceiverOverrides((raw as any)?.overrides, base.receiver)
-  return { ...base, overrides, enabled, channelIds }
+  return {
+    ...base,
+    overrides,
+    enabled,
+    channelIds,
+  }
 }
 
 /**
@@ -89,11 +100,15 @@ export function validateMessageAlertDirectTitle(body: { titleMode?: unknown, tit
   titleMode: MessageAlertDirectTitleMode
   titleTemplate: string
 } {
-  const titleMode = (typeof body.titleMode === 'string' ? body.titleMode : 'original') as MessageAlertDirectTitleMode
+  const titleMode = (typeof body.titleMode === 'string'
+    ? body.titleMode
+    : 'original') as MessageAlertDirectTitleMode
   if (!MESSAGE_ALERT_DIRECT_TITLE_MODES.includes(titleMode)) {
     throw new Error('标题模式无效')
   }
-  let titleTemplate = typeof body.titleTemplate === 'string' ? body.titleTemplate.trim() : ''
+  let titleTemplate = typeof body.titleTemplate === 'string'
+    ? body.titleTemplate.trim()
+    : ''
   if (titleMode === 'template') {
     if (!titleTemplate) {
       throw new Error('自定义标题模板不能为空')
@@ -115,7 +130,9 @@ export async function validateMessageAlertDirectRulePayload(
   body: MessageAlertDirectRulePayloadInput,
   options?: { excludeId?: number },
 ): Promise<CleanedMessageAlertDirectRulePayload> {
-  const name = typeof body.name === 'string' ? body.name.trim() : ''
+  const name = typeof body.name === 'string'
+    ? body.name.trim()
+    : ''
   if (!name) {
     throw new Error('规则名称不能为空')
   }
@@ -136,7 +153,9 @@ export async function validateMessageAlertDirectRulePayload(
   const postReplaces = stringifyReplacePairs(validateReplacePairs(body.postReplaces, 'postReplaces'))
 
   // 正文按行 trim 后匹配，首尾空白无语义，入库前去除
-  const commonPattern = typeof body.commonPattern === 'string' ? body.commonPattern.trim() : ''
+  const commonPattern = typeof body.commonPattern === 'string'
+    ? body.commonPattern.trim()
+    : ''
   if (commonPattern.length > MESSAGE_ALERT_DIRECT_COMMON_PATTERN_MAX_LENGTH) {
     throw new Error(`正则匹配长度不能超过 ${MESSAGE_ALERT_DIRECT_COMMON_PATTERN_MAX_LENGTH} 个字符`)
   }
@@ -177,11 +196,18 @@ export async function validateMessageAlertDirectRulePayload(
   }
 
   const [ruleDuplicated, directDuplicated] = await Promise.all([
-    db.messageAlertRule.findFirst({ where: { name }, select: { id: true } }),
+    db.messageAlertRule.findFirst({
+      where: { name },
+      select: { id: true },
+    }),
     db.messageAlertDirectRule.findFirst({
       where: {
         name,
-        ...(options?.excludeId !== undefined ? { id: { not: options.excludeId } } : {}),
+        ...(options?.excludeId !== undefined
+          ? {
+              id: { not: options.excludeId },
+            }
+          : {}),
       },
       select: { id: true },
     }),
@@ -192,7 +218,9 @@ export async function validateMessageAlertDirectRulePayload(
 
   if (alertRuleIds.length > 0) {
     const rules = await db.messageAlertRule.findMany({
-      where: { id: { in: alertRuleIds } },
+      where: {
+        id: { in: alertRuleIds },
+      },
       select: { id: true },
     })
     if (rules.length !== alertRuleIds.length) {

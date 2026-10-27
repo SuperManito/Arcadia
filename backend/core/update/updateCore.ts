@@ -48,7 +48,9 @@ export class UpdateCore {
       })
       child.on('close', (code) => {
         clearTimeout(timer)
-        resolve(code === 0 ? stdout.trim() : null)
+        resolve(code === 0
+          ? stdout.trim()
+          : null)
       })
     })
   }
@@ -67,7 +69,12 @@ export class UpdateCore {
    */
   fetchRemote(branch: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      const child = spawn('bash', [APP_FILE_PATH.UPDATE_SH, ShellCommand.Fetch, APP_SOURCE_DIR, branch], {
+      const child = spawn('bash', [
+        APP_FILE_PATH.UPDATE_SH,
+        ShellCommand.Fetch,
+        APP_SOURCE_DIR,
+        branch,
+      ], {
         cwd: APP_DIR_PATH.ROOT,
         detached: true,
       })
@@ -121,7 +128,12 @@ export class UpdateCore {
    * @description 与目标提交相同时也视为包含
    */
   async isCommitIncluded(commit: string, revision: string): Promise<boolean> {
-    return (await this.runScript([ShellCommand.IsAncestor, APP_SOURCE_DIR, commit, revision])) === ''
+    return (await this.runScript([
+      ShellCommand.IsAncestor,
+      APP_SOURCE_DIR,
+      commit,
+      revision,
+    ])) === ''
   }
 
   /**
@@ -143,7 +155,11 @@ export class UpdateCore {
    */
   async getLocalVersionInfo(): Promise<LocalVersionInfo> {
     const fullCommit = await this.getCommit('HEAD')
-    return { commit: fullCommit ? fullCommit.slice(0, 7) : null }
+    return {
+      commit: fullCommit
+        ? fullCommit.slice(0, 7)
+        : null,
+    }
   }
 
   /**
@@ -153,7 +169,9 @@ export class UpdateCore {
    */
   async getCurrentVersionTag(): Promise<string | null> {
     const tag = await this.runScript([ShellCommand.CurrentVersion, APP_SOURCE_DIR])
-    return tag ? tag.replace(/^v/, '') : null
+    return tag
+      ? tag.replace(/^v/, '')
+      : null
   }
 
   /**

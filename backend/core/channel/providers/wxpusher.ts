@@ -16,10 +16,22 @@ export const WxPusher = {
   singleBody: true,
   summaryTitle: true,
   configRules: [
-    ['appToken', [true, 'string']],
-    ['uids', [false, 'string[]']],
-    ['topicIds', [false, 'object']],
-    ['url', [false, 'string']],
+    [
+      'appToken',
+      [true, 'string'],
+    ],
+    [
+      'uids',
+      [false, 'string[]'],
+    ],
+    [
+      'topicIds',
+      [false, 'object'],
+    ],
+    [
+      'url',
+      [false, 'string'],
+    ],
   ],
   rateLimit: {
     // 官方限制最大 QPS 2

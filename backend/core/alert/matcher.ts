@@ -55,12 +55,16 @@ export interface ConditionMatchResult {
  */
 export function parseMultiValue(value: string | string[] | undefined | null): string[] {
   if (Array.isArray(value)) {
-    return [...new Set(value.map(item => String(item ?? '').trim()).filter(Boolean))]
+    return [
+      ...new Set(value.map(item => String(item ?? '').trim()).filter(Boolean)),
+    ]
   }
   if (typeof value !== 'string' || !value.trim()) {
     return []
   }
-  return [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))]
+  return [
+    ...new Set(value.split(',').map(item => item.trim()).filter(Boolean)),
+  ]
 }
 
 /**
@@ -107,7 +111,9 @@ export async function matchCondition(context: Record<string, string>, condition:
     if (hit === null) {
       throw new Error(`正则 ${condition.value} 执行超时或异常`)
     }
-    return condition.operator === RegexOperator.NOT_REGEX ? !hit : hit
+    return condition.operator === RegexOperator.NOT_REGEX
+      ? !hit
+      : hit
   }
   switch (condition.operator) {
     case SimpleOperator.INCLUDE:

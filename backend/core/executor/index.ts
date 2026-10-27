@@ -39,7 +39,9 @@ export interface RunnerCallbacks {
 export function buildOptionsArgs(options: RunOption[]): string[] {
   return options
     .filter(item => item.key)
-    .flatMap(item => (item.value != null && item.value !== '') ? [item.key, item.value] : [item.key])
+    .flatMap(item => (item.value != null && item.value !== '')
+      ? [item.key, item.value]
+      : [item.key])
 }
 
 /**
@@ -64,8 +66,13 @@ export function buildRunCodeFileCmd(
 ): [string, string[]] {
   const optionsArgs = buildOptionsArgs(options)
   const envCmdStr = buildEnvCmdStr(envs)
-  const baseCmd = `cd ${APP_ROOT_DIR} ; ${envCmdStr ? `${envCmdStr} >/dev/null 2>&1 ; ` : ''}${CLI_CMD.RUN} "$1" "\${@:2}"`
-  return [baseCmd, [filePath, ...optionsArgs]]
+  const baseCmd = `cd ${APP_ROOT_DIR} ; ${envCmdStr
+    ? `${envCmdStr} >/dev/null 2>&1 ; `
+    : ''}${CLI_CMD.RUN} "$1" "\${@:2}"`
+  return [
+    baseCmd,
+    [filePath, ...optionsArgs],
+  ]
 }
 
 /**
@@ -80,7 +87,9 @@ export function runShellCmd(cmd: string, callbacks: RunnerCallbacks): string {
   const fullCmd = `cd ${APP_ROOT_DIR} ; ${cmd}`
   let done = false
   const child = exec(fullCmd, { shell: '/bin/bash', encoding: 'utf-8' })
-  runningExecTasks[runId] = { startedAt: new Date() }
+  runningExecTasks[runId] = {
+    startedAt: new Date(),
+  }
   child.stdout?.on('data', (data: string) => {
     callbacks.onStdout(runId, getNeatContent(data))
   })
@@ -126,7 +135,9 @@ export function runCodeFile(
   const [baseCmd, args] = buildRunCodeFileCmd(filePath, options, envs)
   let done = false
   const child = execFile('bash', ['-c', baseCmd, '--', ...args], { encoding: 'utf-8' })
-  runningExecTasks[runId] = { startedAt: new Date() }
+  runningExecTasks[runId] = {
+    startedAt: new Date(),
+  }
 
   child.stdout?.on('data', (data: string) => {
     callbacks.onStdout(runId, getNeatContent(data))
@@ -155,7 +166,12 @@ export function runCodeFile(
  * 构造空运行回调（不推送任何 Socket 事件）
  */
 export function makeNoopRunCallbacks(): RunnerCallbacks {
-  return { onStdout() {}, onStderr() {}, onError() {}, onExit() {} }
+  return {
+    onStdout() {},
+    onStderr() {},
+    onError() {},
+    onExit() {},
+  }
 }
 
 /**
@@ -165,13 +181,28 @@ export function makeSocketRunCallbacks(): RunnerCallbacks {
   const name = SocketEvent.RUN_LOG
   return {
     onStdout(runId, data) {
-      socketCommon.emit(name, API_STATUS_CODE.okData({ runId, log: data, stream: 'stdout', over: false }))
+      socketCommon.emit(name, API_STATUS_CODE.okData({
+        runId,
+        log: data,
+        stream: 'stdout',
+        over: false,
+      }))
     },
     onStderr(runId, data) {
-      socketCommon.emit(name, API_STATUS_CODE.okData({ runId, log: data, stream: 'stderr', over: false }))
+      socketCommon.emit(name, API_STATUS_CODE.okData({
+        runId,
+        log: data,
+        stream: 'stderr',
+        over: false,
+      }))
     },
     onError(runId, err) {
-      socketCommon.emit(name, API_STATUS_CODE.okData({ runId, log: err.message, stream: 'stderr', over: true }))
+      socketCommon.emit(name, API_STATUS_CODE.okData({
+        runId,
+        log: err.message,
+        stream: 'stderr',
+        over: true,
+      }))
     },
     onExit(runId) {
       socketCommon.emit(name, API_STATUS_CODE.ok('run over', { runId, over: true }))

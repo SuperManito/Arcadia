@@ -40,18 +40,41 @@ interface WebhookConfig extends BaseChannelConfig {
 export const Webhook = {
   type: 'webhook',
   configRules: [
-    ['url', [true, 'string']],
-    ['method', [false, ['POST', 'GET', 'PUT']]],
-    ['contentType', [false, ['json', 'form']]],
-    ['headers', [false, 'string']],
-    ['body', [false, 'string']],
+    [
+      'url',
+      [true, 'string'],
+    ],
+    [
+      'method',
+      [
+        false,
+        ['POST', 'GET', 'PUT'],
+      ],
+    ],
+    [
+      'contentType',
+      [
+        false,
+        ['json', 'form'],
+      ],
+    ],
+    [
+      'headers',
+      [false, 'string'],
+    ],
+    [
+      'body',
+      [false, 'string'],
+    ],
   ],
   pusher: async (config, payload) => {
     const method = config.method ?? 'POST'
     const contentType = config.contentType ?? 'json'
 
     const headers: Record<string, string> = {
-      'Content-Type': contentType === 'form' ? 'application/x-www-form-urlencoded' : 'application/json',
+      'Content-Type': contentType === 'form'
+        ? 'application/x-www-form-urlencoded'
+        : 'application/json',
     }
     if (config.headers?.trim()) {
       for (const [key, value] of Object.entries(parseHeaders(config.headers))) {
@@ -69,7 +92,9 @@ export const Webhook = {
       : JSON.stringify(text).slice(1, -1)
     // 单遍替换，标题/内容值中的字面量占位符不会被二次展开
     const renderBody = (text: string) => text.replace(BODY_PLACEHOLDER_PATTERN, matched =>
-      matched === TEMPLATE_TITLE_PLACEHOLDER ? escapeValue(payload.title) : escapeValue(payload.content))
+      matched === TEMPLATE_TITLE_PLACEHOLDER
+        ? escapeValue(payload.title)
+        : escapeValue(payload.content))
     const body: object | string = config.body?.trim()
       ? renderBody(config.body)
       : { title: payload.title, content: payload.content }
@@ -77,7 +102,9 @@ export const Webhook = {
     const result = await request({
       method,
       url: config.url,
-      ...(method === 'GET' ? {} : { data: body }),
+      ...(method === 'GET'
+        ? {}
+        : { data: body }),
       headers,
       proxy: config.general?.proxy,
     })

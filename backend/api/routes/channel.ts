@@ -15,26 +15,45 @@ const api: Express = express()
  */
 api.get('/page', async (request, response) => {
   try {
-    validatePageFixedParams(request, ['id', 'name', 'create_time', 'update_time'])
+    validatePageFixedParams(request, [
+      'id',
+      'name',
+      'create_time',
+      'update_time',
+    ])
     validateRequestParams(request, {
       query: [
-        ['type', [false, 'string']],
-        ['tags', [false, 'string']],
+        [
+          'type',
+          [false, 'string'],
+        ],
+        [
+          'tags',
+          [false, 'string'],
+        ],
       ],
     })
     const where: notificationChannelWhereInput = {}
     const and: notificationChannelWhereInput[] = []
     if (request.query.search) {
-      and.push({ name: { contains: request.query.search as string } })
+      and.push({
+        name: { contains: request.query.search as string },
+      })
     }
     if (request.query.type) {
-      and.push({ type: { equals: request.query.type as string } })
+      and.push({
+        type: { equals: request.query.type as string },
+      })
     }
     // 标签存逗号分隔（首尾各带一个逗号），多个标签逐个 contains 取交集
     const tags = request.query.tags
       ? String(request.query.tags).split(',').filter(Boolean)
       : []
-    tags.forEach(tag => and.push({ tags: { contains: buildTagContainsValue(tag) } }))
+    tags.forEach(tag => and.push({
+      tags: {
+        contains: buildTagContainsValue(tag),
+      },
+    }))
     if (and.length > 0) {
       where.AND = and
     }
@@ -42,10 +61,21 @@ api.get('/page', async (request, response) => {
     const desc = request.query.order !== '0'
     const result = await db.notificationChannel.$page({
       where,
-      orderBy: [{ [orderBy]: desc ? 'desc' : 'asc' }],
+      orderBy: [
+        {
+          [orderBy]: desc ? 'desc' : 'asc',
+        },
+      ],
       page: String(request.query.page),
       size: String(request.query.size),
-      select: { id: true, name: true, type: true, tags: true, create_time: true, update_time: true },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        tags: true,
+        create_time: true,
+        update_time: true,
+      },
     })
     response.send(API_STATUS_CODE.okData(result))
   }
@@ -60,8 +90,12 @@ api.get('/page', async (request, response) => {
 api.get('/list', async (_request, response) => {
   try {
     const result = await db.notificationChannel.$list(
-      { orderBy: { id: 'asc' } },
-      { select: { id: true, name: true, type: true } },
+      {
+        orderBy: { id: 'asc' },
+      },
+      {
+        select: { id: true, name: true, type: true },
+      },
     )
     response.send(API_STATUS_CODE.okData(result))
   }
@@ -90,7 +124,10 @@ api.get('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['id', [true, 'string']],
+        [
+          'id',
+          [true, 'string'],
+        ],
       ] as const,
     })
     const { id } = params.query
@@ -115,10 +152,22 @@ api.post('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['name', [false, 'string']],
-        ['type', [false, 'string']],
-        ['config', [false, 'string | object']],
-        ['tags', [false, 'string | string[]']],
+        [
+          'name',
+          [false, 'string'],
+        ],
+        [
+          'type',
+          [false, 'string'],
+        ],
+        [
+          'config',
+          [false, 'string | object'],
+        ],
+        [
+          'tags',
+          [false, 'string | string[]'],
+        ],
       ] as const,
     }, true)
     const cleaned = await validateChannelPayload(params.body)
@@ -142,11 +191,26 @@ api.put('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
-        ['name', [false, 'string']],
-        ['type', [false, 'string']],
-        ['config', [false, 'string | object']],
-        ['tags', [false, 'string | string[]']],
+        [
+          'id',
+          [true, 'number'],
+        ],
+        [
+          'name',
+          [false, 'string'],
+        ],
+        [
+          'type',
+          [false, 'string'],
+        ],
+        [
+          'config',
+          [false, 'string | object'],
+        ],
+        [
+          'tags',
+          [false, 'string | string[]'],
+        ],
       ] as const,
     }, true)
     const { id } = params.body
@@ -175,7 +239,10 @@ api.delete('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
+        [
+          'id',
+          [true, 'number'],
+        ],
       ] as const,
     })
     const { id } = params.body
@@ -212,12 +279,30 @@ api.post('/test', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [false, 'number']],
-        ['name', [false, 'string']],
-        ['type', [false, 'string']],
-        ['config', [false, 'string | object']],
-        ['title', [false, 'string']],
-        ['content', [false, 'string']],
+        [
+          'id',
+          [false, 'number'],
+        ],
+        [
+          'name',
+          [false, 'string'],
+        ],
+        [
+          'type',
+          [false, 'string'],
+        ],
+        [
+          'config',
+          [false, 'string | object'],
+        ],
+        [
+          'title',
+          [false, 'string'],
+        ],
+        [
+          'content',
+          [false, 'string'],
+        ],
       ] as const,
     }, true)
     let type: string

@@ -11,12 +11,29 @@ interface AppriseConfig extends BaseChannelConfig {
 export const Apprise = {
   type: 'apprise',
   configRules: [
-    ['url', [true, 'string']],
+    [
+      'url',
+      [true, 'string'],
+    ],
   ],
   pusher: async (config, payload) => {
     const { stdout, stderr, code, errorMessage } = await new Promise<{ stdout: string, stderr: string, code: number | string, errorMessage: string }>((resolve) => {
-      execFile('apprise', ['-t', payload.title, '-b', payload.content, '--', config.url], { encoding: 'utf8', timeout: 60000 }, (error, stdout, stderr) => {
-        resolve({ stdout: stdout ?? '', stderr: stderr ?? '', code: error ? (error.code ?? 1) : 0, errorMessage: error?.message ?? '' })
+      execFile('apprise', [
+        '-t',
+        payload.title,
+        '-b',
+        payload.content,
+        '--',
+        config.url,
+      ], { encoding: 'utf8', timeout: 60000 }, (error, stdout, stderr) => {
+        resolve({
+          stdout: stdout ?? '',
+          stderr: stderr ?? '',
+          code: error
+            ? (error.code ?? 1)
+            : 0,
+          errorMessage: error?.message ?? '',
+        })
       })
     })
     if (code === 0) {

@@ -24,9 +24,18 @@ api.get('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['search', [false, 'string', true]],
-        ['ecosystem', [false, 'string', true]],
-        ['status', [false, 'string', true]],
+        [
+          'search',
+          [false, 'string', true],
+        ],
+        [
+          'ecosystem',
+          [false, 'string', true],
+        ],
+        [
+          'status',
+          [false, 'string', true],
+        ],
       ] as const,
     })
     const { search, ecosystem, status } = params.query
@@ -34,18 +43,28 @@ api.get('/', async (request, response) => {
     const and: dependencyManageWhereInput[] = []
     // 生态过滤
     if (ecosystem) {
-      and.push({ ecosystem: { equals: ecosystem } })
+      and.push({
+        ecosystem: { equals: ecosystem },
+      })
     }
     // 状态过滤
     if (status) {
-      and.push({ status: { equals: Number.parseInt(status) } })
+      and.push({
+        status: {
+          equals: Number.parseInt(status),
+        },
+      })
     }
     // 搜索过滤（名称 / 备注）
     if (search) {
       and.push({
         OR: [
-          { name: { contains: search } },
-          { remark: { contains: search } },
+          {
+            name: { contains: search },
+          },
+          {
+            remark: { contains: search },
+          },
         ],
       })
     }
@@ -59,7 +78,11 @@ api.get('/', async (request, response) => {
       desc = false
     const result = await db.dependencyManage.$page({
       where,
-      orderBy: orderByField ? { [orderByField]: desc ? 'desc' : 'asc' } : { id: 'desc' },
+      orderBy: orderByField
+        ? {
+            [orderByField]: desc ? 'desc' : 'asc',
+          }
+        : { id: 'desc' },
       page: String(request.query.page),
       size: String(request.query.size),
     })
@@ -73,12 +96,31 @@ api.get('/', async (request, response) => {
 apiOpen.get('/v1/page', async (request, response) => {
   try {
     // 传参校验
-    validatePageFixedParams(request, ['name', 'ecosystem', 'status', 'installed_ver', 'create_time', 'update_time'])
+    validatePageFixedParams(request, [
+      'name',
+      'ecosystem',
+      'status',
+      'installed_ver',
+      'create_time',
+      'update_time',
+    ])
     const params = validateRequestParams(request, {
       query: [
-        ['search', [false, 'string', true]],
-        ['ecosystem', [false, ECOSYSTEMS]],
-        ['status', [false, ['0', '1', '2', '3', '4']]],
+        [
+          'search',
+          [false, 'string', true],
+        ],
+        [
+          'ecosystem',
+          [false, ECOSYSTEMS],
+        ],
+        [
+          'status',
+          [
+            false,
+            ['0', '1', '2', '3', '4'],
+          ],
+        ],
       ] as const,
     }, true)
     const { search, ecosystem, status } = params.query
@@ -86,18 +128,28 @@ apiOpen.get('/v1/page', async (request, response) => {
     const and: dependencyManageWhereInput[] = []
     // 生态过滤
     if (ecosystem) {
-      and.push({ ecosystem: { equals: ecosystem } })
+      and.push({
+        ecosystem: { equals: ecosystem },
+      })
     }
     // 状态过滤
     if (status) {
-      and.push({ status: { equals: Number.parseInt(status) } })
+      and.push({
+        status: {
+          equals: Number.parseInt(status),
+        },
+      })
     }
     // 搜索过滤（名称 / 备注）
     if (search) {
       and.push({
         OR: [
-          { name: { contains: search } },
-          { remark: { contains: search } },
+          {
+            name: { contains: search },
+          },
+          {
+            remark: { contains: search },
+          },
         ],
       })
     }
@@ -111,7 +163,11 @@ apiOpen.get('/v1/page', async (request, response) => {
       desc = false
     const result = await db.dependencyManage.$page({
       where,
-      orderBy: orderByField ? { [orderByField]: desc ? 'desc' : 'asc' } : { id: 'desc' },
+      orderBy: orderByField
+        ? {
+            [orderByField]: desc ? 'desc' : 'asc',
+          }
+        : { id: 'desc' },
       page: String(request.query.page),
       size: String(request.query.size),
     })
@@ -129,13 +185,24 @@ api.post('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['name', [true, 'string | string[]']],
-        ['ecosystem', [true, ECOSYSTEMS]],
-        ['remark', [false, 'string']],
+        [
+          'name',
+          [true, 'string | string[]'],
+        ],
+        [
+          'ecosystem',
+          [true, ECOSYSTEMS],
+        ],
+        [
+          'remark',
+          [false, 'string'],
+        ],
       ] as const,
     })
     const { name, ecosystem, remark } = params.body
-    const names = Array.isArray(name) ? name : [name]
+    const names = Array.isArray(name)
+      ? name
+      : [name]
     const cleanRemark = remark?.trim() ?? ''
 
     // 逐项校验并去重
@@ -150,7 +217,9 @@ api.post('/', async (request, response) => {
         continue
       seen.add(key)
       assertNotProtected(ecosystem, cleanName, '添加')
-      const exists = await db.dependencyManage.findFirst({ where: { name: cleanName, ecosystem } })
+      const exists = await db.dependencyManage.findFirst({
+        where: { name: cleanName, ecosystem },
+      })
       if (exists)
         throw new Error(`${cleanName} 依赖已存在`)
       formatData.push({
@@ -174,13 +243,24 @@ apiOpen.post('/v1/create', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['name', [true, 'string | string[]']],
-        ['ecosystem', [true, ECOSYSTEMS]],
-        ['remark', [false, 'string']],
+        [
+          'name',
+          [true, 'string | string[]'],
+        ],
+        [
+          'ecosystem',
+          [true, ECOSYSTEMS],
+        ],
+        [
+          'remark',
+          [false, 'string'],
+        ],
       ] as const,
     }, true)
     const { name, ecosystem, remark } = params.body
-    const names = Array.isArray(name) ? name : [name]
+    const names = Array.isArray(name)
+      ? name
+      : [name]
     const cleanRemark = remark?.trim() ?? ''
     // 逐项校验并去重
     const formatData: Array<{ name: string, ecosystem: string, remark: string, status: number }> = []
@@ -194,7 +274,9 @@ apiOpen.post('/v1/create', async (request, response) => {
         continue
       seen.add(key)
       assertNotProtected(ecosystem, cleanName, '添加')
-      const exists = await db.dependencyManage.findFirst({ where: { name: cleanName, ecosystem } })
+      const exists = await db.dependencyManage.findFirst({
+        where: { name: cleanName, ecosystem },
+      })
       if (exists)
         throw new Error(`${cleanName} 依赖已存在`)
       formatData.push({
@@ -219,15 +301,24 @@ api.delete('/', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number | number[]']],
+        [
+          'id',
+          [true, 'number | number[]'],
+        ],
       ] as const,
     })
     const { id } = params.body
-    const ids = Array.isArray(id) ? id : [id]
+    const ids = Array.isArray(id)
+      ? id
+      : [id]
     if (ids.some(v => v <= 0))
       throw new Error('参数 id 无效（参数值类型错误）')
 
-    const items = await db.dependencyManage.$list({ where: { id: { in: ids } } })
+    const items = await db.dependencyManage.$list({
+      where: {
+        id: { in: ids },
+      },
+    })
     if (items.length === 0)
       throw new Error('未找到指定依赖')
     for (const item of items) {
@@ -248,14 +339,23 @@ apiOpen.post('/v1/delete', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number | number[]']],
+        [
+          'id',
+          [true, 'number | number[]'],
+        ],
       ] as const,
     }, true)
     const { id } = params.body
-    const ids = Array.isArray(id) ? id : [id]
+    const ids = Array.isArray(id)
+      ? id
+      : [id]
     if (ids.some(v => v <= 0))
       throw new Error('参数 id 无效（参数值类型错误）')
-    const items = await db.dependencyManage.$list({ where: { id: { in: ids } } })
+    const items = await db.dependencyManage.$list({
+      where: {
+        id: { in: ids },
+      },
+    })
     if (items.length === 0)
       throw new Error('未找到指定依赖')
     for (const item of items) {
@@ -277,8 +377,17 @@ api.post('/operate', async (request, response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['action', [true, ['install', 'uninstall', 'sync']]],
-        ['ids', [false, 'number[]']],
+        [
+          'action',
+          [
+            true,
+            ['install', 'uninstall', 'sync'],
+          ],
+        ],
+        [
+          'ids',
+          [false, 'number[]'],
+        ],
       ] as const,
     })
     const { action, ids } = params.body
@@ -291,7 +400,11 @@ api.post('/operate', async (request, response) => {
 
     if (!ids || ids.length === 0)
       throw new Error('ids 不能为空')
-    const items = await db.dependencyManage.$list({ where: { id: { in: ids } } })
+    const items = await db.dependencyManage.$list({
+      where: {
+        id: { in: ids },
+      },
+    })
     if (items.length === 0)
       throw new Error('未找到指定依赖')
 
@@ -329,8 +442,17 @@ apiOpen.post('/v1/operate', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['action', [true, ['install', 'uninstall', 'sync']]],
-        ['ids', [false, 'number[]']],
+        [
+          'action',
+          [
+            true,
+            ['install', 'uninstall', 'sync'],
+          ],
+        ],
+        [
+          'ids',
+          [false, 'number[]'],
+        ],
       ] as const,
     }, true)
     const { action, ids } = params.body
@@ -343,7 +465,11 @@ apiOpen.post('/v1/operate', async (request, response) => {
 
     if (!ids || ids.length === 0)
       throw new Error('ids 不能为空')
-    const items = await db.dependencyManage.$list({ where: { id: { in: ids } } })
+    const items = await db.dependencyManage.$list({
+      where: {
+        id: { in: ids },
+      },
+    })
     if (items.length === 0)
       throw new Error('未找到指定依赖')
 
@@ -381,7 +507,12 @@ apiOpen.post('/v1/operate', async (request, response) => {
 api.get('/error', async (request, response) => {
   try {
     validateRequestParams(request, {
-      query: [['id', [true, 'string']]] as const,
+      query: [
+        [
+          'id',
+          [true, 'string'],
+        ],
+      ] as const,
     })
     const idStr = request.query.id as string
     if (!/^\d+$/.test(idStr) || Number.parseInt(idStr) <= 0)
@@ -401,7 +532,12 @@ apiOpen.get('/v1/error', async (request, response) => {
   try {
     // 传参校验
     const params = validateRequestParams(request, {
-      query: [['id', [true, 'string']]] as const,
+      query: [
+        [
+          'id',
+          [true, 'string'],
+        ],
+      ] as const,
     })
     const { id } = params.query
     if (!/^\d+$/.test(id) || Number.parseInt(id) <= 0)
@@ -424,7 +560,10 @@ apiOpen.get('/v1/query', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       query: [
-        ['id', [true, 'string']],
+        [
+          'id',
+          [true, 'string'],
+        ],
       ] as const,
     })
     const { id } = params.query

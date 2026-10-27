@@ -118,7 +118,9 @@ export async function processDirectRule(
     }
   }
   for (const [pattern, group] of brokenByPattern) {
-    const label = pattern.length > 50 ? `${pattern.slice(0, 50)}…` : pattern
+    const label = pattern.length > 50
+      ? `${pattern.slice(0, 50)}…`
+      : pattern
     const channelCounts = new Map<number, number>()
     for (const receiver of group) {
       for (const channelId of receiver.channelIds) {
@@ -138,7 +140,9 @@ export async function processDirectRule(
       })
     }
   }
-  const matchResults = activeCandidates.length > 0 ? await matchDirectRule(lines, activeCandidates) : []
+  const matchResults = activeCandidates.length > 0
+    ? await matchDirectRule(lines, activeCandidates)
+    : []
   const pushUnits = new Map<string, { channel: ChannelSnapshot, config: ReceiverPushConfig, indexes: Map<string, number>, receivers: Set<string> }>()
   for (const [i, candidate] of activeCandidates.entries()) {
     const matched = matchResults[i]
@@ -178,10 +182,17 @@ export async function processDirectRule(
       if (!channel) {
         continue
       }
-      const unitKey = mergeMode ? `${channelId}\n${candidate.titleSideKey}` : `${channelId}\n${candidate.receiver}`
+      const unitKey = mergeMode
+        ? `${channelId}\n${candidate.titleSideKey}`
+        : `${channelId}\n${candidate.receiver}`
       let unit = pushUnits.get(unitKey)
       if (!unit) {
-        unit = { channel, config: candidate.pushConfig, indexes: new Map(), receivers: new Set() }
+        unit = {
+          channel,
+          config: candidate.pushConfig,
+          indexes: new Map(),
+          receivers: new Set(),
+        }
         pushUnits.set(unitKey, unit)
       }
       unit.receivers.add(candidate.receiver)
@@ -198,7 +209,9 @@ export async function processDirectRule(
   // 标题按推送单元渲染（{{receiver}} 各单元不同），渲染结果去重后替换，避免渠道数百级时重复占用 worker
   const titleCache = new Map<string, string>()
   for (const { channel, config, indexes, receivers } of pushUnits.values()) {
-    const orderedLines = [...indexes.entries()].sort((a, b) => a[1] - b[1]).map(([line]) => line)
+    const orderedLines = [
+      ...indexes.entries(),
+    ].sort((a, b) => a[1] - b[1]).map(([line]) => line)
     const pushContent = orderedLines.join('\n')
     const receiverLabels = [...receivers].join('、')
     const cacheKey = `${config.titleMode}\n${config.titleTemplate}\n${config.postReplaces}\n${receiverLabels}`
@@ -212,7 +225,12 @@ export async function processDirectRule(
     // 置空串交由推送层清理拼接残留
     enqueuePush(
       channel,
-      { title: config.titleMerge === 0 && isTitlelessChannel(channel.type) ? '' : title, content: pushContent },
+      {
+        title: config.titleMerge === 0 && isTitlelessChannel(channel.type)
+          ? ''
+          : title,
+        content: pushContent,
+      },
       { ruleName: directRule.name },
       session,
     )

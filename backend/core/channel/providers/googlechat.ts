@@ -14,8 +14,14 @@ export const GoogleChat = {
   type: 'googlechat',
   singleBody: true,
   configRules: [
-    ['webhookUrl', [true, 'string']],
-    ['maxRetries', [false, 'number']],
+    [
+      'webhookUrl',
+      [true, 'string'],
+    ],
+    [
+      'maxRetries',
+      [false, 'number'],
+    ],
   ],
   rateLimit: {
     // 每空间写入 60 次/分钟

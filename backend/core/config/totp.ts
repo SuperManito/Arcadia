@@ -64,7 +64,10 @@ export function verifyTOTPCode(
     })
 
     // 将 number 转为字符串传给 TOTP 库
-    const delta = totp.validate({ token: ''.concat(code), window })
+    const delta = totp.validate({
+      token: ''.concat(code),
+      window,
+    })
     return delta !== null
   }
   catch {

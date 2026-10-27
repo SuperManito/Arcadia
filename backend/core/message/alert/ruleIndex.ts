@@ -31,8 +31,12 @@ export async function refreshEnabledRuleIndex() {
 async function refresh() {
   try {
     const rules = await db.messageAlertRule.$list(
-      { where: { enabled: 1 } },
-      { select: { categories: true, types: true } },
+      {
+        where: { enabled: 1 },
+      },
+      {
+        select: { categories: true, types: true },
+      },
     )
     const categories = new Set<string>()
     const types = new Set<string>()
@@ -54,7 +58,12 @@ async function refresh() {
         ruleTypes.forEach(type => types.add(type))
       }
     }
-    enabledRuleIndex = { allCategories, categories, allTypes, types }
+    enabledRuleIndex = {
+      allCategories,
+      categories,
+      allTypes,
+      types,
+    }
   }
   catch (e: any) {
     logger.error('[消息中心监控告警] 刷新启用规则索引失败', e)

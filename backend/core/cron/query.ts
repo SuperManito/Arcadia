@@ -21,7 +21,9 @@ async function getExecCounts(start: number, end: number, taskType: TasksFilterTy
   const records = await db.tasksExecutionStats.$list({
     where: {
       exec_timestamp: { gte: start, lte: end },
-      ...(taskType !== TasksTypeEnum.ALL ? { task_type: taskType } : {}),
+      ...(taskType !== TasksTypeEnum.ALL
+        ? { task_type: taskType }
+        : {}),
     },
   })
   return {
@@ -148,7 +150,9 @@ export async function getDashboardTrend(
           gte: startTimestamp,
           lte: endTimestamp,
         },
-        ...(taskType !== TasksTypeEnum.ALL ? { task_type: taskType } : {}),
+        ...(taskType !== TasksTypeEnum.ALL
+          ? { task_type: taskType }
+          : {}),
       },
       orderBy: {
         exec_timestamp: 'asc',

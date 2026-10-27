@@ -37,7 +37,9 @@ export async function isUpgradeRunning(): Promise<boolean> {
     return false
   if (Date.now() - marker.startedAt >= updateConstants.UPGRADE_SCRIPT_TIMEOUT_MS)
     return false
-  return marker.pid ? isProcessAlive(marker.pid) : true
+  return marker.pid
+    ? isProcessAlive(marker.pid)
+    : true
 }
 
 function isProcessAlive(pid: number): boolean {
@@ -57,7 +59,10 @@ async function clearUpgradeHook(): Promise<void> {
 
 async function writeMarker(marker: UpgradeMarker): Promise<void> {
   await mkdir(APP_DIR_PATH.TMP, { recursive: true })
-  await writeFile(APP_FILE_PATH.UPDATE_MARKER, JSON.stringify({ ...marker, startedAt: Date.now() }), 'utf8')
+  await writeFile(APP_FILE_PATH.UPDATE_MARKER, JSON.stringify({
+    ...marker,
+    startedAt: Date.now(),
+  }), 'utf8')
 }
 
 async function readMarker(): Promise<UpgradeMarker | null> {
@@ -122,7 +127,12 @@ export async function startUpgrade(): Promise<void> {
     if (!branch || !pendingCommit)
       throw new Error('当前没有可更新的版本，请重新检查更新后再试')
 
-    const marker: UpgradeMarker = { targetCommit: pendingCommit, versionTag: pendingTag || null, branch, startedAt: Date.now() }
+    const marker: UpgradeMarker = {
+      targetCommit: pendingCommit,
+      versionTag: pendingTag || null,
+      branch,
+      startedAt: Date.now(),
+    }
     await updateRuntimeConfigValue(ConfigKeyRuntime.UPDATE_UPGRADE_PENDING, 'true')
     runUpgradeProcess(marker)
   }
@@ -255,7 +265,10 @@ async function finalizeUpgradeOutcome(marker: UpgradeMarker): Promise<{ success:
   if (success) {
     await updateRuntimeConfigValues([
       { key: ConfigKeyRuntime.UPDATE_PENDING_COMMIT, value: '' },
-      { key: ConfigKeyRuntime.UPDATE_CHECK_LAST_AT, value: String(Date.now()) },
+      {
+        key: ConfigKeyRuntime.UPDATE_CHECK_LAST_AT,
+        value: String(Date.now()),
+      },
     ])
     // 更新后重新从本地获取当前版本号
     await updateCore.refreshVersionTagCache()

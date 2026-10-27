@@ -36,7 +36,12 @@ function depGetSource(ecosystem: 'npm' | 'pip' | 'apt' | 'gem'): string {
  */
 export function depSetSource(ecosystem: 'npm' | 'pnpm' | 'pip' | 'apt' | 'gem', url: string): void {
   try {
-    execFileSync('bash', [DEP_SH_PATH, 'set-source', ecosystem, url], {
+    execFileSync('bash', [
+      DEP_SH_PATH,
+      'set-source',
+      ecosystem,
+      url,
+    ], {
       encoding: 'utf8',
       timeout: 30000,
     })
@@ -51,7 +56,9 @@ export function depSetSource(ecosystem: 'npm' | 'pnpm' | 'pip' | 'apt' | 'gem', 
  * 若对应配置键在 DB 中为空，则调用 dep.sh get-source 检测当前系统源并写入 DB
  */
 export async function detectAndSaveSourcesIfEmpty(): Promise<void> {
-  const configs = await db.config.$list({ where: { module: ConfigModule.SYSTEM } })
+  const configs = await db.config.$list({
+    where: { module: ConfigModule.SYSTEM },
+  })
   const configMap: Record<string, string> = {}
   for (const item of configs) {
     configMap[item.key] = item.value

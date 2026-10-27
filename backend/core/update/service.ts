@@ -35,7 +35,9 @@ export async function getUpdateSnapshot(): Promise<UpdateSnapshot> {
 
   return {
     current: { versionTag, ...local },
-    lastCheckedAt: lastAtRaw ? Number(lastAtRaw) : null,
+    lastCheckedAt: lastAtRaw
+      ? Number(lastAtRaw)
+      : null,
     updating: await isUpgradeRunning(),
   }
 }

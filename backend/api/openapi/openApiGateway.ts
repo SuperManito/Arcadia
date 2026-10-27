@@ -59,7 +59,9 @@ async function tokenChecker(req: Request) {
     }
   }
   catch (e) {
-    logger.error(`OpenAPI 认证失败：${JSON.stringify(e instanceof Error ? e.message : e)}`)
+    logger.error(`OpenAPI 认证失败：${JSON.stringify(e instanceof Error
+      ? e.message
+      : e)}`)
   }
   return API_STATUS_CODE.OPEN_API.AUTH_FAIL
 }

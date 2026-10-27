@@ -48,12 +48,18 @@ function createPtyProcess(options: {
   const rows = typeof options.rows === 'number' && Number.isFinite(options.rows)
     ? Math.min(Math.max(Math.floor(options.rows), 1), 200)
     : 24
-  const cwd = typeof options.cwd === 'string' && options.cwd ? options.cwd : APP_ROOT_DIR
-  const command = typeof options.command === 'string' ? options.command : undefined
+  const cwd = typeof options.cwd === 'string' && options.cwd
+    ? options.cwd
+    : APP_ROOT_DIR
+  const command = typeof options.command === 'string'
+    ? options.command
+    : undefined
   const shell = getShell()
 
   // 如果指定了 command，通过 shell -c 执行
-  const args = command ? ['-c', command] : []
+  const args = command
+    ? ['-c', command]
+    : []
 
   return ptyModule.spawn(shell, args, {
     name: 'xterm-256color',

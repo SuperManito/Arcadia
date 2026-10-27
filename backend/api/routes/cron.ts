@@ -58,16 +58,33 @@ type CreateTaskPayload<T> = TaskPayload<T> & { type: TasksTypeEnum, create_time:
 
 function handleSaveTaskConfig(config: TaskConfigModel): string {
   const cronConfigValidateRules: ValidateObjectParamType[] = [
-    ['before_task_shell', [false, 'string']],
-    ['after_task_shell', [false, 'string']],
-    ['log_directory', [false, 'string']],
-    ['source_file', [false, 'string']],
-    ['allow_concurrency', [false, 'boolean']],
+    [
+      'before_task_shell',
+      [false, 'string'],
+    ],
+    [
+      'after_task_shell',
+      [false, 'string'],
+    ],
+    [
+      'log_directory',
+      [false, 'string'],
+    ],
+    [
+      'source_file',
+      [false, 'string'],
+    ],
+    [
+      'allow_concurrency',
+      [false, 'boolean'],
+    ],
   ]
 
   validateObject(config, cronConfigValidateRules, 'config')
   const conf = cleanProperties(config, cronConfigValidateRules.map((rule) => rule[0]))
-  return Object.keys(conf).length === 0 ? '' : JSON.stringify(conf) // 转为字符串（空配置对象存储为空字符串）
+  return Object.keys(conf).length === 0
+    ? ''
+    : JSON.stringify(conf) // 转为字符串（空配置对象存储为空字符串）
 }
 
 /**
@@ -75,8 +92,12 @@ function handleSaveTaskConfig(config: TaskConfigModel): string {
  */
 api.get('/', async (request, response) => {
   try {
-    const active = request.query.active ? (request.query.active as string).split(',') : []
-    const tags = request.query.tags ? (request.query.tags as string).split(',').map((s) => s.trim()).filter((s) => s) : []
+    const active = request.query.active
+      ? (request.query.active as string).split(',')
+      : []
+    const tags = request.query.tags
+      ? (request.query.tags as string).split(',').map((s) => s.trim()).filter((s) => s)
+      : []
     const filter = Object.assign({}, request.query)
     delete filter.active
     delete filter.tags
@@ -86,12 +107,18 @@ api.get('/', async (request, response) => {
     const and: tasksWhereInput[] = []
     // 任务标签过滤
     if (tags.length > 0) {
-      const tagFilters = tags.map((tag) => ({ tags: { contains: tag } }))
+      const tagFilters = tags.map((tag) => ({
+        tags: { contains: tag },
+      }))
       and.push({ OR: tagFilters })
     }
     // 启用/禁用状态过滤
     if (active.length > 0) {
-      const activeFilters = active.map((active) => ({ active: { equals: Number.parseInt(active) } }))
+      const activeFilters = active.map((active) => ({
+        active: {
+          equals: Number.parseInt(active),
+        },
+      }))
       and.push({ OR: activeFilters })
     }
     // 搜索过滤
@@ -99,8 +126,12 @@ api.get('/', async (request, response) => {
       const search = request.query.search as string
       and.push({
         OR: [
-          { name: { contains: search } },
-          { shell: { contains: search } },
+          {
+            name: { contains: search },
+          },
+          {
+            shell: { contains: search },
+          },
         ],
       })
     }
@@ -121,7 +152,9 @@ api.get('/', async (request, response) => {
     const tasks = await db.tasks.$page({
       where,
       orderBy: [
-        { [orderBy]: desc ? 'desc' : 'asc' },
+        {
+          [orderBy]: desc ? 'desc' : 'asc',
+        },
       ],
       page: String(request.query.page),
       size: String(request.query.size),
@@ -152,7 +185,9 @@ api.get('/', async (request, response) => {
               (task as any).log_path = ''
             }
           }
-          (task as any).script_path = `${targetDir === APP_DIR_TYPE.RAW ? APP_DIR_PATH.RAW : `${APP_DIR_PATH.REPO}/${targetDir}`}/${targetFile}`
+          (task as any).script_path = `${targetDir === APP_DIR_TYPE.RAW
+            ? APP_DIR_PATH.RAW
+            : `${APP_DIR_PATH.REPO}/${targetDir}`}/${targetFile}`
         }
         catch {
           (task as any).log_path = '';
@@ -174,13 +209,32 @@ apiOpen.get('/v1/page', async (request, response) => {
     validatePageFixedParams(request, ['sort', 'last_runtime', 'last_run_use'])
     validateRequestParams(request, {
       query: [
-        ['type', [false, [TasksTypeEnum.USER, TasksTypeEnum.SYSTEM]]],
-        ['active', [false, ['1', '0']]],
-        ['tags', [false, 'string', true]],
+        [
+          'type',
+          [
+            false,
+            [TasksTypeEnum.USER, TasksTypeEnum.SYSTEM],
+          ],
+        ],
+        [
+          'active',
+          [
+            false,
+            ['1', '0'],
+          ],
+        ],
+        [
+          'tags',
+          [false, 'string', true],
+        ],
       ],
     })
-    const active = request.query.active ? (request.query.active as string).split(',') : []
-    const tags = request.query.tags ? (request.query.tags as string).split(',').map((s) => s.trim()).filter((s) => s) : []
+    const active = request.query.active
+      ? (request.query.active as string).split(',')
+      : []
+    const tags = request.query.tags
+      ? (request.query.tags as string).split(',').map((s) => s.trim()).filter((s) => s)
+      : []
     const filter = Object.assign({}, request.query)
     delete filter.active
     delete filter.tags
@@ -190,12 +244,18 @@ apiOpen.get('/v1/page', async (request, response) => {
     const and: tasksWhereInput[] = []
     // 任务标签过滤
     if (tags.length > 0) {
-      const tagFilters = tags.map((tag) => ({ tags: { contains: tag } }))
+      const tagFilters = tags.map((tag) => ({
+        tags: { contains: tag },
+      }))
       and.push({ OR: tagFilters })
     }
     // 启用/禁用状态过滤
     if (active.length > 0) {
-      const activeFilters = active.map((active) => ({ active: { equals: Number.parseInt(active) } }))
+      const activeFilters = active.map((active) => ({
+        active: {
+          equals: Number.parseInt(active),
+        },
+      }))
       and.push({ OR: activeFilters })
     }
     // 搜索过滤
@@ -203,8 +263,12 @@ apiOpen.get('/v1/page', async (request, response) => {
       const search = request.query.search as string
       and.push({
         OR: [
-          { name: { contains: search } },
-          { shell: { contains: search } },
+          {
+            name: { contains: search },
+          },
+          {
+            shell: { contains: search },
+          },
         ],
       })
     }
@@ -225,7 +289,9 @@ apiOpen.get('/v1/page', async (request, response) => {
     const tasks = await db.tasks.$page({
       where,
       orderBy: [
-        { [orderBy]: desc ? 'desc' : 'asc' },
+        {
+          [orderBy]: desc ? 'desc' : 'asc',
+        },
       ],
       page: String(request.query.page),
       size: String(request.query.size),
@@ -259,7 +325,10 @@ apiOpen.get('/v1/query', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       query: [
-        ['id', [true, 'string']],
+        [
+          'id',
+          [true, 'string'],
+        ],
       ] as const,
     })
     const { id } = params.query
@@ -283,7 +352,9 @@ apiOpen.get('/v1/query', async (request, response) => {
  */
 api.post('/', async (request, response) => {
   try {
-    const task = Object.assign({}, request.body, { create_time: new Date() })
+    const task = Object.assign({}, request.body, {
+      create_time: new Date(),
+    })
     delete task.id
     if ('error_alert' in task) {
       task.error_alert = normalizeTaskAlertChannelIds(task.error_alert)
@@ -308,13 +379,40 @@ apiOpen.post('/v1/create', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['name', [true, 'string']],
-        ['cron', [true, 'string']],
-        ['shell', [true, 'string']],
-        ['active', [false, [1, 0]]],
-        ['remark', [false, 'string']],
-        ['config', [false, 'object']],
-        ['error_notify', [false, [1, 0]]],
+        [
+          'name',
+          [true, 'string'],
+        ],
+        [
+          'cron',
+          [true, 'string'],
+        ],
+        [
+          'shell',
+          [true, 'string'],
+        ],
+        [
+          'active',
+          [
+            false,
+            [1, 0],
+          ],
+        ],
+        [
+          'remark',
+          [false, 'string'],
+        ],
+        [
+          'config',
+          [false, 'object'],
+        ],
+        [
+          'error_notify',
+          [
+            false,
+            [1, 0],
+          ],
+        ],
       ] as const,
     }, true)
     const { cron } = params.body
@@ -352,7 +450,9 @@ api.put('/', async (request, response) => {
       tasks = request.body.map((task) => Object.assign({}, task))
     }
     else {
-      tasks = [Object.assign({}, request.body)]
+      tasks = [
+        Object.assign({}, request.body),
+      ]
     }
     for (const task of tasks) {
       if ('orderBy' in task)
@@ -405,14 +505,44 @@ apiOpen.post('/v1/update', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
-        ['name', [false, 'string']],
-        ['cron', [false, 'string']],
-        ['shell', [false, 'string']],
-        ['active', [false, [1, 0]]],
-        ['remark', [false, 'string']],
-        ['config', [false, 'object']],
-        ['error_notify', [false, [1, 0]]],
+        [
+          'id',
+          [true, 'number'],
+        ],
+        [
+          'name',
+          [false, 'string'],
+        ],
+        [
+          'cron',
+          [false, 'string'],
+        ],
+        [
+          'shell',
+          [false, 'string'],
+        ],
+        [
+          'active',
+          [
+            false,
+            [1, 0],
+          ],
+        ],
+        [
+          'remark',
+          [false, 'string'],
+        ],
+        [
+          'config',
+          [false, 'object'],
+        ],
+        [
+          'error_notify',
+          [
+            false,
+            [1, 0],
+          ],
+        ],
       ] as const,
     }, true)
     const { id, cron } = params.body
@@ -452,7 +582,9 @@ apiOpen.post('/v1/update', async (request, response) => {
 api.delete('/', async (request, response) => {
   try {
     const id = request.body.id
-    const ids: number[] = Array.isArray(id) ? id : [id]
+    const ids: number[] = Array.isArray(id)
+      ? id
+      : [id]
     const res = await db.tasks.$deleteById(ids)
     response.send(API_STATUS_CODE.okData(res))
     if (res) {
@@ -472,11 +604,16 @@ apiOpen.post('/v1/delete', async (request, response) => {
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number | number[]']],
+        [
+          'id',
+          [true, 'number | number[]'],
+        ],
       ] as const,
     })
     const { id } = params.body
-    const ids: number[] = Array.isArray(id) ? id : [id]
+    const ids: number[] = Array.isArray(id)
+      ? id
+      : [id]
     ids.forEach((id) => {
       if (id <= 0) {
         throw new Error('参数 id 无效（参数值类型错误）')
@@ -503,9 +640,18 @@ async function order(request: Request, response: Response, useOpenApiHandler = f
     // 传参校验
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
-        ['order', [false, 'number']],
-        ['moveToEnd', [false, 'boolean']],
+        [
+          'id',
+          [true, 'number'],
+        ],
+        [
+          'order',
+          [false, 'number'],
+        ],
+        [
+          'moveToEnd',
+          [false, 'boolean'],
+        ],
       ] as const,
     })
     const { id, order, moveToEnd } = params.body
@@ -524,7 +670,13 @@ async function order(request: Request, response: Response, useOpenApiHandler = f
     }
     // 移动到最后
     if (moveToEnd) {
-      const result = await db.tasks.$page({ orderBy: [{ sort: 'desc' }], page: 1, size: 1 })
+      const result = await db.tasks.$page({
+        orderBy: [
+          { sort: 'desc' },
+        ],
+        page: 1,
+        size: 1,
+      })
       const sort = result.data[0]?.sort
       if (!sort && sort !== 0) {
         response.send(API_STATUS_CODE.fail('未找到最大排序值'))
@@ -607,7 +759,9 @@ apiOpen.get('/v1/runningTasks', (_request, response) => {
 api.post('/run', async (request, response) => {
   try {
     const id = request.body.id
-    const ids: number[] = Array.isArray(id) ? id : [id]
+    const ids: number[] = Array.isArray(id)
+      ? id
+      : [id]
     for (const id of ids) {
       runCronTask(id, true)
     }
@@ -622,7 +776,9 @@ api.post('/run', async (request, response) => {
 apiOpen.post('/v1/run', async (request, response) => {
   try {
     const id = request.body.id
-    const ids: number[] = Array.isArray(id) ? id : [id]
+    const ids: number[] = Array.isArray(id)
+      ? id
+      : [id]
     for (const id of ids) {
       runCronTask(id, true)
     }
@@ -640,7 +796,9 @@ apiOpen.post('/v1/run', async (request, response) => {
 api.post('/terminate', async (request, response) => {
   try {
     const id = request.body.id
-    const ids: number[] = Array.isArray(id) ? id : [id]
+    const ids: number[] = Array.isArray(id)
+      ? id
+      : [id]
     for (const id of ids) {
       stopCronTask(id)
     }
@@ -655,7 +813,9 @@ api.post('/terminate', async (request, response) => {
 apiOpen.post('/v1/terminate', async (request, response) => {
   const id = request.body.id
   try {
-    const ids: number[] = Array.isArray(id) ? id : [id]
+    const ids: number[] = Array.isArray(id)
+      ? id
+      : [id]
     for (const id of ids) {
       stopCronTask(id)
     }
@@ -721,11 +881,16 @@ apiInner.post('/updateAll', async (request, response) => {
 
     // 删除
     if (deleteFiles && deleteFiles.length > 0) {
-      const notifyMap = new Map(deleteFiles.map((s: any) => [convertPathToBind(type, s.path), s.notify === true]))
+      const notifyMap = new Map(deleteFiles.map((s: any) => [
+        convertPathToBind(type, s.path),
+        s.notify === true,
+      ]))
       const deleteTask = await db.tasks.$list({
         where: {
           type: TasksTypeEnum.SYSTEM,
-          bind: { in: deleteFiles.map((s: CodeFileResolveResult) => convertPathToBind(type, s.path)) },
+          bind: {
+            in: deleteFiles.map((s: CodeFileResolveResult) => convertPathToBind(type, s.path)),
+          },
         },
       })
       const deleteIds = deleteTask.map((s) => s.id)
@@ -757,7 +922,9 @@ apiInner.post('/updateAll', async (request, response) => {
       const deleteTask = await db.tasks.$list({
         where: {
           type: TasksTypeEnum.SYSTEM,
-          bind: { in: newFiles.map((s: CodeFileResolveResult) => convertPathToBind(type, s.path)) },
+          bind: {
+            in: newFiles.map((s: CodeFileResolveResult) => convertPathToBind(type, s.path)),
+          },
         },
       })
       const deleteIds = deleteTask.map((s) => s.id)
@@ -776,7 +943,9 @@ apiInner.post('/updateAll', async (request, response) => {
             type,
             cron: task.cron,
             shell: `arcadia run ${task.runPath}`,
-            active: item.active === 0 ? 0 : 1, // 默认启用
+            active: item.active === 0
+              ? 0
+              : 1, // 默认启用
             config: '',
             tags: task.tags || '',
             create_time: new Date(),

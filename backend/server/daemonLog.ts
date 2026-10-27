@@ -123,7 +123,14 @@ async function startWatching(socket: Socket, taskId: number, filePath: string): 
     return
   }
 
-  state = { taskId, filePath, lastSize, watcher, timer: null, flushing: false }
+  state = {
+    taskId,
+    filePath,
+    lastSize,
+    watcher,
+    timer: null,
+    flushing: false,
+  }
   watchStates.set(socket.id, state)
 }
 
@@ -134,7 +141,9 @@ export function initDaemonLogServer(io: Server): void {
   io.on('connection', (socket: Socket) => {
     socket.on(SocketEvent.DAEMON_LOG_SUBSCRIBE, async (payload: unknown) => {
       try {
-        const id = typeof payload === 'object' && payload !== null ? (payload as { id?: unknown }).id : undefined
+        const id = typeof payload === 'object' && payload !== null
+          ? (payload as { id?: unknown }).id
+          : undefined
         if (typeof id !== 'number' || !Number.isInteger(id) || id <= 0) {
           return
         }

@@ -29,7 +29,9 @@ export const API: Express = express()
  */
 API.get('/', async (_request: Request, response: Response) => {
   try {
-    const tasks = await db.daemonTask.$list({ orderBy: { id: 'asc' } })
+    const tasks = await db.daemonTask.$list({
+      orderBy: { id: 'asc' },
+    })
     const statusMap = await getAllProcessStatuses(tasks.map(t => t.name))
     const result = tasks.map((task) => {
       const pm2Status = statusMap.get(task.name) ?? { status: 'not-started' as const }
@@ -42,7 +44,9 @@ API.get('/', async (_request: Request, response: Response) => {
         pm_uptime: pm2Status.pm_uptime,
         restart_time: pm2Status.restart_time,
         memory: pm2Status.memory,
-        log_path: task.log_name ? getDaemonLogFilePath({ log_dir: task.log_dir, log_name: task.log_name }) : '',
+        log_path: task.log_name
+          ? getDaemonLogFilePath({ log_dir: task.log_dir, log_name: task.log_name })
+          : '',
       }
     })
     response.send(API_STATUS_CODE.okData(result))
@@ -59,24 +63,78 @@ API.post('/save', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [false, 'number']],
-        ['name', [false, 'string']],
-        ['file_path', [false, 'string']],
-        ['description', [false, 'string', true]],
-        ['boot_start', [false, 'number']],
-        ['max_restarts', [false, 'number']],
-        ['restart_delay', [false, 'number']],
-        ['restart_cron', [false, 'string', true]],
-        ['autorestart', [false, 'number']],
-        ['max_memory_restart', [false, 'number']],
-        ['stop_exit_codes', [false, 'number']],
-        ['exp_backoff_restart_delay', [false, 'number']],
-        ['envs', [false, 'string', true]],
-        ['options', [false, 'string', true]],
-        ['log_dir', [false, 'string', true]],
-        ['log_name', [false, 'string', true]],
-        ['log_max_lines', [false, 'number']],
-        ['active', [false, 'number']],
+        [
+          'id',
+          [false, 'number'],
+        ],
+        [
+          'name',
+          [false, 'string'],
+        ],
+        [
+          'file_path',
+          [false, 'string'],
+        ],
+        [
+          'description',
+          [false, 'string', true],
+        ],
+        [
+          'boot_start',
+          [false, 'number'],
+        ],
+        [
+          'max_restarts',
+          [false, 'number'],
+        ],
+        [
+          'restart_delay',
+          [false, 'number'],
+        ],
+        [
+          'restart_cron',
+          [false, 'string', true],
+        ],
+        [
+          'autorestart',
+          [false, 'number'],
+        ],
+        [
+          'max_memory_restart',
+          [false, 'number'],
+        ],
+        [
+          'stop_exit_codes',
+          [false, 'number'],
+        ],
+        [
+          'exp_backoff_restart_delay',
+          [false, 'number'],
+        ],
+        [
+          'envs',
+          [false, 'string', true],
+        ],
+        [
+          'options',
+          [false, 'string', true],
+        ],
+        [
+          'log_dir',
+          [false, 'string', true],
+        ],
+        [
+          'log_name',
+          [false, 'string', true],
+        ],
+        [
+          'log_max_lines',
+          [false, 'number'],
+        ],
+        [
+          'active',
+          [false, 'number'],
+        ],
       ] as const,
     }, true)
 
@@ -177,7 +235,10 @@ API.delete('/', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
+        [
+          'id',
+          [true, 'number'],
+        ],
       ] as const,
     })
     await deleteDaemonTask(params.body.id)
@@ -195,8 +256,14 @@ API.post('/action', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
-        ['action', [true, 'string']],
+        [
+          'id',
+          [true, 'number'],
+        ],
+        [
+          'action',
+          [true, 'string'],
+        ],
       ] as const,
     })
 
@@ -233,11 +300,19 @@ API.get('/check', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['name', [true, 'string']],
-        ['excludeId', [false, 'string']],
+        [
+          'name',
+          [true, 'string'],
+        ],
+        [
+          'excludeId',
+          [false, 'string'],
+        ],
       ] as const,
     })
-    const excludeId = params.query.excludeId ? Number.parseInt(params.query.excludeId) : undefined
+    const excludeId = params.query.excludeId
+      ? Number.parseInt(params.query.excludeId)
+      : undefined
     const result = await checkNameAvailable(params.query.name, excludeId)
     response.send(API_STATUS_CODE.okData(result))
   }
@@ -253,15 +328,23 @@ API.get('/log', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
       query: [
-        ['id', [true, 'string']],
-        ['startLine', [false, 'string']],
+        [
+          'id',
+          [true, 'string'],
+        ],
+        [
+          'startLine',
+          [false, 'string'],
+        ],
       ] as const,
     })
     const id = Number.parseInt(params.query.id)
     if (Number.isNaN(id) || id <= 0) {
       return response.send(API_STATUS_CODE.fail('参数 id 无效'))
     }
-    const startLine = params.query.startLine ? Number.parseInt(params.query.startLine) : undefined
+    const startLine = params.query.startLine
+      ? Number.parseInt(params.query.startLine)
+      : undefined
     const result = await getDaemonTaskLog(id, startLine)
     response.send(API_STATUS_CODE.okData(result))
   }
@@ -277,7 +360,10 @@ API.post('/log/trim', async (request: Request, response: Response) => {
   try {
     const params = validateRequestParams(request, {
       body: [
-        ['id', [true, 'number']],
+        [
+          'id',
+          [true, 'number'],
+        ],
       ] as const,
     })
     await trimDaemonTaskLog(params.body.id)

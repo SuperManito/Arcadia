@@ -24,7 +24,9 @@ export function cleanChannelTags(raw: unknown): string {
 export async function getChannelTags() {
   const rows = await db.notificationChannel.$list(
     {},
-    { select: { tags: true } },
+    {
+      select: { tags: true },
+    },
   )
   return collectTagLabels(rows.map(row => row.tags))
 }

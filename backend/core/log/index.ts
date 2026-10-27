@@ -34,7 +34,11 @@ export async function addLoginLog(data: { ip: string, address: string, result: n
  * 获取上次成功登录信息
  */
 export async function getLastLoginInfo() {
-  const records = await db.loginLog.$list({ where: { result: 1 }, orderBy: { time: 'desc' }, take: 2 })
+  const records = await db.loginLog.$list({
+    where: { result: 1 },
+    orderBy: { time: 'desc' },
+    take: 2,
+  })
   if (records[1]) {
     const { ip, address, time } = records[1]
     return { ip, address, time }
@@ -47,7 +51,11 @@ export async function getLastLoginInfo() {
  */
 export async function cleanServerLogs(days: number) {
   const cutoff = new Date(Date.now() - days * 86400000)
-  return await db.serverLog.deleteMany({ where: { time: { lt: cutoff } } })
+  return await db.serverLog.deleteMany({
+    where: {
+      time: { lt: cutoff },
+    },
+  })
 }
 
 /**
@@ -55,7 +63,11 @@ export async function cleanServerLogs(days: number) {
  */
 export async function cleanLoginLogs(days: number) {
   const cutoff = new Date(Date.now() - days * 86400000)
-  return await db.loginLog.deleteMany({ where: { time: { lt: cutoff } } })
+  return await db.loginLog.deleteMany({
+    where: {
+      time: { lt: cutoff },
+    },
+  })
 }
 
 /**
@@ -63,7 +75,11 @@ export async function cleanLoginLogs(days: number) {
  */
 export async function cleanOpenApiLogs(days: number) {
   const cutoff = new Date(Date.now() - days * 86400000)
-  return await db.openApiLog.deleteMany({ where: { time: { lt: cutoff } } })
+  return await db.openApiLog.deleteMany({
+    where: {
+      time: { lt: cutoff },
+    },
+  })
 }
 
 /**
@@ -133,7 +149,10 @@ async function flushOpenApiLogBuffer() {
   catch {
     // 写入失败时将数据放回队列，缓冲区上限 5000 条，超限丢弃最旧数据
     const MAX_BUFFER = 5000
-    const merged = [...batch, ...openApiLogBuffer]
+    const merged = [
+      ...batch,
+      ...openApiLogBuffer,
+    ]
     openApiLogBuffer.length = 0
     if (merged.length > MAX_BUFFER) {
       openApiLogBuffer.push(...merged.slice(merged.length - MAX_BUFFER))
