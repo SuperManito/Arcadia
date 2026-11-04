@@ -221,8 +221,7 @@ function define_base_command() {
             ;;
         Python)
             if [[ "${CLI_CONFIG_ENABLE_PYTHON_UV}" == "true" ]]; then
-                # pm2：uv run script.py，不传 -- -u 避免 pm2 追加 -- script_args 时产生双重 --
-                interpreter_args="run \"${run_target}\"${interpreter_args:+" ${interpreter_args}"}"
+                interpreter_args="run${interpreter_args:+" ${interpreter_args}"}"
                 interpreter="$(which uv)"
             else
                 interpreter_args="-u${interpreter_args:+" ${interpreter_args}"}"
@@ -264,6 +263,9 @@ function define_base_command() {
         C)
             base_cmd="gcc -o ${FileName} ${run_target} ; pm2 start \"${FileName}\" ${pm2_base_cmd}"
             ;;
+        Python)
+            base_cmd="PYTHONUNBUFFERED=1 pm2 start \"${run_target}\" ${pm2_base_cmd}"
+            ;;
         *)
             base_cmd="pm2 start \"${run_target}\" ${pm2_base_cmd}"
             ;;
@@ -302,7 +304,7 @@ function define_base_command() {
             ;;
         Python)
             if [[ "${CLI_CONFIG_ENABLE_PYTHON_UV}" == "true" ]]; then
-                base_cmd="uv run -- -u${interpreter_args:+" ${interpreter_args}"} ${run_target}"
+                base_cmd="PYTHONUNBUFFERED=1 uv run${interpreter_args:+" ${interpreter_args}"} ${run_target}"
             else
                 base_cmd="python3 -u${interpreter_args:+" ${interpreter_args}"} ${run_target}"
             fi
