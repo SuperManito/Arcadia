@@ -261,7 +261,7 @@ function define_base_command() {
 
         case "${FileType}" in
         C)
-            base_cmd="gcc -o ${FileName} ${run_target} ; pm2 start \"${FileName}\" ${pm2_base_cmd}"
+            base_cmd="gcc -o ${FileName} ${run_target} && pm2 start \"${FileName}\" ${pm2_base_cmd}"
             ;;
         Python)
             base_cmd="PYTHONUNBUFFERED=1 pm2 start \"${run_target}\" ${pm2_base_cmd}"
@@ -286,15 +286,15 @@ function define_base_command() {
                 fi
                 base_cmd="node${interpreter_args:+" ${interpreter_args}"} ${run_target}"
                 ;;
-            tsx | *)
-                base_cmd="tsx${interpreter_args:+" ${interpreter_args}"} ${run_target}"
-                ;;
             bun)
                 base_cmd="bun${interpreter_args:+" ${interpreter_args}"} ${run_target}"
                 ;;
             deno)
                 interpreter_args="--no-code-cache --no-prompt --allow-env --allow-read=./ --allow-write=./ --allow-net --deny-net=127.0.0.1,172.17.0.1,$(hostname -I)${interpreter_args:+" ${interpreter_args}"}"
                 base_cmd="deno run${interpreter_args:+" ${interpreter_args}"} ${run_target}"
+                ;;
+            tsx)
+                base_cmd="tsx${interpreter_args:+" ${interpreter_args}"} ${run_target}"
                 ;;
             ts-node)
                 interpreter_args="-T -O '{\"target\":\"esnext\"}'${interpreter_args:+" ${interpreter_args}"}"
